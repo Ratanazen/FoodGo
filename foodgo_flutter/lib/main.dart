@@ -78,7 +78,36 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // Needed for floating glass navbar
+      extendBody: true,
+      drawer: Drawer(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Theme.of(context).colorScheme.primary, const Color(0xFF00C6FF)],
+                ),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CircleAvatar(radius: 30, backgroundColor: Colors.white, child: Icon(Icons.person, size: 35, color: Colors.grey)),
+                  SizedBox(height: 12),
+                  Text('Control Panel', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            ListTile(leading: const Icon(Icons.admin_panel_settings), title: const Text('Admin Dashboard'), onTap: () {}),
+            ListTile(leading: const Icon(Icons.storefront), title: const Text('Restaurant Dashboard'), onTap: () {}),
+            ListTile(leading: const Icon(Icons.delivery_dining), title: const Text('Driver Dashboard'), onTap: () {}),
+            const Divider(),
+            ListTile(leading: const Icon(Icons.settings), title: const Text('Settings'), onTap: () {}),
+          ],
+        ),
+      ),
       body: _screens[_currentIndex],
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -188,7 +217,12 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const CircleAvatar(child: Icon(Icons.person))
+              IconButton(
+                icon: const Icon(Icons.menu, size: 28),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
             ],
           ),
           const SizedBox(height: 20),

@@ -7,6 +7,8 @@ import 'screens/map_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/restaurant_details_screen.dart';
+import 'screens/cart_screen.dart';
+import 'screens/checkout_screen.dart';
 import 'widgets/glass_container.dart';
 
 void main() {
@@ -53,6 +55,8 @@ class FoodGoApp extends StatelessWidget {
             '/home': (context) => const MainScreen(),
             '/map': (context) => const MapScreen(),
             '/restaurant': (context) => const RestaurantDetailsScreen(),
+            '/cart': (context) => const CartScreen(),
+            '/checkout': (context) => const CheckoutScreen(),
           },
         );
       },

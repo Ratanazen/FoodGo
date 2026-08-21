@@ -67,7 +67,7 @@ class RestaurantDetailsScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => Navigator.pushNamed(context, '/cart'),
         icon: const Icon(Icons.shopping_cart),
         label: const Text('View Cart'),
         backgroundColor: Theme.of(context).colorScheme.primary,

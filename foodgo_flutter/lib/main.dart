@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/forgot_password_screen.dart';
+import 'widgets/glass_container.dart';
 
 void main() {
-  runApp(const FoodGoApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const FoodGoApp(),
+    ),
+  );
 }
 
 class FoodGoApp extends StatelessWidget {
@@ -13,23 +21,37 @@ class FoodGoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'FoodGo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0072FF),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      initialRoute: '/login',
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/forgot-password': (context) => const ForgotPasswordScreen(),
-        '/home': (context) => const MainScreen(),
-        '/map': (context) => const MapScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'FoodGo',
+          debugShowCheckedModeBanner: false,
+          themeMode: themeProvider.themeMode,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF0072FF),
+              brightness: Brightness.light,
+            ),
+            useMaterial3: true,
+            scaffoldBackgroundColor: Colors.grey.shade50,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF0072FF),
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFF121212),
+          ),
+          initialRoute: '/login',
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/register': (context) => const RegisterScreen(),
+            '/forgot-password': (context) => const ForgotPasswordScreen(),
+            '/home': (context) => const MainScreen(),
+            '/map': (context) => const MapScreen(),
+          },
+        );
       },
     );
   }
@@ -49,25 +71,87 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const Center(child: Text('Search')),
     const Center(child: Text('Orders')),
-    const Center(child: Text('Profile')),
+    const ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true, // Needed for floating glass navbar
       body: _screens[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search), label: 'Search'),
-          NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Orders'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: GlassContainer(
+            borderRadius: BorderRadius.circular(30),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(Icons.home_outlined, Icons.home, 'Home', 0),
+                _buildNavItem(Icons.search_outlined, Icons.search, 'Search', 1),
+                _buildNavItem(Icons.receipt_long_outlined, Icons.receipt_long, 'Orders', 2),
+                _buildNavItem(Icons.person_outline, Icons.person, 'Profile', 3),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, IconData selectedIcon, String label, int index) {
+    final isSelected = _currentIndex == index;
+    final color = isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).iconTheme.color;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(isSelected ? selectedIcon : icon, color: color),
+          const SizedBox(height: 4),
+          Text(
+            label, 
+            style: TextStyle(
+              fontSize: 12, 
+              color: color,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
+
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          const Text('Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 24),
+          ListTile(
+            leading: const Icon(Icons.dark_mode),
+            title: const Text('Dark Mode'),
+            trailing: Switch(
+              value: isDark,
+              onChanged: (value) => themeProvider.toggleTheme(),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Logout'),
+            onTap: () => Navigator.pushReplacementNamed(context, '/login'),
+          ),
         ],
       ),
     );
@@ -112,7 +196,7 @@ class HomeScreen extends StatelessWidget {
               hintText: 'Search for restaurants or food',
               prefixIcon: const Icon(Icons.search),
               filled: true,
-              fillColor: Colors.grey.shade100,
+              fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade200,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -190,7 +274,7 @@ class HomeScreen extends StatelessWidget {
                               const Icon(Icons.star, size: 16, color: Colors.amber),
                               const Text(' 4.5  •  Fast Food  •  \$\$'),
                               const Spacer(),
-                              Text('15-25 min', style: TextStyle(color: Colors.grey.shade700)),
+                              Text('15-25 min', style: TextStyle(color: Colors.grey.shade500)),
                             ],
                           ),
                         ],

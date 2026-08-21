@@ -7,13 +7,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:provider/provider.dart';
+import 'package:foodgo_flutter/providers/theme_provider.dart';
 import 'package:foodgo_flutter/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const FoodGoApp());
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: const FoodGoApp(),
+      ),
+    );
 
     // Verify that our app starts on the Login screen.
     expect(find.text('Login'), findsWidgets);

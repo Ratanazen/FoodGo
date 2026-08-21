@@ -6,6 +6,7 @@ import 'screens/login_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/forgot_password_screen.dart';
+import 'screens/restaurant_details_screen.dart';
 import 'widgets/glass_container.dart';
 
 void main() {
@@ -51,6 +52,7 @@ class FoodGoApp extends StatelessWidget {
             '/forgot-password': (context) => const ForgotPasswordScreen(),
             '/home': (context) => const MainScreen(),
             '/map': (context) => const MapScreen(),
+            '/restaurant': (context) => const RestaurantDetailsScreen(),
           },
         );
       },
@@ -283,41 +285,44 @@ class HomeScreen extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: 3,
             itemBuilder: (context, index) {
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16.0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 150,
-                      decoration: const BoxDecoration(
-                        color: Colors.grey,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              return GestureDetector(
+                onTap: () => Navigator.pushNamed(context, '/restaurant'),
+                child: Card(
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 150,
+                        decoration: const BoxDecoration(
+                          color: Colors.grey,
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        ),
+                        child: const Center(child: Icon(Icons.image, size: 50, color: Colors.white)),
                       ),
-                      child: const Center(child: Icon(Icons.image, size: 50, color: Colors.white)),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Delicious Restaurant $index', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.star, size: 16, color: Colors.amber),
-                              const Text(' 4.5  •  Fast Food  •  \$\$'),
-                              const Spacer(),
-                              Text('15-25 min', style: TextStyle(color: Colors.grey.shade500)),
-                            ],
-                          ),
-                        ],
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Delicious Restaurant $index', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.star, size: 16, color: Colors.amber),
+                                const Text(' 4.5  •  Fast Food  •  \$\$'),
+                                const Spacer(),
+                                Text('15-25 min', style: TextStyle(color: Colors.grey.shade500)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ).animate().fade(delay: (200 + 100 * index).ms).slideY(begin: 0.2);
+                    ],
+                  ),
+                ).animate().fade(delay: (200 + 100 * index).ms).slideY(begin: 0.2),
+              );
             },
           )
         ],

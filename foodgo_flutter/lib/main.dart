@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'providers/theme_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/map_screen.dart';
@@ -230,7 +231,7 @@ class HomeScreen extends StatelessWidget {
                       Text(categories[index], style: const TextStyle(fontWeight: FontWeight.w500)),
                     ],
                   ),
-                );
+                ).animate().fade(delay: (100 * index).ms).slideX();
               },
             ),
           ),
@@ -282,7 +283,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              );
+              ).animate().fade(delay: (200 + 100 * index).ms).slideY(begin: 0.2);
             },
           )
         ],

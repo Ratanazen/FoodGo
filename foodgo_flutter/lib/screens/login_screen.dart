@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../widgets/glass_container.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -44,7 +45,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(Icons.fastfood, size: 80, color: Colors.white),
+                    const Icon(Icons.fastfood, size: 80, color: Colors.white)
+                        .animate()
+                        .fade(duration: 500.ms)
+                        .scale(delay: 200.ms),
                     const SizedBox(height: 16),
                     Text(
                       'Welcome to FoodGo',
@@ -53,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
-                    ),
+                    ).animate().fade(delay: 300.ms).slideY(),
                     const SizedBox(height: 32),
                     TextField(
                       controller: _emailController,
@@ -72,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                    ),
+                    ).animate().fade(delay: 400.ms).slideX(),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
@@ -91,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       obscureText: true,
-                    ),
+                    ).animate().fade(delay: 500.ms).slideX(),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _isLoading ? null : _login,
@@ -104,12 +108,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: _isLoading 
                           ? const CircularProgressIndicator(color: Color(0xFF0072FF))
                           : const Text('Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
+                    ).animate().fade(delay: 600.ms).scale(),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
                       child: const Text('Forgot Password?', style: TextStyle(color: Colors.white70)),
-                    ),
+                    ).animate().fade(delay: 700.ms),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -119,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: const Text('Sign Up', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ],
-                    ),
+                    ).animate().fade(delay: 800.ms),
                   ],
                 ),
               ),

@@ -35,7 +35,7 @@ class MapScreen extends StatelessWidget {
         },
         label: const Text('Confirm Location'),
         icon: const Icon(Icons.check),
-        backgroundColor: const Color(0xFFE94560),
+        backgroundColor: const Color(0xFF0072FF),
         foregroundColor: Colors.white,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

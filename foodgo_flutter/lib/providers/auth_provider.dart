@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../core/storage/secure_storage.dart';
 import '../services/api_service.dart';
 
 class AuthProvider with ChangeNotifier {
   bool _isAuthenticated = false;
   final ApiService _apiService = ApiService();
+  final SecureStorage _secureStorage = SecureStorage();
 
   bool get isAuthenticated => _isAuthenticated;
 
@@ -13,8 +14,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> _checkAuth() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access_token');
+    final token = await _secureStorage.getAccessToken();
     if (token != null) {
       _isAuthenticated = true;
       notifyListeners();

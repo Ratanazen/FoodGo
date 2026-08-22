@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/glass_container.dart';
+
+import '../../../providers/auth_provider.dart';
+import '../../../widgets/glass_container.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,15 +19,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     setState(() => _isLoading = true);
-    
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.login(
-      _emailController.text, 
-      _passwordController.text
+      _emailController.text,
+      _passwordController.text,
     );
-    
+
     setState(() => _isLoading = false);
-    
+
     if (mounted) {
       if (success) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -59,17 +60,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(Icons.fastfood, size: 80, color: Colors.white)
-                        .animate()
-                        .fade(duration: 500.ms)
-                        .scale(delay: 200.ms),
+                    const Icon(
+                      Icons.fastfood,
+                      size: 80,
+                      color: Colors.white,
+                    ).animate().fade(duration: 500.ms).scale(delay: 200.ms),
                     const SizedBox(height: 16),
                     Text(
                       'Welcome to FoodGo',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                       textAlign: TextAlign.center,
                     ).animate().fade(delay: 300.ms).slideY(),
                     const SizedBox(height: 32),
@@ -79,7 +82,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Email Address',
                         labelStyle: const TextStyle(color: Colors.white70),
-                        prefixIcon: const Icon(Icons.email, color: Colors.white70),
+                        prefixIcon: const Icon(
+                          Icons.email,
+                          color: Colors.white70,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: const BorderSide(color: Colors.white54),
                           borderRadius: BorderRadius.circular(12),
@@ -98,7 +104,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         labelStyle: const TextStyle(color: Colors.white70),
-                        prefixIcon: const Icon(Icons.lock, color: Colors.white70),
+                        prefixIcon: const Icon(
+                          Icons.lock,
+                          color: Colors.white70,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: const BorderSide(color: Colors.white54),
                           borderRadius: BorderRadius.circular(12),
@@ -117,24 +126,48 @@ class _LoginScreenState extends State<LoginScreen> {
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF0072FF),
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: _isLoading 
-                          ? const CircularProgressIndicator(color: Color(0xFF0072FF))
-                          : const Text('Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(
+                              color: Color(0xFF0072FF),
+                            )
+                          : const Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ).animate().fade(delay: 600.ms).scale(),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
-                      child: const Text('Forgot Password?', style: TextStyle(color: Colors.white70)),
+                      onPressed: () =>
+                          Navigator.pushNamed(context, '/forgot-password'),
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(color: Colors.white70),
+                      ),
                     ).animate().fade(delay: 700.ms),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Don\'t have an account?', style: TextStyle(color: Colors.white70)),
+                        const Text(
+                          'Don\'t have an account?',
+                          style: TextStyle(color: Colors.white70),
+                        ),
                         TextButton(
-                          onPressed: () => Navigator.pushNamed(context, '/register'),
-                          child: const Text('Sign Up', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/register'),
+                          child: const Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ).animate().fade(delay: 800.ms),

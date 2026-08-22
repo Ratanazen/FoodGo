@@ -21,9 +21,15 @@ class Address(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
+    class Meta:
+        verbose_name_plural = 'Addresses'
+
 class RestaurantCategory(models.Model):
     name = models.CharField(max_length=100)
-    image = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to='categories/', blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = 'Restaurant categories'
 
 class Restaurant(models.Model):
     owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='restaurant')
@@ -32,8 +38,8 @@ class Restaurant(models.Model):
     description = models.TextField(blank=True)
     address = models.TextField()
     phone = models.CharField(max_length=20)
-    logo = models.URLField(blank=True, null=True)
-    banner = models.URLField(blank=True, null=True)
+    logo = models.ImageField(upload_to='restaurants/logos/', blank=True, null=True)
+    banner = models.ImageField(upload_to='restaurants/banners/', blank=True, null=True)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
     delivery_time_min = models.IntegerField(default=15)
     delivery_time_max = models.IntegerField(default=45)
@@ -44,12 +50,15 @@ class FoodCategory(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='food_categories')
     name = models.CharField(max_length=100)
 
+    class Meta:
+        verbose_name_plural = 'Food categories'
+
 class FoodItem(models.Model):
     category = models.ForeignKey(FoodCategory, on_delete=models.CASCADE, related_name='items')
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    image = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to='foods/', blank=True, null=True)
     is_available = models.BooleanField(default=True)
 
 class Order(models.Model):
@@ -108,6 +117,9 @@ class Delivery(models.Model):
     delivery_time = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, default='assigned')
 
+    class Meta:
+        verbose_name_plural = 'Deliveries'
+
 class Review(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='review')
     rating = models.IntegerField(default=5)
@@ -129,3 +141,14 @@ class Notification(models.Model):
     message = models.TextField()
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class LiveItem(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    image = models.ImageField(upload_to='live_items/', blank=True, null=True)
+    is_live = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

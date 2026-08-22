@@ -40,6 +40,19 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = '__all__'
+
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+    class Meta:
+        model = Cart
+        fields = '__all__'
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     
@@ -60,3 +73,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             user.phone = validated_data['phone']
             user.save()
         return user
+
+class LiveItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LiveItem
+        fields = '__all__'

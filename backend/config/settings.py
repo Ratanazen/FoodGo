@@ -8,6 +8,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -97,3 +98,19 @@ AUTHENTICATION_BACKENDS = [
     'core.authentication.EmailAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+JAZZMIN_SETTINGS = {
+    "site_title": "FoodGo Admin",
+    "site_header": "FoodGo",
+    "site_brand": "FoodGo Administration",
+    "welcome_sign": "Welcome to FoodGo Admin Panel",
+    "search_model": ["core.User", "core.Order"],
+    "show_ui_builder": True,
+    "icons": {
+        "core.User": "fas fa-user",
+        "core.Restaurant": "fas fa-utensils",
+        "core.Order": "fas fa-shopping-cart",
+        "core.LiveItem": "fas fa-broadcast-tower",
+    }
+}
+

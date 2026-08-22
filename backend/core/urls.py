@@ -7,7 +7,9 @@ router.register(r'restaurants', RestaurantViewSet)
 router.register(r'food-categories', FoodCategoryViewSet)
 router.register(r'food-items', FoodItemViewSet)
 router.register(r'orders', OrderViewSet)
-
+router.register(r'carts', CartViewSet)
+router.register(r'cart-items', CartItemViewSet)
+router.register(r'live-items', LiveItemViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', UserRegistrationView.as_view(), name='register'),

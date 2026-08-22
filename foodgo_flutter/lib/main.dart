@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'providers/theme_provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/restaurant_provider.dart';
+import 'providers/cart_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/register_screen.dart';
@@ -13,8 +16,13 @@ import 'widgets/glass_container.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => RestaurantProvider()..fetchRestaurants()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+      ],
       child: const FoodGoApp(),
     ),
   );
@@ -284,51 +292,70 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () => Navigator.pushNamed(context, '/restaurant'),
-                child: Card(
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 150,
-                        decoration: const BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                        ),
-                        child: const Center(child: Icon(Icons.image, size: 50, color: Colors.white)),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Delicious Restaurant $index', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Row(
+          Consumer<RestaurantProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (provider.restaurants.isEmpty) {
+                return const Center(child: Text('No restaurants available.'));
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: provider.restaurants.length,
+                itemBuilder: (context, index) {
+                  final restaurant = provider.restaurants[index];
+                  return GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, '/restaurant', arguments: restaurant['id']),
+                    child: Card(
+                      margin: const EdgeInsets.only(bottom: 16.0),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 150,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                              image: restaurant['banner'] != null
+                                  ? DecorationImage(
+                                      image: NetworkImage(restaurant['banner']),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child: restaurant['banner'] == null
+                                ? const Center(child: Icon(Icons.image, size: 50, color: Colors.grey))
+                                : null,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.star, size: 16, color: Colors.amber),
-                                const Text(' 4.5  •  Fast Food  •  \$\$'),
-                                const Spacer(),
-                                Text('15-25 min', style: TextStyle(color: Colors.grey.shade500)),
+                                Text(restaurant['name'] ?? 'Unknown', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star, size: 16, color: Colors.amber),
+                                    Text(' ${restaurant['rating'] ?? '0.0'}  •  ${restaurant['category_name'] ?? 'Food'}'),
+                                    const Spacer(),
+                                    Text('${restaurant['delivery_time_min']}-${restaurant['delivery_time_max']} min', style: TextStyle(color: Colors.grey.shade500)),
+                                  ],
+                                ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ).animate().fade(delay: (200 + 100 * index).ms).slideY(begin: 0.2),
+                    ).animate().fade(delay: (200 + 100 * index).ms).slideY(begin: 0.2),
+                  );
+                },
               );
             },
-          )
+          ),
         ],
       ),
     );

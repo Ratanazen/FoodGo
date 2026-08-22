@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/glass_container.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,11 +18,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
+    
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.login(
+      _emailController.text, 
+      _passwordController.text
+    );
+    
     setState(() => _isLoading = false);
     
     if (mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
+      if (success) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed. Check credentials.')),
+        );
+      }
     }
   }
 

@@ -31,6 +31,22 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Order.objects.filter(restaurant__owner=user)
         return Order.objects.all()
 
+class CartViewSet(viewsets.ModelViewSet):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'customer':
+            return Cart.objects.filter(customer=user)
+        return Cart.objects.all()
+
+class CartItemViewSet(viewsets.ModelViewSet):
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+    permission_classes = [IsAuthenticated]
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -49,3 +65,8 @@ class ForgotPasswordView(APIView):
             return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
         # In a real app, you would generate a token and send an email here.
         return Response({'message': 'If an account with that email exists, a password reset link has been sent.'}, status=status.HTTP_200_OK)
+
+class LiveItemViewSet(viewsets.ModelViewSet):
+    queryset = LiveItem.objects.all()
+    serializer_class = LiveItemSerializer
+    permission_classes = [AllowAny]

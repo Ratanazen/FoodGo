@@ -60,6 +60,7 @@ class FoodItem(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     image = models.ImageField(upload_to='foods/', blank=True, null=True)
     is_available = models.BooleanField(default=True)
+    ingredients = models.CharField(max_length=255, blank=True, help_text="Comma separated ingredients")
 
 class Order(models.Model):
     STATUS_CHOICES = (

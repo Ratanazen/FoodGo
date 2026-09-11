@@ -19,13 +19,16 @@ class HomeScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.location_on, color: GlassTheme.primaryGreen),
-                    const SizedBox(width: 8),
-                    Text('Phnom Penh', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    const Icon(Icons.keyboard_arrow_down, size: 20),
-                  ],
+                InkWell(
+                  onTap: () => context.push('/addresses'),
+                  child: Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, color: GlassTheme.primaryGreen),
+                      const SizedBox(width: 8),
+                      Text('Phnom Penh', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      const Icon(Icons.keyboard_arrow_down, size: 20),
+                    ],
+                  ),
                 ),
                 Row(
                   children: [

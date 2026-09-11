@@ -27,7 +27,7 @@ class CheckoutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on, color: GlassTheme.primaryGreen, size: 32),
+                  const Icon(Icons.location_on_outlined, color: GlassTheme.primaryGreen, size: 32),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -39,7 +39,10 @@ class CheckoutScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.edit, color: GlassTheme.primaryGreen),
+                  InkWell(
+                    onTap: () => context.push('/addresses'),
+                    child: const Icon(Icons.edit, color: GlassTheme.primaryGreen),
+                  ),
                 ],
               ),
             ),
@@ -86,7 +89,7 @@ class CheckoutScreen extends StatelessWidget {
                       text: 'Place Order',
                       onPressed: () {
                         cart.clear();
-                        context.go('/map');
+                        context.go('/order-success');
                       },
                     ),
                   ),

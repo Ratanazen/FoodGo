@@ -1,37 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:go_router/go_router.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../widgets/glass/glass_widgets.dart';
 import '../../widgets/glass_container.dart';
 import '../../core/theme/glass_theme.dart';
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
+
+  @override
+  State<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  final MapController _mapController = MapController();
+  LatLng _currentLocation = const LatLng(51.509364, -0.128928); // Default fallback
+  bool _isLoadingLocation = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      setState(() => _isLoadingLocation = false);
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        setState(() => _isLoadingLocation = false);
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      setState(() => _isLoadingLocation = false);
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    
+    setState(() {
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      _isLoadingLocation = false;
+    });
+    
+    _mapController.move(_currentLocation, 15.0);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: const GlassAppBar(
-        title: 'Select Delivery Location',
+        title: 'Track Order',
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 220.0), // Above the bottom sheet
+        child: FloatingActionButton(
+          onPressed: _getCurrentLocation,
+          backgroundColor: GlassTheme.primaryGreen,
+          child: _isLoadingLocation
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const Icon(Icons.my_location, color: Colors.white),
+        ),
       ),
       body: Stack(
         children: [
           FlutterMap(
+            mapController: _mapController,
             options: MapOptions(
-              initialCenter: const LatLng(51.509364, -0.128928), // Example coordinates
-              initialZoom: 13.0,
+              initialCenter: _currentLocation,
+              initialZoom: 15.0,
             ),
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.foodgo',
               ),
-              const MarkerLayer(
+              MarkerLayer(
                 markers: [
                   Marker(
-                    point: LatLng(51.509364, -0.128928),
-                    child: Icon(Icons.location_on, color: Colors.red, size: 40),
+                    point: _currentLocation,
+                    child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                  ),
+                  // Mock delivery driver marker
+                  Marker(
+                    point: LatLng(_currentLocation.latitude + 0.005, _currentLocation.longitude + 0.005),
+                    child: const Icon(Icons.delivery_dining, color: GlassTheme.primaryGreen, size: 40),
                   ),
                 ],
               ),
@@ -76,10 +148,10 @@ class MapScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: GlassButton(
-                        text: 'Confirm Location',
-                        icon: Icons.check,
+                        text: 'Back to Home',
+                        icon: Icons.home,
                         onPressed: () {
-                          Navigator.pop(context);
+                          context.go('/home');
                         },
                       ),
                     ),

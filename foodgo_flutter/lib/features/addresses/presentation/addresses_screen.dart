@@ -8,7 +8,7 @@ class AddressesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundLight,
+      
       appBar: GlassAppBar(
         title: 'Addresses',
         leading: IconButton(

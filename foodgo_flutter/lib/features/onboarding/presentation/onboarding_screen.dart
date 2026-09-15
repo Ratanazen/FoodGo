@@ -36,7 +36,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundLight,
+      
       body: Stack(
         children: [
           // Background circles for glassmorphism effect
@@ -93,7 +93,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
-                                color: GlassTheme.textDark,
+                                
                               ),
                             ),
                             const SizedBox(height: 16),

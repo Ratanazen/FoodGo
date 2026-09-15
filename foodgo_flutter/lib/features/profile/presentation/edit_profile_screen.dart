@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
-import '../../../../widgets/glass/glass_widgets_extended.dart';
 import '../../../../core/theme/glass_theme.dart';
 import 'package:go_router/go_router.dart';
 

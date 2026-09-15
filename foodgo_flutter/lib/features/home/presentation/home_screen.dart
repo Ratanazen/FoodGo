@@ -11,7 +11,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundLight,
+      
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16.0),
@@ -56,7 +56,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'What are you craving?',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, color: GlassTheme.textDark),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 16),
             InkWell(
@@ -156,6 +156,7 @@ class HomeScreen extends StatelessWidget {
                   final titles = ['Cheese Pizza', 'Beef Burger', 'Spicy Ramen', 'Fried Chicken'];
                   final prices = ['\$12.99', '\$8.99', '\$9.99', '\$14.99'];
                   final ratings = ['4.8', '4.7', '4.9', '4.6'];
+                  final icons = [Icons.local_pizza, Icons.lunch_dining, Icons.soup_kitchen, Icons.set_meal];
                   return Padding(
                     padding: const EdgeInsets.only(right: 16.0),
                     child: GlassContainer(
@@ -171,7 +172,7 @@ class HomeScreen extends StatelessWidget {
                               color: Colors.grey.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Center(child: Icon(Icons.fastfood, size: 40, color: Colors.grey)),
+                            child: Center(child: Icon(icons[index], size: 40, color: Colors.grey)),
                           ),
                           const SizedBox(height: 12),
                           Text(titles[index], style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),

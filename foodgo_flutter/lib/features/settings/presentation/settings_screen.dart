@@ -10,7 +10,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundLight,
+      
       appBar: GlassAppBar(
         title: 'Settings',
         leading: IconButton(

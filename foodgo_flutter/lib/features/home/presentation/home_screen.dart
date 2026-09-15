@@ -79,24 +79,35 @@ class HomeScreen extends StatelessWidget {
                 itemCount: 5,
                 itemBuilder: (context, index) {
                   final categories = ['Pizza', 'Burger', 'Ramen', 'Chicken', 'Salad'];
-                  final emojis = ['🍕', '🍔', '🍜', '🍗', '🥗'];
+                  final icons = [
+                    Icons.local_pizza,
+                    Icons.lunch_dining,
+                    Icons.soup_kitchen,
+                    Icons.set_meal,
+                    Icons.eco,
+                  ];
                   return Padding(
                     padding: const EdgeInsets.only(right: 16.0),
-                    child: Column(
-                      children: [
-                        GlassContainer(
-                          padding: const EdgeInsets.all(16),
-                          borderRadius: GlassTheme.borderRadiusSmall,
-                          child: Text(emojis[index], style: const TextStyle(fontSize: 24)),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(categories[index], style: const TextStyle(fontWeight: FontWeight.w500)),
-                      ],
+                    child: InkWell(
+                      onTap: () => context.push('/explore'),
+                      borderRadius: GlassTheme.borderRadiusSmall,
+                      child: Column(
+                        children: [
+                          GlassContainer(
+                            padding: const EdgeInsets.all(16),
+                            borderRadius: GlassTheme.borderRadiusSmall,
+                            child: Icon(icons[index], size: 28, color: GlassTheme.primaryGreen),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(categories[index], style: const TextStyle(fontWeight: FontWeight.w500)),
+                        ],
+                      ),
                     ),
                   ).animate().fade(delay: (100 * index).ms).slideX();
                 },
               ),
             ),
+
             const SizedBox(height: 24),
             
             // Promotional Banner

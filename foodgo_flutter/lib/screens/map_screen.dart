@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
-import 'package:geolocator/geolocator.dart';
 import '../../widgets/glass/glass_widgets.dart';
 import '../../widgets/glass_container.dart';
 import '../../core/theme/glass_theme.dart';
+
+// Only import geolocator on supported platforms
+import 'map_screen_location.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -16,7 +19,8 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
-  LatLng _currentLocation = const LatLng(51.509364, -0.128928); // Default fallback
+  // Default to Phnom Penh coordinates as a sensible fallback
+  LatLng _currentLocation = const LatLng(11.5564, 104.9282);
   bool _isLoadingLocation = false;
 
   @override
@@ -26,45 +30,23 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isLoadingLocation = true;
-    });
-
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      setState(() => _isLoadingLocation = false);
+    // Geolocator is not supported on Linux/Web desktops in the same way
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.macOS) {
       return;
     }
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        setState(() => _isLoadingLocation = false);
-        return;
-      }
-    }
+    setState(() => _isLoadingLocation = true);
 
-    if (permission == LocationPermission.deniedForever) {
+    final result = await getDeviceLocation();
+    if (result != null && mounted) {
+      setState(() {
+        _currentLocation = result;
+        _isLoadingLocation = false;
+      });
+      _mapController.move(_currentLocation, 15.0);
+    } else if (mounted) {
       setState(() => _isLoadingLocation = false);
-      return;
     }
-
-    Position position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-      ),
-    );
-    
-    setState(() {
-      _currentLocation = LatLng(position.latitude, position.longitude);
-      _isLoadingLocation = false;
-    });
-    
-    _mapController.move(_currentLocation, 15.0);
   }
 
   @override
@@ -75,7 +57,7 @@ class _MapScreenState extends State<MapScreen> {
         title: 'Track Order',
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 220.0), // Above the bottom sheet
+        padding: const EdgeInsets.only(bottom: 220.0),
         child: FloatingActionButton(
           onPressed: _getCurrentLocation,
           backgroundColor: GlassTheme.primaryGreen,
@@ -103,9 +85,12 @@ class _MapScreenState extends State<MapScreen> {
                     point: _currentLocation,
                     child: const Icon(Icons.location_on, color: Colors.red, size: 40),
                   ),
-                  // Mock delivery driver marker
+                  // Mock delivery driver marker nearby
                   Marker(
-                    point: LatLng(_currentLocation.latitude + 0.005, _currentLocation.longitude + 0.005),
+                    point: LatLng(
+                      _currentLocation.latitude + 0.005,
+                      _currentLocation.longitude + 0.005,
+                    ),
                     child: const Icon(Icons.delivery_dining, color: GlassTheme.primaryGreen, size: 40),
                   ),
                 ],
@@ -123,7 +108,10 @@ class _MapScreenState extends State<MapScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Order Progress', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Order Progress',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -153,16 +141,14 @@ class _MapScreenState extends State<MapScreen> {
                       child: GlassButton(
                         text: 'Back to Home',
                         icon: Icons.home,
-                        onPressed: () {
-                          context.go('/home');
-                        },
+                        onPressed: () => context.go('/home'),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -172,8 +158,14 @@ class _MapScreenState extends State<MapScreen> {
     return GlassContainer(
       padding: const EdgeInsets.all(8),
       borderRadius: BorderRadius.circular(20),
-      customColor: active ? GlassTheme.primaryGreen.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
-      child: Icon(icon, color: active ? GlassTheme.primaryGreen : GlassTheme.textMuted, size: 20),
+      customColor: active
+          ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
+          : Colors.grey.withValues(alpha: 0.2),
+      child: Icon(
+        icon,
+        color: active ? GlassTheme.primaryGreen : GlassTheme.textMuted,
+        size: 20,
+      ),
     );
   }
 
@@ -181,7 +173,9 @@ class _MapScreenState extends State<MapScreen> {
     return Expanded(
       child: Container(
         height: 2,
-        color: active ? GlassTheme.primaryGreen : GlassTheme.textMuted.withValues(alpha: 0.3),
+        color: active
+            ? GlassTheme.primaryGreen
+            : GlassTheme.textMuted.withValues(alpha: 0.3),
       ),
     );
   }

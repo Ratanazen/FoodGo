@@ -3,11 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../widgets/glass/glass_widgets.dart';
 import '../../widgets/glass_container.dart';
 import '../../core/theme/glass_theme.dart';
-
-// Only import geolocator on supported platforms
 import 'map_screen_location.dart';
 
 class MapScreen extends StatefulWidget {
@@ -17,16 +16,45 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   // Default to Phnom Penh coordinates as a sensible fallback
   LatLng _currentLocation = const LatLng(11.5564, 104.9282);
   bool _isLoadingLocation = false;
+  
+  // Animation controller for smooth map movement
+  late final AnimationController _cameraController;
 
   @override
   void initState() {
     super.initState();
+    _cameraController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
     _getCurrentLocation();
+  }
+  
+  @override
+  void dispose() {
+    _cameraController.dispose();
+    super.dispose();
+  }
+
+  void _animatedMapMove(LatLng destLocation, double destZoom) {
+    final latTween = Tween<double>(begin: _mapController.camera.center.latitude, end: destLocation.latitude);
+    final lngTween = Tween<double>(begin: _mapController.camera.center.longitude, end: destLocation.longitude);
+    final zoomTween = Tween<double>(begin: _mapController.camera.zoom, end: destZoom);
+
+    final Animation<double> animation = CurvedAnimation(parent: _cameraController, curve: Curves.easeInOut);
+
+    _cameraController.reset();
+    
+    _cameraController.addListener(() {
+      _mapController.move(
+        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
+        zoomTween.evaluate(animation),
+      );
+    });
+    
+    _cameraController.forward();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -46,7 +74,8 @@ class _MapScreenState extends State<MapScreen> {
         _currentLocation = result;
         _isLoadingLocation = false;
       });
-      _mapController.move(_currentLocation, 15.0);
+      // Use smooth animation to the new location!
+      _animatedMapMove(_currentLocation, 15.0);
     } else if (mounted) {
       setState(() => _isLoadingLocation = false);
     }
@@ -54,6 +83,11 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final driverLocation = LatLng(
+      _currentLocation.latitude + 0.005,
+      _currentLocation.longitude + 0.005,
+    );
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: const GlassAppBar(
@@ -87,10 +121,7 @@ class _MapScreenState extends State<MapScreen> {
                   Polyline(
                     points: [
                       _currentLocation,
-                      LatLng(
-                        _currentLocation.latitude + 0.005,
-                        _currentLocation.longitude + 0.005,
-                      ),
+                      driverLocation,
                     ],
                     color: GlassTheme.primaryGreen,
                     strokeWidth: 4.0,
@@ -99,19 +130,19 @@ class _MapScreenState extends State<MapScreen> {
               ),
               MarkerLayer(
                 markers: [
-                  // Destination marker
+                  // Destination marker with pulsing animation
                   Marker(
                     point: _currentLocation,
                     width: 50,
                     height: 50,
-                    child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                    child: const Icon(Icons.location_on, color: Colors.red, size: 40)
+                        .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                        .scale(begin: const Offset(1, 1), end: const Offset(1.3, 1.3), duration: 1.seconds)
+                        .tint(color: Colors.redAccent, end: 0.5),
                   ),
-                  // Mock delivery driver marker nearby
+                  // Delivery driver marker with gentle bobbing animation
                   Marker(
-                    point: LatLng(
-                      _currentLocation.latitude + 0.005,
-                      _currentLocation.longitude + 0.005,
-                    ),
+                    point: driverLocation,
                     width: 50,
                     height: 50,
                     child: Container(
@@ -121,7 +152,9 @@ class _MapScreenState extends State<MapScreen> {
                         boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
                       ),
                       child: const Icon(Icons.delivery_dining, color: GlassTheme.primaryGreen, size: 30),
-                    ),
+                    )
+                        .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                        .slideY(begin: 0, end: -0.2, duration: 800.ms, curve: Curves.easeInOut),
                   ),
                 ],
               ),
@@ -150,7 +183,9 @@ class _MapScreenState extends State<MapScreen> {
                         _buildLine(true),
                         _buildStatusIcon(Icons.soup_kitchen, true),
                         _buildLine(false),
-                        _buildStatusIcon(Icons.directions_bike, false),
+                        _buildStatusIcon(Icons.directions_bike, false)
+                            .animate(onPlay: (controller) => controller.repeat())
+                            .shimmer(duration: 2.seconds, color: Colors.white30),
                         _buildLine(false),
                         _buildStatusIcon(Icons.home, false),
                       ],
@@ -177,7 +212,7 @@ class _MapScreenState extends State<MapScreen> {
                   ],
                 ),
               ),
-            ),
+            ).animate().slideY(begin: 1, end: 0, duration: 600.ms, curve: Curves.easeOutBack),
           ),
         ],
       ),

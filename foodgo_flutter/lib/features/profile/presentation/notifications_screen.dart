@@ -14,7 +14,7 @@ class NotificationsScreen extends StatelessWidget {
       _NotifData(
         icon: Icons.delivery_dining,
         color: GlassTheme.primaryGreen,
-        title: 'Order Delivered! 🎉',
+        title: 'Order Delivered!',
         body: 'Your order #1024 has been delivered. Enjoy your meal!',
         time: '2 min ago',
         isRead: false,

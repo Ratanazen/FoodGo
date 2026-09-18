@@ -175,19 +175,19 @@
 <div style="padding: 0 4px;">
 
   <!-- Quick Actions -->
-  <div class="section-heading">⚡ Quick Actions</div>
+  <div class="section-heading"><i class="fas fa-bolt" style="color:var(--yellow)"></i> Quick Actions</div>
   <div class="quick-actions">
-    <a href="{% url 'admin:core_order_changelist' %}" class="qa-btn qa-green">📦 View Orders</a>
-    <a href="{% url 'admin:core_restaurant_changelist' %}" class="qa-btn qa-blue">🍽️ Restaurants</a>
-    <a href="{% url 'admin:core_user_changelist' %}" class="qa-btn qa-orange">👤 Users</a>
-    <a href="{% url 'admin:core_coupon_changelist' %}" class="qa-btn qa-purple">🎟️ Coupons</a>
+    <a href="{% url 'admin:core_order_changelist' %}" class="qa-btn qa-green"><i class="fas fa-box"></i> View Orders</a>
+    <a href="{% url 'admin:core_restaurant_changelist' %}" class="qa-btn qa-blue"><i class="fas fa-store"></i> Restaurants</a>
+    <a href="{% url 'admin:core_user_changelist' %}" class="qa-btn qa-orange"><i class="fas fa-users"></i> Users</a>
+    <a href="{% url 'admin:core_coupon_changelist' %}" class="qa-btn qa-purple"><i class="fas fa-ticket-alt"></i> Coupons</a>
   </div>
 
   <!-- Stat Cards -->
-  <div class="section-heading">📊 Overview</div>
+  <div class="section-heading"><i class="fas fa-chart-bar" style="color:var(--blue)"></i> Overview</div>
   <div class="dash-grid">
     <div class="stat-card card-green">
-      <div class="stat-icon">📦</div>
+      <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ total_orders }}</div>
         <div class="stat-label">Total Orders</div>
@@ -195,7 +195,7 @@
       </div>
     </div>
     <div class="stat-card card-blue">
-      <div class="stat-icon">💰</div>
+      <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
       <div class="stat-info">
         <div class="stat-value">${{ total_revenue }}</div>
         <div class="stat-label">Revenue</div>
@@ -203,7 +203,7 @@
       </div>
     </div>
     <div class="stat-card card-orange">
-      <div class="stat-icon">👤</div>
+      <div class="stat-icon"><i class="fas fa-user-friends"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ total_users }}</div>
         <div class="stat-label">Registered Users</div>
@@ -211,7 +211,7 @@
       </div>
     </div>
     <div class="stat-card card-red">
-      <div class="stat-icon">🍽️</div>
+      <div class="stat-icon"><i class="fas fa-store"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ total_restaurants }}</div>
         <div class="stat-label">Restaurants</div>
@@ -219,7 +219,7 @@
       </div>
     </div>
     <div class="stat-card card-purple">
-      <div class="stat-icon">🍔</div>
+      <div class="stat-icon"><i class="fas fa-hamburger"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ total_food_items }}</div>
         <div class="stat-label">Food Items</div>
@@ -227,7 +227,7 @@
       </div>
     </div>
     <div class="stat-card card-teal">
-      <div class="stat-icon">🏍️</div>
+      <div class="stat-icon"><i class="fas fa-motorcycle"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ total_drivers }}</div>
         <div class="stat-label">Drivers</div>
@@ -239,12 +239,12 @@
   <!-- Charts Row -->
   <div class="chart-row">
     <div class="chart-card">
-      <div class="chart-title">📈 Orders This Week</div>
+      <div class="chart-title"><i class="fas fa-chart-line text-success"></i> Orders This Week</div>
       <div class="chart-sub">Daily order volume</div>
       <canvas id="ordersChart" height="100"></canvas>
     </div>
     <div class="chart-card">
-      <div class="chart-title">🥧 Order Status</div>
+      <div class="chart-title"><i class="fas fa-chart-pie text-info"></i> Order Status</div>
       <div class="chart-sub">Current distribution</div>
       <canvas id="statusChart" height="180"></canvas>
     </div>
@@ -254,7 +254,7 @@
   <div class="table-row">
     <!-- Recent Orders -->
     <div class="chart-card">
-      <div class="section-heading">🕐 Recent Orders</div>
+      <div class="section-heading"><i class="fas fa-clock text-warning"></i> Recent Orders</div>
       <table class="dash-table">
         <thead>
           <tr>
@@ -295,7 +295,7 @@
 
     <!-- Top Restaurants -->
     <div class="chart-card">
-      <div class="section-heading">🏆 Top Restaurants</div>
+      <div class="section-heading"><i class="fas fa-trophy text-warning"></i> Top Restaurants</div>
       <table class="dash-table">
         <thead>
           <tr>
@@ -310,7 +310,7 @@
           <tr>
             <td>{{ forloop.counter }}</td>
             <td><strong>{{ r.name }}</strong></td>
-            <td>⭐ {{ r.rating }}</td>
+            <td><i class="fas fa-star text-warning"></i> {{ r.rating }}</td>
             <td>{{ r.order_count }}</td>
           </tr>
           {% empty %}

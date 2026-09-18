@@ -28,15 +28,18 @@ def custom_get_app_list(request, app_label=None):
 
             base = {'app_url': app['app_url'], 'has_module_perms': True}
             if users_models:
-                new_app_list.append({**base, 'name': '👤 Users & Profiles', 'app_label': 'core_users', 'models': users_models})
+                new_app_list.append({**base, 'name': 'Users & Profiles', 'app_label': 'core_users', 'models': users_models})
             if restaurant_models:
-                new_app_list.append({**base, 'name': '🍽️ Restaurants & Food', 'app_label': 'core_restaurants', 'models': restaurant_models})
+                new_app_list.append({**base, 'name': 'Restaurants & Food', 'app_label': 'core_restaurants', 'models': restaurant_models})
             if order_models:
-                new_app_list.append({**base, 'name': '📦 Orders & Deliveries', 'app_label': 'core_orders', 'models': order_models})
+                new_app_list.append({**base, 'name': 'Orders & Deliveries', 'app_label': 'core_orders', 'models': order_models})
             if marketing_models:
-                new_app_list.append({**base, 'name': '🎯 Marketing & Promotions', 'app_label': 'core_marketing', 'models': marketing_models})
-        else:
-            new_app_list.append(app)
+                new_app_list.append({**base, 'name': 'Marketing & Promotions', 'app_label': 'core_marketing', 'models': marketing_models})
+            
+            # Remove the original core app to avoid duplicates
+            if users_models or restaurant_models or order_models or marketing_models:
+                continue
+        new_app_list.append(app)
     return new_app_list
 
 
@@ -138,7 +141,7 @@ def custom_admin_index(request, extra_context=None):
 admin.site.index = custom_admin_index
 
 admin.site.site_title = 'FoodGo Admin'
-admin.site.site_header = '🍔 FoodGo Admin Panel'
+admin.site.site_header = 'FoodGo Admin Panel'
 admin.site.index_title = 'Dashboard'
 
 

@@ -30,8 +30,11 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    // Geolocator is not supported on Linux/Web desktops in the same way
-    if (kIsWeb || defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.macOS) {
+    // Geolocator is not supported safely on desktop out-of-the-box without extra plugins
+    if (kIsWeb || 
+        defaultTargetPlatform == TargetPlatform.linux || 
+        defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.windows) {
       return;
     }
 
@@ -72,17 +75,35 @@ class _MapScreenState extends State<MapScreen> {
             mapController: _mapController,
             options: MapOptions(
               initialCenter: _currentLocation,
-              initialZoom: 15.0,
+              initialZoom: 14.5,
             ),
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.foodgo',
+                userAgentPackageName: 'com.foodgo.app',
+              ),
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: [
+                      _currentLocation,
+                      LatLng(
+                        _currentLocation.latitude + 0.005,
+                        _currentLocation.longitude + 0.005,
+                      ),
+                    ],
+                    color: GlassTheme.primaryGreen,
+                    strokeWidth: 4.0,
+                  ),
+                ],
               ),
               MarkerLayer(
                 markers: [
+                  // Destination marker
                   Marker(
                     point: _currentLocation,
+                    width: 50,
+                    height: 50,
                     child: const Icon(Icons.location_on, color: Colors.red, size: 40),
                   ),
                   // Mock delivery driver marker nearby
@@ -91,7 +112,16 @@ class _MapScreenState extends State<MapScreen> {
                       _currentLocation.latitude + 0.005,
                       _currentLocation.longitude + 0.005,
                     ),
-                    child: const Icon(Icons.delivery_dining, color: GlassTheme.primaryGreen, size: 40),
+                    width: 50,
+                    height: 50,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                      ),
+                      child: const Icon(Icons.delivery_dining, color: GlassTheme.primaryGreen, size: 30),
+                    ),
                   ),
                 ],
               ),

@@ -45,6 +45,8 @@ class Restaurant(models.Model):
     delivery_time_max = models.IntegerField(default=45)
     delivery_fee = models.DecimalField(max_digits=6, decimal_places=2, default=0.0)
     is_active = models.BooleanField(default=True)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     
 class FoodCategory(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='food_categories')

@@ -48,7 +48,7 @@ class OrderSuccessScreen extends StatelessWidget {
                 width: double.infinity,
                 child: GlassButton(
                   text: 'Track Order',
-                  onPressed: () => context.go('/map'),
+                  onPressed: () => context.go('/map/1'),
                 ),
               ).animate().fade(delay: 700.ms),
               const SizedBox(height: 16),

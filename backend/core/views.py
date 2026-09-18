@@ -1,3 +1,4 @@
+from rest_framework.decorators import action
 from decimal import Decimal
 
 from django.db import transaction
@@ -100,6 +101,35 @@ class OrderViewSet(viewsets.ModelViewSet):
         cart.items.all().delete()
         cart.restaurant = None
         cart.save(update_fields=['restaurant'])
+
+    from rest_framework.decorators import action
+    from rest_framework.response import Response
+    
+    @action(detail=True, methods=['get'])
+    def track(self, request, pk=None):
+        order = self.get_object()
+        data = {
+            'status': order.status,
+            'restaurant_location': {
+                'lat': order.restaurant.lat,
+                'lng': order.restaurant.lng,
+            } if order.restaurant.lat and order.restaurant.lng else None,
+            'customer_location': {
+                'lat': order.address.lat,
+                'lng': order.address.lng,
+            } if order.address and order.address.lat and order.address.lng else None,
+            'driver_location': None,
+        }
+        
+        if hasattr(order, 'delivery') and order.delivery.driver:
+            driver = order.delivery.driver
+            if driver.current_lat and driver.current_lng:
+                data['driver_location'] = {
+                    'lat': driver.current_lat,
+                    'lng': driver.current_lng,
+                }
+        
+        return Response(data)
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()

@@ -53,7 +53,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(path: '/checkout', builder: (context, state) => const CheckoutScreen()),
     GoRoute(path: '/order-success', builder: (context, state) => const OrderSuccessScreen()),
-    GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
+    GoRoute(
+      path: '/map/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return MapScreen(orderId: id);
+      },
+    ),
     GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
     GoRoute(path: '/edit-profile', builder: (context, state) => const EditProfileScreen()),
     GoRoute(path: '/favorites', builder: (context, state) => const FavoritesScreen()),

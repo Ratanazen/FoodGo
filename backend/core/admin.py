@@ -1,17 +1,20 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.db.models import Sum, Count
+from django.urls import reverse
 
+# ─────────────────────────────────────────────
+# Custom App Grouping (sidebar organisation)
+# ─────────────────────────────────────────────
 def custom_get_app_list(request, app_label=None):
     app_dict = admin.site._build_app_dict(request, app_label)
     app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
-    
+
     new_app_list = []
     for app in app_list:
         if app['app_label'] == 'core':
-            users_models = []
-            restaurant_models = []
-            order_models = []
-            marketing_models = []
-            
+            users_models, restaurant_models, order_models, marketing_models = [], [], [], []
+
             for model in app['models']:
                 name = model['object_name']
                 if name in ['User', 'Address', 'Driver', 'Favorite']:
@@ -22,52 +25,127 @@ def custom_get_app_list(request, app_label=None):
                     order_models.append(model)
                 else:
                     marketing_models.append(model)
-                    
+
+            base = {'app_url': app['app_url'], 'has_module_perms': True}
             if users_models:
-                new_app_list.append({'name': 'Users & Profiles', 'app_label': 'core_users', 'app_url': app['app_url'], 'has_module_perms': True, 'models': users_models})
+                new_app_list.append({**base, 'name': '👤 Users & Profiles', 'app_label': 'core_users', 'models': users_models})
             if restaurant_models:
-                new_app_list.append({'name': 'Restaurants & Food', 'app_label': 'core_restaurants', 'app_url': app['app_url'], 'has_module_perms': True, 'models': restaurant_models})
+                new_app_list.append({**base, 'name': '🍽️ Restaurants & Food', 'app_label': 'core_restaurants', 'models': restaurant_models})
             if order_models:
-                new_app_list.append({'name': 'Orders & Deliveries', 'app_label': 'core_orders', 'app_url': app['app_url'], 'has_module_perms': True, 'models': order_models})
+                new_app_list.append({**base, 'name': '📦 Orders & Deliveries', 'app_label': 'core_orders', 'models': order_models})
             if marketing_models:
-                new_app_list.append({'name': 'Marketing & Promotions', 'app_label': 'core_marketing', 'app_url': app['app_url'], 'has_module_perms': True, 'models': marketing_models})
+                new_app_list.append({**base, 'name': '🎯 Marketing & Promotions', 'app_label': 'core_marketing', 'models': marketing_models})
         else:
             new_app_list.append(app)
     return new_app_list
 
+
 admin.site.get_app_list = custom_get_app_list
+
+# ─────────────────────────────────────────────
+# Imports
+# ─────────────────────────────────────────────
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
     User, Address, RestaurantCategory, Restaurant, FoodCategory,
     FoodItem, Order, OrderItem, Cart, CartItem, Payment, Driver,
-    Delivery, Review, Favorite, Coupon, Notification, LiveItem
+    Delivery, Review, Favorite, Coupon, Notification, LiveItem,
 )
 
+# ─────────────────────────────────────────────
+# Admin Site Config
+# ─────────────────────────────────────────────
+admin.site.site_title = 'FoodGo Admin'
+admin.site.site_header = '🍔 FoodGo Admin Panel'
+admin.site.index_title = 'Welcome to FoodGo Dashboard'
+
+
+# ─────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────
+def image_preview(image_field, size=50):
+    """Return an HTML <img> tag for an image field, or a dash if missing."""
+    if image_field:
+        return format_html('<img src="{}" width="{}" height="{}" style="object-fit:cover;border-radius:6px;" />', image_field.url, size, size)
+    return '—'
+
+
+# ─────────────────────────────────────────────
+# Users & Profiles
+# ─────────────────────────────────────────────
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Extra Info', {'fields': ('role', 'phone')}),
     )
-    list_display = ['username', 'email', 'role', 'phone', 'is_staff']
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+        ('Extra Info', {'fields': ('role', 'phone')}),
+    )
+    list_display = ['username', 'email', 'role_badge', 'phone', 'is_staff', 'is_active', 'date_joined']
     list_filter = ['role', 'is_staff', 'is_active']
     search_fields = ['username', 'email', 'phone']
+    ordering = ['-date_joined']
+    readonly_fields = ['date_joined', 'last_login']
+
+    @admin.display(description='Role')
+    def role_badge(self, obj):
+        colors = {
+            'admin': '#e74c3c',
+            'restaurant_owner': '#e67e22',
+            'driver': '#3498db',
+            'customer': '#2ecc71',
+        }
+        color = colors.get(obj.role, '#95a5a6')
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{}</span>',
+            color, obj.get_role_display()
+        )
+
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    list_display = ['user', 'street', 'city', 'state', 'zip_code', 'is_default']
+    list_display = ['user', 'street', 'city', 'state', 'zip_code', 'default_badge']
     list_filter = ['city', 'state', 'is_default']
     search_fields = ['user__username', 'street', 'city', 'zip_code']
 
+    @admin.display(description='Default', boolean=True)
+    def default_badge(self, obj):
+        return obj.is_default
+
+
+# ─────────────────────────────────────────────
+# Restaurants & Food
+# ─────────────────────────────────────────────
 @admin.register(RestaurantCategory)
 class RestaurantCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'image']
+    list_display = ['name', 'category_image']
     search_fields = ['name']
+
+    @admin.display(description='Image')
+    def category_image(self, obj):
+        return image_preview(obj.image, 40)
+
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
-    list_display = ['name', 'owner', 'category', 'rating', 'is_active']
+    list_display = ['restaurant_logo', 'name', 'owner', 'category', 'rating_stars', 'delivery_fee', 'is_active']
     list_filter = ['is_active', 'category']
     search_fields = ['name', 'owner__username', 'phone']
+    readonly_fields = ['rating']
+    list_editable = ['is_active']
+
+    @admin.display(description='Logo')
+    def restaurant_logo(self, obj):
+        return image_preview(obj.logo, 40)
+
+    @admin.display(description='Rating')
+    def rating_stars(self, obj):
+        filled = int(obj.rating)
+        return format_html(
+            '<span style="color:#f39c12;">{}</span><span style="color:#bdc3c7;">{}</span> ({})',
+            '★' * filled, '★' * (5 - filled), obj.rating
+        )
+
 
 @admin.register(FoodCategory)
 class FoodCategoryAdmin(admin.ModelAdmin):
@@ -75,22 +153,58 @@ class FoodCategoryAdmin(admin.ModelAdmin):
     list_filter = ['restaurant']
     search_fields = ['name', 'restaurant__name']
 
+
 @admin.register(FoodItem)
 class FoodItemAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price', 'is_available']
+    list_display = ['food_image', 'name', 'category', 'price', 'is_available']
     list_filter = ['is_available', 'category__restaurant', 'category']
     search_fields = ['name', 'description']
+    list_editable = ['is_available']
 
+    @admin.display(description='Image')
+    def food_image(self, obj):
+        return image_preview(obj.image, 40)
+
+
+
+# ─────────────────────────────────────────────
+# Orders & Deliveries
+# ─────────────────────────────────────────────
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
+    readonly_fields = ['food_item', 'quantity', 'price']
+    can_delete = False
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer', 'restaurant', 'status', 'total_amount', 'created_at']
+    list_display = ['id', 'customer', 'restaurant', 'status_badge', 'total_amount', 'created_at']
     list_filter = ['status', 'created_at', 'restaurant']
     search_fields = ['customer__username', 'id']
     inlines = [OrderItemInline]
+    readonly_fields = ['created_at']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        colors = {
+            'pending': '#f39c12',
+            'confirmed': '#3498db',
+            'preparing': '#9b59b6',
+            'ready': '#1abc9c',
+            'picked_up': '#2980b9',
+            'on_the_way': '#e67e22',
+            'delivered': '#27ae60',
+            'cancelled': '#e74c3c',
+        }
+        color = colors.get(obj.status, '#95a5a6')
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{}</span>',
+            color, obj.get_status_display()
+        )
+
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
@@ -98,32 +212,56 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_filter = ['order__restaurant']
     search_fields = ['order__id', 'food_item__name']
 
+
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 0
 
+
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ['customer', 'restaurant']
+    list_display = ['customer', 'restaurant', 'item_count']
     search_fields = ['customer__username']
     inlines = [CartItemInline]
+
+    @admin.display(description='Items')
+    def item_count(self, obj):
+        return obj.items.count()
+
 
 @admin.register(CartItem)
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ['cart', 'food_item', 'quantity']
     search_fields = ['cart__customer__username', 'food_item__name']
 
+
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ['order', 'method', 'amount', 'status', 'transaction_id']
+    list_display = ['order', 'method', 'amount', 'payment_status_badge', 'transaction_id']
     list_filter = ['status', 'method']
     search_fields = ['order__id', 'transaction_id']
 
+
+    @admin.display(description='Status')
+    def payment_status_badge(self, obj):
+        colors = {'pending': '#f39c12', 'paid': '#27ae60', 'failed': '#e74c3c', 'refunded': '#95a5a6'}
+        color = colors.get(obj.status, '#95a5a6')
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{}</span>',
+            color, obj.status.upper()
+        )
+
+
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
-    list_display = ['user', 'vehicle_type', 'license_plate', 'is_online']
+    list_display = ['user', 'vehicle_type', 'license_plate', 'online_badge']
     list_filter = ['is_online']
     search_fields = ['user__username', 'license_plate']
+
+    @admin.display(description='Online', boolean=True)
+    def online_badge(self, obj):
+        return obj.is_online
+
 
 @admin.register(Delivery)
 class DeliveryAdmin(admin.ModelAdmin):
@@ -131,31 +269,57 @@ class DeliveryAdmin(admin.ModelAdmin):
     list_filter = ['status']
     search_fields = ['order__id', 'driver__user__username']
 
+
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ['order', 'rating', 'created_at']
+    list_display = ['order', 'star_rating', 'created_at']
     list_filter = ['rating']
     search_fields = ['order__id']
+    readonly_fields = ['created_at']
+
+    @admin.display(description='Rating')
+    def star_rating(self, obj):
+        return format_html(
+            '<span style="color:#f39c12;">{}</span><span style="color:#bdc3c7;">{}</span>',
+            '★' * int(obj.rating), '★' * (5 - int(obj.rating))
+        )
+
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ['customer', 'restaurant']
     search_fields = ['customer__username', 'restaurant__name']
 
+
+# ─────────────────────────────────────────────
+# Marketing & Promotions
+# ─────────────────────────────────────────────
 @admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
     list_display = ['code', 'discount_percent', 'is_active']
     list_filter = ['is_active']
     search_fields = ['code']
+    list_editable = ['is_active']
+
+
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ['user', 'title', 'is_read', 'created_at']
+    list_display = ['user', 'title', 'read_badge', 'created_at']
     list_filter = ['is_read', 'created_at']
     search_fields = ['user__username', 'title', 'message']
+    readonly_fields = ['created_at']
+    date_hierarchy = 'created_at'
+
+    @admin.display(description='Read', boolean=True)
+    def read_badge(self, obj):
+        return obj.is_read
+
 
 @admin.register(LiveItem)
 class LiveItemAdmin(admin.ModelAdmin):
     list_display = ['name', 'price', 'is_live', 'created_at']
     list_filter = ['is_live', 'created_at']
     search_fields = ['name', 'description']
+    list_editable = ['is_live']
+

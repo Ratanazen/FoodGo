@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../services/api_service.dart';
 
 class RestaurantProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
-  
+
   List<dynamic> _restaurants = [];
   bool _isLoading = false;
 
@@ -18,7 +19,7 @@ class RestaurantProvider with ChangeNotifier {
       final data = await _apiService.get('restaurants/');
       _restaurants = data;
     } catch (e) {
-      print('Error fetching restaurants: $e');
+      debugPrint('Error fetching restaurants: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

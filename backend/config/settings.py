@@ -1,11 +1,12 @@
 from pathlib import Path
 from datetime import timedelta
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-*8ba$$49xw-3xhkw#rjjayoh)@#k_+o7jnhha-7b5^1z^^3e$!'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-only-change-me')
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -60,6 +61,19 @@ DATABASES = {
     }
 }
 
+if os.environ.get('DATABASE_URL'):
+    from urllib.parse import urlparse
+
+    parsed_database_url = urlparse(os.environ['DATABASE_URL'])
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': parsed_database_url.path.removeprefix('/'),
+        'USER': parsed_database_url.username,
+        'PASSWORD': parsed_database_url.password,
+        'HOST': parsed_database_url.hostname,
+        'PORT': parsed_database_url.port,
+    }
+
 AUTH_USER_MODEL = 'core.User'
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -77,7 +91,27 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+    if origin.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'same-origin'
+    X_FRAME_OPTIONS = 'DENY'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -100,107 +134,88 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 JAZZMIN_SETTINGS = {
-    # title of the window (Will default to current_admin_site.site_title if absent or None)
     "site_title": "FoodGo Admin",
-    
-    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_header": "FoodGo",
-    
-    # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_brand": "FoodGo Admin",
-    
-    # Logo to use for your site, must be present in static files, used for brand on top left
-    "site_logo": "admin/img/logo.png",
-    
-    # Welcome text on the login screen
-    "welcome_sign": "Welcome to the FoodGo Admin Panel",
-    
-    # Copyright on the footer
-    "copyright": "FoodGo Ltd",
-    
-    # The model admin to search from the search bar, search bar omitted if excluded
-    "search_model": ["core.User", "core.Order", "core.Restaurant"],
-    
-    # Field name on user model that contains avatar ImageField/URLField/Charfield or a callable that receives the user
+    "site_brand": "🍔 FoodGo",
+    "site_logo": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,
+    "welcome_sign": "Welcome back! FoodGo Admin Panel",
+    "copyright": "FoodGo Ltd © 2026",
+    "search_model": ["core.User", "core.Order", "core.Restaurant", "core.FoodItem"],
     "user_avatar": None,
-    
+
     ############
     # Top Menu #
     ############
     "topmenu_links": [
-        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
-        {"model": "core.User"},
-        {"app": "core"},
+        {"name": "🏠 Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "👤 Users", "model": "core.User"},
+        {"name": "📦 Orders", "model": "core.Order"},
+        {"name": "🍽️ Restaurants", "model": "core.Restaurant"},
     ],
-    
+
     #############
     # User Menu #
     #############
     "usermenu_links": [
-        {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
-        {"model": "core.user"}
+        {"model": "core.user"},
     ],
-    
+
     #############
     # Side Menu #
     #############
-    # Whether to display the side menu
     "show_sidebar": True,
-    
-    # Whether to aut expand the menu
     "navigation_expanded": True,
-    
-    # Hide these apps when generating side menu e.g (auth)
-    "hide_apps": [],
-    
-    # Hide these models when generating side menu (e.g auth.user)
+    "hide_apps": ["auth"],
     "hide_models": [],
-    
-    # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free&v=5.0.0,5.0.1,5.0.10,5.0.11,5.0.12,5.0.13,5.0.2,5.0.3,5.0.4,5.0.5,5.0.6,5.0.7,5.0.8,5.0.9,5.1.0,5.1.1,5.2.0,5.3.0,5.4.0,5.4.1,5.4.2,5.13.0,5.12.0,5.11.2,5.11.1,5.10.0,5.9.0,5.8.2,5.8.1,5.7.2,5.7.1,5.7.0,5.6.3,5.5.0,5.4.2
+    "order_with_respect_to": [
+        "core",
+        "core.User", "core.Address", "core.Driver",
+        "core.Restaurant", "core.RestaurantCategory", "core.FoodCategory", "core.FoodItem",
+        "core.Order", "core.OrderItem", "core.Payment", "core.Delivery",
+        "core.Cart", "core.CartItem", "core.Review", "core.Favorite",
+        "core.Coupon", "core.Notification", "core.LiveItem",
+    ],
+
     "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
-        "core.User": "fas fa-user",
-        "core.Address": "fas fa-map-marker-alt",
+        "auth":                    "fas fa-users-cog",
+        "auth.user":               "fas fa-user",
+        "auth.Group":              "fas fa-users",
+        "core.User":               "fas fa-user-circle",
+        "core.Address":            "fas fa-map-marker-alt",
+        "core.Driver":             "fas fa-motorcycle",
+        "core.Favorite":           "fas fa-heart",
         "core.RestaurantCategory": "fas fa-tags",
-        "core.Restaurant": "fas fa-utensils",
-        "core.FoodCategory": "fas fa-list-alt",
-        "core.FoodItem": "fas fa-hamburger",
-        "core.Order": "fas fa-shopping-cart",
-        "core.OrderItem": "fas fa-receipt",
-        "core.Cart": "fas fa-shopping-basket",
-        "core.CartItem": "fas fa-box",
-        "core.Payment": "fas fa-credit-card",
-        "core.Driver": "fas fa-motorcycle",
-        "core.Delivery": "fas fa-shipping-fast",
-        "core.Review": "fas fa-star",
-        "core.Favorite": "fas fa-heart",
-        "core.Coupon": "fas fa-ticket-alt",
-        "core.Notification": "fas fa-bell",
-        "core.LiveItem": "fas fa-broadcast-tower",
+        "core.Restaurant":         "fas fa-store",
+        "core.FoodCategory":       "fas fa-list-alt",
+        "core.FoodItem":           "fas fa-hamburger",
+        "core.Order":              "fas fa-shopping-bag",
+        "core.OrderItem":          "fas fa-receipt",
+        "core.Payment":            "fas fa-credit-card",
+        "core.Delivery":           "fas fa-truck",
+        "core.Cart":               "fas fa-shopping-cart",
+        "core.CartItem":           "fas fa-box",
+        "core.Review":             "fas fa-star",
+        "core.Coupon":             "fas fa-ticket-alt",
+        "core.Notification":       "fas fa-bell",
+        "core.LiveItem":           "fas fa-broadcast-tower",
     },
-    
-    # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
-    
-    #################
-    # Related Modal #
-    #################
-    # Use modals instead of popups
+
     "related_modal_active": True,
-    
-    #############
-    # UI Tweaks #
-    #############
-    # Relative paths to custom CSS/JS scripts (must be present in static files)
     "custom_css": None,
     "custom_js": None,
-    
-    # Whether to show the UI customizer on the sidebar
-    "show_ui_builder": False,
+    "use_google_fonts_cdn": True,
+
+    # ✅ Enable the UI builder so you can tweak the theme live from the sidebar
+    "show_ui_builder": True,
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs",
+    },
 }
 
 JAZZMIN_UI_TWEAKS = {
@@ -211,7 +226,7 @@ JAZZMIN_UI_TWEAKS = {
     "brand_colour": "navbar-success",
     "accent": "accent-success",
     "navbar": "navbar-success navbar-dark",
-    "no_navbar_border": False,
+    "no_navbar_border": True,
     "navbar_fixed": True,
     "layout_boxed": False,
     "footer_fixed": False,
@@ -220,18 +235,18 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
     "sidebar_nav_child_indent": True,
-    "sidebar_nav_compact_style": False,
+    "sidebar_nav_compact_style": True,
     "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": False,
-    "theme": "default",
-    "dark_mode_theme": None,
+    "sidebar_nav_flat_style": True,
+    "theme": "flatly",
+    "dark_mode_theme": "darkly",
     "button_classes": {
-        "primary": "btn-primary",
-        "secondary": "btn-secondary",
-        "info": "btn-info",
-        "warning": "btn-warning",
-        "danger": "btn-danger",
-        "success": "btn-success"
-    }
+        "primary":   "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info":      "btn-outline-info",
+        "warning":   "btn-warning",
+        "danger":    "btn-danger",
+        "success":   "btn-success",
+    },
+    "actions_sticky_top": True,
 }
-

@@ -10,47 +10,72 @@ class UserSerializer(serializers.ModelSerializer):
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = '__all__'
+        fields = ['id', 'street', 'city', 'state', 'zip_code', 'is_default', 'lat', 'lng']
+        read_only_fields = ['id']
 
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory
-        fields = '__all__'
+        fields = ['id', 'restaurant', 'name']
+        read_only_fields = ['id']
 
 class FoodItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodItem
-        fields = '__all__'
+        fields = ['id', 'category', 'name', 'description', 'price', 'image', 'is_available', 'ingredients']
+        read_only_fields = ['id']
+
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError('Price must be greater than zero.')
+        return value
 
 class RestaurantSerializer(serializers.ModelSerializer):
     food_categories = FoodCategorySerializer(many=True, read_only=True)
     class Meta:
         model = Restaurant
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'category', 'description', 'address', 'phone', 'logo',
+            'banner', 'rating', 'delivery_time_min', 'delivery_time_max',
+            'delivery_fee', 'is_active', 'food_categories',
+        ]
+        read_only_fields = ['id', 'rating', 'food_categories']
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
-        fields = '__all__'
+        fields = ['id', 'food_item', 'quantity', 'price']
+        read_only_fields = ['id', 'price']
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = [
+            'id', 'restaurant', 'address', 'status', 'total_amount',
+            'special_instructions', 'created_at', 'items',
+        ]
+        read_only_fields = ['id', 'status', 'total_amount', 'created_at', 'items']
 
 
 class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
-        fields = '__all__'
+        fields = ['id', 'food_item', 'quantity']
+        read_only_fields = ['id']
+
+    def validate_quantity(self, value):
+        if value < 1:
+            raise serializers.ValidationError('Quantity must be at least one.')
+        return value
 
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
     class Meta:
         model = Cart
-        fields = '__all__'
+        fields = ['id', 'restaurant', 'items']
+        read_only_fields = ['id', 'items']
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -59,6 +84,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'first_name', 'last_name', 'phone', 'role']
+        read_only_fields = ['role']
         
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -67,7 +93,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
-            role=validated_data.get('role', 'customer')
+            role='customer'
         )
         if 'phone' in validated_data:
             user.phone = validated_data['phone']

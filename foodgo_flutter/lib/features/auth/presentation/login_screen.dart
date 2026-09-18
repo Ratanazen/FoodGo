@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/auth_provider.dart';
@@ -30,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       if (success) {
-        Navigator.pushReplacementNamed(context, '/home');
+        context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login failed. Check credentials.')),
@@ -144,8 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ).animate().fade(delay: 600.ms).scale(),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/forgot-password'),
+                      onPressed: () => context.push('/forgot-password'),
                       child: const Text(
                         'Forgot Password?',
                         style: TextStyle(color: Colors.white70),
@@ -159,8 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(color: Colors.white70),
                         ),
                         TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/register'),
+                          onPressed: () => context.push('/register'),
                           child: const Text(
                             'Sign Up',
                             style: TextStyle(

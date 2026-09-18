@@ -1,3 +1,5 @@
+import "package:provider/provider.dart";
+import "../../../providers/restaurant_provider.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -41,14 +43,8 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    GlassContainer(
-                      padding: const EdgeInsets.all(8),
-                      borderRadius: GlassTheme.borderRadiusSmall,
-                      child: InkWell(
-                        onTap: () => context.push('/profile'),
-                        child: const Icon(Icons.person_outline, size: 24),
-                      ),
-                    ),
+                    const Text('Deliver to', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                    Text('123 Glass Avenue, City', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
@@ -78,14 +74,8 @@ class HomeScreen extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemCount: 5,
                 itemBuilder: (context, index) {
-                  final categories = ['Pizza', 'Burger', 'Ramen', 'Chicken', 'Salad'];
-                  final icons = [
-                    Icons.local_pizza,
-                    Icons.lunch_dining,
-                    Icons.soup_kitchen,
-                    Icons.set_meal,
-                    Icons.eco,
-                  ];
+                  final categories = ['Pizza', 'Burger', 'Ramen', 'Chicken', 'Healthy'];
+                  final icons = [Icons.local_pizza, Icons.lunch_dining, Icons.soup_kitchen, Icons.set_meal, Icons.eco];
                   return Padding(
                     padding: const EdgeInsets.only(right: 16.0),
                     child: InkWell(
@@ -107,10 +97,7 @@ class HomeScreen extends StatelessWidget {
                 },
               ),
             ),
-
             const SizedBox(height: 24),
-            
-            // Promotional Banner
             GlassContainer(
               padding: const EdgeInsets.all(20),
               customColor: GlassTheme.primaryGreen.withValues(alpha: 0.15),
@@ -121,20 +108,14 @@ class HomeScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'PROMOTION',
-                          style: TextStyle(color: GlassTheme.primaryGreenDark, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-                        ),
+                        const Text('PROMOTION', style: TextStyle(color: GlassTheme.primaryGreenDark, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                         const SizedBox(height: 8),
-                        Text(
-                          '30% OFF',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
-                        ),
+                        Text('30% OFF', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
                         const SizedBox(height: 12),
                         InkWell(
                           onTap: () {},
-                          child: Row(
-                            children: const [
+                          child: const Row(
+                            children: [
                               Text('Order now', style: TextStyle(fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen)),
                               SizedBox(width: 4),
                               Icon(Icons.arrow_forward, size: 16, color: GlassTheme.primaryGreen),
@@ -148,74 +129,79 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ).animate().fade().scale(),
-            
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Best Sellers', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text('Popular Restaurants', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 TextButton(onPressed: () => context.push('/explore'), child: const Text('See all', style: TextStyle(color: GlassTheme.primaryGreen))),
               ],
             ),
             const SizedBox(height: 12),
             SizedBox(
               height: 220,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  final titles = ['Cheese Pizza', 'Beef Burger', 'Spicy Ramen', 'Fried Chicken'];
-                  final prices = ['\$12.99', '\$8.99', '\$9.99', '\$14.99'];
-                  final ratings = ['4.8', '4.7', '4.9', '4.6'];
-                  final icons = [Icons.local_pizza, Icons.lunch_dining, Icons.soup_kitchen, Icons.set_meal];
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: GlassContainer(
-                      width: 160,
-                      padding: const EdgeInsets.all(12),
-                      borderRadius: GlassTheme.borderRadiusSmall,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
+              child: Consumer<RestaurantProvider>(
+                builder: (context, restaurantProvider, child) {
+                  if (restaurantProvider.isLoading) {
+                    return const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen));
+                  }
+                  
+                  final restaurants = restaurantProvider.restaurants;
+                  if (restaurants.isEmpty) {
+                    return const Center(child: Text("No restaurants found."));
+                  }
+                  
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: restaurants.length,
+                    itemBuilder: (context, index) {
+                      final restaurant = restaurants[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 16.0),
+                        child: InkWell(
+                          onTap: () => context.push('/restaurant/${restaurant["id"]}'),
+                          child: GlassContainer(
+                            width: 160,
+                            padding: const EdgeInsets.all(12),
+                            borderRadius: GlassTheme.borderRadiusSmall,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    image: restaurant['banner'] != null
+                                        ? DecorationImage(
+                                            image: NetworkImage(restaurant['banner']),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                  ),
+                                  child: restaurant['banner'] == null ? const Center(child: Icon(Icons.store, size: 40, color: Colors.grey)) : null,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(restaurant['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                const Spacer(),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star, size: 14, color: Colors.amber),
+                                    const SizedBox(width: 4),
+                                    Text('${restaurant['rating'] ?? 'New'}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ],
                             ),
-                            child: Center(child: Icon(icons[index], size: 40, color: Colors.grey)),
                           ),
-                          const SizedBox(height: 12),
-                          Text(titles[index], style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          const Spacer(),
-                          Row(
-                            children: [
-                              const Icon(Icons.star, size: 14, color: Colors.amber),
-                              const SizedBox(width: 4),
-                              Text(ratings[index], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(prices[index], style: const TextStyle(fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen)),
-                              GlassContainer(
-                                padding: const EdgeInsets.all(4),
-                                borderRadius: BorderRadius.circular(8),
-                                customColor: GlassTheme.primaryGreen,
-                                child: const Icon(Icons.add, size: 16, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ).animate().fade(delay: (200 + 100 * index).ms).slideY(begin: 0.2),
+                        ).animate().fade(delay: (200 + 100 * index).ms).slideY(begin: 0.2),
+                      );
+                    },
                   );
                 },
               ),
             ),
-            const SizedBox(height: 80), // Padding for bottom nav
+            const SizedBox(height: 80),
           ],
         ),
       ),

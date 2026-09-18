@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
+import '../../../providers/restaurant_provider.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
@@ -8,7 +11,6 @@ class ExploreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       appBar: GlassAppBar(
         title: 'Explore',
         leading: IconButton(
@@ -38,13 +40,38 @@ class ExploreScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            Text('Popular Restaurants', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text('All Restaurants', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            _buildRestaurantCard('Glass Burger', '4.8 (120 reviews) • Burger'),
-            const SizedBox(height: 12),
-            _buildRestaurantCard('Crystal Pizza', '4.5 (90 reviews) • Pizza'),
-            const SizedBox(height: 12),
-            _buildRestaurantCard('Vegan Window', '4.9 (200 reviews) • Healthy'),
+            Consumer<RestaurantProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen));
+                }
+                
+                final restaurants = provider.restaurants;
+                if (restaurants.isEmpty) {
+                  return const Center(child: Text('No restaurants found.'));
+                }
+                
+                return Column(
+                  children: restaurants.map((restaurant) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: InkWell(
+                        onTap: () => context.push('/restaurant/${restaurant["id"]}'),
+                        borderRadius: GlassTheme.borderRadiusSmall,
+                        child: _buildRestaurantCard(
+                          restaurant['name'] ?? 'Unknown',
+                          '${restaurant['rating'] ?? 'New'} • ${restaurant['address'] ?? 'No address'}',
+                          restaurant['banner'],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -69,7 +96,7 @@ class ExploreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRestaurantCard(String name, String details) {
+  Widget _buildRestaurantCard(String name, String details, String? imageUrl) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -80,8 +107,11 @@ class ExploreScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
               borderRadius: GlassTheme.borderRadiusSmall,
+              image: imageUrl != null 
+                ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                : null,
             ),
-            child: const Icon(Icons.restaurant, color: GlassTheme.primaryGreen, size: 40),
+            child: imageUrl == null ? const Icon(Icons.restaurant, color: GlassTheme.primaryGreen, size: 40) : null,
           ),
           const SizedBox(width: 16),
           Expanded(

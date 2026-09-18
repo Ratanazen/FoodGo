@@ -226,9 +226,13 @@ class RestaurantAdmin(admin.ModelAdmin):
     @admin.display(description='Rating')
     def rating_stars(self, obj):
         filled = int(obj.rating)
+        empty = 5 - filled
+        filled_html = '<i class="fas fa-star" style="color:#f39c12;"></i>' * filled
+        empty_html = '<i class="far fa-star" style="color:#bdc3c7;"></i>' * empty
+        from django.utils.safestring import mark_safe
         return format_html(
-            '<span style="color:#f39c12;">{}</span><span style="color:#bdc3c7;">{}</span> ({})',
-            '★' * filled, '★' * (5 - filled), obj.rating
+            '{} {} ({})',
+            mark_safe(filled_html), mark_safe(empty_html), obj.rating
         )
 
 
@@ -364,9 +368,14 @@ class ReviewAdmin(admin.ModelAdmin):
 
     @admin.display(description='Rating')
     def star_rating(self, obj):
+        filled = int(obj.rating)
+        empty = 5 - filled
+        filled_html = '<i class="fas fa-star" style="color:#f39c12;"></i>' * filled
+        empty_html = '<i class="far fa-star" style="color:#bdc3c7;"></i>' * empty
+        from django.utils.safestring import mark_safe
         return format_html(
-            '<span style="color:#f39c12;">{}</span><span style="color:#bdc3c7;">{}</span>',
-            '★' * int(obj.rating), '★' * (5 - int(obj.rating))
+            '{} {}',
+            mark_safe(filled_html), mark_safe(empty_html)
         )
 
 

@@ -143,7 +143,7 @@ JAZZMIN_SETTINGS = {
     "site_logo_classes": "img-circle",
     "site_icon": None,
     "welcome_sign": "Welcome back! FoodGo Admin Panel",
-    "copyright": "FoodGo Ltd © 2026",
+    "copyright": "FoodGo Ltd (c) 2026",
     "search_model": ["core.User", "core.Order", "core.Restaurant", "core.FoodItem"],
     "user_avatar": None,
 
@@ -219,7 +219,7 @@ JAZZMIN_SETTINGS = {
     "custom_js": None,
     "use_google_fonts_cdn": True,
 
-    # ✅ Enable the UI builder so you can tweak the theme live from the sidebar
+    # Enable the UI builder so you can tweak the theme live from the sidebar
     "show_ui_builder": True,
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {

@@ -13,22 +13,24 @@ class AddressSerializer(serializers.ModelSerializer):
         fields = ['id', 'street', 'city', 'state', 'zip_code', 'is_default', 'lat', 'lng']
         read_only_fields = ['id']
 
-class FoodCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FoodCategory
-        fields = ['id', 'restaurant', 'name']
-        read_only_fields = ['id']
-
 class FoodItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodItem
         fields = ['id', 'category', 'name', 'description', 'price', 'image', 'is_available', 'ingredients']
         read_only_fields = ['id']
-
+        
     def validate_price(self, value):
         if value <= 0:
             raise serializers.ValidationError('Price must be greater than zero.')
         return value
+
+class FoodCategorySerializer(serializers.ModelSerializer):
+    items = FoodItemSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = FoodCategory
+        fields = ['id', 'restaurant', 'name', 'items']
+        read_only_fields = ['id']
 
 class RestaurantSerializer(serializers.ModelSerializer):
     food_categories = FoodCategorySerializer(many=True, read_only=True)

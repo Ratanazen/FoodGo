@@ -53,97 +53,89 @@ from .models import (
 )
 
 # ─────────────────────────────────────────────
-# Custom Admin Site with Dashboard Data
+# Custom Admin Dashboard Data
 # ─────────────────────────────────────────────
-from django.contrib.admin import AdminSite
 from django.db.models import Sum, Count
 from django.utils import timezone
 import json
 
-class FoodGoAdminSite(AdminSite):
-    site_title = 'FoodGo Admin'
-    site_header = '🍔 FoodGo Admin Panel'
-    index_title = 'Dashboard'
+_original_index = admin.site.index
 
-    def index(self, request, extra_context=None):
-        from .models import Order, User, Restaurant, FoodItem, Driver
-        from django.db.models.functions import TruncDate
+def custom_admin_index(request, extra_context=None):
+    from .models import Order, User, Restaurant, FoodItem, Driver
+    from django.db.models.functions import TruncDate
 
-        today = timezone.now()
-        week_ago = today - timezone.timedelta(days=6)
+    today = timezone.now()
+    week_ago = today - timezone.timedelta(days=6)
 
-        # Stat counts
-        total_orders = Order.objects.count()
-        pending_orders = Order.objects.filter(status='pending').count()
-        total_revenue = Order.objects.filter(status='delivered').aggregate(
-            total=Sum('total_amount'))['total'] or 0
-        total_users = User.objects.count()
-        customer_count = User.objects.filter(role='customer').count()
-        total_restaurants = Restaurant.objects.count()
-        active_restaurants = Restaurant.objects.filter(is_active=True).count()
-        total_food_items = FoodItem.objects.count()
-        total_drivers = Driver.objects.count()
-        online_drivers = Driver.objects.filter(is_online=True).count()
+    # Stat counts
+    total_orders = Order.objects.count()
+    pending_orders = Order.objects.filter(status='pending').count()
+    total_revenue = Order.objects.filter(status='delivered').aggregate(
+        total=Sum('total_amount'))['total'] or 0
+    total_users = User.objects.count()
+    customer_count = User.objects.filter(role='customer').count()
+    total_restaurants = Restaurant.objects.count()
+    active_restaurants = Restaurant.objects.filter(is_active=True).count()
+    total_food_items = FoodItem.objects.count()
+    total_drivers = Driver.objects.count()
+    online_drivers = Driver.objects.filter(is_online=True).count()
 
-        # Recent orders
-        recent_orders = Order.objects.select_related('customer', 'restaurant').order_by('-created_at')[:8]
+    # Recent orders
+    recent_orders = Order.objects.select_related('customer', 'restaurant').order_by('-created_at')[:8]
 
-        # Top restaurants by order count
-        top_restaurants = (
-            Restaurant.objects.annotate(order_count=Count('orders'))
-            .order_by('-order_count')[:5]
-        )
+    # Top restaurants by order count
+    top_restaurants = (
+        Restaurant.objects.annotate(order_count=Count('orders'))
+        .order_by('-order_count')[:5]
+    )
 
-        # Orders per day for the last 7 days
-        daily = (
-            Order.objects.filter(created_at__gte=week_ago)
-            .annotate(day=TruncDate('created_at'))
-            .values('day')
-            .annotate(count=Count('id'))
-            .order_by('day')
-        )
-        day_map = {str(d['day']): d['count'] for d in daily}
-        chart_labels = []
-        chart_data = []
-        for i in range(6, -1, -1):
-            day = (today - timezone.timedelta(days=i)).strftime('%Y-%m-%d')
-            chart_labels.append((today - timezone.timedelta(days=i)).strftime('%a'))
-            chart_data.append(day_map.get(day, 0))
+    # Orders per day for the last 7 days
+    daily = (
+        Order.objects.filter(created_at__gte=week_ago)
+        .annotate(day=TruncDate('created_at'))
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+    day_map = {str(d['day']): d['count'] for d in daily}
+    chart_labels = []
+    chart_data = []
+    for i in range(6, -1, -1):
+        day = (today - timezone.timedelta(days=i)).strftime('%Y-%m-%d')
+        chart_labels.append((today - timezone.timedelta(days=i)).strftime('%a'))
+        chart_data.append(day_map.get(day, 0))
 
-        # Order status distribution
-        status_counts = {s: 0 for s in ['delivered', 'pending', 'preparing', 'on_the_way', 'cancelled']}
-        for row in Order.objects.values('status').annotate(c=Count('id')):
-            if row['status'] in status_counts:
-                status_counts[row['status']] = row['c']
-        status_data = list(status_counts.values())
+    # Order status distribution
+    status_counts = {s: 0 for s in ['delivered', 'pending', 'preparing', 'on_the_way', 'cancelled']}
+    for row in Order.objects.values('status').annotate(c=Count('id')):
+        if row['status'] in status_counts:
+            status_counts[row['status']] = row['c']
+    status_data = list(status_counts.values())
 
-        extra_context = extra_context or {}
-        extra_context.update({
-            'total_orders': total_orders,
-            'pending_orders': pending_orders,
-            'total_revenue': f'{total_revenue:,.2f}',
-            'total_users': total_users,
-            'customer_count': customer_count,
-            'total_restaurants': total_restaurants,
-            'active_restaurants': active_restaurants,
-            'total_food_items': total_food_items,
-            'total_drivers': total_drivers,
-            'online_drivers': online_drivers,
-            'recent_orders': recent_orders,
-            'top_restaurants': top_restaurants,
-            'chart_labels': json.dumps(chart_labels),
-            'chart_data': json.dumps(chart_data),
-            'status_data': json.dumps(status_data),
-        })
-        return super().index(request, extra_context)
+    extra_context = extra_context or {}
+    extra_context.update({
+        'total_orders': total_orders,
+        'pending_orders': pending_orders,
+        'total_revenue': f'{total_revenue:,.2f}',
+        'total_users': total_users,
+        'customer_count': customer_count,
+        'total_restaurants': total_restaurants,
+        'active_restaurants': active_restaurants,
+        'total_food_items': total_food_items,
+        'total_drivers': total_drivers,
+        'online_drivers': online_drivers,
+        'recent_orders': recent_orders,
+        'top_restaurants': top_restaurants,
+        'chart_labels': json.dumps(chart_labels),
+        'chart_data': json.dumps(chart_data),
+        'status_data': json.dumps(status_data),
+    })
+    return _original_index(request, extra_context)
 
 
-# Register the custom site
-foodgo_admin = FoodGoAdminSite(name='admin')
-admin.site = foodgo_admin
-
-# Expose as default so other apps can still register
-from django.contrib.admin import site  # noqa
+# Patch the default admin site
+admin.site.index = custom_admin_index
 
 admin.site.site_title = 'FoodGo Admin'
 admin.site.site_header = '🍔 FoodGo Admin Panel'

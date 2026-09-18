@@ -1,0 +1,378 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --green:  #35B86B;
+    --orange: #FF6F00;
+    --red:    #E53935;
+    --blue:   #1E88E5;
+    --purple: #8E24AA;
+    --teal:   #00897B;
+    --yellow: #F9A825;
+  }
+  body { font-family: 'Inter', sans-serif !important; }
+
+  /* ── Stat cards ───────────────────────────────── */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+    margin: 20px 0;
+  }
+  .stat-card {
+    border-radius: 14px;
+    padding: 20px 22px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.2); }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    right: -20px; top: -20px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+  }
+  .stat-icon {
+    font-size: 36px;
+    width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.2);
+    border-radius: 14px;
+    flex-shrink: 0;
+  }
+  .stat-info { flex: 1; }
+  .stat-value { font-size: 30px; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 13px; opacity: .85; margin-top: 4px; font-weight: 500; }
+  .stat-sub   { font-size: 11px; opacity: .7;  margin-top: 6px; }
+
+  .card-green  { background: linear-gradient(135deg, #35B86B, #289A57); }
+  .card-orange { background: linear-gradient(135deg, #FF8F00, #E65100); }
+  .card-blue   { background: linear-gradient(135deg, #1E88E5, #1565C0); }
+  .card-red    { background: linear-gradient(135deg, #E53935, #B71C1C); }
+  .card-purple { background: linear-gradient(135deg, #8E24AA, #6A1B9A); }
+  .card-teal   { background: linear-gradient(135deg, #00897B, #00695C); }
+
+  /* ── Charts row ───────────────────────────────── */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .chart-card {
+    background: var(--body-bg, #fff);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .chart-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .chart-sub {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 18px;
+  }
+
+  /* ── Tables row ───────────────────────────────── */
+  .table-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .dash-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .dash-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #888;
+    border-bottom: 2px solid rgba(0,0,0,0.06);
+  }
+  .dash-table td {
+    padding: 10px 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    vertical-align: middle;
+  }
+  .dash-table tr:last-child td { border-bottom: none; }
+
+  /* Status badges */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-green  { background: rgba(53,184,107,.15); color: #289A57; }
+  .badge-orange { background: rgba(255,143,0,.15);  color: #E65100; }
+  .badge-blue   { background: rgba(30,136,229,.15); color: #1565C0; }
+  .badge-red    { background: rgba(229,57,53,.15);  color: #B71C1C; }
+  .badge-purple { background: rgba(142,36,170,.15); color: #6A1B9A; }
+
+  /* Quick action buttons */
+  .quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .qa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .2s;
+    border: none;
+    cursor: pointer;
+  }
+  .qa-btn:hover { opacity: .88; transform: translateY(-1px); }
+  .qa-green  { background: var(--green);  color: #fff; }
+  .qa-blue   { background: var(--blue);   color: #fff; }
+  .qa-orange { background: var(--orange); color: #fff; }
+  .qa-purple { background: var(--purple); color: #fff; }
+
+  /* Section headings */
+  .section-heading {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 0 4px;">
+
+  <!-- Quick Actions -->
+  <div class="section-heading">⚡ Quick Actions</div>
+  <div class="quick-actions">
+    <a href="{% url 'admin:core_order_changelist' %}" class="qa-btn qa-green">📦 View Orders</a>
+    <a href="{% url 'admin:core_restaurant_changelist' %}" class="qa-btn qa-blue">🍽️ Restaurants</a>
+    <a href="{% url 'admin:core_user_changelist' %}" class="qa-btn qa-orange">👤 Users</a>
+    <a href="{% url 'admin:core_coupon_changelist' %}" class="qa-btn qa-purple">🎟️ Coupons</a>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="section-heading">📊 Overview</div>
+  <div class="dash-grid">
+    <div class="stat-card card-green">
+      <div class="stat-icon">📦</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ total_orders }}</div>
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-sub">{{ pending_orders }} pending</div>
+      </div>
+    </div>
+    <div class="stat-card card-blue">
+      <div class="stat-icon">💰</div>
+      <div class="stat-info">
+        <div class="stat-value">${{ total_revenue }}</div>
+        <div class="stat-label">Revenue</div>
+        <div class="stat-sub">All time</div>
+      </div>
+    </div>
+    <div class="stat-card card-orange">
+      <div class="stat-icon">👤</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Registered Users</div>
+        <div class="stat-sub">{{ customer_count }} customers</div>
+      </div>
+    </div>
+    <div class="stat-card card-red">
+      <div class="stat-icon">🍽️</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ total_restaurants }}</div>
+        <div class="stat-label">Restaurants</div>
+        <div class="stat-sub">{{ active_restaurants }} active</div>
+      </div>
+    </div>
+    <div class="stat-card card-purple">
+      <div class="stat-icon">🍔</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ total_food_items }}</div>
+        <div class="stat-label">Food Items</div>
+        <div class="stat-sub">On the menu</div>
+      </div>
+    </div>
+    <div class="stat-card card-teal">
+      <div class="stat-icon">🏍️</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ total_drivers }}</div>
+        <div class="stat-label">Drivers</div>
+        <div class="stat-sub">{{ online_drivers }} online now</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-title">📈 Orders This Week</div>
+      <div class="chart-sub">Daily order volume</div>
+      <canvas id="ordersChart" height="100"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🥧 Order Status</div>
+      <div class="chart-sub">Current distribution</div>
+      <canvas id="statusChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Tables Row -->
+  <div class="table-row">
+    <!-- Recent Orders -->
+    <div class="chart-card">
+      <div class="section-heading">🕐 Recent Orders</div>
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>#ID</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr>
+            <td><strong>#{{ order.id }}</strong></td>
+            <td>{{ order.customer.username }}</td>
+            <td><strong>${{ order.total_amount }}</strong></td>
+            <td>
+              {% if order.status == 'delivered' %}
+                <span class="badge badge-green">Delivered</span>
+              {% elif order.status == 'pending' %}
+                <span class="badge badge-orange">Pending</span>
+              {% elif order.status == 'preparing' %}
+                <span class="badge badge-blue">Preparing</span>
+              {% elif order.status == 'cancelled' %}
+                <span class="badge badge-red">Cancelled</span>
+              {% elif order.status == 'on_the_way' %}
+                <span class="badge badge-purple">On the Way</span>
+              {% else %}
+                <span class="badge badge-blue">{{ order.get_status_display }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No orders yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Top Restaurants -->
+    <div class="chart-card">
+      <div class="section-heading">🏆 Top Restaurants</div>
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Rating</th>
+            <th>Orders</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in top_restaurants %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><strong>{{ r.name }}</strong></td>
+            <td>⭐ {{ r.rating }}</td>
+            <td>{{ r.order_count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No restaurants yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Orders bar chart
+const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+new Chart(ordersCtx, {
+  type: 'bar',
+  data: {
+    labels: {{ chart_labels|safe }},
+    datasets: [{
+      label: 'Orders',
+      data: {{ chart_data|safe }},
+      backgroundColor: 'rgba(53,184,107,0.7)',
+      borderColor: '#35B86B',
+      borderWidth: 2,
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Status doughnut chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Delivered', 'Pending', 'Preparing', 'On the Way', 'Cancelled'],
+    datasets: [{
+      data: {{ status_data|safe }},
+      backgroundColor: ['#35B86B','#FF8F00','#1E88E5','#8E24AA','#E53935'],
+      borderWidth: 0,
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '65%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { padding: 12, font: { size: 12 } }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

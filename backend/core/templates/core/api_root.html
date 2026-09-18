@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodGo API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #35B86B;
+            --primary-dark: #289A57;
+            --bg: #0E1511;
+            --surface: rgba(255,255,255,0.05);
+            --border: rgba(255,255,255,0.1);
+            --text: #F3F6F4;
+            --muted: #7B857F;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            background-image: radial-gradient(ellipse at 20% 50%, rgba(53,184,107,0.12) 0%, transparent 60%),
+                              radial-gradient(ellipse at 80% 10%, rgba(53,184,107,0.08) 0%, transparent 50%);
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 60px 24px; }
+        .hero { text-align: center; margin-bottom: 60px; }
+        .logo { font-size: 56px; margin-bottom: 16px; }
+        h1 { font-size: 48px; font-weight: 800; background: linear-gradient(135deg, var(--primary), #7FFFB3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .subtitle { color: var(--muted); font-size: 18px; margin-top: 12px; }
+        .badge { display: inline-block; background: rgba(53,184,107,0.15); border: 1px solid rgba(53,184,107,0.3); color: var(--primary); padding: 4px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; margin-top: 16px; }
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; font-size: 14px; color: var(--muted); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 40px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: all 0.2s; }
+        .card:hover { border-color: rgba(53,184,107,0.4); transform: translateY(-2px); }
+        .card-icon { font-size: 28px; margin-bottom: 12px; }
+        .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .card p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+        .endpoints { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 40px; }
+        .endpoints h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+        .endpoint { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .endpoint:last-child { border-bottom: none; }
+        .method { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; min-width: 48px; text-align: center; }
+        .get { background: rgba(52,152,219,0.2); color: #3498db; }
+        .post { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .path { font-family: monospace; font-size: 14px; color: var(--text); flex: 1; }
+        .desc { color: var(--muted); font-size: 13px; }
+        .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 12px; font-size: 15px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .footer { text-align: center; margin-top: 60px; color: var(--muted); font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <div class="logo">🍔</div>
+        <h1>FoodGo API</h1>
+        <p class="subtitle">Booking &amp; Food Delivery REST API</p>
+        <span class="badge">v1.0 · Django 6.1 · DRF</span>
+        <div class="status-bar">
+            <div class="dot"></div>
+            <span>Server is running</span>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-icon">🔐</div>
+            <h3>Authentication</h3>
+            <p>JWT-based auth with access &amp; refresh tokens. Register, login, and manage your session securely.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🍽️</div>
+            <h3>Restaurants &amp; Food</h3>
+            <p>Browse restaurants, categories, and food items. Filter by availability and cuisine type.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">📦</div>
+            <h3>Orders &amp; Cart</h3>
+            <p>Full order lifecycle management — place orders, track status, and manage cart items.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🚴</div>
+            <h3>Delivery Tracking</h3>
+            <p>Real-time driver assignment and delivery tracking from pickup to doorstep.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">💳</div>
+            <h3>Payments</h3>
+            <p>Simulated payment processing with support for multiple payment methods and refunds.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🔔</div>
+            <h3>Notifications</h3>
+            <p>Push notification management for order updates, promotions, and delivery alerts.</p>
+        </div>
+    </div>
+
+    <div class="endpoints">
+        <h2>📡 API Endpoints</h2>
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="path">/api/auth/register/</span>
+            <span class="desc">Register a new user</span>
+        </div>
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="path">/api/token/</span>
+            <span class="desc">Obtain JWT token pair</span>
+        </div>
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="path">/api/token/refresh/</span>
+            <span class="desc">Refresh access token</span>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="path">/api/restaurants/</span>
+            <span class="desc">List all active restaurants</span>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="path">/api/food-items/</span>
+            <span class="desc">Browse available food items</span>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="path">/api/cart/</span>
+            <span class="desc">View your cart</span>
+        </div>
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="path">/api/orders/</span>
+            <span class="desc">Place a new order</span>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="path">/api/orders/</span>
+            <span class="desc">List your orders</span>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="path">/api/notifications/</span>
+            <span class="desc">View notifications</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a href="/admin/" class="btn btn-primary">🛠️ Admin Dashboard</a>
+        <a href="/api/restaurants/" class="btn btn-outline">🍽️ Browse API</a>
+    </div>
+
+    <div class="footer">
+        <p>FoodGo Ltd © 2026 &nbsp;·&nbsp; Built with Django REST Framework &nbsp;·&nbsp; All rights reserved</p>
+    </div>
+</div>
+</body>
+</html>

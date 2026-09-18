@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.http import JsonResponse
+from django.shortcuts import render
 
 def api_root(request):
-    return JsonResponse({"message": "Welcome to the FoodGo API! The server is running successfully.", "status": "ok"})
+    return render(request, 'core/api_root.html')
 
 urlpatterns = [
     path('', api_root, name='api-root'),
@@ -12,4 +14,4 @@ urlpatterns = [
     path('api/', include('core.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
-import 'package:go_router/go_router.dart';
+import '../../../providers/user_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -15,22 +16,35 @@ class ProfileScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          GlassContainer(
-            padding: const EdgeInsets.all(24),
-            borderRadius: BorderRadius.circular(32),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                  child: const Icon(Icons.person, size: 40, color: GlassTheme.primaryGreen),
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              final user = userProvider.user;
+              if (userProvider.isLoading) {
+                return const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen));
+              }
+              final String username = user?['username'] ?? 'Guest';
+              final String email = user?['email'] ?? 'guest@example.com';
+              return GlassContainer(
+                padding: const EdgeInsets.all(24),
+                borderRadius: BorderRadius.circular(32),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                      child: Text(
+                        username.isNotEmpty ? username[0].toUpperCase() : 'G',
+                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(username, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(email, style: TextStyle(color: GlassTheme.textMuted)),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                const Text('John Doe', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('johndoe@example.com', style: TextStyle(color: GlassTheme.textMuted)),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 24),
           const Text('Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),

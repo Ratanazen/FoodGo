@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
@@ -167,33 +166,42 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       point: _restaurantLocation!,
                       width: 50,
                       height: 50,
-                      child: const Icon(Icons.store, color: Colors.blue, size: 40),
+                      child: GestureDetector(
+                        onTap: () => _showIconInfo(context, 'Restaurant', 'Your food is prepared here.'),
+                        child: const Icon(Icons.store, color: Colors.blue, size: 40),
+                      ),
                     ),
                   if (_customerLocation != null)
                     Marker(
                       point: _customerLocation!,
                       width: 50,
                       height: 50,
-                      child: const Icon(Icons.location_on, color: Colors.red, size: 40)
-                          .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                          .scale(begin: const Offset(1, 1), end: const Offset(1.3, 1.3), duration: 1.seconds)
-                          .tint(color: Colors.redAccent, end: 0.5),
+                      child: GestureDetector(
+                        onTap: () => _showIconInfo(context, 'Delivery Address', 'This is your drop-off location.'),
+                        child: const Icon(Icons.location_on, color: Colors.red, size: 40)
+                            .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                            .scale(begin: const Offset(1, 1), end: const Offset(1.3, 1.3), duration: 1.seconds)
+                            .tint(color: Colors.redAccent, end: 0.5),
+                      ),
                     ),
                   if (_driverLocation != null)
                     Marker(
                       point: _driverLocation!,
                       width: 50,
                       height: 50,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                        ),
-                        child: const Icon(Icons.delivery_dining, color: GlassTheme.primaryGreen, size: 30),
-                      )
-                          .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                          .slideY(begin: 0, end: -0.2, duration: 800.ms, curve: Curves.easeInOut),
+                      child: GestureDetector(
+                        onTap: () => _showIconInfo(context, 'Driver', 'Your driver is on the way!'),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                          ),
+                          child: const Icon(Icons.delivery_dining, color: GlassTheme.primaryGreen, size: 30),
+                        )
+                            .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                            .slideY(begin: 0, end: -0.2, duration: 800.ms, curve: Curves.easeInOut),
+                      ),
                     ),
                 ],
               ),
@@ -280,6 +288,24 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         color: active
             ? GlassTheme.primaryGreen
             : GlassTheme.textMuted.withValues(alpha: 0.3),
+      ),
+    );
+  }
+
+  void _showIconInfo(BuildContext context, String title, String description) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white.withValues(alpha: 0.9),
+        shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(description),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: GlassTheme.primaryGreen)),
+          ),
+        ],
       ),
     );
   }

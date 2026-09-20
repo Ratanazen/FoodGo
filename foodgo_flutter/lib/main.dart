@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/theme_provider.dart';
-import 'providers/auth_provider.dart';
-import 'providers/restaurant_provider.dart';
-import 'providers/cart_provider.dart';
 import 'app/router/app_router.dart';
 import 'app/theme/app_theme.dart';
+import 'providers/auth_provider.dart';
+import 'providers/cart_provider.dart';
+import 'providers/restaurant_provider.dart';
+import 'providers/theme_provider.dart';
+import 'providers/user_provider.dart';
 
 void main() {
   runApp(
@@ -15,6 +16,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => RestaurantProvider()..fetchRestaurants()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()..fetchUser()),
       ],
       child: const FoodGoApp(),
     ),

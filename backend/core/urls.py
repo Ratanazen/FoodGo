@@ -13,5 +13,6 @@ router.register(r'live-items', LiveItemViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', UserRegistrationView.as_view(), name='register'),
+    path('me/', UserMeView.as_view(), name='user-me'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
 ]

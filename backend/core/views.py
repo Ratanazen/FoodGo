@@ -133,11 +133,25 @@ class OrderViewSet(viewsets.ModelViewSet):
         if address and address.user_id != user.id and not user.is_staff:
             raise ValidationError({'address': ['The selected address does not belong to you.']})
 
+
         subtotal = sum(
             (item.food_item.price * item.quantity for item in cart_items),
             Decimal('0.00'),
         )
-        order = serializer.save(customer=user, total_amount=subtotal + restaurant.delivery_fee)
+        total_amount = subtotal + restaurant.delivery_fee
+        
+        wallet, _ = Wallet.objects.get_or_create(user=user)
+        if wallet.balance < total_amount:
+            raise ValidationError({'payment': ['Insufficient wallet balance. Please top up your wallet.']})
+        
+        wallet.balance -= total_amount
+        wallet.save()
+        WalletTransaction.objects.create(
+            wallet=wallet, amount=total_amount, transaction_type='payment', description='Order Payment'
+        )
+
+        order = serializer.save(customer=user, total_amount=total_amount)
+
         OrderItem.objects.bulk_create([
             OrderItem(order=order, food_item=item.food_item, quantity=item.quantity, price=item.food_item.price)
             for item in cart_items
@@ -268,3 +282,30 @@ class LiveItemViewSet(viewsets.ModelViewSet):
     queryset = LiveItem.objects.all()
     serializer_class = LiveItemSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin):
+    serializer_class = WalletSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Wallet.objects.filter(user=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def my_wallet(self, request):
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        serializer = self.get_serializer(wallet)
+        return Response(serializer.data)
+        
+    @action(detail=False, methods=['post'])
+    def top_up(self, request):
+        amount = request.data.get('amount')
+        if not amount:
+            return Response({'detail': 'Amount required'}, status=400)
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        wallet.balance += Decimal(str(amount))
+        wallet.save()
+        WalletTransaction.objects.create(
+            wallet=wallet, amount=amount, transaction_type='deposit', description='Wallet Top Up'
+        )
+        return Response(self.get_serializer(wallet).data)

@@ -7,8 +7,24 @@ on:
     branches: [ master, main ]
 
 jobs:
-  backend-test:
+  security-and-secret-audit:
+    name: Secret & API Leak Prevention Check
     runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Ensure no .env or private secret files are tracked in git
+      run: |
+        echo "Verifying no secret environment files are committed..."
+        if git ls-files | grep -E '^(\.env|\.env\..*)$' | grep -v '\.env\.example$'; then
+          echo "ERROR: Real .env file detected in git repository! Remove it immediately."
+          exit 1
+        fi
+        echo "No sensitive .env files detected in git tree."
+
+  backend-test:
+    name: Django Backend Test & Verification
+    runs-on: ubuntu-latest
+    needs: security-and-secret-audit
     services:
       postgres:
         image: postgres:15
@@ -35,13 +51,32 @@ jobs:
         cd backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Run Django Checks
+    - name: Run Django System Checks
+      env:
+        # Strictly dummy CI credentials - never real API keys or production secrets
+        SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
+        DEBUG: "False"
+        PAYMENT_ENV: "sandbox"
+        ABA_ENABLED: "False"
+        ACLEDA_ENABLED: "False"
       run: |
         cd backend
         python manage.py check
+    - name: Run Django Test Suite
+      env:
+        SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
+        DEBUG: "False"
+        PAYMENT_ENV: "sandbox"
+        ABA_ENABLED: "True"
+        ACLEDA_ENABLED: "True"
+      run: |
+        cd backend
+        python manage.py test
 
   flutter-test:
+    name: Flutter Analyze & Test Suite
     runs-on: ubuntu-latest
+    needs: security-and-secret-audit
     steps:
     - uses: actions/checkout@v3
     - name: Set up Flutter
@@ -53,7 +88,11 @@ jobs:
       run: |
         cd foodgo_flutter
         flutter pub get
-    - name: Analyze code
+    - name: Analyze code (Zero Warning Policy)
       run: |
         cd foodgo_flutter
         flutter analyze
+    - name: Run Flutter Unit & Widget Tests
+      run: |
+        cd foodgo_flutter
+        flutter test

@@ -1,12 +1,41 @@
 # Python / Django
 backend/venv/
+.venv/
 __pycache__/
 *.py[cod]
 *$py.class
 backend/db.sqlite3
 backend/media/
 backend/staticfiles/
+
+# Environment Variables & Secrets (NEVER COMMIT TO GIT)
 .env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.token
+secrets/
+private/
+
+# Logs & Temp
+*.log
+*.swp
+*.bak
+*.tmp
+
+# Flutter & Dart
+foodgo_flutter/build/
+foodgo_flutter/.dart_tool/
+foodgo_flutter/.flutter-plugins
+foodgo_flutter/.flutter-plugins-dependencies
+foodgo_flutter/.packages
+foodgo_flutter/.pub-cache/
+foodgo_flutter/.pub/
 
 # Node / React
 frontend/node_modules/

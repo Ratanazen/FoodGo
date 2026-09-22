@@ -27,6 +27,8 @@ import '../../features/addresses/presentation/addresses_screen.dart';
 import '../../features/payments/presentation/payments_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../screens/map_screen.dart';
+import '../../features/dashboard/presentation/restaurant_dashboard_screen.dart';
+import '../../features/dashboard/presentation/driver_dashboard_screen.dart';
 
 // Widgets
 import '../../widgets/glass/glass_bottom_navigation.dart';
@@ -43,6 +45,8 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
     GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
+    GoRoute(path: '/restaurant-dashboard', builder: (context, state) => const RestaurantDashboardScreen()),
+    GoRoute(path: '/driver-dashboard', builder: (context, state) => const DriverDashboardScreen()),
     
     GoRoute(
       path: '/restaurant/:id',

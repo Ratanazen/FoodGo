@@ -24,30 +24,60 @@ class ProfileScreen extends StatelessWidget {
               }
               final String username = user?['username'] ?? 'Guest';
               final String email = user?['email'] ?? 'guest@example.com';
-              return GlassContainer(
-                padding: const EdgeInsets.all(24),
-                borderRadius: BorderRadius.circular(32),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                      child: Text(
-                        username.isNotEmpty ? username[0].toUpperCase() : 'G',
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+              return Column(
+                children: [
+                  GlassContainer(
+                    padding: const EdgeInsets.all(24),
+                    borderRadius: BorderRadius.circular(32),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                          child: Text(
+                            username.isNotEmpty ? username[0].toUpperCase() : 'G',
+                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(username, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                        const SizedBox(height: 4),
+                        Text(email, style: TextStyle(color: GlassTheme.textMuted)),
+                      ],
+                    ),
+                  ),
+                  if (user?['role'] == 'restaurant_owner') ...[
+                    const SizedBox(height: 24),
+                    GlassContainer(
+                      padding: const EdgeInsets.all(4),
+                      borderRadius: GlassTheme.borderRadiusSmall,
+                      child: ListTile(
+                        leading: const Icon(Icons.store, color: GlassTheme.primaryGreen),
+                        title: const Text('Restaurant Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+                        onTap: () => context.push('/restaurant-dashboard'),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(username, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text(email, style: TextStyle(color: GlassTheme.textMuted)),
                   ],
-                ),
+                  if (user?['role'] == 'driver') ...[
+                    const SizedBox(height: 24),
+                    GlassContainer(
+                      padding: const EdgeInsets.all(4),
+                      borderRadius: GlassTheme.borderRadiusSmall,
+                      child: ListTile(
+                        leading: const Icon(Icons.delivery_dining, color: GlassTheme.primaryGreen),
+                        title: const Text('Driver Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+                        onTap: () => context.push('/driver-dashboard'),
+                      ),
+                    ),
+                  ],
+                ],
               );
             },
           ),
           const SizedBox(height: 24),
-          const Text('Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
           const SizedBox(height: 12),
           _ProfileOption(icon: Icons.person_outline, title: 'Edit Profile', onTap: () {}),
           _ProfileOption(icon: Icons.notifications_outlined, title: 'Notifications', onTap: () => context.push('/notifications')),

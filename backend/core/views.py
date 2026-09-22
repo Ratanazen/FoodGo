@@ -13,6 +13,17 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     serializer_class = RestaurantSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    
+    @action(detail=False, methods=['get'])
+    def my_restaurant(self, request):
+        if request.user.role != 'restaurant_owner':
+            return Response({'detail': 'Not a restaurant owner'}, status=403)
+        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        if not restaurant:
+            return Response({'detail': 'Restaurant not found'}, status=404)
+        serializer = self.get_serializer(restaurant)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
@@ -35,6 +46,17 @@ class FoodCategoryViewSet(viewsets.ModelViewSet):
             return queryset.filter(restaurant__owner=self.request.user)
         return queryset
 
+    
+    @action(detail=False, methods=['get'])
+    def my_restaurant(self, request):
+        if request.user.role != 'restaurant_owner':
+            return Response({'detail': 'Not a restaurant owner'}, status=403)
+        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        if not restaurant:
+            return Response({'detail': 'Restaurant not found'}, status=404)
+        serializer = self.get_serializer(restaurant)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         restaurant = serializer.validated_data['restaurant']
         if not self.request.user.is_staff and restaurant.owner_id != self.request.user.id:
@@ -51,6 +73,17 @@ class FoodItemViewSet(viewsets.ModelViewSet):
         if self.request.method in ('PUT', 'PATCH', 'DELETE') and not self.request.user.is_staff:
             return queryset.filter(category__restaurant__owner=self.request.user)
         return queryset.filter(is_available=True) if self.request.method == 'GET' else queryset
+
+    
+    @action(detail=False, methods=['get'])
+    def my_restaurant(self, request):
+        if request.user.role != 'restaurant_owner':
+            return Response({'detail': 'Not a restaurant owner'}, status=403)
+        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        if not restaurant:
+            return Response({'detail': 'Restaurant not found'}, status=404)
+        serializer = self.get_serializer(restaurant)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         category = serializer.validated_data['category']
@@ -71,6 +104,17 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Order.objects.all()
 
     @transaction.atomic
+    
+    @action(detail=False, methods=['get'])
+    def my_restaurant(self, request):
+        if request.user.role != 'restaurant_owner':
+            return Response({'detail': 'Not a restaurant owner'}, status=403)
+        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        if not restaurant:
+            return Response({'detail': 'Restaurant not found'}, status=404)
+        serializer = self.get_serializer(restaurant)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         user = self.request.user
         if user.role != 'customer' and not user.is_staff:
@@ -142,6 +186,17 @@ class CartViewSet(viewsets.ModelViewSet):
             return Cart.objects.all()
         return Cart.objects.filter(customer=user)
 
+    
+    @action(detail=False, methods=['get'])
+    def my_restaurant(self, request):
+        if request.user.role != 'restaurant_owner':
+            return Response({'detail': 'Not a restaurant owner'}, status=403)
+        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        if not restaurant:
+            return Response({'detail': 'Restaurant not found'}, status=404)
+        serializer = self.get_serializer(restaurant)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         serializer.save(customer=self.request.user)
 
@@ -155,6 +210,17 @@ class CartItemViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff:
             return queryset
         return queryset.filter(cart__customer=self.request.user)
+
+    
+    @action(detail=False, methods=['get'])
+    def my_restaurant(self, request):
+        if request.user.role != 'restaurant_owner':
+            return Response({'detail': 'Not a restaurant owner'}, status=403)
+        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        if not restaurant:
+            return Response({'detail': 'Restaurant not found'}, status=404)
+        serializer = self.get_serializer(restaurant)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         user = self.request.user

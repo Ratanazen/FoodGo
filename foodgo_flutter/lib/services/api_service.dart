@@ -19,6 +19,17 @@ class ApiService {
     }
   }
 
+  
+  Future<dynamic> patch(String endpoint, Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.patch(endpoint, data: data);
+      return response.data;
+    } on DioException catch (e) {
+      debugPrint('PATCH error: ${e.message}');
+      rethrow;
+    }
+  }
+
   Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
     try {
       final response = await _apiClient.dio.post(endpoint, data: data);

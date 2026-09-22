@@ -39,18 +39,29 @@ cp .env.example .env
 docker-compose up -d --build
 ```
 
-## 📚 API Endpoints
-*   `/api/auth/phone-login/` - OTP Auth
-*   `/api/restaurants/my_restaurant/` - Restaurant Owner Dashboard
-*   `/api/wallets/my_wallet/` - User Wallet & Transactions
-*   `/ws/tracking/<order_id>/` - Live Driver GPS WebSocket
+## 💳 Real Production-Style Payment Gateways (KHQR & COD)
+FoodGo supports multi-provider checkout:
+*   **ABA KHQR (Dynamic QR):** Generates compliant dynamic Bakong/ABA KHQR strings with 5-minute expirations and merchant reference verification.
+*   **ACLEDA KHQR:** Full partner API merchant integration supporting real-time webhook callbacks.
+*   **Cash on Delivery (COD):** Confirms order immediately with `payment_status='PENDING'` for in-person cash handover to the delivery driver.
 
-## 🧪 Testing the Live Map
-1. Place an order in the Flutter app.
-2. Go to Orders -> Track Order.
-3. Run the driver simulation script: `source backend/venv/bin/activate && python simulate_driver.py`
+### 📡 Payment Endpoints
+*   `POST /api/payments/create/` — Initiate order payment & dynamic KHQR generation.
+*   `POST /api/payments/<id>/status/` — Non-blocking polling & status verification.
+*   `POST /api/payments/<id>/cancel/` — Cancel an in-flight payment attempt.
+*   `POST /api/payments/aba/callback/` — Idempotent webhook receiver for ABA PayWay.
+*   `POST /api/payments/acleda/callback/` — Idempotent webhook receiver for ACLEDA Bank.
+
+### 🧪 Simulating an Instant KHQR Webhook
+To simulate a customer scanning and paying via ABA Mobile in development:
+```bash
+curl -X POST http://127.0.0.1:8000/api/payments/aba/callback/ \
+  -H "Content-Type: application/json" \
+  -d '{"merchant_reference": "<MERCHANT_REF_FROM_SCREEN>", "amount": "<ORDER_AMOUNT>", "currency": "USD", "transaction_id": "ABA-TXN-999"}'
+```
 
 ## 🛡️ Security
 *   JWT Access/Refresh tokens securely stored in `flutter_secure_storage`.
 *   Object-level permissions (Owners can only see their restaurant's orders).
-*   Checkout APIs validate Wallet balances server-side to prevent client spoofing.
+*   Zero client-side payment trust: Order status only transitions to `confirmed` after backend signature & amount verification.
+

@@ -125,3 +125,19 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = [
+            'id', 'order', 'provider', 'method', 'transaction_id',
+            'merchant_reference', 'amount', 'currency', 'qr_payload',
+            'qr_image', 'status', 'provider_response', 'created_at',
+            'updated_at', 'paid_at', 'expires_at'
+        ]
+        read_only_fields = [
+            'id', 'transaction_id', 'merchant_reference', 'qr_payload',
+            'qr_image', 'status', 'provider_response', 'created_at',
+            'updated_at', 'paid_at', 'expires_at'
+        ]
+

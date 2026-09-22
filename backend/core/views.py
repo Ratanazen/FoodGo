@@ -139,18 +139,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             Decimal('0.00'),
         )
         total_amount = subtotal + restaurant.delivery_fee
-        
-        wallet, _ = Wallet.objects.get_or_create(user=user)
-        if wallet.balance < total_amount:
-            raise ValidationError({'payment': ['Insufficient wallet balance. Please top up your wallet.']})
-        
-        wallet.balance -= total_amount
-        wallet.save()
-        WalletTransaction.objects.create(
-            wallet=wallet, amount=total_amount, transaction_type='payment', description='Order Payment'
-        )
 
-        order = serializer.save(customer=user, total_amount=total_amount)
+        order = serializer.save(customer=user, total_amount=total_amount, payment_status='UNPAID', status='pending')
 
         OrderItem.objects.bulk_create([
             OrderItem(order=order, food_item=item.food_item, quantity=item.quantity, price=item.food_item.price)

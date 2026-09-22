@@ -268,8 +268,8 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer', 'restaurant', 'status_badge', 'total_amount', 'created_at']
-    list_filter = ['status', 'created_at', 'restaurant']
+    list_display = ['id', 'customer', 'restaurant', 'status_badge', 'payment_status', 'total_amount', 'created_at']
+    list_filter = ['status', 'payment_status', 'created_at', 'restaurant']
     search_fields = ['customer__username', 'id']
     inlines = [OrderItemInline]
     readonly_fields = ['created_at']
@@ -326,15 +326,23 @@ class CartItemAdmin(admin.ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ['order', 'method', 'amount', 'payment_status_badge', 'transaction_id']
-    list_filter = ['status', 'method']
-    search_fields = ['order__id', 'transaction_id']
-
+    list_display = ['id', 'order', 'provider', 'method', 'amount', 'currency', 'payment_status_badge', 'merchant_reference', 'transaction_id', 'created_at']
+    list_filter = ['status', 'provider', 'method', 'currency', 'created_at']
+    search_fields = ['order__id', 'transaction_id', 'merchant_reference']
+    readonly_fields = ['order', 'amount', 'currency', 'merchant_reference', 'transaction_id', 'created_at', 'updated_at', 'paid_at', 'provider_response', 'qr_payload']
 
     @admin.display(description='Status')
     def payment_status_badge(self, obj):
-        colors = {'pending': '#f39c12', 'paid': '#27ae60', 'failed': '#e74c3c', 'refunded': '#95a5a6'}
-        color = colors.get(obj.status, '#95a5a6')
+        colors = {
+            'PENDING': '#f39c12',
+            'PROCESSING': '#3498db',
+            'PAID': '#27ae60',
+            'FAILED': '#e74c3c',
+            'EXPIRED': '#7f8c8d',
+            'CANCELLED': '#95a5a6',
+            'REFUNDED': '#8e44ad',
+        }
+        color = colors.get(obj.status.upper(), '#95a5a6')
         return format_html(
             '<span style="background:{};color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{}</span>',
             color, obj.status.upper()

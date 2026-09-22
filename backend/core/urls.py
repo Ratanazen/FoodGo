@@ -1,4 +1,8 @@
 from .auth_views import RequestOTPView, VerifyOTPView
+from .payment_views import (
+    CreatePaymentView, PaymentDetailView, PaymentStatusView,
+    CancelPaymentView, ABACallbackView, ACLEDACallbackView
+)
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import *
@@ -21,4 +25,11 @@ urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('me/', UserMeView.as_view(), name='user-me'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
+    # Real KHQR & COD Payment Endpoints
+    path('payments/create/', CreatePaymentView.as_view(), name='payment_create'),
+    path('payments/<int:pk>/', PaymentDetailView.as_view(), name='payment_detail'),
+    path('payments/<int:pk>/status/', PaymentStatusView.as_view(), name='payment_status'),
+    path('payments/<int:pk>/cancel/', CancelPaymentView.as_view(), name='payment_cancel'),
+    path('payments/aba/callback/', ABACallbackView.as_view(), name='payment_aba_callback'),
+    path('payments/acleda/callback/', ACLEDACallbackView.as_view(), name='payment_acleda_callback'),
 ]

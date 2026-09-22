@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -75,10 +76,18 @@ class Order(models.Model):
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled')
     )
+    PAYMENT_STATUS_CHOICES = (
+        ('UNPAID', 'Unpaid'),
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('FAILED', 'Failed'),
+        ('REFUNDED', 'Refunded'),
+    )
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='orders')
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='UNPAID')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     special_instructions = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -99,11 +108,43 @@ class CartItem(models.Model):
     quantity = models.IntegerField(default=1)
 
 class Payment(models.Model):
+    PROVIDER_CHOICES = (
+        ('ABA', 'ABA KHQR'),
+        ('ACLEDA', 'ACLEDA KHQR'),
+        ('COD', 'Cash on Delivery'),
+    )
+    METHOD_CHOICES = (
+        ('KHQR', 'KHQR'),
+        ('COD', 'Cash on Delivery'),
+    )
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('PAID', 'Paid'),
+        ('FAILED', 'Failed'),
+        ('EXPIRED', 'Expired'),
+        ('CANCELLED', 'Cancelled'),
+        ('REFUNDED', 'Refunded'),
+    )
+
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
-    method = models.CharField(max_length=50)
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='ABA')
+    method = models.CharField(max_length=20, choices=METHOD_CHOICES, default='KHQR')
+    transaction_id = models.CharField(max_length=100, blank=True, unique=True, null=True)
+    merchant_reference = models.CharField(max_length=100, blank=True, unique=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, default='pending')
-    transaction_id = models.CharField(max_length=100, blank=True)
+    currency = models.CharField(max_length=10, default='USD')
+    qr_payload = models.TextField(blank=True, null=True)
+    qr_image = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    provider_response = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
 class Driver(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver_profile')

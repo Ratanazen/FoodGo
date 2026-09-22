@@ -1,123 +1,56 @@
-# FoodGo - Food Delivery Application
+# 🍔 FoodGo - Enterprise Food Delivery Platform
 
-A full-stack food delivery application inspired by Foodpanda.
+FoodGo is a modern, production-ready, full-stack food delivery application built with a beautifully animated **Flutter (Glassmorphism)** frontend and a robust **Django REST Framework / WebSockets** backend.
 
-## Technologies Used
-* **Frontend:** React, Tailwind CSS, Vite, Axios, React Router Dom
-* **Backend:** Django, Django REST Framework, Simple JWT
-* **Database:** SQLite (Default for development) / PostgreSQL
-* **Payments:** Stripe (integration stubbed)
-* **Image Storage:** Cloudinary (integration stubbed)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
+![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
 
-## Project Structure
-* `backend/` - Django backend API
-* `frontend/` - React frontend application
+## ✨ Core Features
+*   **Role-Based Architecture:** Unified app routing for Customers, Restaurant Owners, Drivers, and Admins.
+*   **Real-Time Live Map Tracking:** Powered by Django Channels (WebSockets). Watch your driver move live on the map.
+*   **Fintech Wallet System:** Integrated digital wallet with top-ups, transaction history, and strict checkout deductions.
+*   **Mobile Authentication:** OTP-based phone login combined with secure JWT tokens.
+*   **Algorithmic Recommendations:** Lightweight collaborative filtering suggesting foods based on order history.
+*   **Glassmorphic UI:** A visually stunning, mathematically constrained mobile UI (even on desktop web).
+*   **Containerized Ecosystem:** Fully deployable via a single `docker-compose.yml`.
 
-## Setup Instructions
+## 🏗️ Architecture Stack
+*   **Frontend:** Flutter (Provider, GoRouter, flutter_animate, google_maps_flutter)
+*   **Backend API:** Python, Django 6.1, Django REST Framework, SimpleJWT
+*   **Real-time / Async:** Daphne, Django Channels, Redis
+*   **Database:** PostgreSQL (production), SQLite (local dev)
+*   **CI/CD:** GitHub Actions workflows included
 
-### Backend Setup
-1. `cd backend`
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install django djangorestframework psycopg2-binary django-cors-headers djangorestframework-simplejwt django-filter cloudinary stripe
-   ```
-4. Run migrations:
-   ```bash
-   python manage.py migrate
-   ```
-5. Create a superuser:
-   ```bash
-   python manage.py createsuperuser
-   ```
-6. Start the development server:
-   ```bash
-   python manage.py runserver
-   ```
-
-### Frontend Setup
-1. `cd frontend`
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-## API Endpoints (Base URL: `/api/`)
-* `/token/` - Get JWT token
-* `/token/refresh/` - Refresh JWT token
-* `/restaurants/` - List/Create restaurants
-* `/food-categories/` - List/Create food categories
-* `/food-items/` - List/Create food items
-* `/orders/` - List/Create orders
-
-FoodGo is a Flutter food-delivery client backed by a Django REST API. The repository does not contain a React or Vite frontend.
-
-## Architecture
-
-- `backend/`: Django 6.1, Django REST Framework, Simple JWT, SQLite by default, PostgreSQL via `DATABASE_URL`.
-- `foodgo_flutter/`: Flutter/Dart application using Provider, Dio, GoRouter, secure token storage, and Material UI.
-- `backend/core/`: users, restaurants, food catalog, carts, orders, payments, addresses, and related API resources.
-
-## Backend Setup
-
+## 🚀 Quick Start (One-Click Dev Environment)
+If you are developing locally on Linux/macOS, we've provided a script to spin up the entire ecosystem:
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+# Start Django API + Daphne WebSockets + Flutter Web Server instantly
+./run_all.sh
 ```
 
-Configuration is supplied through environment variables. Local development defaults to SQLite and `DEBUG=True`:
-
+## 🐳 Docker Production Deployment
 ```bash
-export DJANGO_SECRET_KEY='replace-this-in-development'
-export DJANGO_DEBUG='True'
-export DJANGO_ALLOWED_HOSTS='127.0.0.1,localhost'
-export CORS_ALLOWED_ORIGINS='http://localhost:3000'
+# Copy env file
+cp .env.example .env
+
+# Spin up Postgres, Redis, Django, and Nginx/Flutter
+docker-compose up -d --build
 ```
 
-Production should set `DJANGO_DEBUG=False`, a strong `DJANGO_SECRET_KEY`, explicit hosts, and a PostgreSQL `DATABASE_URL`, such as `postgresql://user:password@host:5432/foodgo`. Never commit these values.
+## 📚 API Endpoints
+*   `/api/auth/phone-login/` - OTP Auth
+*   `/api/restaurants/my_restaurant/` - Restaurant Owner Dashboard
+*   `/api/wallets/my_wallet/` - User Wallet & Transactions
+*   `/ws/tracking/<order_id>/` - Live Driver GPS WebSocket
 
-Useful checks:
+## 🧪 Testing the Live Map
+1. Place an order in the Flutter app.
+2. Go to Orders -> Track Order.
+3. Run the driver simulation script: `source backend/venv/bin/activate && python simulate_driver.py`
 
-```bash
-python manage.py check
-python manage.py check --deploy
-python manage.py makemigrations --check
-python manage.py test
-```
-
-## API
-
-The API is rooted at `/api/`. JWT endpoints are `/api/token/` and `/api/token/refresh/`. Catalog resources include `/api/restaurants/`, `/api/food-categories/`, and `/api/food-items/`; authenticated resources include `/api/carts/`, `/api/cart-items/`, and `/api/orders/`. Public registration is `/api/register/`, and the Django admin is `/admin/`.
-
-Catalog reads are public, but writes require authentication and ownership or staff permissions. Customer carts and orders are scoped to the authenticated user. Order totals and historical item prices are calculated server-side.
-
-## Flutter Setup
-
-```bash
-cd foodgo_flutter
-flutter pub get
-flutter run --dart-define=FOODGO_API_URL=http://127.0.0.1:8000/api/
-```
-
-The API URL is configurable with `FOODGO_API_URL`; the loopback URL is only the local-development default. Validate the client with `flutter analyze` and `flutter test`.
-
-## Production
-
-Build platform artifacts with commands such as `flutter build apk --release` or `flutter build web --release`. Serve Django behind HTTPS with a production WSGI/ASGI server and PostgreSQL. Stripe and Cloudinary credentials are not configured in source; integrations must be completed with server-side environment variables before enabling live payments or remote media storage.
-
-## Current Scope and Risks
-
-The repository contains no Docker or CI configuration and no Flutter test suite yet. Checkout, addresses, and order history screens still need to be connected to their backend resources before they can be considered production-complete.
+## 🛡️ Security
+*   JWT Access/Refresh tokens securely stored in `flutter_secure_storage`.
+*   Object-level permissions (Owners can only see their restaurant's orders).
+*   Checkout APIs validate Wallet balances server-side to prevent client spoofing.

@@ -46,8 +46,52 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  // Wallet & Account Balance Card
+                  GlassContainer(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                    borderRadius: BorderRadius.circular(20),
+                    customColor: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.account_balance_wallet, color: GlassTheme.primaryGreen, size: 22),
+                            ),
+                            const SizedBox(width: 14),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Account Balance', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                const SizedBox(height: 2),
+                                const Text('FoodGo Wallet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlassTheme.primaryGreen,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          ),
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text('Add Money', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          onPressed: () => context.push('/wallet'),
+                        ),
+                      ],
+                    ),
+                  ),
                   if (user?['role'] == 'restaurant_owner') ...[
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     GlassContainer(
                       padding: const EdgeInsets.all(4),
                       borderRadius: GlassTheme.borderRadiusSmall,
@@ -60,7 +104,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ],
                   if (user?['role'] == 'driver') ...[
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     GlassContainer(
                       padding: const EdgeInsets.all(4),
                       borderRadius: GlassTheme.borderRadiusSmall,
@@ -79,11 +123,11 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 24),
           const Text('Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
           const SizedBox(height: 12),
-          _ProfileOption(icon: Icons.person_outline, title: 'Edit Profile', onTap: () {}),
+          _ProfileOption(icon: Icons.person_outline, title: 'Edit Profile', onTap: () => context.push('/edit-profile')),
+          _ProfileOption(icon: Icons.account_balance_wallet_outlined, title: 'Account Balance & Top-Up', onTap: () => context.push('/wallet')),
           _ProfileOption(icon: Icons.notifications_outlined, title: 'Notifications', onTap: () => context.push('/notifications')),
           _ProfileOption(icon: Icons.location_on_outlined, title: 'Saved Addresses', onTap: () => context.push('/addresses')),
-          _ProfileOption(icon: Icons.payment_outlined, title: 'Payment Methods', onTap: () => context.push('/payments')),
-          _ProfileOption(icon: Icons.favorite_outline, title: 'Favorites', onTap: () {}),
+          _ProfileOption(icon: Icons.favorite_outline, title: 'Favorites', onTap: () => context.push('/favorites')),
           const SizedBox(height: 24),
           const Text('Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),

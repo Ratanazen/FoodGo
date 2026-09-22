@@ -23,4 +23,34 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final payload = <String, dynamic>{};
+      if (firstName != null) payload['first_name'] = firstName;
+      if (lastName != null) payload['last_name'] = lastName;
+      if (email != null) payload['email'] = email;
+      if (phone != null) payload['phone'] = phone;
+
+      final updated = await _apiService.patch('me/', payload);
+      _user = updated;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error updating profile: $e');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }
+

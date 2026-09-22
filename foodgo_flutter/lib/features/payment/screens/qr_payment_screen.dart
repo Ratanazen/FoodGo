@@ -7,6 +7,7 @@ import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
 import '../models/payment_model.dart';
 import '../services/payment_service.dart';
+import '../../../../services/api_service.dart';
 
 class QRPaymentScreen extends StatefulWidget {
   final PaymentModel payment;
@@ -257,10 +258,41 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   SizedBox(
                     height: 56,
                     child: GlassButton(
-                      text: _isVerifying ? 'Checking Status...' : "I've Paid",
+                      text: _isVerifying ? 'Checking Status...' : "I've Paid (Verify)",
                       icon: Icons.check_circle_outline,
                       onPressed: _isVerifying ? () {} : () => _checkStatus(isBackground: false),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Simulation Button for Browser Testing
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: GlassTheme.primaryGreen,
+                      side: BorderSide(color: GlassTheme.primaryGreen.withValues(alpha: 0.5)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: const Icon(Icons.bolt, size: 20),
+                    label: const Text('Simulate Webhook Pay (Test Mode)', style: TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: _isVerifying
+                        ? null
+                        : () async {
+                            setState(() => _isVerifying = true);
+                            try {
+                              final isAba = _currentPayment.provider.toUpperCase() == 'ABA';
+                              final endpoint = isAba ? 'payments/aba/callback/' : 'payments/acleda/callback/';
+                              await ApiService().post(endpoint, {
+                                'merchant_reference': _currentPayment.merchantReference,
+                                'amount': _currentPayment.amount.toStringAsFixed(2),
+                                'currency': _currentPayment.currency,
+                                'transaction_id': 'TEST-SIM-${DateTime.now().millisecondsSinceEpoch}',
+                                'status': 'PAID',
+                              });
+                              await _checkStatus(isBackground: false);
+                            } catch (e) {
+                              if (mounted) setState(() => _isVerifying = false);
+                            }
+                          },
                   ),
                   const SizedBox(height: 12),
                   TextButton(

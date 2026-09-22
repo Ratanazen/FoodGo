@@ -32,10 +32,15 @@ class CreatePaymentView(APIView):
 
         try:
             provider = payment_service.get_provider(provider_name)
+            result = provider.create_payment(
+                order=order,
+                amount=order.total_amount,
+                currency=currency
+            )
         except ValueError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        method = 'COD' if provider_name == 'COD' else 'KHQR'
+        method = 'WALLET' if provider_name == 'WALLET' else ('COD' if provider_name == 'COD' else 'KHQR')
 
         # Cancel/expire previous pending payments for this order if any
         existing_payment = Payment.objects.filter(order=order).first()
@@ -43,11 +48,7 @@ class CreatePaymentView(APIView):
             existing_payment.status = 'CANCELLED'
             existing_payment.save(update_fields=['status'])
 
-        result = provider.create_payment(
-            order=order,
-            amount=order.total_amount,
-            currency=currency
-        )
+        payment_status = result.get('status', 'PENDING')
 
         with transaction.atomic():
             payment = Payment.objects.create(
@@ -55,16 +56,22 @@ class CreatePaymentView(APIView):
                 provider=provider_name,
                 method=method,
                 merchant_reference=result['merchant_reference'],
+                transaction_id=result.get('transaction_id'),
                 amount=order.total_amount,
                 currency=currency,
                 qr_payload=result.get('qr_payload'),
                 qr_image=result.get('qr_image'),
                 expires_at=result.get('expires_at'),
+                paid_at=result.get('paid_at'),
                 provider_response=result.get('provider_response', {}),
-                status='PENDING'
+                status=payment_status
             )
 
-            if provider_name == 'COD':
+            if payment_status == 'PAID':
+                order.payment_status = 'PAID'
+                order.status = 'confirmed'
+                order.save(update_fields=['payment_status', 'status'])
+            elif provider_name == 'COD':
                 order.payment_status = 'PENDING'
                 order.status = 'confirmed' # COD can proceed according to COD workflow
                 order.save(update_fields=['payment_status', 'status'])

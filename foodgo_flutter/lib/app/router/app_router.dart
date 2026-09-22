@@ -25,7 +25,7 @@ import '../../features/profile/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/edit_profile_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/addresses/presentation/addresses_screen.dart';
-// payments_screen.dart (old wallet/Stripe fake) removed — real payments via features/payment/
+import '../../features/wallet/presentation/wallet_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../screens/map_screen.dart';
 import '../../features/dashboard/presentation/restaurant_dashboard_screen.dart';
@@ -70,8 +70,8 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/edit-profile', builder: (context, state) => const EditProfileScreen()),
     GoRoute(path: '/favorites', builder: (context, state) => const FavoritesScreen()),
     GoRoute(path: '/addresses', builder: (context, state) => const AddressesScreen()),
-    // /payments — redirected to /profile (wallet is shown in profile; real KHQR payment via /checkout)
-    GoRoute(path: '/payments', redirect: (context, state) => '/profile'),
+    GoRoute(path: '/wallet', builder: (context, state) => const WalletScreen()),
+    GoRoute(path: '/payments', builder: (context, state) => const WalletScreen()),
     GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
     GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
 

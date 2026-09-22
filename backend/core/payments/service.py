@@ -1,7 +1,7 @@
-from typing import Dict, Any
 from .aba import ABAKHQRProvider
 from .acleda import ACLEDAKHQRProvider
 from .cod import CODProvider
+from .wallet import WalletPaymentProvider
 
 class PaymentService:
     def __init__(self):
@@ -9,6 +9,7 @@ class PaymentService:
             "ABA": ABAKHQRProvider(),
             "ACLEDA": ACLEDAKHQRProvider(),
             "COD": CODProvider(),
+            "WALLET": WalletPaymentProvider(),
         }
 
     def get_provider(self, provider_code: str):

@@ -83,3 +83,49 @@ class PaymentIntegrationTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         payment = Payment.objects.get(merchant_reference=merchant_ref)
         self.assertEqual(payment.status, 'PENDING') # must remain PENDING
+
+    def test_create_wallet_payment_success(self):
+        from core.models import Wallet
+        # Fund user's wallet
+        wallet, _ = Wallet.objects.get_or_create(user=self.user)
+        wallet.balance = Decimal('50.00')
+        wallet.save()
+
+        url = reverse('payment_create')
+        response = self.client.post(url, {'order_id': self.order.id, 'provider': 'WALLET', 'currency': 'USD'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['provider'], 'WALLET')
+        self.assertEqual(response.data['status'], 'PAID')
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, 'PAID')
+        self.assertEqual(self.order.status, 'confirmed')
+
+        wallet.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal('34.50')) # 50.00 - 15.50
+
+    def test_create_wallet_payment_insufficient_balance(self):
+        from core.models import Wallet
+        wallet, _ = Wallet.objects.get_or_create(user=self.user)
+        wallet.balance = Decimal('5.00') # Not enough for 15.50 order
+        wallet.save()
+
+        url = reverse('payment_create')
+        response = self.client.post(url, {'order_id': self.order.id, 'provider': 'WALLET', 'currency': 'USD'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Insufficient', response.data['detail'])
+
+    def test_wallet_top_up_and_khqr(self):
+        # 1. Instant top up
+        topup_url = reverse('wallet-top-up')
+        res = self.client.post(topup_url, {'amount': '25.00'}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(Decimal(str(res.data['balance'])), Decimal('25.00'))
+
+        # 2. KHQR top up string generation
+        khqr_url = reverse('wallet-khqr-topup')
+        khqr_res = self.client.post(khqr_url, {'amount': '50.00'}, format='json')
+        self.assertEqual(khqr_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(khqr_res.data['qr_payload'].startswith('00020101'))
+        self.assertEqual(khqr_res.data['amount'], '50.00')
+

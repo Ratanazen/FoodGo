@@ -281,13 +281,45 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
         amount = request.data.get('amount')
         if not amount:
             return Response({'detail': 'Amount required'}, status=400)
+        try:
+            val = Decimal(str(amount))
+            if val <= 0:
+                return Response({'detail': 'Amount must be greater than zero'}, status=400)
+        except Exception:
+            return Response({'detail': 'Invalid amount'}, status=400)
+
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
-        wallet.balance += Decimal(str(amount))
+        wallet.balance = Decimal(str(wallet.balance)) + val
         wallet.save()
         WalletTransaction.objects.create(
-            wallet=wallet, amount=amount, transaction_type='deposit', description='Wallet Top Up'
+            wallet=wallet, amount=val, transaction_type='deposit', description='Account Wallet Top Up'
         )
         return Response(self.get_serializer(wallet).data)
+
+    @action(detail=False, methods=['post'])
+    def khqr_topup(self, request):
+        amount = request.data.get('amount')
+        if not amount:
+            return Response({'detail': 'Amount required'}, status=400)
+        try:
+            val = Decimal(str(amount))
+            if val <= 0:
+                return Response({'detail': 'Amount must be greater than zero'}, status=400)
+        except Exception:
+            return Response({'detail': 'Invalid amount'}, status=400)
+
+        from .payments.aba import ABAKHQRProvider
+        aba = ABAKHQRProvider()
+        merchant_ref = f"TOPUP-{request.user.id}-{int(timezone.now().timestamp())}"
+        qr_string = aba.generate_khqr(merchant_ref=merchant_ref, amount=val, currency="USD")
+
+        return Response({
+            'merchant_reference': merchant_ref,
+            'amount': str(val),
+            'currency': 'USD',
+            'qr_payload': qr_string,
+            'instructions': 'Scan with ABA Mobile or any Bakong App to top up'
+        })
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

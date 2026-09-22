@@ -18,15 +18,45 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String _selectedProvider = 'ABA'; // 'ABA', 'ACLEDA', 'COD'
+  String _selectedProvider = 'ABA'; // 'ABA', 'ACLEDA', 'WALLET', 'COD'
   bool _isProcessing = false;
+  Map<String, dynamic>? _wallet;
   final ApiService _api = ApiService();
   final FlutterPaymentService _paymentService = FlutterPaymentService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWallet();
+  }
+
+  Future<void> _fetchWallet() async {
+    try {
+      final data = await _api.get('wallets/my_wallet/');
+      if (mounted) setState(() => _wallet = data);
+    } catch (_) {}
+  }
 
   Future<void> _handlePlaceOrder(CartProvider cart, double total) async {
     if (cart.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Your cart is empty.')),
+      );
+      return;
+    }
+
+    final double walletBalance = double.tryParse(_wallet?['balance']?.toString() ?? '0') ?? 0.0;
+    if (_selectedProvider == 'WALLET' && walletBalance < total) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Insufficient balance (\$${walletBalance.toStringAsFixed(2)}). Please top up your account.'),
+          backgroundColor: Colors.orangeAccent,
+          action: SnackBarAction(
+            label: 'Top Up',
+            textColor: Colors.white,
+            onPressed: () => context.push('/wallet'),
+          ),
+        ),
       );
       return;
     }
@@ -70,8 +100,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
-      if (_selectedProvider == 'COD') {
-        // COD order is confirmed directly
+      if (_selectedProvider == 'COD' || _selectedProvider == 'WALLET') {
+        // Order confirmed directly (COD or paid via account wallet)
         context.go('/order-success');
       } else {
         // Navigate to KHQR Screen
@@ -97,6 +127,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double walletBalance = double.tryParse(_wallet?['balance']?.toString() ?? '0') ?? 0.0;
+
     return Scaffold(
       appBar: GlassAppBar(
         title: 'Checkout',
@@ -133,8 +165,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Select Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Select Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                InkWell(
+                  onTap: () => context.push('/wallet').then((_) => _fetchWallet()),
+                  child: Text('+ Top Up', style: TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13)),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
+
+            // FoodGo Account Balance Option
+            _PaymentOptionTile(
+              title: 'FoodGo Wallet / Account Balance',
+              subtitle: 'Available: \$${walletBalance.toStringAsFixed(2)} · Instant 1-click pay',
+              icon: Icons.account_balance_wallet,
+              iconColor: GlassTheme.primaryGreen,
+              isSelected: _selectedProvider == 'WALLET',
+              onTap: () => setState(() => _selectedProvider = 'WALLET'),
+            ),
+            const SizedBox(height: 10),
 
             // ABA KHQR Option
             _PaymentOptionTile(
@@ -163,7 +215,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               title: 'Cash on Delivery (COD)',
               subtitle: 'Pay cash directly to driver upon delivery',
               icon: Icons.delivery_dining,
-              iconColor: GlassTheme.primaryGreen,
+              iconColor: Colors.amber,
               isSelected: _selectedProvider == 'COD',
               onTap: () => setState(() => _selectedProvider = 'COD'),
             ),
@@ -173,6 +225,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       bottomNavigationBar: Consumer<CartProvider>(
         builder: (context, cart, child) {
           final total = cart.totalAmount > 0 ? cart.totalAmount + 2.99 : 0.0;
+          final bool isWalletInsufficient = _selectedProvider == 'WALLET' && walletBalance < total;
+
+          String buttonText;
+          IconData buttonIcon;
+          if (_isProcessing) {
+            buttonText = 'Processing Order...';
+            buttonIcon = Icons.hourglass_empty;
+          } else if (_selectedProvider == 'WALLET') {
+            if (isWalletInsufficient) {
+              buttonText = 'Top Up Wallet (Short \$${(total - walletBalance).toStringAsFixed(2)})';
+              buttonIcon = Icons.add_card;
+            } else {
+              buttonText = 'Pay \$${total.toStringAsFixed(2)} with Wallet';
+              buttonIcon = Icons.check_circle_outline;
+            }
+          } else if (_selectedProvider == 'COD') {
+            buttonText = 'Place Cash on Delivery Order';
+            buttonIcon = Icons.delivery_dining;
+          } else if (_selectedProvider == 'ABA') {
+            buttonText = 'Proceed to Pay with ABA KHQR';
+            buttonIcon = Icons.qr_code_2;
+          } else {
+            buttonText = 'Proceed to Pay with ACLEDA KHQR';
+            buttonIcon = Icons.qr_code_scanner;
+          }
+
           return GlassContainer(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             padding: const EdgeInsets.all(24.0),
@@ -195,11 +273,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     width: double.infinity,
                     height: 54,
                     child: GlassButton(
-                      text: _isProcessing
-                          ? 'Processing Order...'
-                          : (_selectedProvider == 'COD' ? 'Place COD Order' : 'Proceed to KHQR Pay'),
-                      icon: _isProcessing ? Icons.hourglass_empty : Icons.lock_outline,
-                      onPressed: _isProcessing ? () {} : () => _handlePlaceOrder(cart, total),
+                      text: buttonText,
+                      icon: buttonIcon,
+                      onPressed: _isProcessing
+                          ? () {}
+                          : isWalletInsufficient
+                              ? () => context.push('/wallet').then((_) => _fetchWallet())
+                              : () => _handlePlaceOrder(cart, total),
                     ),
                   ),
                 ],
@@ -243,7 +323,7 @@ class _PaymentOptionTile extends StatelessWidget {
                 color: iconColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: iconColor, size: 28),
+              child: Icon(icon, color: iconColor, size: 26),
             ),
             const SizedBox(width: 14),
             Expanded(

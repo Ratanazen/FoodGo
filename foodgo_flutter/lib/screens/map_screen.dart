@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import '../core/theme/glass_theme.dart';
 import '../widgets/glass/glass_widgets.dart';
 import '../widgets/glass_container.dart';
@@ -20,33 +22,51 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   late final AnimationController _cameraController;
+  WebSocketChannel? _channel;
   
   bool _isLoadingLocation = true;
   LatLng? _restaurantLocation;
   LatLng? _driverLocation;
   LatLng? _customerLocation;
   String _orderStatus = 'pending';
-  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     _cameraController = AnimationController(vsync: this, duration: 1500.ms);
-    _fetchTrackingData();
-    // Poll every 5 seconds for driver updates
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (mounted) _fetchTrackingData(animate: false);
-    });
+    _fetchInitialData();
+    _connectWebSocket();
   }
   
   @override
   void dispose() {
     _cameraController.dispose();
-    _pollingTimer?.cancel();
+    _channel?.sink.close();
     super.dispose();
   }
 
-  Future<void> _fetchTrackingData({bool animate = true}) async {
+  void _connectWebSocket() {
+    // In production, use the actual backend domain/IP instead of localhost.
+    final wsUrl = Uri.parse('ws://127.0.0.1:8000/ws/tracking/${widget.orderId}/');
+    _channel = WebSocketChannel.connect(wsUrl);
+    _channel?.stream.listen((message) {
+      if (!mounted) return;
+      final data = jsonDecode(message);
+      if (data['type'] == 'driver_location') {
+        setState(() {
+          _driverLocation = LatLng(
+            double.parse(data['lat'].toString()),
+            double.parse(data['lng'].toString()),
+          );
+        });
+        _animatedMapMove(_driverLocation!, 14.5);
+      }
+    }, onError: (error) {
+      debugPrint('WebSocket error: $error');
+    });
+  }
+
+  Future<void> _fetchInitialData() async {
     try {
       final data = await ApiService().get('orders/${widget.orderId}/track/');
       if (!mounted) return;
@@ -76,9 +96,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         _isLoadingLocation = false;
       });
 
-      if (animate && _driverLocation != null) {
+      if (_driverLocation != null) {
         _animatedMapMove(_driverLocation!, 14.5);
-      } else if (animate && _restaurantLocation != null) {
+      } else if (_restaurantLocation != null) {
         _animatedMapMove(_restaurantLocation!, 14.5);
       }
     } catch (e) {
@@ -119,7 +139,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 220.0),
         child: FloatingActionButton(
-          onPressed: () => _fetchTrackingData(animate: true),
+          onPressed: _fetchInitialData,
           backgroundColor: GlassTheme.primaryGreen,
           child: _isLoadingLocation
               ? const CircularProgressIndicator(color: Colors.white)

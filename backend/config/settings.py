@@ -9,6 +9,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
 
 INSTALLED_APPS = [
+    'daphne',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -21,8 +22,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'django_filters',
+    'channels',
     'core',
 ]
+
+ASGI_APPLICATION = 'config.asgi.application'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -258,4 +262,10 @@ JAZZMIN_UI_TWEAKS = {
         "success":   "btn-success",
     },
     "actions_sticky_top": True,
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
 }

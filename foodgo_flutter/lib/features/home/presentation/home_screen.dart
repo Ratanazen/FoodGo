@@ -27,25 +27,28 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       Icon(Icons.location_on_outlined, color: GlassTheme.primaryGreen),
                       const SizedBox(width: 8),
-                      Text('Phnom Penh', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      const Icon(Icons.keyboard_arrow_down, size: 20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Deliver to', style: TextStyle(color: GlassTheme.textMuted, fontSize: 10)),
+                          Row(
+                            children: [
+                              Text('Phnom Penh', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                              const Icon(Icons.keyboard_arrow_down, size: 20),
+                            ],
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-                Row(
-                  children: [
-                    GlassContainer(
-                      padding: const EdgeInsets.all(8),
-                      borderRadius: GlassTheme.borderRadiusSmall,
-                      child: InkWell(
-                        onTap: () => context.push('/notifications'),
-                        child: const Icon(Icons.notifications_none, size: 24),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text('Deliver to', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
-                    Text('123 Glass Avenue, City', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  ],
+                GlassContainer(
+                  padding: const EdgeInsets.all(8),
+                  borderRadius: GlassTheme.borderRadiusSmall,
+                  child: InkWell(
+                    onTap: () => context.push('/notifications'),
+                    child: const Icon(Icons.notifications_none, size: 24),
+                  ),
                 ),
               ],
             ),

@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/glass/glass_widgets.dart';
+import '../../../core/theme/glass_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,16 +16,20 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   void _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    
     setState(() => _isLoading = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.login(
-      _emailController.text,
+      _usernameController.text.trim(),
       _passwordController.text,
     );
 
@@ -34,7 +40,12 @@ class _LoginScreenState extends State<LoginScreen> {
         context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed. Check credentials.')),
+          SnackBar(
+            content: const Text('Login failed. Check your credentials.'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
+          ),
         );
       }
     }
@@ -44,11 +55,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+        decoration: BoxDecoration(
+          color: GlassTheme.backgroundDark,
+          image: DecorationImage(
+            image: NetworkImage('https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
+            fit: BoxFit.cover,
+            opacity: 0.2,
           ),
         ),
         child: SafeArea(
@@ -57,120 +69,151 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(24.0),
               child: GlassContainer(
                 padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Icon(
-                      Icons.fastfood,
-                      size: 80,
-                      color: Colors.white,
-                    ).animate().fade(duration: 500.ms).scale(delay: 200.ms),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Welcome to FoodGo',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(
+                        Icons.fastfood,
+                        size: 80,
+                        color: GlassTheme.primaryGreen,
+                      ).animate().fade(duration: 500.ms).scale(delay: 200.ms),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Welcome to FoodGo',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                        textAlign: TextAlign.center,
+                      ).animate().fade(delay: 300.ms).slideY(),
+                      const SizedBox(height: 32),
+                      TextFormField(
+                        controller: _usernameController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Username',
+                          labelStyle: TextStyle(color: GlassTheme.textMuted),
+                          prefixIcon: const Icon(
+                            Icons.person,
+                            color: GlassTheme.primaryGreen,
                           ),
-                      textAlign: TextAlign.center,
-                    ).animate().fade(delay: 300.ms).slideY(),
-                    const SizedBox(height: 32),
-                    TextField(
-                      controller: _emailController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Email Address',
-                        labelStyle: const TextStyle(color: Colors.white70),
-                        prefixIcon: const Icon(
-                          Icons.email,
-                          color: Colors.white70,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: GlassTheme.primaryGreen),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.redAccent),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.redAccent),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.white54),
-                          borderRadius: BorderRadius.circular(12),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your username';
+                          }
+                          return null;
+                        },
+                      ).animate().fade(delay: 400.ms).slideX(),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: TextStyle(color: GlassTheme.textMuted),
+                          prefixIcon: const Icon(
+                            Icons.lock,
+                            color: GlassTheme.primaryGreen,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                              color: GlassTheme.textMuted,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: GlassTheme.primaryGreen),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.redAccent),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.redAccent),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(12),
+                        obscureText: _obscurePassword,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
+                        },
+                      ).animate().fade(delay: 500.ms).slideX(),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        height: 56,
+                        child: GlassButton(
+                          onPressed: _isLoading ? () {} : _login,
+                          text: _isLoading ? 'Authenticating...' : 'Login',
+                          icon: _isLoading ? Icons.hourglass_empty : Icons.login,
                         ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                    ).animate().fade(delay: 400.ms).slideX(),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _passwordController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        labelStyle: const TextStyle(color: Colors.white70),
-                        prefixIcon: const Icon(
-                          Icons.lock,
-                          color: Colors.white70,
+                      ).animate().fade(delay: 600.ms).scale(),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () => context.push('/forgot-password'),
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: GlassTheme.textMuted),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.white54),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      obscureText: true,
-                    ).animate().fade(delay: 500.ms).slideX(),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF0072FF),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(
-                              color: Color(0xFF0072FF),
-                            )
-                          : const Text(
-                              'Login',
+                      ).animate().fade(delay: 700.ms),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Don\'t have an account?',
+                            style: TextStyle(color: GlassTheme.textMuted),
+                          ),
+                          TextButton(
+                            onPressed: () => context.push('/register'),
+                            child: const Text(
+                              'Sign Up',
                               style: TextStyle(
-                                fontSize: 18,
+                                color: GlassTheme.primaryGreen,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                    ).animate().fade(delay: 600.ms).scale(),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => context.push('/forgot-password'),
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    ).animate().fade(delay: 700.ms),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Don\'t have an account?',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                        TextButton(
-                          onPressed: () => context.push('/register'),
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
                           ),
-                        ),
-                      ],
-                    ).animate().fade(delay: 800.ms),
-                  ],
+                        ],
+                      ).animate().fade(delay: 800.ms),
+                    ],
+                  ),
                 ),
               ),
             ),

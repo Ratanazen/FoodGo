@@ -37,6 +37,22 @@ class FoodGoApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           routerConfig: appRouter,
+          builder: (context, child) {
+            return Container(
+              color: const Color(0xFF070B09), // Very dark background outside the app
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 450),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      MediaQuery.of(context).size.width > 450 ? 24.0 : 0.0,
+                    ),
+                    child: child!,
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );

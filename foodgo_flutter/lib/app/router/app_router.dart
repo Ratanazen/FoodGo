@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/phone_login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 
@@ -43,6 +44,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(path: '/phone-login', builder: (context, state) => const PhoneLoginScreen()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
     GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
     GoRoute(path: '/restaurant-dashboard', builder: (context, state) => const RestaurantDashboardScreen()),

@@ -48,6 +48,37 @@ class AuthProvider with ChangeNotifier {
     return success;
   }
 
+  Future<bool> requestOTP(String phone) async {
+    try {
+      await _apiService.post('auth/phone-login/request/', {'phone': phone});
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> verifyOTP(String phone, String otp) async {
+    try {
+      final response = await _apiService.post('auth/phone-login/verify/', {
+        'phone': phone,
+        'otp': otp,
+      });
+      
+      final access = response['access'];
+      final refresh = response['refresh'];
+      
+      if (access != null) {
+        await _secureStorage.saveTokens(accessToken: access, refreshToken: refresh);
+        _isAuthenticated = true;
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _apiService.logout();
     _isAuthenticated = false;

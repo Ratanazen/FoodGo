@@ -186,6 +186,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ).animate().fade(delay: 600.ms).scale(),
                       const SizedBox(height: 16),
+                      SizedBox(
+                        height: 56,
+                        child: TextButton.icon(
+                          onPressed: () => context.push('/phone-login'),
+                          icon: const Icon(Icons.phone_iphone, color: GlassTheme.primaryGreen),
+                          label: const Text('Login with Mobile Number', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          style: TextButton.styleFrom(
+                            side: BorderSide(color: GlassTheme.primaryGreen.withValues(alpha: 0.5)),
+                            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
+                          ),
+                        ),
+                      ).animate().fade(delay: 650.ms).scale(),
+                      const SizedBox(height: 16),
                       TextButton(
                         onPressed: () => context.push('/forgot-password'),
                         child: Text(

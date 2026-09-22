@@ -99,7 +99,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       ),
                       Switch(
                         value: _isOnline,
-                        activeColor: GlassTheme.primaryGreen,
+                        activeTrackColor: GlassTheme.primaryGreen,
                         onChanged: (val) {
                           setState(() => _isOnline = val);
                         },

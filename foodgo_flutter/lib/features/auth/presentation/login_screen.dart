@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/auth_provider.dart';
+import '../../../providers/user_provider.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -37,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       if (success) {
+        context.read<UserProvider>().fetchUser();
         context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

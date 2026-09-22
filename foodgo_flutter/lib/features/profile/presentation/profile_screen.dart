@@ -90,15 +90,29 @@ class ProfileScreen extends StatelessWidget {
           _ProfileOption(icon: Icons.settings_outlined, title: 'General Settings', onTap: () => context.push('/settings')),
           _ProfileOption(icon: Icons.language, title: 'Language', onTap: () {}),
           _ProfileOption(icon: Icons.help_outline, title: 'Help & Support', onTap: () {}),
-          _ProfileOption(
-            icon: Icons.logout, 
-            title: 'Logout', 
-            textColor: Colors.red,
-            iconColor: Colors.red,
-            onTap: () {
-              context.read<AuthProvider>().logout();
-              context.go('/login');
-            }
+          Consumer<AuthProvider>(
+            builder: (context, auth, child) {
+              if (auth.isAuthenticated) {
+                return _ProfileOption(
+                  icon: Icons.logout, 
+                  title: 'Logout', 
+                  textColor: Colors.red,
+                  iconColor: Colors.red,
+                  onTap: () {
+                    context.read<AuthProvider>().logout();
+                    context.go('/login');
+                  },
+                );
+              } else {
+                return _ProfileOption(
+                  icon: Icons.login, 
+                  title: 'Login / Sign Up', 
+                  textColor: GlassTheme.primaryGreen,
+                  iconColor: GlassTheme.primaryGreen,
+                  onTap: () => context.push('/login'),
+                );
+              }
+            },
           ),
           const SizedBox(height: 100), // spacing for bottom nav
         ],

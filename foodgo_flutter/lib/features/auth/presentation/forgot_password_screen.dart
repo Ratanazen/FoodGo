@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../widgets/glass_container.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -21,7 +22,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password reset link sent!')),
       );
-      Navigator.pop(context);
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/login');
+      }
     }
   }
 

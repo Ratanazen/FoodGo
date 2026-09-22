@@ -7,6 +7,7 @@ import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/user_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -37,6 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
+        context.read<UserProvider>().fetchUser();
         context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -202,6 +204,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           icon: _isLoading ? Icons.hourglass_empty : Icons.person_add,
                         ),
                       ).animate().fade(delay: 500.ms).scale(),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account?',
+                            style: TextStyle(color: GlassTheme.textMuted),
+                          ),
+                          TextButton(
+                            onPressed: () => context.go('/login'),
+                            child: const Text(
+                              'Log In',
+                              style: TextStyle(
+                                color: GlassTheme.primaryGreen,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ).animate().fade(delay: 600.ms),
                     ],
                   ),
                 ),

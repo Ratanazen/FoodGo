@@ -59,7 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Align(
                   alignment: Alignment.topRight,
                   child: TextButton(
-                    onPressed: () => context.go('/home'),
+                    onPressed: () => context.go('/login'),
                     child: Text('Skip', style: TextStyle(color: GlassTheme.textMuted)),
                   ),
                 ),
@@ -134,7 +134,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         text: _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
                         onPressed: () {
                           if (_currentPage == _pages.length - 1) {
-                            context.go('/home');
+                            context.go('/login');
                           } else {
                             _pageController.nextPage(
                               duration: const Duration(milliseconds: 300),

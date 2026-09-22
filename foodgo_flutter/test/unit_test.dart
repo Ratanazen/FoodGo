@@ -54,4 +54,92 @@ void main() {
       expect(payment.isExpired, false);
     });
   });
+
+  group('CartProvider Edge Cases', () {
+    test('Remove item that does not exist does nothing', () {
+      final cart = CartProvider();
+      cart.addItem(1, 'Burger', 5.00, null);
+      cart.removeItem(999); // non-existent
+      expect(cart.itemCount, 1);
+      expect(cart.totalAmount, 5.00);
+    });
+
+    test('Clear empty cart does not throw', () {
+      final cart = CartProvider();
+      expect(() => cart.clear(), returnsNormally);
+      expect(cart.itemCount, 0);
+      expect(cart.totalAmount, 0.0);
+    });
+
+    test('Adding multiple different items calculates total correctly', () {
+      final cart = CartProvider();
+      cart.addItem(1, 'Burger', 5.50, null);
+      cart.addItem(2, 'Fries', 2.00, null);
+      cart.addItem(3, 'Drink', 1.50, null);
+      expect(cart.itemCount, 3);
+      expect(cart.totalAmount, 9.00);
+    });
+
+    test('Adding same item multiple times increases quantity', () {
+      final cart = CartProvider();
+      cart.addItem(1, 'Burger', 5.50, null);
+      cart.addItem(1, 'Burger', 5.50, null);
+      cart.addItem(1, 'Burger', 5.50, null);
+      expect(cart.itemCount, 1);
+      expect(cart.items[1]!.quantity, 3);
+      expect(cart.totalAmount, 16.50);
+    });
+  });
+
+  group('PaymentModel Edge Cases', () {
+    test('fromJson handles PAID status', () {
+      final json = {
+        'id': 102,
+        'order': 43,
+        'provider': 'ACLEDA',
+        'method': 'KHQR',
+        'amount': '25.00',
+        'currency': 'USD',
+        'status': 'PAID',
+        'qr_payload': '00020101...',
+      };
+      final payment = PaymentModel.fromJson(json);
+      expect(payment.isPaid, true);
+      expect(payment.isPending, false);
+      expect(payment.provider, 'ACLEDA');
+    });
+
+    test('fromJson handles EXPIRED status', () {
+      final json = {
+        'id': 103,
+        'order': 44,
+        'provider': 'ABA',
+        'method': 'KHQR',
+        'amount': '10.00',
+        'currency': 'USD',
+        'status': 'EXPIRED',
+        'qr_payload': '',
+      };
+      final payment = PaymentModel.fromJson(json);
+      expect(payment.isExpired, true);
+      expect(payment.isPaid, false);
+      expect(payment.isPending, false);
+    });
+
+    test('fromJson handles null qr_payload', () {
+      final json = {
+        'id': 104,
+        'order': 45,
+        'provider': 'ABA',
+        'method': 'COD',
+        'amount': '5.00',
+        'currency': 'USD',
+        'status': 'PENDING',
+        'qr_payload': null,
+      };
+      final payment = PaymentModel.fromJson(json);
+      expect(payment.id, 104);
+      expect(payment.isPending, true);
+    });
+  });
 }

@@ -26,12 +26,18 @@ class Address(models.Model):
     class Meta:
         verbose_name_plural = 'Addresses'
 
+    def __str__(self):
+        return f"{self.street}, {self.city} ({self.user.username})"
+
 class RestaurantCategory(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
 
     class Meta:
         verbose_name_plural = 'Restaurant categories'
+
+    def __str__(self):
+        return self.name
 
 class Restaurant(models.Model):
     owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='restaurant')
@@ -49,6 +55,9 @@ class Restaurant(models.Model):
     is_active = models.BooleanField(default=True)
     lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
     
 class FoodCategory(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='food_categories')
@@ -57,14 +66,21 @@ class FoodCategory(models.Model):
     class Meta:
         verbose_name_plural = 'Food categories'
 
+    def __str__(self):
+        return f"{self.name} ({self.restaurant.name})"
+
 class FoodItem(models.Model):
     category = models.ForeignKey(FoodCategory, on_delete=models.CASCADE, related_name='items')
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     image = models.ImageField(upload_to='foods/', blank=True, null=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Paste direct web image URL (e.g. Unsplash) or upload file")
     is_available = models.BooleanField(default=True)
     ingredients = models.CharField(max_length=255, blank=True, help_text="Comma separated ingredients")
+
+    def __str__(self):
+        return f"{self.name} - ${self.price}"
 
 class Order(models.Model):
     STATUS_CHOICES = (
@@ -93,20 +109,33 @@ class Order(models.Model):
     special_instructions = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"Order #{self.id} - {self.customer.username} (${self.total_amount})"
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     food_item = models.ForeignKey(FoodItem, on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(default=1)
     price = models.DecimalField(max_digits=8, decimal_places=2)
 
+    def __str__(self):
+        name = self.food_item.name if self.food_item else 'Item'
+        return f"{self.quantity}x {name} (${self.price})"
+
 class Cart(models.Model):
     customer = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"Cart ({self.customer.username})"
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     food_item = models.ForeignKey(FoodItem, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.quantity}x {self.food_item.name}"
 
 class Payment(models.Model):
     PROVIDER_CHOICES = (
@@ -149,6 +178,9 @@ class Payment(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    def __str__(self):
+        return f"Payment #{self.id} (Order #{self.order_id} - {self.provider} - {self.status})"
+
 class Driver(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver_profile')
     vehicle_type = models.CharField(max_length=50)
@@ -156,6 +188,9 @@ class Driver(models.Model):
     is_online = models.BooleanField(default=False)
     current_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     current_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
+    def __str__(self):
+        return f"Driver: {self.user.username} ({self.vehicle_type})"
 
 class Delivery(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='delivery')
@@ -167,20 +202,32 @@ class Delivery(models.Model):
     class Meta:
         verbose_name_plural = 'Deliveries'
 
+    def __str__(self):
+        return f"Delivery for Order #{self.order_id} ({self.status})"
+
 class Review(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='review')
     rating = models.IntegerField(default=5)
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"Review for Order #{self.order_id}: {self.rating}★"
+
 class Favorite(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.customer.username} - {self.restaurant.name}"
     
 class Coupon(models.Model):
     code = models.CharField(max_length=20, unique=True)
     discount_percent = models.IntegerField()
     is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.code} ({self.discount_percent}% off)"
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -188,6 +235,9 @@ class Notification(models.Model):
     message = models.TextField()
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} -> {self.user.username}"
 
 class LiveItem(models.Model):
     name = models.CharField(max_length=255)
@@ -204,6 +254,9 @@ class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
+    def __str__(self):
+        return f"{self.user.username}'s Wallet (${self.balance})"
+
 class WalletTransaction(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -215,3 +268,6 @@ class WalletTransaction(models.Model):
     ])
     description = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.transaction_type.upper()} ${self.amount} ({self.wallet.user.username})"

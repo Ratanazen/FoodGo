@@ -16,8 +16,14 @@ class AddressSerializer(serializers.ModelSerializer):
 class FoodItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodItem
-        fields = ['id', 'category', 'name', 'description', 'price', 'image', 'is_available', 'ingredients']
+        fields = ['id', 'category', 'name', 'description', 'price', 'image', 'image_url', 'is_available', 'ingredients']
         read_only_fields = ['id']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not data.get('image') and instance.image_url:
+            data['image'] = instance.image_url
+        return data
         
     def validate_price(self, value):
         if value <= 0:

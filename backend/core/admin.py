@@ -148,11 +148,23 @@ admin.site.index_title = 'Dashboard'
 # ─────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────
-def image_preview(image_field, size=50):
-    """Return an HTML <img> tag for an image field, or a dash if missing."""
-    if image_field:
-        return format_html('<img src="{}" width="{}" height="{}" style="object-fit:cover;border-radius:6px;" />', image_field.url, size, size)
-    return '—'
+def image_preview(image_field=None, image_url=None, size=50):
+    """Return an HTML <img> tag for an image field or url, or a styled badge if missing."""
+    url = None
+    if image_field and hasattr(image_field, 'url'):
+        try:
+            url = image_field.url
+        except Exception:
+            url = None
+    elif image_url:
+        url = image_url
+
+    if url:
+        return format_html(
+            '<img src="{}" width="{}" height="{}" style="object-fit:cover;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12);" />',
+            url, size, size
+        )
+    return format_html('<span style="color:#aaa;font-size:11px;background:rgba(0,0,0,0.05);padding:3px 8px;border-radius:6px;">No photo</span>')
 
 
 # ─────────────────────────────────────────────
@@ -201,6 +213,13 @@ class AddressAdmin(admin.ModelAdmin):
 # ─────────────────────────────────────────────
 # Restaurants & Food
 # ─────────────────────────────────────────────
+class FoodCategoryInline(admin.TabularInline):
+    model = FoodCategory
+    extra = 1
+    show_change_link = True
+    classes = ['collapse']
+
+
 @admin.register(RestaurantCategory)
 class RestaurantCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'category_image']
@@ -208,7 +227,7 @@ class RestaurantCategoryAdmin(admin.ModelAdmin):
 
     @admin.display(description='Image')
     def category_image(self, obj):
-        return image_preview(obj.image, 40)
+        return image_preview(obj.image, size=40)
 
 
 @admin.register(Restaurant)
@@ -218,10 +237,12 @@ class RestaurantAdmin(admin.ModelAdmin):
     search_fields = ['name', 'owner__username', 'phone']
     readonly_fields = ['rating']
     list_editable = ['is_active']
+    inlines = [FoodCategoryInline]
+    save_on_top = True
 
     @admin.display(description='Logo')
     def restaurant_logo(self, obj):
-        return image_preview(obj.logo, 40)
+        return image_preview(obj.logo, size=40)
 
     @admin.display(description='Rating')
     def rating_stars(self, obj):
@@ -236,23 +257,77 @@ class RestaurantAdmin(admin.ModelAdmin):
         )
 
 
+class FoodItemInline(admin.TabularInline):
+    model = FoodItem
+    extra = 1
+    fields = ['food_thumb', 'name', 'price', 'image_url', 'is_available']
+    readonly_fields = ['food_thumb']
+    show_change_link = True
+
+    @admin.display(description='Photo')
+    def food_thumb(self, obj):
+        if obj and obj.pk:
+            return image_preview(obj.image, obj.image_url, 36)
+        return '—'
+
+
 @admin.register(FoodCategory)
 class FoodCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'restaurant']
+    list_display = ['name', 'restaurant', 'items_count']
     list_filter = ['restaurant']
     search_fields = ['name', 'restaurant__name']
+    inlines = [FoodItemInline]
+    save_on_top = True
+
+    @admin.display(description='Items')
+    def items_count(self, obj):
+        count = obj.items.count()
+        return format_html('<span style="background:#27ae60;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">{} items</span>', count)
 
 
 @admin.register(FoodItem)
 class FoodItemAdmin(admin.ModelAdmin):
-    list_display = ['food_image', 'name', 'category', 'price', 'is_available']
+    list_display = ['food_image', 'name', 'get_restaurant', 'category', 'price_display', 'is_available']
     list_filter = ['is_available', 'category__restaurant', 'category']
-    search_fields = ['name', 'description']
+    search_fields = ['name', 'description', 'category__name', 'category__restaurant__name', 'ingredients']
     list_editable = ['is_available']
+    list_per_page = 25
+    save_on_top = True
+    save_as = True
+    autocomplete_fields = ['category']
 
-    @admin.display(description='Image')
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'category', 'price', 'is_available'),
+            'description': 'Select the food category and enter the food item name and price in USD.',
+        }),
+        ('Food Photo / Image', {
+            'fields': ('image_url', 'image', 'food_image_large'),
+            'description': 'Paste a direct web image link (e.g. Unsplash URL) OR upload an image file from your device.',
+        }),
+        ('Description & Ingredients', {
+            'fields': ('description', 'ingredients'),
+            'classes': ('collapse',),
+            'description': 'Detailed information shown on customer food details and search results.',
+        }),
+    )
+    readonly_fields = ['food_image_large']
+
+    @admin.display(description='Photo')
     def food_image(self, obj):
-        return image_preview(obj.image, 40)
+        return image_preview(obj.image, obj.image_url, 44)
+
+    @admin.display(description='Preview')
+    def food_image_large(self, obj):
+        return image_preview(obj.image, obj.image_url, 140)
+
+    @admin.display(description='Restaurant', ordering='category__restaurant__name')
+    def get_restaurant(self, obj):
+        return obj.category.restaurant.name
+
+    @admin.display(description='Price', ordering='price')
+    def price_display(self, obj):
+        return format_html('<span style="font-weight:700;color:#27ae60;">${:.2f}</span>', obj.price)
 
 
 

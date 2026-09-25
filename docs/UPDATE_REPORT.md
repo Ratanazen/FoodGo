@@ -106,3 +106,21 @@ git revert 8c77d10  # Reverts the merge commit
 2. Add global offline connectivity banner
 3. Standardize images on CachedNetworkImage across all screens
 4. Add widget tests for OrdersScreen states
+
+---
+
+## Update: September 25, 2026 (Order QR Pay Fix & Admin Bill Printing)
+
+**Commit:** `117f456`
+
+### Issues Resolved:
+1. **Order QR Payment Generation Error:**
+   - Fixed `IntegrityError: UNIQUE constraint failed: core_payment.order_id` in `backend/core/payment_views.py` when retrying or switching between ABA KHQR and ACLEDA KHQR.
+   - Fixed `400 Bad Request` in `OrderViewSet` when ordering from restaurants other than restaurant #1.
+   - `OrderViewSet.perform_create` now directly accepts `items` payloads, auto-resolves the restaurant, and computes accurate subtotals and fees with backward-compatible cart fallback.
+   - Flutter `checkout_screen.dart` dynamically tracks `restaurantId` from cart items.
+
+2. **Official Admin Bill & Tax Receipt:**
+   - Created print-ready `backend/core/templates/core/order_bill.html` with FoodGo branding, items, subtotals, delivery fees, USD & KHR currency conversion, payment metadata, and barcode.
+   - Added `order-bill` view and `🧾 Print Bill` action in Django `OrderAdmin`.
+   - Added in-app `View Bill` sheet on Flutter `orders_screen.dart` and `restaurant_dashboard_screen.dart`.

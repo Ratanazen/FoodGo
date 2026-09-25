@@ -59,3 +59,13 @@
 - **Static analysis:** 0 issues
 - **Release build:** SUCCESS
 - **No regressions detected**
+
+---
+
+## Re-Verification: September 25, 2026
+
+- **Backend Unit Tests:** `python manage.py test` → **16/16 passed** (`OK`)
+- **Flutter Unit Tests:** `flutter test` → **9/9 passed** (`All tests passed!`)
+- **Flutter Static Analysis:** `flutter analyze` → **0 issues found**
+- **Flutter Web Release Build:** `flutter build web --release` → **`✓ Built build/web`** in 59.1s
+- **Admin Bill HTTP Route:** `HTTP 200 OK` at `/admin/core/order/<id>/bill/`

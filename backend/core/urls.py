@@ -1,4 +1,4 @@
-from .auth_views import RequestOTPView, VerifyOTPView
+from .auth_views import RequestOTPView, VerifyOTPView, GoogleLoginView
 from .payment_views import (
     CreatePaymentView, PaymentDetailView, PaymentStatusView,
     CancelPaymentView, ABACallbackView, ACLEDACallbackView, BakongCallbackView
@@ -21,6 +21,7 @@ router.register(r'live-items', LiveItemViewSet)
 urlpatterns = [
     path('auth/phone-login/request/', RequestOTPView.as_view(), name='otp_request'),
     path('auth/phone-login/verify/', VerifyOTPView.as_view(), name='otp_verify'),
+    path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
     path('', include(router.urls)),
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('me/', UserMeView.as_view(), name='user-me'),

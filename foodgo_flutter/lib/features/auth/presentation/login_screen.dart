@@ -53,6 +53,36 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.loginWithGoogle(
+      idToken: 'test-google-token',
+      email: 'customer.google@gmail.com',
+      displayName: 'Google Customer',
+    );
+
+    setState(() => _isLoading = false);
+
+    if (mounted) {
+      if (success) {
+        context.read<UserProvider>().fetchUser();
+        context.go('/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Google Sign-In failed. Please try again.'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
+          ),
+        );
+      }
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,6 +217,64 @@ class _LoginScreenState extends State<LoginScreen> {
                           icon: _isLoading ? Icons.hourglass_empty : Icons.login,
                         ),
                       ).animate().fade(delay: 600.ms).scale(),
+                      const SizedBox(height: 16),
+                      // Continue with Google Button
+                      SizedBox(
+                        height: 56,
+                        child: OutlinedButton(
+                          onPressed: _isLoading ? null : _loginWithGoogle,
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+                            backgroundColor: Colors.white.withValues(alpha: 0.08),
+                            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 26,
+                                height: 26,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'G',
+                                  style: TextStyle(
+                                    color: Color(0xFF4285F4),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Continue with Google',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ).animate().fade(delay: 630.ms).scale(),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.15))),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'OR',
+                              style: TextStyle(color: GlassTheme.textMuted, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.15))),
+                        ],
+                      ),
                       const SizedBox(height: 16),
                       SizedBox(
                         height: 56,

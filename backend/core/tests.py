@@ -139,3 +139,33 @@ class FoodGoCoreAPITests(TestCase):
         res = self.client.post(url, data, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data['rating'], 5)
+
+    def test_google_login_new_user(self):
+        url = reverse('google_login')
+        payload = {
+            'id_token': 'test-google-token',
+            'email': 'sothea.chan@gmail.com',
+            'name': 'Sothea Chan'
+        }
+        res = self.client.post(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('access', res.data)
+        self.assertIn('refresh', res.data)
+        self.assertTrue(res.data['is_new_user'])
+        self.assertEqual(res.data['user']['email'], 'sothea.chan@gmail.com')
+        self.assertEqual(res.data['user']['role'], 'customer')
+
+    def test_google_login_existing_user(self):
+        # Already exists from setUp: foodie@foodgo.kh
+        url = reverse('google_login')
+        payload = {
+            'id_token': 'test-google-token',
+            'email': 'foodie@foodgo.kh',
+            'name': 'Khmer Foodie'
+        }
+        res = self.client.post(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('access', res.data)
+        self.assertFalse(res.data['is_new_user'])
+        self.assertEqual(res.data['user']['username'], 'khmer_foodie')
+

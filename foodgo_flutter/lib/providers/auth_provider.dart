@@ -79,6 +79,23 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> loginWithGoogle({
+    required String idToken,
+    String? email,
+    String? displayName,
+  }) async {
+    final success = await _apiService.googleLogin(
+      idToken: idToken,
+      email: email,
+      displayName: displayName,
+    );
+    if (success) {
+      _isAuthenticated = true;
+      notifyListeners();
+    }
+    return success;
+  }
+
   Future<void> logout() async {
     await _apiService.logout();
     _isAuthenticated = false;

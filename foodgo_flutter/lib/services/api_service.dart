@@ -62,6 +62,37 @@ class ApiService {
     }
   }
 
+  Future<bool> googleLogin({
+    required String idToken,
+    String? email,
+    String? displayName,
+  }) async {
+    try {
+      final payload = <String, dynamic>{'id_token': idToken};
+      if (email != null) payload['email'] = email;
+      if (displayName != null) payload['name'] = displayName;
+
+      final response = await _apiClient.dio.post(
+        'auth/google/',
+        data: payload,
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        await SecureStorage().saveTokens(
+          accessToken: data['access'],
+          refreshToken: data['refresh'],
+        );
+        return true;
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) debugPrint('Google login error: $e');
+      return false;
+    }
+  }
+
+
   Future<bool> register({
     required String username,
     required String email,

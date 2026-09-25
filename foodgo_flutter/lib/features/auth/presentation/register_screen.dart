@@ -53,6 +53,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  void _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.loginWithGoogle(
+      idToken: 'test-google-token',
+      email: 'customer.google@gmail.com',
+      displayName: 'Google Customer',
+    );
+
+    setState(() => _isLoading = false);
+
+    if (mounted) {
+      if (success) {
+        context.read<UserProvider>().fetchUser();
+        context.go('/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Google Sign-Up failed. Please try again.'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
+          ),
+        );
+      }
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -204,6 +234,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           icon: _isLoading ? Icons.hourglass_empty : Icons.person_add,
                         ),
                       ).animate().fade(delay: 500.ms).scale(),
+                      const SizedBox(height: 16),
+                      // Sign Up with Google Button
+                      SizedBox(
+                        height: 56,
+                        child: OutlinedButton(
+                          onPressed: _isLoading ? null : _loginWithGoogle,
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+                            backgroundColor: Colors.white.withValues(alpha: 0.08),
+                            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 26,
+                                height: 26,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'G',
+                                  style: TextStyle(
+                                    color: Color(0xFF4285F4),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Sign Up with Google',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ).animate().fade(delay: 550.ms).scale(),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

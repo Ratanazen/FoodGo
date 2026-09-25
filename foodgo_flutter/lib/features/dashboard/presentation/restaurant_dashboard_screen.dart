@@ -486,22 +486,39 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    if (order['status'] == 'pending')
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        icon: const Icon(Icons.receipt_long, size: 16, color: GlassTheme.primaryGreen),
+                        label: const Text('View Bill', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        onPressed: () => _showRestaurantOrderBill(order),
+                      ),
+                    ),
+                    if (order['status'] == 'pending') ...[
+                      const SizedBox(width: 8),
                       Expanded(
                         child: GlassButton(
-                          text: 'Accept & Cook',
+                          text: 'Cook',
                           icon: Icons.soup_kitchen,
                           onPressed: () => _updateOrderStatus(order['id'].toString(), 'preparing'),
                         ),
                       ),
-                    if (order['status'] == 'preparing')
+                    ],
+                    if (order['status'] == 'preparing') ...[
+                      const SizedBox(width: 8),
                       Expanded(
                         child: GlassButton(
-                          text: 'Hand to Driver',
+                          text: 'Driver',
                           icon: Icons.delivery_dining,
                           onPressed: () => _updateOrderStatus(order['id'].toString(), 'on_the_way'),
                         ),
                       ),
+                    ],
                   ],
                 ),
               ],
@@ -509,6 +526,132 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
           ),
         );
       },
+    );
+  }
+
+  void _showRestaurantOrderBill(Map<String, dynamic> order) {
+    final items = (order['items'] as List<dynamic>?) ?? [];
+    final status = order['status']?.toString() ?? 'pending';
+    final paymentStatus = order['payment_status']?.toString() ?? 'UNPAID';
+    final total = order['total_amount']?.toString() ?? '0.00';
+    final instructions = order['special_instructions']?.toString() ?? '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Color(0xFF141F18),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Order Bill #FG-${order['id']}',
+                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      status.toUpperCase(),
+                      style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              if (instructions.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                  ),
+                  child: Text('Note: $instructions', style: const TextStyle(color: Colors.amber, fontSize: 12)),
+                ),
+                const SizedBox(height: 14),
+              ],
+              const Text('ITEMS ORDERED', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 220),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: items.length,
+                  separatorBuilder: (context, sepIdx) => Divider(color: Colors.white.withValues(alpha: 0.08), height: 12),
+                  itemBuilder: (context, i) {
+                    final it = items[i];
+                    final name = it['food_name'] ?? 'Item #${it['food_item']}';
+                    final qty = it['quantity'] ?? 1;
+                    final price = it['price'] ?? '0.00';
+                    final lineTotal = ((double.tryParse(price.toString()) ?? 0.0) * (int.tryParse(qty.toString()) ?? 1)).toStringAsFixed(2);
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text('$qty x $name', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                        ),
+                        Text('\$$lineTotal', style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 14)),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              Divider(color: Colors.white.withValues(alpha: 0.15), height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Payment Status:', style: TextStyle(color: Colors.white70)),
+                  Text(
+                    paymentStatus,
+                    style: TextStyle(
+                      color: paymentStatus == 'PAID' ? GlassTheme.primaryGreen : Colors.orangeAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Bill:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('\$$total', style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 20)),
+                ],
+              ),
+              const SizedBox(height: 20),
+              GlassButton(
+                text: 'Close',
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

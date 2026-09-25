@@ -109,12 +109,62 @@ class OrderViewSet(viewsets.ModelViewSet):
         if user.role != 'customer' and not user.is_staff:
             raise PermissionDenied('Only customers can place orders.')
 
+        items_data = self.request.data.get('items')
+        restaurant = serializer.validated_data.get('restaurant')
+
+        if items_data and isinstance(items_data, list) and len(items_data) > 0:
+            order_items_to_create = []
+            subtotal = Decimal('0.00')
+
+            for item_info in items_data:
+                food_id = item_info.get('food_item') or item_info.get('id')
+                qty = int(item_info.get('quantity', 1))
+                if qty < 1:
+                    qty = 1
+                try:
+                    food = FoodItem.objects.select_related('category__restaurant').get(id=food_id)
+                except FoodItem.DoesNotExist:
+                    raise ValidationError({'items': [f'Food item {food_id} not found.']})
+
+                if not food.is_available:
+                    raise ValidationError({'items': [f'"{food.name}" is currently unavailable.']})
+
+                if not restaurant:
+                    restaurant = food.category.restaurant
+                elif food.category.restaurant_id != restaurant.id:
+                    raise ValidationError({'restaurant': ['All ordered items must belong to the selected restaurant.']})
+
+                subtotal += food.price * qty
+                order_items_to_create.append((food, qty, food.price))
+
+            address = serializer.validated_data.get('address')
+            if address and address.user_id != user.id and not user.is_staff:
+                raise ValidationError({'address': ['The selected address does not belong to you.']})
+
+            total_amount = subtotal + restaurant.delivery_fee
+            order = serializer.save(customer=user, restaurant=restaurant, total_amount=total_amount, payment_status='UNPAID', status='pending')
+
+            OrderItem.objects.bulk_create([
+                OrderItem(order=order, food_item=food, quantity=qty, price=price)
+                for food, qty, price in order_items_to_create
+            ])
+
+            cart = getattr(user, 'cart', None)
+            if cart:
+                cart.items.all().delete()
+                cart.restaurant = None
+                cart.save(update_fields=['restaurant'])
+            return
+
+        # Fallback to server-side cart
         cart = getattr(user, 'cart', None)
         cart_items = list(cart.items.select_related('food_item', 'food_item__category') if cart else [])
         if not cart_items:
             raise ValidationError({'cart': ['Your cart is empty.']})
 
-        restaurant = serializer.validated_data['restaurant']
+        if not restaurant:
+            restaurant = cart_items[0].food_item.category.restaurant
+
         if any(item.food_item.category.restaurant_id != restaurant.id for item in cart_items):
             raise ValidationError({'restaurant': ['All cart items must belong to the selected restaurant.']})
 
@@ -122,14 +172,13 @@ class OrderViewSet(viewsets.ModelViewSet):
         if address and address.user_id != user.id and not user.is_staff:
             raise ValidationError({'address': ['The selected address does not belong to you.']})
 
-
         subtotal = sum(
             (item.food_item.price * item.quantity for item in cart_items),
             Decimal('0.00'),
         )
         total_amount = subtotal + restaurant.delivery_fee
 
-        order = serializer.save(customer=user, total_amount=total_amount, payment_status='UNPAID', status='pending')
+        order = serializer.save(customer=user, restaurant=restaurant, total_amount=total_amount, payment_status='UNPAID', status='pending')
 
         OrderItem.objects.bulk_create([
             OrderItem(order=order, food_item=item.food_item, quantity=item.quantity, price=item.food_item.price)

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Receipt - Order #{{ order.id }} - FoodGo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            padding: 30px 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .action-bar {
+            max-width: 680px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: all 0.15s ease;
+        }
+        .btn-primary {
+            background-color: #10b981;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #059669;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+
+        .receipt-card {
+            max-width: 680px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            padding: 36px 40px;
+            position: relative;
+        }
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px dashed #e5e7eb;
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-logo {
+            width: 44px;
+            height: 44px;
+            background: #10b981;
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+        }
+        .brand-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #111827;
+            letter-spacing: -0.5px;
+        }
+        .brand-sub {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .receipt-meta {
+            text-align: right;
+        }
+        .bill-badge {
+            display: inline-block;
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .bill-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .bill-date {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #f3f4f6;
+            margin-bottom: 24px;
+        }
+        .info-block h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #9ca3af;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .info-block p {
+            font-size: 13px;
+            color: #1f2937;
+            line-height: 1.4;
+        }
+        .info-block .highlight {
+            font-weight: 700;
+            color: #111827;
+            font-size: 14px;
+        }
+
+        .status-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px 18px;
+            margin-bottom: 24px;
+        }
+        .pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .pill-pending { background: #fef3c7; color: #92400e; }
+        .pill-confirmed, .pill-preparing { background: #dbeafe; color: #1e40af; }
+        .pill-on_the_way, .pill-picked_up { background: #f3e8ff; color: #6b21a8; }
+        .pill-delivered, .pill-paid { background: #dcfce7; color: #15803d; }
+        .pill-cancelled { background: #fee2e2; color: #991b1b; }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        .items-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #6b7280;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .items-table th:last-child,
+        .items-table td:last-child {
+            text-align: right;
+        }
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .summary-box {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 24px;
+        }
+        .summary-table {
+            width: 280px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 13px;
+            color: #4b5563;
+        }
+        .summary-row.total {
+            border-top: 2px solid #111827;
+            padding-top: 10px;
+            margin-top: 6px;
+            font-size: 16px;
+            font-weight: 800;
+            color: #111827;
+        }
+        .khr-amount {
+            font-size: 11px;
+            color: #10b981;
+            font-weight: 600;
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .payment-footer {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .payment-info h5 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .payment-info p {
+            font-size: 11px;
+            color: #6b7280;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .barcode-box {
+            text-align: center;
+        }
+        .barcode {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            letter-spacing: 4px;
+            color: #111827;
+            border-top: 1px dashed #9ca3af;
+            border-bottom: 1px dashed #9ca3af;
+            padding: 4px 10px;
+        }
+        .receipt-footer-note {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        @media print {
+            body {
+                background: #ffffff;
+                padding: 0;
+            }
+            .action-bar {
+                display: none !important;
+            }
+            .receipt-card {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 10px;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="action-bar">
+        <a href="/admin/core/order/" class="btn btn-secondary">
+            ⬅ Back to Orders
+        </a>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.print()" class="btn btn-primary">
+                🖨️ Print Bill / Receipt
+            </button>
+        </div>
+    </div>
+
+    <div class="receipt-card">
+        <!-- Header -->
+        <div class="receipt-header">
+            <div class="brand">
+                <div class="brand-logo">🍔</div>
+                <div>
+                    <div class="brand-title">FoodGo</div>
+                    <div class="brand-sub">Official Order Bill & Tax Receipt</div>
+                </div>
+            </div>
+            <div class="receipt-meta">
+                <div class="bill-badge">Verified Order</div>
+                <div class="bill-id">#FG-{{ order.id }}</div>
+                <div class="bill-date">{{ order.created_at|date:"M d, Y · h:i A" }}</div>
+            </div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div class="info-block">
+                <h4>Restaurant / Merchant</h4>
+                <p class="highlight">{{ order.restaurant.name }}</p>
+                <p>{{ order.restaurant.address|default:"Phnom Penh, Cambodia" }}</p>
+                <p>Phone: {{ order.restaurant.phone|default:"+855 23 999 888" }}</p>
+            </div>
+            <div class="info-block">
+                <h4>Customer & Delivery</h4>
+                <p class="highlight">{{ order.customer.get_full_name|default:order.customer.username }}</p>
+                <p>{{ order.address.street|default:"Customer Location" }}{% if order.address.city %}, {{ order.address.city }}{% endif %}</p>
+                <p>Phone: {{ order.customer.phone|default:"N/A" }}</p>
+            </div>
+        </div>
+
+        <!-- Order & Payment Status Strip -->
+        <div class="status-strip">
+            <div>
+                <span style="font-size: 12px; color: #6b7280; margin-right: 6px;">Order Status:</span>
+                <span class="pill pill-{{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+            <div>
+                <span style="font-size: 12px; color: #6b7280; margin-right: 6px;">Payment:</span>
+                <span class="pill pill-{{ order.payment_status|lower }}">{{ order.get_payment_status_display }}</span>
+                <span style="font-size: 12px; font-weight: 600; color: #374151; margin-left: 6px;">
+                    ({{ payment.provider|default:"COD" }}{% if payment.method %} · {{ payment.method }}{% endif %})
+                </span>
+            </div>
+        </div>
+
+        <!-- Special Instructions -->
+        {% if order.special_instructions %}
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e;">
+            <strong>📝 Special Instructions:</strong> {{ order.special_instructions }}
+        </div>
+        {% endif %}
+
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">#</th>
+                    <th>Item Description</th>
+                    <th style="width: 100px; text-align: center;">Price</th>
+                    <th style="width: 70px; text-align: center;">Qty</th>
+                    <th style="width: 100px;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td style="color: #9ca3af;">{{ forloop.counter }}</td>
+                    <td>
+                        <div class="item-name">{{ item.food_item.name }}</div>
+                        {% if item.food_item.category %}
+                        <div style="font-size: 11px; color: #6b7280;">{{ item.food_item.category.name }}</div>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">${{ item.price }}</td>
+                    <td style="text-align: center; font-weight: 700;">{{ item.quantity }}</td>
+                    <td style="font-weight: 700; color: #111827;">${{ item.total }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #9ca3af; padding: 20px;">No items recorded in this order</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Summary -->
+        <div class="summary-box">
+            <div class="summary-table">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>${{ subtotal }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery Fee:</span>
+                    <span>${{ order.restaurant.delivery_fee|default:"1.50" }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total Due:</span>
+                    <span>${{ order.total_amount }}</span>
+                </div>
+                <div class="khr-amount">
+                    ≈ ៛{{ total_khr }} KHR (1$ = 4,100 KHR)
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Details & Barcode -->
+        <div class="payment-footer">
+            <div class="payment-info">
+                <h5>Payment Reference</h5>
+                <p>Provider: {{ payment.provider|default:"Cash On Delivery (COD)" }}</p>
+                {% if payment.merchant_reference %}
+                <p>Ref: {{ payment.merchant_reference }}</p>
+                {% endif %}
+                {% if payment.transaction_id %}
+                <p>Txn ID: {{ payment.transaction_id }}</p>
+                {% endif %}
+                {% if payment.paid_at %}
+                <p>Paid At: {{ payment.paid_at|date:"M d, Y h:i:s A" }}</p>
+                {% endif %}
+            </div>
+            <div class="barcode-box">
+                <div class="barcode">*FG-{{ order.id }}-{{ order.created_at|date:"Ymd" }}*</div>
+                <div style="font-size: 10px; color: #9ca3af; margin-top: 4px;">POS / DRIVER SCAN CODE</div>
+            </div>
+        </div>
+
+        <div class="receipt-footer-note">
+            Thank you for using FoodGo! For questions, contact support@foodgo.kh or +855 23 999 888.<br>
+            FoodGo Delivery Ltd. · Phnom Penh, Kingdom of Cambodia
+        </div>
+    </div>
+
+</body>
+</html>

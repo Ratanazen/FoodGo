@@ -266,7 +266,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Restaurant #${order['restaurant']}',
+                        order['restaurant_name'] ?? 'Restaurant #${order['restaurant']}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
@@ -289,22 +289,210 @@ class _OrdersScreenState extends State<OrdersScreen> {
             // Status timeline for in-progress orders
             if (_isInProgress(status)) _buildStatusTimeline(status),
 
-            // Track Order button for delivered orders
-            if (status == 'delivered') ...[
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: GlassButton(
-                  text: 'Track Order',
-                  icon: Icons.map_outlined,
-                  onPressed: () => context.push('/map/${order['id']}'),
-                  color: Colors.transparent,
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    icon: const Icon(Icons.receipt_long, size: 16, color: GlassTheme.primaryGreen),
+                    label: const Text('View Bill', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    onPressed: () => _showOrderBillDialog(order),
+                  ),
                 ),
-              ),
-            ],
+                if (status == 'delivered' || status == 'on_delivery' || status == 'picked_up') ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: GlassButton(
+                      text: 'Track',
+                      icon: Icons.map_outlined,
+                      onPressed: () => context.push('/map/${order['id']}'),
+                      color: Colors.transparent,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
       ).animate().fade(delay: (100 * index).ms).slideY(),
+    );
+  }
+
+  void _showOrderBillDialog(Map<String, dynamic> order) {
+    final items = (order['items'] as List<dynamic>?) ?? [];
+    final status = (order['status'] as String?) ?? 'pending';
+    final paymentStatus = (order['payment_status'] as String?) ?? 'UNPAID';
+    final restaurantName = order['restaurant_name'] ?? 'Restaurant #${order['restaurant']}';
+    final totalAmount = double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0;
+    final totalKhr = (totalAmount * 4100).toInt();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Color(0xFF141F18),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Order Bill Receipt',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '#FG-${order['id']} · ${_formatDate(order['created_at'] as String?)}',
+                        style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _statusColor(status).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      _formatStatus(status),
+                      style: TextStyle(
+                        color: _statusColor(status),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.store, color: GlassTheme.primaryGreen, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        restaurantName,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('ITEMS', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: items.length,
+                  separatorBuilder: (context, sepIdx) => Divider(color: Colors.white.withValues(alpha: 0.08), height: 12),
+                  itemBuilder: (context, i) {
+                    final it = items[i];
+                    final name = it['food_name'] ?? 'Item #${it['food_item']}';
+                    final qty = it['quantity'] ?? 1;
+                    final price = it['price'] ?? '0.00';
+                    final lineTotal = ((double.tryParse(price.toString()) ?? 0.0) * (int.tryParse(qty.toString()) ?? 1)).toStringAsFixed(2);
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '$qty x $name',
+                            style: const TextStyle(color: Colors.white70, fontSize: 14),
+                          ),
+                        ),
+                        Text(
+                          '\$$lineTotal',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              Divider(color: Colors.white.withValues(alpha: 0.15), height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Payment Status', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text(
+                    paymentStatus,
+                    style: TextStyle(
+                      color: paymentStatus == 'PAID' ? GlassTheme.primaryGreen : Colors.orangeAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Amount', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '\$${totalAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                      Text(
+                        '≈ ៛$totalKhr KHR',
+                        style: const TextStyle(color: Colors.white54, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              GlassButton(
+                text: 'Close',
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

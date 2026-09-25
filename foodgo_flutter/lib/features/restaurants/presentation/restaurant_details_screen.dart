@@ -156,11 +156,15 @@ class RestaurantDetailsScreen extends StatelessWidget {
                               ),
                               InkWell(
                                 onTap: () {
+                                  final rId = int.tryParse(restaurant['id']?.toString() ?? id ?? '1');
+                                  final rName = restaurant['name']?.toString();
                                   context.read<CartProvider>().addItem(
                                     item['id'],
                                     item['name'],
                                     double.parse(item['price'].toString()),
-                                    item['image']
+                                    item['image'],
+                                    restaurantId: rId,
+                                    restaurantName: rName,
                                   );
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(

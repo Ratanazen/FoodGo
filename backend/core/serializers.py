@@ -50,20 +50,25 @@ class RestaurantSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'rating', 'food_categories']
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    food_name = serializers.CharField(source='food_item.name', read_only=True)
+
     class Meta:
         model = OrderItem
-        fields = ['id', 'food_item', 'quantity', 'price']
-        read_only_fields = ['id', 'price']
+        fields = ['id', 'food_item', 'food_name', 'quantity', 'price']
+        read_only_fields = ['id', 'price', 'food_name']
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
+    restaurant = serializers.PrimaryKeyRelatedField(queryset=Restaurant.objects.all(), required=False)
+    restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)
+
     class Meta:
         model = Order
         fields = [
-            'id', 'restaurant', 'address', 'status', 'total_amount',
+            'id', 'restaurant', 'restaurant_name', 'address', 'status', 'payment_status', 'total_amount',
             'special_instructions', 'created_at', 'items',
         ]
-        read_only_fields = ['id', 'status', 'total_amount', 'created_at', 'items']
+        read_only_fields = ['id', 'restaurant_name', 'status', 'payment_status', 'total_amount', 'created_at', 'items']
 
 
 class CartItemSerializer(serializers.ModelSerializer):

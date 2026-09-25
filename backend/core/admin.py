@@ -343,13 +343,73 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer', 'restaurant', 'status_badge', 'payment_status', 'total_amount', 'created_at']
+    list_display = ['id', 'customer', 'restaurant', 'status_badge', 'payment_status', 'total_amount', 'bill_action', 'created_at']
     list_filter = ['status', 'payment_status', 'created_at', 'restaurant']
     search_fields = ['customer__username', 'id']
     inlines = [OrderItemInline]
-    readonly_fields = ['created_at']
+    readonly_fields = ['created_at', 'view_bill_link']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
+
+    def get_urls(self):
+        from django.urls import path
+        urls = super().get_urls()
+        custom_urls = [
+            path('<path:object_id>/bill/', self.admin_site.admin_view(self.order_bill_view), name='order-bill'),
+        ]
+        return custom_urls + urls
+
+    def order_bill_view(self, request, object_id, *args, **kwargs):
+        from django.shortcuts import get_object_or_404, render
+        order = get_object_or_404(Order.objects.select_related('customer', 'restaurant', 'address'), pk=object_id)
+        items = []
+        subtotal = 0
+        for oi in order.items.select_related('food_item', 'food_item__category'):
+            line_total = oi.price * oi.quantity
+            subtotal += line_total
+            items.append({
+                'food_item': oi.food_item,
+                'quantity': oi.quantity,
+                'price': f'{oi.price:.2f}',
+                'total': f'{line_total:.2f}',
+            })
+
+        payment = getattr(order, 'payment', None)
+
+        try:
+            total_khr = f"{int(float(order.total_amount) * 4100):,}"
+        except Exception:
+            total_khr = "0"
+
+        context = {
+            'order': order,
+            'items': items,
+            'subtotal': f'{subtotal:.2f}',
+            'payment': payment,
+            'total_khr': total_khr,
+            'title': f'Bill Receipt - Order #{order.id}',
+        }
+        return render(request, 'core/order_bill.html', context)
+
+    @admin.display(description='Bill / Receipt')
+    def bill_action(self, obj):
+        url = reverse('admin:order-bill', args=[obj.id])
+        return format_html(
+            '<a href="{}" target="_blank" style="background:#10b981;color:#fff;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">'
+            '🧾 Print Bill</a>',
+            url
+        )
+
+    @admin.display(description='Print Bill')
+    def view_bill_link(self, obj):
+        if not obj or not obj.id:
+            return '-'
+        url = reverse('admin:order-bill', args=[obj.id])
+        return format_html(
+            '<a href="{}" target="_blank" style="background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">'
+            '🖨️ Open & Print Order Bill</a>',
+            url
+        )
 
     @admin.display(description='Status')
     def status_badge(self, obj):

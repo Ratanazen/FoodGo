@@ -64,26 +64,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      // 1. Get first active restaurant or fallback to 1
+      // 1. Determine accurate restaurantId from cart items or restaurantProvider
       final restaurantProvider = context.read<RestaurantProvider>();
-      final int restaurantId = restaurantProvider.restaurants.isNotEmpty
-          ? restaurantProvider.restaurants.first['id']
-          : 1;
+      final int restaurantId = cart.restaurantId ??
+          (restaurantProvider.restaurants.isNotEmpty
+              ? restaurantProvider.restaurants.first['id']
+              : 1);
 
-      // 2. Sync cart items to backend cart before creating order
-      for (final entry in cart.items.values) {
-        try {
-          await _api.post('cart-items/', {
-            'food_item': entry.id,
-            'quantity': entry.quantity,
-          });
-        } catch (_) {}
-      }
+      // 2. Prepare items payload for direct order creation
+      final List<Map<String, dynamic>> itemsPayload = cart.items.values.map((entry) => {
+        'food_item': entry.id,
+        'quantity': entry.quantity,
+      }).toList();
 
-      // 3. Create Order on Django backend
+      // 3. Create Order on Django backend with direct items & restaurant
       final orderResponse = await _api.post('orders/', {
         'restaurant': restaurantId,
         'special_instructions': 'FoodGo Order via $_selectedProvider',
+        'items': itemsPayload,
       });
 
       final int orderId = orderResponse['id'];

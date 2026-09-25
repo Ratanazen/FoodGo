@@ -6,6 +6,8 @@ class CartItem {
   final double price;
   int quantity;
   final String? image;
+  final int? restaurantId;
+  final String? restaurantName;
 
   CartItem({
     required this.id,
@@ -13,6 +15,8 @@ class CartItem {
     required this.price,
     this.quantity = 1,
     this.image,
+    this.restaurantId,
+    this.restaurantName,
   });
 }
 
@@ -23,6 +27,16 @@ class CartProvider with ChangeNotifier {
 
   int get itemCount => _items.length;
 
+  int? get restaurantId {
+    if (_items.isEmpty) return null;
+    return _items.values.first.restaurantId;
+  }
+
+  String? get restaurantName {
+    if (_items.isEmpty) return null;
+    return _items.values.first.restaurantName;
+  }
+
   double get totalAmount {
     var total = 0.0;
     _items.forEach((key, cartItem) {
@@ -31,7 +45,14 @@ class CartProvider with ChangeNotifier {
     return total;
   }
 
-  void addItem(int id, String name, double price, String? image) {
+  void addItem(
+    int id,
+    String name,
+    double price,
+    String? image, {
+    int? restaurantId,
+    String? restaurantName,
+  }) {
     if (_items.containsKey(id)) {
       _items.update(
         id,
@@ -41,6 +62,8 @@ class CartProvider with ChangeNotifier {
           price: existingItem.price,
           quantity: existingItem.quantity + 1,
           image: existingItem.image,
+          restaurantId: existingItem.restaurantId ?? restaurantId,
+          restaurantName: existingItem.restaurantName ?? restaurantName,
         ),
       );
     } else {
@@ -51,6 +74,8 @@ class CartProvider with ChangeNotifier {
           name: name,
           price: price,
           image: image,
+          restaurantId: restaurantId,
+          restaurantName: restaurantName,
         ),
       );
     }

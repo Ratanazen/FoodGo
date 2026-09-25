@@ -42,15 +42,12 @@ class CreatePaymentView(APIView):
 
         method = 'WALLET' if provider_name == 'WALLET' else ('COD' if provider_name == 'COD' else 'KHQR')
 
-        # Cancel/expire previous pending payments for this order if any
-        existing_payment = Payment.objects.filter(order=order).first()
-        if existing_payment and existing_payment.status == 'PENDING':
-            existing_payment.status = 'CANCELLED'
-            existing_payment.save(update_fields=['status'])
-
         payment_status = result.get('status', 'PENDING')
 
         with transaction.atomic():
+            # Clear any previous payment for this order to satisfy OneToOne constraint and allow re-generating QR
+            Payment.objects.filter(order=order).delete()
+
             payment = Payment.objects.create(
                 order=order,
                 provider=provider_name,

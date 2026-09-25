@@ -139,6 +139,7 @@ class CartItem(models.Model):
 
 class Payment(models.Model):
     PROVIDER_CHOICES = (
+        ('BAKONG', 'Bakong KHQR'),
         ('ABA', 'ABA KHQR'),
         ('ACLEDA', 'ACLEDA KHQR'),
         ('COD', 'Cash on Delivery'),

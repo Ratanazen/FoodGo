@@ -1,11 +1,13 @@
 from .aba import ABAKHQRProvider
 from .acleda import ACLEDAKHQRProvider
+from .bakong import BakongKHQRProvider
 from .cod import CODProvider
 from .wallet import WalletPaymentProvider
 
 class PaymentService:
     def __init__(self):
         self._providers = {
+            "BAKONG": BakongKHQRProvider(),
             "ABA": ABAKHQRProvider(),
             "ACLEDA": ACLEDAKHQRProvider(),
             "COD": CODProvider(),

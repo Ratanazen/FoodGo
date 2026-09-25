@@ -18,45 +18,15 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String _selectedProvider = 'ABA'; // 'ABA', 'ACLEDA', 'WALLET', 'COD'
+  String _selectedProvider = 'BAKONG'; // 'BAKONG', 'ABA', 'ACLEDA', 'COD'
   bool _isProcessing = false;
-  Map<String, dynamic>? _wallet;
   final ApiService _api = ApiService();
   final FlutterPaymentService _paymentService = FlutterPaymentService();
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchWallet();
-  }
-
-  Future<void> _fetchWallet() async {
-    try {
-      final data = await _api.get('wallets/my_wallet/');
-      if (mounted) setState(() => _wallet = data);
-    } catch (_) {}
-  }
 
   Future<void> _handlePlaceOrder(CartProvider cart, double total) async {
     if (cart.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Your cart is empty.')),
-      );
-      return;
-    }
-
-    final double walletBalance = double.tryParse(_wallet?['balance']?.toString() ?? '0') ?? 0.0;
-    if (_selectedProvider == 'WALLET' && walletBalance < total) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Insufficient balance (\$${walletBalance.toStringAsFixed(2)}). Please top up your account.'),
-          backgroundColor: Colors.orangeAccent,
-          action: SnackBarAction(
-            label: 'Top Up',
-            textColor: Colors.white,
-            onPressed: () => context.push('/wallet'),
-          ),
-        ),
       );
       return;
     }
@@ -98,11 +68,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
-      if (_selectedProvider == 'COD' || _selectedProvider == 'WALLET') {
-        // Order confirmed directly (COD or paid via account wallet)
+      if (_selectedProvider == 'COD') {
+        // Order confirmed directly (COD)
         context.go('/order-success');
       } else {
-        // Navigate to KHQR Screen
+        // Navigate to KHQR Screen (Bakong, ABA, ACLEDA)
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => QRPaymentScreen(payment: payment),
@@ -125,8 +95,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double walletBalance = double.tryParse(_wallet?['balance']?.toString() ?? '0') ?? 0.0;
-
     return Scaffold(
       appBar: GlassAppBar(
         title: 'Checkout',
@@ -163,33 +131,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Select Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                InkWell(
-                  onTap: () => context.push('/wallet').then((_) => _fetchWallet()),
-                  child: Text('+ Top Up', style: TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13)),
-                ),
-              ],
-            ),
+            const Text('Select Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
 
-            // FoodGo Account Balance Option
+            // Bakong KHQR Option (NBC Open API)
             _PaymentOptionTile(
-              title: 'FoodGo Wallet / Account Balance',
-              subtitle: 'Available: \$${walletBalance.toStringAsFixed(2)} · Instant 1-click pay',
-              icon: Icons.account_balance_wallet,
-              iconColor: GlassTheme.primaryGreen,
-              isSelected: _selectedProvider == 'WALLET',
-              onTap: () => setState(() => _selectedProvider = 'WALLET'),
+              title: 'Bakong KHQR (NBC Open API)',
+              subtitle: 'Scan with Bakong or any Cambodian banking app',
+              icon: Icons.qr_code_2,
+              iconColor: const Color(0xFFE41E26),
+              isSelected: _selectedProvider == 'BAKONG',
+              onTap: () => setState(() => _selectedProvider = 'BAKONG'),
             ),
             const SizedBox(height: 10),
 
             // ABA KHQR Option
             _PaymentOptionTile(
               title: 'ABA KHQR (Dynamic QR)',
-              subtitle: 'Scan with ABA Mobile or any Bakong app',
+              subtitle: 'Scan with ABA Mobile or any KHQR app',
               icon: Icons.qr_code_2,
               iconColor: const Color(0xFF005A87),
               isSelected: _selectedProvider == 'ABA',
@@ -223,24 +182,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       bottomNavigationBar: Consumer<CartProvider>(
         builder: (context, cart, child) {
           final total = cart.totalAmount > 0 ? cart.totalAmount + 2.99 : 0.0;
-          final bool isWalletInsufficient = _selectedProvider == 'WALLET' && walletBalance < total;
 
           String buttonText;
           IconData buttonIcon;
           if (_isProcessing) {
             buttonText = 'Processing Order...';
             buttonIcon = Icons.hourglass_empty;
-          } else if (_selectedProvider == 'WALLET') {
-            if (isWalletInsufficient) {
-              buttonText = 'Top Up Wallet (Short \$${(total - walletBalance).toStringAsFixed(2)})';
-              buttonIcon = Icons.add_card;
-            } else {
-              buttonText = 'Pay \$${total.toStringAsFixed(2)} with Wallet';
-              buttonIcon = Icons.check_circle_outline;
-            }
           } else if (_selectedProvider == 'COD') {
             buttonText = 'Place Cash on Delivery Order';
             buttonIcon = Icons.delivery_dining;
+          } else if (_selectedProvider == 'BAKONG') {
+            buttonText = 'Proceed to Pay with Bakong KHQR';
+            buttonIcon = Icons.qr_code_2;
           } else if (_selectedProvider == 'ABA') {
             buttonText = 'Proceed to Pay with ABA KHQR';
             buttonIcon = Icons.qr_code_2;
@@ -275,9 +228,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       icon: buttonIcon,
                       onPressed: _isProcessing
                           ? () {}
-                          : isWalletInsufficient
-                              ? () => context.push('/wallet').then((_) => _fetchWallet())
-                              : () => _handlePlaceOrder(cart, total),
+                          : () => _handlePlaceOrder(cart, total),
                     ),
                   ),
                 ],

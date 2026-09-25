@@ -1,7 +1,7 @@
 from .auth_views import RequestOTPView, VerifyOTPView
 from .payment_views import (
     CreatePaymentView, PaymentDetailView, PaymentStatusView,
-    CancelPaymentView, ABACallbackView, ACLEDACallbackView
+    CancelPaymentView, ABACallbackView, ACLEDACallbackView, BakongCallbackView
 )
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -32,4 +32,5 @@ urlpatterns = [
     path('payments/<int:pk>/cancel/', CancelPaymentView.as_view(), name='payment_cancel'),
     path('payments/aba/callback/', ABACallbackView.as_view(), name='payment_aba_callback'),
     path('payments/acleda/callback/', ACLEDACallbackView.as_view(), name='payment_acleda_callback'),
+    path('payments/bakong/callback/', BakongCallbackView.as_view(), name='payment_bakong_callback'),
 ]

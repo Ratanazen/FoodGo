@@ -119,9 +119,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isAba = _currentPayment.provider.toUpperCase() == 'ABA';
-    final providerTitle = isAba ? 'ABA KHQR' : 'ACLEDA KHQR';
-    final brandColor = isAba ? const Color(0xFF005A87) : const Color(0xFF16325C);
+    final providerUpper = _currentPayment.provider.toUpperCase();
+    final bool isBakong = providerUpper == 'BAKONG';
+    final bool isAba = providerUpper == 'ABA';
+    final String providerTitle = isBakong
+        ? 'Bakong KHQR (NBC Open API)'
+        : (isAba ? 'ABA KHQR' : 'ACLEDA KHQR');
+    final Color brandColor = isBakong
+        ? const Color(0xFFE41E26)
+        : (isAba ? const Color(0xFF005A87) : const Color(0xFF16325C));
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -279,8 +285,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         : () async {
                             setState(() => _isVerifying = true);
                             try {
+                              final isBakong = _currentPayment.provider.toUpperCase() == 'BAKONG';
                               final isAba = _currentPayment.provider.toUpperCase() == 'ABA';
-                              final endpoint = isAba ? 'payments/aba/callback/' : 'payments/acleda/callback/';
+                              final endpoint = isBakong
+                                  ? 'payments/bakong/callback/'
+                                  : (isAba ? 'payments/aba/callback/' : 'payments/acleda/callback/');
                               await ApiService().post(endpoint, {
                                 'merchant_reference': _currentPayment.merchantReference,
                                 'amount': _currentPayment.amount.toStringAsFixed(2),

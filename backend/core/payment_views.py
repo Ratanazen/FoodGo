@@ -110,8 +110,21 @@ class PaymentStatusView(APIView):
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Expiration handling
-        if status_info.get('status') == 'EXPIRED' and payment.status == 'PENDING':
+        # Status transitions
+        if status_info.get('status') == 'PAID' and payment.status != 'PAID':
+            with transaction.atomic():
+                payment.status = 'PAID'
+                payment.transaction_id = status_info.get('transaction_id') or payment.transaction_id
+                payment.paid_at = status_info.get('paid_at') or timezone.now()
+                if status_info.get('raw_response'):
+                    payment.provider_response = status_info.get('raw_response')
+                payment.save(update_fields=['status', 'transaction_id', 'paid_at', 'provider_response'])
+
+                order = payment.order
+                order.payment_status = 'PAID'
+                order.status = 'confirmed'
+                order.save(update_fields=['payment_status', 'status'])
+        elif status_info.get('status') == 'EXPIRED' and payment.status == 'PENDING':
             payment.status = 'EXPIRED'
             payment.save(update_fields=['status'])
 
@@ -185,3 +198,7 @@ class ABACallbackView(BaseCallbackView):
 
 class ACLEDACallbackView(BaseCallbackView):
     provider_name = "ACLEDA"
+
+
+class BakongCallbackView(BaseCallbackView):
+    provider_name = "BAKONG"

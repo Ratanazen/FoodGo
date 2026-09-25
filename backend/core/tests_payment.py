@@ -129,3 +129,32 @@ class PaymentIntegrationTests(TestCase):
         self.assertTrue(khqr_res.data['qr_payload'].startswith('00020101'))
         self.assertEqual(khqr_res.data['amount'], '50.00')
 
+    def test_create_bakong_payment(self):
+        url = reverse('payment_create')
+        response = self.client.post(url, {'order_id': self.order.id, 'provider': 'BAKONG', 'currency': 'USD'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['provider'], 'BAKONG')
+        self.assertEqual(response.data['method'], 'KHQR')
+        self.assertEqual(response.data['status'], 'PENDING')
+        self.assertTrue(response.data['qr_payload'].startswith('00020101'))
+        self.assertTrue('FG-BK-' in response.data['merchant_reference'])
+        self.assertEqual(len(response.data['provider_response']['md5']), 32)
+
+    def test_bakong_callback_verification(self):
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'BAKONG', 'currency': 'USD'}, format='json')
+        merchant_ref = create_res.data['merchant_reference']
+
+        callback_url = reverse('payment_bakong_callback')
+        callback_data = {
+            'merchant_reference': merchant_ref,
+            'amount': '15.50',
+            'currency': 'USD',
+            'transaction_id': 'BKG-TXN-REAL-998877',
+            'status': 'PAID'
+        }
+        res = self.client.post(callback_url, callback_data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, 'PAID')
+        self.assertEqual(self.order.status, 'confirmed')
+

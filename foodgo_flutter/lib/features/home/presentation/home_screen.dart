@@ -43,13 +43,26 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                GlassContainer(
-                  padding: const EdgeInsets.all(8),
-                  borderRadius: GlassTheme.borderRadiusSmall,
-                  child: InkWell(
-                    onTap: () => context.push('/notifications'),
-                    child: const Icon(Icons.notifications_none, size: 24),
-                  ),
+                Row(
+                  children: [
+                    GlassContainer(
+                      padding: const EdgeInsets.all(8),
+                      borderRadius: GlassTheme.borderRadiusSmall,
+                      child: InkWell(
+                        onTap: () => context.push('/map'),
+                        child: const Icon(Icons.map_outlined, size: 24, color: GlassTheme.primaryGreen),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GlassContainer(
+                      padding: const EdgeInsets.all(8),
+                      borderRadius: GlassTheme.borderRadiusSmall,
+                      child: InkWell(
+                        onTap: () => context.push('/notifications'),
+                        child: const Icon(Icons.notifications_none, size: 24),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

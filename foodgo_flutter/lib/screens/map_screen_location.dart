@@ -5,12 +5,10 @@ import 'package:geolocator/geolocator.dart';
 /// Returns the current device location as a [LatLng], or null if unavailable.
 /// Only called on supported platforms (Android, iOS, Windows).
 Future<LatLng?> getDeviceLocation() async {
-  // geolocator works natively on Android/iOS — guard for others
-  if (kIsWeb) return null;
   if (defaultTargetPlatform == TargetPlatform.linux ||
       defaultTargetPlatform == TargetPlatform.macOS ||
       defaultTargetPlatform == TargetPlatform.windows) {
-    return null;
+    if (!kIsWeb) return null;
   }
 
   try {

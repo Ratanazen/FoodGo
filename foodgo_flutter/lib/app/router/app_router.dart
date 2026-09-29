@@ -59,10 +59,11 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(path: '/checkout', builder: (context, state) => const CheckoutScreen()),
     GoRoute(path: '/order-success', builder: (context, state) => const OrderSuccessScreen()),
+    GoRoute(path: '/map', builder: (context, state) => const MapScreen(orderId: '')),
     GoRoute(
       path: '/map/:id',
       builder: (context, state) {
-        final id = state.pathParameters['id']!;
+        final id = state.pathParameters['id'] ?? '';
         return MapScreen(orderId: id);
       },
     ),

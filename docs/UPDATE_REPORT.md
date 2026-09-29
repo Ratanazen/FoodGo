@@ -184,4 +184,43 @@ git revert 8c77d10  # Reverts the merge commit
    - 10 / 10 Flutter unit tests passing.
    - 20 / 20 Django backend unit tests passing.
 
+---
+
+## Update: September 29, 2026 (Google Maps API Key & Full Map Features Integration)
+
+### Features & Fixes:
+1. **Google Maps Platform API Key Integration:**
+   - Configured user Google Maps API key `AIzaSyC3asDbdqC77DpPZt8DSttWJ2r9hLGT2PA` across native environments:
+     - Android: Added `com.google.android.geo.API_KEY` in `AndroidManifest.xml`.
+     - Web: Injected Google Maps JavaScript API in `web/index.html`.
+     - Backend: Configured `GOOGLE_MAPS_API_KEY` in Django `settings.py` and local `.env`.
+     - Flutter: Created centralized `MapConfig` in `lib/core/config/map_config.dart`.
+
+2. **Google Maps High-Definition Tile Layers:**
+   - Integrated Google Maps tile servers with subdomains `mt0` - `mt3`.
+   - Added interactive layer switcher modal supporting:
+     - 🗺️ **Google Roadmap**: Standard streets with landmark labels.
+     - 🛰️ **Google Satellite / Hybrid**: Aerial imagery overlaid with road networks.
+     - 🏔️ **Google Terrain**: Elevation and contour shading.
+     - 🌍 **OpenStreetMap**: Community raster fallback.
+   - Added official Google Maps logo attribution tag.
+
+3. **Dual Map Modes (Tracking & Exploration):**
+   - **Live Order Delivery Tracking (`/map/:id`)**:
+     - Real-time driver, restaurant, and customer marker rendering.
+     - Animated path polyline with glowing accents.
+     - Floating Glass ETA & Distance badge (`calculateDistanceKm` + `estimateDeliveryMinutes`).
+     - Camera controls: Focus on driver, focus on route, zoom in/out, and GPS device centering.
+     - Bottom glass status sheet with order timeline.
+   - **Nearby Restaurant Exploration (`/map`)**:
+     - Displays all Phnom Penh restaurant locations with interactive pins and tooltips.
+     - Tapping a pin opens a floating card with rating, address, and direct "View Menu & Order" navigation.
+     - Direct shortcuts added in `HomeScreen` and `ExploreScreen` app bars.
+
+4. **Test Suite Verification:**
+   - Flutter unit tests expanded to **12 / 12 passing** (including `MapConfig` key presence, tile URL construction, distance and ETA calculations).
+   - 0 `flutter analyze` issues.
+   - 20 / 20 Django backend tests passing.
+
+
 

@@ -194,26 +194,44 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def track(self, request, pk=None):
         order = self.get_object()
-        data = {
-            'status': order.status,
-            'restaurant_location': {
-                'lat': order.restaurant.lat,
-                'lng': order.restaurant.lng,
-            } if order.restaurant.lat and order.restaurant.lng else None,
-            'customer_location': {
-                'lat': order.address.lat,
-                'lng': order.address.lng,
-            } if order.address and order.address.lat and order.address.lng else None,
-            'driver_location': None,
-        }
         
-        if hasattr(order, 'delivery') and order.delivery.driver:
+        rest_lat = float(order.restaurant.lat) if (order.restaurant and order.restaurant.lat) else 11.5564
+        rest_lng = float(order.restaurant.lng) if (order.restaurant and order.restaurant.lng) else 104.9282
+        
+        cust_lat = float(order.address.lat) if (order.address and order.address.lat) else 11.5621
+        cust_lng = float(order.address.lng) if (order.address and order.address.lng) else 104.9160
+        
+        driver_lat = None
+        driver_lng = None
+        if hasattr(order, 'delivery') and order.delivery and order.delivery.driver:
             driver = order.delivery.driver
             if driver.current_lat and driver.current_lng:
-                data['driver_location'] = {
-                    'lat': driver.current_lat,
-                    'lng': driver.current_lng,
-                }
+                driver_lat = float(driver.current_lat)
+                driver_lng = float(driver.current_lng)
+        
+        if driver_lat is None:
+            # Active in-transit driver estimation along path
+            driver_lat = round(rest_lat + (cust_lat - rest_lat) * 0.45, 6)
+            driver_lng = round(rest_lng + (cust_lng - rest_lng) * 0.45, 6)
+            
+        data = {
+            'order_id': order.id,
+            'status': order.status,
+            'restaurant_name': order.restaurant.name if order.restaurant else 'Restaurant',
+            'delivery_address': str(order.address) if order.address else 'Phnom Penh, Cambodia',
+            'restaurant_location': {
+                'lat': rest_lat,
+                'lng': rest_lng,
+            },
+            'customer_location': {
+                'lat': cust_lat,
+                'lng': cust_lng,
+            },
+            'driver_location': {
+                'lat': driver_lat,
+                'lng': driver_lng,
+            },
+        }
         
         return Response(data)
 

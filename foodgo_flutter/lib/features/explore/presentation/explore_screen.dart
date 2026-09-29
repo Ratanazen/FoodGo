@@ -12,8 +12,15 @@ class ExploreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const GlassAppBar(
+      appBar: GlassAppBar(
         title: 'Explore',
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.map_outlined, color: GlassTheme.primaryGreen),
+            tooltip: 'View on Google Maps',
+            onPressed: () => context.push('/map'),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:foodgo_flutter/providers/cart_provider.dart';
 import 'package:foodgo_flutter/features/payment/models/payment_model.dart';
+import 'package:foodgo_flutter/core/config/map_config.dart';
+import 'package:latlong2/latlong.dart';
 
 void main() {
   group('CartProvider Tests', () {
@@ -158,6 +160,27 @@ void main() {
       expect(payment.provider, 'BAKONG');
       expect(payment.amount, 12.00);
       expect(payment.isPending, true);
+    });
+  });
+
+  group('MapConfig Tests', () {
+    test('Tile URLs contain Google Maps API Key', () {
+      final roadmapUrl = MapConfig.getTileUrl(MapLayerType.googleRoadmap);
+      expect(roadmapUrl.contains('key=AIzaSyC3asDbdqC77DpPZt8DSttWJ2r9hLGT2PA'), true);
+      expect(roadmapUrl.contains('lyrs=m'), true);
+
+      final satelliteUrl = MapConfig.getTileUrl(MapLayerType.googleSatellite);
+      expect(satelliteUrl.contains('lyrs=y'), true);
+    });
+
+    test('Distance and ETA calculations return positive reasonable values', () {
+      const start = LatLng(11.5564, 104.9282);
+      const end = LatLng(11.5621, 104.9160);
+      final distance = MapConfig.calculateDistanceKm(start, end);
+      expect(distance > 0.5 && distance < 3.0, true);
+
+      final eta = MapConfig.estimateDeliveryMinutes(distance);
+      expect(eta >= 3 && eta <= 30, true);
     });
   });
 }

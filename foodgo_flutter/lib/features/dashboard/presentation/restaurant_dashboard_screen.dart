@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -698,10 +699,17 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                                 height: 56,
                                 color: Colors.white.withValues(alpha: 0.05),
                                 child: item['image'] != null && item['image'].toString().isNotEmpty
-                                    ? Image.network(
-                                        item['image'],
+                                    ? CachedNetworkImage(
+                                        imageUrl: item['image'],
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
+                                        placeholder: (context, url) => const Center(
+                                          child: SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) => const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
                                       )
                                     : const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
                               ),

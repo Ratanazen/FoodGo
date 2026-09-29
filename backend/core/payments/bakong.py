@@ -26,7 +26,7 @@ class BakongKHQRProvider(PaymentProvider):
             "BAKONG_API_URL",
             "https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5"
         )
-        self.account_id = os.environ.get("BAKONG_ACCOUNT_ID", "foodgo@bakong")
+        self.account_id = os.environ.get("BAKONG_ACCOUNT_ID", "sonar_seang@bkrt")
         self.merchant_name = os.environ.get("BAKONG_MERCHANT_NAME", "FoodGo Restaurant")
         self.merchant_city = os.environ.get("BAKONG_MERCHANT_CITY", "Phnom Penh")
 

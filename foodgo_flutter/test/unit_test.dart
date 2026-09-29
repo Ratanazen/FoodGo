@@ -141,5 +141,23 @@ void main() {
       expect(payment.id, 104);
       expect(payment.isPending, true);
     });
+
+    test('fromJson handles BAKONG provider', () {
+      final json = {
+        'id': 105,
+        'order': 46,
+        'provider': 'BAKONG',
+        'method': 'KHQR',
+        'amount': '12.00',
+        'currency': 'USD',
+        'status': 'PENDING',
+        'qr_payload': '00020101021229350011bakong@khqr0116sonar_seang@bkrt...',
+      };
+      final payment = PaymentModel.fromJson(json);
+      expect(payment.id, 105);
+      expect(payment.provider, 'BAKONG');
+      expect(payment.amount, 12.00);
+      expect(payment.isPending, true);
+    });
   });
 }

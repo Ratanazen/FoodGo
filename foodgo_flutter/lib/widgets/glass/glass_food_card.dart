@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 
@@ -39,11 +40,29 @@ class GlassFoodCard extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: GlassTheme.borderRadiusSmall,
                 child: imageUrl.isNotEmpty
-                    ? Image.network(
-                        imageUrl,
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
                         width: 80,
                         height: 80,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: 80,
+                          height: 80,
+                          color: Colors.white.withValues(alpha: 0.05),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: 80,
+                          height: 80,
+                          color: Colors.grey.withValues(alpha: 0.2),
+                          child: const Icon(Icons.fastfood, color: Colors.white38),
+                        ),
                       )
                     : Container(
                         width: 80,

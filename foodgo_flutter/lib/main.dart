@@ -7,6 +7,7 @@ import 'providers/cart_provider.dart';
 import 'providers/restaurant_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
+import 'widgets/connectivity_banner.dart';
 
 void main() {
   runApp(
@@ -47,7 +48,7 @@ class FoodGoApp extends StatelessWidget {
                     borderRadius: BorderRadius.circular(
                       MediaQuery.of(context).size.width > 450 ? 24.0 : 0.0,
                     ),
-                    child: child!,
+                    child: ConnectivityBanner(child: child!),
                   ),
                 ),
               ),

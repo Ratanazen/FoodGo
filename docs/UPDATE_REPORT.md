@@ -222,5 +222,44 @@ git revert 8c77d10  # Reverts the merge commit
    - 0 `flutter analyze` issues.
    - 20 / 20 Django backend tests passing.
 
+---
+
+## Update: September 29, 2026 (Foodpanda & Grab Inspired Design System Overhaul)
+
+### Features & Styling Enhancements:
+1. **Food Delivery Color Palette & Theme Tokens:**
+   - Added `foodpandaPink` (`#D70F64`), `accentOrange` (`#FF6A00`), `ratingAmber` (`#FFB800`), and `discountRed` (`#E53935`) to `GlassTheme`.
+   - Maintained signature dark glass styling while elevating readability and promotional contrast.
+
+2. **Live Bottom Navigation Cart Count Badge:**
+   - Real-time cart item counter badge directly overlaid on the Cart navigation icon in `GlassBottomNavigation`.
+
+3. **Modern Food Delivery Card Component (`FoodDeliveryCard`):**
+   - Reusable widget with 16:9 cached banner imagery, fallback shimmers, discount promo pills ("20% OFF Deals" / "Free Delivery"), top-right interactive favorite heart toggle, delivery time badges (`15-30 min`), gold star rating pill, and delivery fee row.
+   - Supports both horizontal carousel format and full vertical feed format.
+
+4. **Floating Mini-Cart Checkout Bar (`FloatingMiniCartBar`):**
+   - Modern sticky bottom bar animating into view when `cart.itemCount > 0`.
+   - Displays items count, total price summary, and direct "Checkout ➔" action navigating to `/cart`.
+   - Dynamic `bottomOffset` support for seamless layout with or without bottom navigation bars.
+
+5. **Foodpanda-Inspired Home & Explore Screens:**
+   - Delivery / Pick-Up switcher pill at the top of `HomeScreen`.
+   - Promotional voucher banner carousel with copyable promo codes (`FOODGOFREE`, `FOODGO30`).
+   - Circular category icon badges for quick food discovery.
+   - "Featured Offers 🔥" carousel and "All Restaurants Near You 📍" feed.
+   - Interactive quick-filter chips in `ExploreScreen` (`🔥 Hot Deals`, `🛵 Free Delivery`, `⚡ Under 25 min`, `⭐ Top Rated 4.5+`).
+
+6. **Interactive Restaurant & Dish Details:**
+   - Foodpanda deal voucher banner ("20% OFF orders over $10 • Code: FOODGO20").
+   - Category tab bar filtering dishes dynamically.
+   - Direct "+" quick-add button on dish cards with live `X in cart` count badge and confirmation snackbar.
+
+7. **Verification & Quality Assurance:**
+   - `flutter analyze`: **0 issues**.
+   - `flutter test`: **12 / 12 passed**.
+   - Django backend test suite: **20 / 20 passed**.
+
+
 
 

@@ -6,6 +6,13 @@ class GlassTheme {
   
   static const Color primaryGreen = Color(0xFF35B86B);
   static const Color primaryGreenDark = Color(0xFF289A57);
+
+  // Modern Food Delivery (Foodpanda & Grab) Accents
+  static const Color foodpandaPink = Color(0xFFD70F64);
+  static const Color accentOrange = Color(0xFFFF6A00);
+  static const Color ratingAmber = Color(0xFFFFB800);
+  static const Color discountRed = Color(0xFFE53935);
+  static const Color badgeTagDark = Color(0xFF1B2620);
   
   static const Color textDark = Color(0xFF17201B);
   static const Color textMuted = Color(0xFF7B857F);

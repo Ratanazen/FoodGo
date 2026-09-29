@@ -1,230 +1,460 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/floating_mini_cart_bar.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/restaurant_provider.dart';
 import '../../../providers/cart_provider.dart';
 
-class RestaurantDetailsScreen extends StatelessWidget {
+class RestaurantDetailsScreen extends StatefulWidget {
   final String? id;
   const RestaurantDetailsScreen({super.key, this.id});
+
+  @override
+  State<RestaurantDetailsScreen> createState() => _RestaurantDetailsScreenState();
+}
+
+class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
+  int _selectedCategoryIndex = 0;
+  bool _isFavorite = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: const GlassAppBar(
-        title: '',
-      ),
       body: Consumer<RestaurantProvider>(
         builder: (context, provider, child) {
           final restaurant = provider.restaurants.firstWhere(
-            (r) => r['id'].toString() == id,
+            (r) => r['id'].toString() == widget.id,
             orElse: () => null,
           );
-          
+
           if (restaurant == null) {
-            return const Center(child: Text('Restaurant not found'));
+            return Scaffold(
+              appBar: const GlassAppBar(title: 'Restaurant'),
+              body: const Center(child: Text('Restaurant not found')),
+            );
           }
 
           final categories = List<dynamic>.from(restaurant['food_categories'] ?? []);
-          // Flatten all items from all categories for the list view
-          final allItems = [];
+          final allItems = <Map<String, dynamic>>[];
           for (var cat in categories) {
             final catItems = List<dynamic>.from(cat['items'] ?? []);
             for (var item in catItems) {
-              item['category_name'] = cat['name'];
-              allItems.add(item);
+              final map = Map<String, dynamic>.from(item);
+              map['category_name'] = cat['name'];
+              allItems.add(map);
             }
           }
 
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 300.0,
-                pinned: true,
-                backgroundColor: Colors.transparent,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: CachedNetworkImageProvider(restaurant['banner'] ?? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
+          // Build category list for tabs
+          final categoryNames = ['All', ...categories.map((c) => c['name']?.toString() ?? 'Menu')];
+
+          // Filter items based on tab
+          final displayedItems = _selectedCategoryIndex == 0
+              ? allItems
+              : allItems.where((it) => it['category_name'] == categoryNames[_selectedCategoryIndex]).toList();
+
+          final minTime = restaurant['delivery_time_min'] ?? 15;
+          final maxTime = restaurant['delivery_time_max'] ?? 30;
+          final deliveryFee = double.tryParse(restaurant['delivery_fee']?.toString() ?? '0') ?? 0.0;
+          final rating = restaurant['rating']?.toString() ?? '4.8';
+
+          return Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  // ── Hero Banner AppBar (Foodpanda / Grab style) ────────
+                  SliverAppBar(
+                    expandedHeight: 250.0,
+                    pinned: true,
+                    backgroundColor: GlassTheme.backgroundDark,
+                    leading: Container(
+                      margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
+                        color: Colors.black.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                    actions: [
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            _isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: _isFavorite ? GlassTheme.foodpandaPink : Colors.white,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() => _isFavorite = !_isFavorite);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(_isFavorite ? 'Saved to Favorites' : 'Removed from Favorites'),
+                                duration: const Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      alignment: Alignment.bottomLeft,
-                      padding: const EdgeInsets.all(24),
-                      child: Hero(
-                        tag: 'restaurant_title_$id',
-                        child: Text(
-                          restaurant['name'] ?? 'Unknown', 
-                          style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)
-                        ),
+                    ],
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (restaurant['banner'] != null && restaurant['banner'].toString().isNotEmpty)
+                            CachedNetworkImage(
+                              imageUrl: restaurant['banner'].toString(),
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) => Container(color: Colors.grey.withValues(alpha: 0.2)),
+                            )
+                          else
+                            Container(color: Colors.grey.withValues(alpha: 0.2)),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withValues(alpha: 0.2),
+                                  Colors.black.withValues(alpha: 0.85),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 16,
+                            left: 16,
+                            right: 16,
+                            child: Hero(
+                              tag: 'restaurant_title_${widget.id}',
+                              child: Text(
+                                restaurant['name'] ?? 'Restaurant',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GlassContainer(
-                        padding: const EdgeInsets.all(16),
-                        borderRadius: GlassTheme.borderRadiusSmall,
-                        child: Row(
-                          children: [
-                            const Icon(Icons.star, color: Colors.amber),
-                            const SizedBox(width: 8),
-                            Text('${restaurant['rating'] ?? 'New'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            const Spacer(),
-                            Container(width: 1, height: 20, color: GlassTheme.textMuted),
-                            const Spacer(),
-                            const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
-                            const SizedBox(width: 8),
-                            const Text('Food', style: TextStyle(fontSize: 16)),
-                            const Spacer(),
-                            Container(width: 1, height: 20, color: GlassTheme.textMuted),
-                            const Spacer(),
-                            const Icon(Icons.access_time, size: 18, color: GlassTheme.textMuted),
-                            const SizedBox(width: 8),
-                            Text('${restaurant['delivery_time_min'] ?? 15}-${restaurant['delivery_time_max'] ?? 30} min', style: const TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                      ).animate().fade(delay: 200.ms).slideY(),
-                      const SizedBox(height: 32),
-                      const Text('Menu Items', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)).animate().fade(delay: 300.ms),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final item = allItems[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: GlassCard(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.2),
-                                  borderRadius: GlassTheme.borderRadiusSmall,
-                                  image: item['image'] != null
-                                    ? DecorationImage(image: CachedNetworkImageProvider(item['image']), fit: BoxFit.cover)
-                                    : null,
-                                ),
-                                child: item['image'] == null ? const Icon(Icons.fastfood, size: 40, color: GlassTheme.primaryGreen) : null,
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                  // ── Restaurant Info Card & Deals Banner ────────────────
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Restaurant Metadata Card
+                          GlassContainer(
+                            padding: const EdgeInsets.all(16),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Column(
+                              children: [
+                                Row(
                                   children: [
-                                    Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                    const SizedBox(height: 4),
+                                    const Icon(Icons.star, color: GlassTheme.ratingAmber, size: 20),
+                                    const SizedBox(width: 6),
                                     Text(
-                                      item['description'] ?? '',
-                                      style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                      rating,
+                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text('\$${item['price']}', style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 16)),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '(350+ reviews)',
+                                      style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                                    ),
+                                    const Spacer(),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.access_time, size: 14, color: GlassTheme.primaryGreen),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$minTime-$maxTime min',
+                                            style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ],
                                 ),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  final rId = int.tryParse(restaurant['id']?.toString() ?? id ?? '1');
-                                  final rName = restaurant['name']?.toString();
-                                  context.read<CartProvider>().addItem(
-                                    item['id'],
-                                    item['name'],
-                                    double.parse(item['price'].toString()),
-                                    item['image'],
-                                    restaurantId: rId,
-                                    restaurantName: rName,
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('${item['name']} added to cart!'),
-                                      duration: const Duration(seconds: 1),
-                                      backgroundColor: GlassTheme.primaryGreen,
-                                    )
-                                  );
-                                },
-                                child: GlassContainer(
-                                  borderRadius: BorderRadius.circular(20),
-                                  padding: const EdgeInsets.all(8),
-                                  child: const Icon(Icons.add, color: GlassTheme.primaryGreen),
+                                const Divider(height: 20, color: Colors.white12),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.moped, color: GlassTheme.primaryGreen, size: 18),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      deliveryFee <= 0 ? 'Free Delivery' : 'Delivery: \$${deliveryFee.toStringAsFixed(2)}',
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                    ),
+                                    const Spacer(),
+                                    const Icon(Icons.location_on, color: Colors.blueAccent, size: 16),
+                                    const SizedBox(width: 4),
+                                    const Text('1.2 km away', style: TextStyle(fontSize: 13, color: Colors.white70)),
+                                  ],
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ).animate().fade(delay: (400 + 100 * index).ms).slideX(),
-                      );
-                    },
-                    childCount: allItems.length,
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
-          );
-        }
-      ),
-      bottomSheet: Consumer<CartProvider>(
-        builder: (context, cart, child) {
-          if (cart.items.isEmpty) return const SizedBox.shrink();
-          
-          return GlassContainer(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            padding: const EdgeInsets.all(24),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Total Price (${cart.itemCount} items)', style: TextStyle(color: GlassTheme.textMuted, fontSize: 14)),
-                        Text('\$${cart.totalAmount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-                      ],
+                          const SizedBox(height: 12),
+
+                          // Foodpanda Deals Pill Banner
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: GlassTheme.foodpandaPink.withValues(alpha: 0.15),
+                              border: Border.all(color: GlassTheme.foodpandaPink.withValues(alpha: 0.3)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.local_offer, color: GlassTheme.foodpandaPink, size: 18),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '20% OFF orders over \$10 • Code: FOODGO20',
+                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // ── Sticky Category Tab Bar (Foodpanda Style) ────
+                          SizedBox(
+                            height: 38,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: categoryNames.length,
+                              itemBuilder: (context, index) {
+                                final isSelected = _selectedCategoryIndex == index;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: InkWell(
+                                    onTap: () => setState(() => _selectedCategoryIndex = index),
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? GlassTheme.primaryGreen
+                                            : Colors.white.withValues(alpha: 0.06),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.12),
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          categoryNames[index],
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                            color: isSelected ? Colors.white : Colors.white70,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          Text(
+                            categoryNames[_selectedCategoryIndex],
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
                     ),
                   ),
-                  GlassButton(
-                    text: 'View Cart',
-                    icon: Icons.shopping_cart,
-                    onPressed: () => context.push('/cart'),
+
+                  // ── Menu Items List (Foodpanda Food Item Layout) ────────
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final item = displayedItems[index];
+                          final price = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
+                          final itemId = item['id'] as int? ?? index;
+                          final cartItem = context.watch<CartProvider>().items[itemId];
+                          final int inCartQty = cartItem?.quantity ?? 0;
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Left side: Item title, description, price
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['name'] ?? 'Dish',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          item['description'] ?? 'Delicious freshly prepared recipe.',
+                                          style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          '\$${price.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: GlassTheme.primaryGreen,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+
+                                  // Right side: Dish Image + Plus Add Button
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(14),
+                                        child: Container(
+                                          width: 90,
+                                          height: 90,
+                                          color: Colors.white.withValues(alpha: 0.05),
+                                          child: item['image'] != null && item['image'].toString().isNotEmpty
+                                              ? CachedNetworkImage(
+                                                  imageUrl: item['image'].toString(),
+                                                  fit: BoxFit.cover,
+                                                  placeholder: (context, url) => Container(
+                                                    color: Colors.white.withValues(alpha: 0.05),
+                                                    child: const Center(
+                                                      child: SizedBox(
+                                                        width: 18,
+                                                        height: 18,
+                                                        child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  errorWidget: (context, url, error) => Container(
+                                                    color: Colors.grey.withValues(alpha: 0.2),
+                                                    child: const Icon(Icons.fastfood, color: Colors.white38),
+                                                  ),
+                                                )
+                                              : Container(
+                                                  color: Colors.grey.withValues(alpha: 0.2),
+                                                  child: const Icon(Icons.fastfood, color: Colors.white38),
+                                                ),
+                                        ),
+                                      ),
+
+                                      // Foodpanda style Add / Plus Button overlay
+                                      Positioned(
+                                        bottom: -6,
+                                        right: -6,
+                                        child: Material(
+                                          color: inCartQty > 0 ? GlassTheme.primaryGreen : Colors.white,
+                                          shape: const CircleBorder(),
+                                          elevation: 4,
+                                          child: InkWell(
+                                            customBorder: const CircleBorder(),
+                                            onTap: () {
+                                              context.read<CartProvider>().addItem(
+                                                itemId,
+                                                item['name'] ?? 'Dish',
+                                                price,
+                                                item['image']?.toString(),
+                                                restaurantId: int.tryParse(widget.id ?? '1'),
+                                                restaurantName: restaurant['name'],
+                                              );
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Added "${item['name']}" to cart!'),
+                                                  duration: const Duration(seconds: 1),
+                                                  behavior: SnackBarBehavior.floating,
+                                                  action: SnackBarAction(
+                                                    label: 'View Cart',
+                                                    textColor: GlassTheme.primaryGreen,
+                                                    onPressed: () => context.push('/cart'),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(6.0),
+                                              child: inCartQty > 0
+                                                  ? Text(
+                                                      '$inCartQty',
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 12,
+                                                      ),
+                                                    )
+                                                  : const Icon(Icons.add, color: Colors.black87, size: 18),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        childCount: displayedItems.length,
+                      ),
+                    ),
+                  ),
+
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 120),
                   ),
                 ],
               ),
-            ),
-          ).animate().fade(delay: 800.ms).slideY(begin: 1.0);
-        }
+
+              // ── Sticky Bottom Checkout Bar (Foodpanda Style) ─────────
+              const FloatingMiniCartBar(bottomOffset: 24.0),
+            ],
+          );
+        },
       ),
     );
   }

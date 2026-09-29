@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -51,7 +52,7 @@ class RestaurantDetailsScreen extends StatelessWidget {
                   background: Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(restaurant['banner'] ?? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
+                        image: CachedNetworkImageProvider(restaurant['banner'] ?? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -131,7 +132,7 @@ class RestaurantDetailsScreen extends StatelessWidget {
                                   color: Colors.grey.withValues(alpha: 0.2),
                                   borderRadius: GlassTheme.borderRadiusSmall,
                                   image: item['image'] != null
-                                    ? DecorationImage(image: NetworkImage(item['image']), fit: BoxFit.cover)
+                                    ? DecorationImage(image: CachedNetworkImageProvider(item['image']), fit: BoxFit.cover)
                                     : null,
                                 ),
                                 child: item['image'] == null ? const Icon(Icons.fastfood, size: 40, color: GlassTheme.primaryGreen) : null,

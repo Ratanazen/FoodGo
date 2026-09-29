@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -60,7 +61,7 @@ class CartScreen extends StatelessWidget {
                                 borderRadius: GlassTheme.borderRadiusSmall,
                                 image: item.image != null
                                     ? DecorationImage(
-                                        image: NetworkImage(item.image!),
+                                        image: CachedNetworkImageProvider(item.image!),
                                         fit: BoxFit.cover,
                                       )
                                     : null,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -73,7 +74,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         decoration: const BoxDecoration(
           color: GlassTheme.backgroundDark,
           image: DecorationImage(
-            image: NetworkImage('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
+            image: CachedNetworkImageProvider('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
             fit: BoxFit.cover,
             opacity: 0.1,
           ),

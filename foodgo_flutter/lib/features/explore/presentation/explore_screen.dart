@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../providers/restaurant_provider.dart';
@@ -104,7 +105,7 @@ class ExploreScreen extends StatelessWidget {
               color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
               borderRadius: GlassTheme.borderRadiusSmall,
               image: imageUrl != null 
-                ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                ? DecorationImage(image: CachedNetworkImageProvider(imageUrl), fit: BoxFit.cover)
                 : null,
             ),
             child: imageUrl == null ? const Icon(Icons.restaurant, color: GlassTheme.primaryGreen, size: 40) : null,

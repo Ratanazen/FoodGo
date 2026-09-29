@@ -61,14 +61,25 @@ class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     restaurant = serializers.PrimaryKeyRelatedField(queryset=Restaurant.objects.all(), required=False)
     restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)
+    restaurant_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
-            'id', 'restaurant', 'restaurant_name', 'address', 'status', 'payment_status', 'total_amount',
+            'id', 'restaurant', 'restaurant_name', 'restaurant_image', 'address', 'status', 'payment_status', 'total_amount',
             'special_instructions', 'created_at', 'items',
         ]
-        read_only_fields = ['id', 'restaurant_name', 'status', 'payment_status', 'total_amount', 'created_at', 'items']
+        read_only_fields = ['id', 'restaurant_name', 'restaurant_image', 'status', 'payment_status', 'total_amount', 'created_at', 'items']
+
+    def get_restaurant_image(self, obj):
+        if obj.restaurant:
+            img = obj.restaurant.logo or obj.restaurant.banner
+            if img:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(img.url)
+                return img.url
+        return None
 
 
 class CartItemSerializer(serializers.ModelSerializer):

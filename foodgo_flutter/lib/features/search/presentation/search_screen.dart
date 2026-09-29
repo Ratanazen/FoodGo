@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -110,7 +111,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                               color: Colors.grey.withValues(alpha: 0.2),
                                               borderRadius: GlassTheme.borderRadiusSmall,
                                               image: item['image'] != null
-                                                  ? DecorationImage(image: NetworkImage(item['image']), fit: BoxFit.cover)
+                                                  ? DecorationImage(image: CachedNetworkImageProvider(item['image']), fit: BoxFit.cover)
                                                   : null,
                                             ),
                                             child: item['image'] == null ? const Icon(Icons.fastfood, size: 40, color: GlassTheme.primaryGreen) : null,

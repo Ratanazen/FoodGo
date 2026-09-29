@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/glass_container.dart';
@@ -80,7 +81,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         decoration: const BoxDecoration(
           color: GlassTheme.backgroundDark,
           image: DecorationImage(
-            image: NetworkImage('https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
+            image: CachedNetworkImageProvider('https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
             fit: BoxFit.cover,
             opacity: 0.2,
           ),

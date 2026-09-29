@@ -157,3 +157,31 @@ git revert 8c77d10  # Reverts the merge commit
    - Backend test suite verified with 20/20 passing tests.
    - Zero `flutter analyze` linter issues.
 
+---
+
+## Update: September 29, 2026 (Full Code Polish & Comprehensive Image Caching)
+
+### Enhancements:
+1. **Full-App Caching Engine (`CachedNetworkImage` & `CachedNetworkImageProvider`):**
+   - Replaced all legacy `NetworkImage` instances across the entire mobile and web apps with `CachedNetworkImageProvider`:
+     - `HomeScreen`: Popular restaurant banners and thumbnails.
+     - `ExploreScreen`: Restaurant exploration list cards.
+     - `SearchScreen`: Food items and restaurant search results.
+     - `CartScreen`: Order item thumbnails.
+     - `RestaurantDetailsScreen`: Hero header banner and menu item listings.
+     - `DriverDashboardScreen`: Delivery portal header background.
+     - `RestaurantDashboardScreen`: Owner portal restaurant avatar and dish catalog.
+     - `LoginScreen`, `RegisterScreen`, `PhoneLoginScreen`: High-resolution background imagery.
+   - Eliminates redundant downloads, prevents network exceptions when offline, and ensures instant loading from local cache.
+
+2. **Order Restaurant Visual Branding:**
+   - Updated backend `OrderSerializer` with dynamic `restaurant_image` serializer method field (`obj.restaurant.logo or obj.restaurant.banner`).
+   - Updated Flutter `OrdersScreen` to render the restaurant's logo/thumbnail in each order card with fallback placeholders.
+
+3. **Production Release Build Verification:**
+   - Successfully compiled `flutter build web --release` (63.5s compile, CupertinIcons & MaterialIcons tree-shaken with >98% asset reduction).
+   - 0 `flutter analyze` issues.
+   - 10 / 10 Flutter unit tests passing.
+   - 20 / 20 Django backend unit tests passing.
+
+

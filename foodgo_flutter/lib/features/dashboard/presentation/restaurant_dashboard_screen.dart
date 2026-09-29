@@ -358,7 +358,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                                   radius: 28,
                                   backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                                   backgroundImage: _restaurant!['banner'] != null
-                                      ? NetworkImage(_restaurant!['banner'])
+                                      ? CachedNetworkImageProvider(_restaurant!['banner'])
                                       : null,
                                   child: _restaurant!['banner'] == null
                                       ? const Icon(Icons.store, size: 28, color: GlassTheme.primaryGreen)

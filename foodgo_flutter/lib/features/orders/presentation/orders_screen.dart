@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -250,15 +251,42 @@ class _OrdersScreenState extends State<OrdersScreen> {
             // Info row: icon + details
             Row(
               children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.2),
-                    borderRadius: GlassTheme.borderRadiusSmall,
-                  ),
-                  child: const Icon(Icons.restaurant,
-                      color: GlassTheme.textMuted),
+                ClipRRect(
+                  borderRadius: GlassTheme.borderRadiusSmall,
+                  child: order['restaurant_image'] != null && order['restaurant_image'].toString().isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: order['restaurant_image'].toString(),
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            width: 60,
+                            height: 60,
+                            color: Colors.white.withValues(alpha: 0.05),
+                            child: const Center(
+                              child: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            width: 60,
+                            height: 60,
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            child: const Icon(Icons.restaurant, color: GlassTheme.textMuted),
+                          ),
+                        )
+                      : Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            borderRadius: GlassTheme.borderRadiusSmall,
+                          ),
+                          child: const Icon(Icons.restaurant, color: GlassTheme.textMuted),
+                        ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

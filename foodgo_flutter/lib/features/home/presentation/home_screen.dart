@@ -3,6 +3,7 @@ import "../../../providers/restaurant_provider.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -177,7 +178,7 @@ class HomeScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(12),
                                     image: restaurant['banner'] != null
                                         ? DecorationImage(
-                                            image: NetworkImage(restaurant['banner']),
+                                            image: CachedNetworkImageProvider(restaurant['banner']),
                                             fit: BoxFit.cover,
                                           )
                                         : null,

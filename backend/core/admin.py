@@ -396,7 +396,7 @@ class OrderAdmin(admin.ModelAdmin):
         url = reverse('admin:order-bill', args=[obj.id])
         return format_html(
             '<a href="{}" target="_blank" style="background:#10b981;color:#fff;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">'
-            '🧾 Print Bill</a>',
+            '&#128438; Print Bill</a>',
             url
         )
 
@@ -407,7 +407,7 @@ class OrderAdmin(admin.ModelAdmin):
         url = reverse('admin:order-bill', args=[obj.id])
         return format_html(
             '<a href="{}" target="_blank" style="background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">'
-            '🖨️ Open & Print Order Bill</a>',
+            '&#128424; Open &amp; Print Order Bill</a>',
             url
         )
 

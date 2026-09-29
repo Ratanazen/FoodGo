@@ -7,6 +7,7 @@ import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/food_delivery_card.dart';
 import '../../../widgets/floating_mini_cart_bar.dart';
+import '../../../widgets/svg_icon.dart';
 import '../../../core/theme/glass_theme.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -43,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     {
       'title': '30% OFF DEALS',
       'subtitle': 'Save big on selected burgers',
-      'tag': 'HOT DEAL 🔥',
+      'tag': 'HOT DEAL',
       'code': 'FOODGO30',
       'color': const Color(0xFFD70F64),
       'icon': Icons.local_fire_department,
@@ -51,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     {
       'title': 'EXPRESS DROPS',
       'subtitle': 'Hot meals delivered in <25 mins',
-      'tag': '⚡ Fast Track',
+      'tag': 'FAST TRACK',
       'code': 'EXPRESS',
       'color': const Color(0xFF2979FF),
       'icon': Icons.bolt,
@@ -303,8 +304,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Row(
                       children: [
                         Text('Featured Offers', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 6),
-                        Text('🔥', style: TextStyle(fontSize: 18)),
+                        SizedBox(width: 8),
+                        SvgAssetIcon(assetName: 'hot_deal', size: 20),
                       ],
                     ),
                     TextButton(
@@ -350,8 +351,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Row(
                   children: [
                     Text('All Restaurants Near You', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(width: 6),
-                    Text('📍', style: TextStyle(fontSize: 18)),
+                    SizedBox(width: 8),
+                    SvgAssetIcon(assetName: 'restaurant_pin', size: 20, color: GlassTheme.primaryGreen),
                   ],
                 ),
                 const SizedBox(height: 14),

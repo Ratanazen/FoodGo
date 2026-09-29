@@ -213,7 +213,7 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Review for Order #{self.order_id}: {self.rating}★"
+        return f"Review for Order #{self.order_id}: {self.rating}/5"
 
 class Favorite(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')

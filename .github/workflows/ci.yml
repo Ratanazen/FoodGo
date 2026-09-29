@@ -11,7 +11,7 @@ jobs:
     name: Secret & API Leak Prevention Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Ensure no .env or private secret files are tracked in git
       run: |
         echo "Verifying no secret environment files are committed..."
@@ -41,9 +41,9 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     - name: Install dependencies
@@ -56,6 +56,7 @@ jobs:
         # Strictly dummy CI credentials - never real API keys or production secrets
         SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
         DEBUG: "False"
+        SECURE_SSL_REDIRECT: "False"
         PAYMENT_ENV: "sandbox"
         ABA_ENABLED: "False"
         ACLEDA_ENABLED: "False"
@@ -66,6 +67,7 @@ jobs:
       env:
         SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
         DEBUG: "False"
+        SECURE_SSL_REDIRECT: "False"
         PAYMENT_ENV: "sandbox"
         ABA_ENABLED: "True"
         ACLEDA_ENABLED: "True"
@@ -78,12 +80,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: security-and-secret-audit
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.x'
         channel: 'stable'
+        cache: true
     - name: Install dependencies
       run: |
         cd foodgo_flutter

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/theme/glass_theme.dart';
 import '../../../../providers/auth_provider.dart';
+import '../../../../widgets/svg_icon.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -64,21 +64,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.restaurant,
-                      size: 60,
-                      color: GlassTheme.primaryGreen,
-                    ),
-                  ),
-                ),
+                const FoodGoLogo(size: 110),
                 const SizedBox(height: 24),
                 const Text(
                   'FoodGo',

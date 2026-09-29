@@ -8,6 +8,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
+import '../../../widgets/svg_icon.dart';
 import '../../../core/theme/glass_theme.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -108,10 +109,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Icon(
-                        Icons.fastfood,
-                        size: 80,
-                        color: GlassTheme.primaryGreen,
+                      const Center(
+                        child: FoodGoLogo(size: 95),
                       ).animate().fade(duration: 500.ms).scale(delay: 200.ms),
                       const SizedBox(height: 16),
                       Text(

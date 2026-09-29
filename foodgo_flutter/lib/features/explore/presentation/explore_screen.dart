@@ -7,6 +7,7 @@ import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/food_delivery_card.dart';
 import '../../../widgets/floating_mini_cart_bar.dart';
+import '../../../widgets/svg_icon.dart';
 import '../../../providers/restaurant_provider.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -20,12 +21,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
   int _activeFilterIndex = 0;
   String _searchQuery = '';
 
-  final List<String> _filters = [
-    'All',
-    '🔥 Hot Deals',
-    '🛵 Free Delivery',
-    '⚡ Under 25 min',
-    '⭐ Top Rated 4.5+',
+  final List<Map<String, dynamic>> _filters = [
+    {'label': 'All', 'svg': null},
+    {'label': 'Hot Deals', 'svg': 'hot_deal'},
+    {'label': 'Free Delivery', 'svg': 'delivery_bike'},
+    {'label': 'Under 25 min', 'svg': 'lightning'},
+    {'label': 'Top Rated 4.5+', 'svg': 'star'},
   ];
 
   @override
@@ -86,6 +87,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     itemCount: _filters.length,
                     itemBuilder: (context, index) {
                       final isSelected = _activeFilterIndex == index;
+                      final filter = _filters[index];
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: InkWell(
@@ -103,15 +105,26 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.12),
                               ),
                             ),
-                            child: Center(
-                              child: Text(
-                                _filters[index],
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: isSelected ? Colors.white : Colors.white70,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (filter['svg'] != null) ...[
+                                  SvgAssetIcon(
+                                    assetName: filter['svg'] as String,
+                                    size: 14,
+                                    color: isSelected ? Colors.white : null,
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Text(
+                                  filter['label'] as String,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                    color: isSelected ? Colors.white : Colors.white70,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                         ),

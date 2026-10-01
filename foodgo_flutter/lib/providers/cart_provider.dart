@@ -22,8 +22,15 @@ class CartItem {
 
 class CartProvider with ChangeNotifier {
   final Map<int, CartItem> _items = {};
+  int? _lastOrderId;
 
   Map<int, CartItem> get items => _items;
+  int? get lastOrderId => _lastOrderId;
+
+  void setLastOrderId(int? id) {
+    _lastOrderId = id;
+    notifyListeners();
+  }
 
   int get itemCount => _items.length;
 

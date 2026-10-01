@@ -3,12 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/svg_icon.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../../providers/cart_provider.dart';
 import '../../../../providers/restaurant_provider.dart';
 import '../../../../services/api_service.dart';
 import '../../payment/services/payment_service.dart';
-import '../../payment/screens/qr_payment_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -42,9 +42,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               : 1);
 
       // 2. Prepare items payload for direct order creation
-      final List<Map<String, dynamic>> itemsPayload = cart.items.values.map((entry) => {
-        'food_item': entry.id,
-        'quantity': entry.quantity,
+      final List<Map<String, dynamic>> itemsPayload = cart.items.values.map((entry) {
+        return <String, dynamic>{
+          'food_item': entry.id,
+          'quantity': entry.quantity,
+        };
       }).toList();
 
       // 3. Create Order on Django backend with direct items & restaurant
@@ -55,6 +57,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       });
 
       final int orderId = orderResponse['id'];
+      cart.setLastOrderId(orderId);
 
       // 4. Create Payment on backend
       final payment = await _paymentService.createPayment(
@@ -63,21 +66,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         currency: 'USD',
       );
 
-      cart.clear();
-
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
       if (_selectedProvider == 'COD') {
         // Order confirmed directly (COD)
-        context.go('/order-success');
+        cart.clear();
+        context.go('/order-success', extra: orderId);
       } else {
         // Navigate to KHQR Screen (Bakong, ABA, ACLEDA)
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => QRPaymentScreen(payment: payment),
-          ),
-        );
+        // Cart will be cleared upon confirmed PAID status in QRPaymentScreen
+        context.push('/qr-payment', extra: payment);
       }
     } catch (e) {
       if (mounted) {
@@ -111,7 +110,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, color: GlassTheme.primaryGreen, size: 32),
+                  const SvgAssetIcon(assetName: 'restaurant_pin', size: 30, color: GlassTheme.primaryGreen),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -138,7 +137,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _PaymentOptionTile(
               title: 'Bakong KHQR (NBC Open API)',
               subtitle: 'Scan with Bakong or any Cambodian banking app',
-              icon: Icons.qr_code_2,
+              svgAsset: 'bakong_logo',
               iconColor: const Color(0xFFE41E26),
               isSelected: _selectedProvider == 'BAKONG',
               onTap: () => setState(() => _selectedProvider = 'BAKONG'),
@@ -149,7 +148,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _PaymentOptionTile(
               title: 'ABA KHQR (Dynamic QR)',
               subtitle: 'Scan with ABA Mobile or any KHQR app',
-              icon: Icons.qr_code_2,
+              svgAsset: 'khqr_logo',
               iconColor: const Color(0xFF005A87),
               isSelected: _selectedProvider == 'ABA',
               onTap: () => setState(() => _selectedProvider = 'ABA'),
@@ -171,8 +170,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _PaymentOptionTile(
               title: 'Cash on Delivery (COD)',
               subtitle: 'Pay cash directly to driver upon delivery',
-              icon: Icons.delivery_dining,
-              iconColor: Colors.amber,
+              svgAsset: 'delivery_bike',
+              iconColor: GlassTheme.primaryGreen,
               isSelected: _selectedProvider == 'COD',
               onTap: () => setState(() => _selectedProvider = 'COD'),
             ),
@@ -244,7 +243,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 class _PaymentOptionTile extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final IconData? icon;
+  final String? svgAsset;
   final Color iconColor;
   final bool isSelected;
   final VoidCallback onTap;
@@ -252,7 +252,8 @@ class _PaymentOptionTile extends StatelessWidget {
   const _PaymentOptionTile({
     required this.title,
     required this.subtitle,
-    required this.icon,
+    this.icon,
+    this.svgAsset,
     required this.iconColor,
     required this.isSelected,
     required this.onTap,
@@ -272,7 +273,9 @@ class _PaymentOptionTile extends StatelessWidget {
                 color: iconColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: iconColor, size: 26),
+              child: svgAsset != null
+                  ? SvgAssetIcon(assetName: svgAsset!, size: 26)
+                  : Icon(icon ?? Icons.payment, color: iconColor, size: 26),
             ),
             const SizedBox(width: 14),
             Expanded(

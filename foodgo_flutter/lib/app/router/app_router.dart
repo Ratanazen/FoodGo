@@ -21,6 +21,8 @@ import '../../features/search/presentation/search_screen.dart';
 import '../../features/restaurants/presentation/restaurant_details_screen.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/checkout/presentation/order_success_screen.dart';
+import '../../features/payment/screens/qr_payment_screen.dart';
+import '../../features/payment/models/payment_model.dart';
 import '../../features/profile/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/edit_profile_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
@@ -58,7 +60,22 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(path: '/checkout', builder: (context, state) => const CheckoutScreen()),
-    GoRoute(path: '/order-success', builder: (context, state) => const OrderSuccessScreen()),
+    GoRoute(
+      path: '/qr-payment',
+      builder: (context, state) {
+        final payment = state.extra as PaymentModel;
+        return QRPaymentScreen(payment: payment);
+      },
+    ),
+    GoRoute(
+      path: '/order-success',
+      builder: (context, state) {
+        final orderId = state.extra is int
+            ? state.extra as int
+            : int.tryParse(state.uri.queryParameters['orderId'] ?? '');
+        return OrderSuccessScreen(orderId: orderId);
+      },
+    ),
     GoRoute(path: '/map', builder: (context, state) => const MapScreen(orderId: '')),
     GoRoute(
       path: '/map/:id',

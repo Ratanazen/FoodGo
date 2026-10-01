@@ -15,7 +15,7 @@ jobs:
     - name: Ensure no .env or private secret files are tracked in git
       run: |
         echo "Verifying no secret environment files are committed..."
-        if git ls-files | grep -E '^(\.env|\.env\..*)$' | grep -v '\.env\.example$'; then
+        if git ls-files | grep -E '(^|/)(\.env|\.env\..*)$' | grep -v '\.env\.example$'; then
           echo "ERROR: Real .env file detected in git repository! Remove it immediately."
           exit 1
         fi

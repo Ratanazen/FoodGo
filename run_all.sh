@@ -8,7 +8,13 @@ fuser -k 8080/tcp 2>/dev/null
 
 echo "📦 Starting Django Backend (Daphne / WebSockets) on 0.0.0.0:8000..."
 cd backend
-source venv/bin/activate 2>/dev/null || true
+if [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+elif [ -f "../.venv/bin/activate" ]; then
+    source ../.venv/bin/activate
+elif [ -f ".venv/bin/activate" ]; then
+    source .venv/bin/activate
+fi
 python manage.py runserver 0.0.0.0:8000 &
 BACKEND_PID=$!
 cd ..

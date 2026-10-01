@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
+import '../../../../widgets/svg_icon.dart';
 import '../../../../core/theme/glass_theme.dart';
-import 'package:go_router/go_router.dart';
+import '../../../../providers/cart_provider.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
-  const OrderSuccessScreen({super.key});
+  final int? orderId;
+
+  const OrderSuccessScreen({super.key, this.orderId});
 
   @override
   Widget build(BuildContext context) {
+    final effectiveOrderId = orderId ?? context.read<CartProvider>().lastOrderId;
+    final String displayOrderNum = effectiveOrderId != null ? '#$effectiveOrderId' : '#1001';
+
     return Scaffold(
       body: Center(
         child: Padding(
@@ -21,25 +29,32 @@ class OrderSuccessScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(32),
                 borderRadius: BorderRadius.circular(100),
                 customColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(Icons.check, size: 80, color: GlassTheme.primaryGreen),
+                child: const Icon(Icons.check_circle_rounded, size: 80, color: GlassTheme.primaryGreen),
               ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
               const SizedBox(height: 32),
               const Text('Order Confirmed!', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)).animate().fade(delay: 400.ms).slideY(),
               const SizedBox(height: 16),
               Text(
-                'Your order #12345\nhas been placed successfully.',
+                'Your order $displayOrderNum\nhas been placed successfully.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: GlassTheme.textMuted, fontSize: 16),
               ).animate().fade(delay: 500.ms).slideY(),
               const SizedBox(height: 32),
               GlassContainer(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 borderRadius: GlassTheme.borderRadiusSmall,
-                child: const Column(
+                child: Column(
                   children: [
-                    Text('Estimated delivery', style: TextStyle(fontSize: 14)),
-                    SizedBox(height: 8),
-                    Text('25–35 minutes', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        SvgAssetIcon(assetName: 'delivery_bike', size: 20),
+                        SizedBox(width: 8),
+                        Text('Estimated delivery', style: TextStyle(fontSize: 14, color: Colors.white70)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('25–35 minutes', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen)),
                   ],
                 ),
               ).animate().fade(delay: 600.ms).scale(),
@@ -48,13 +63,21 @@ class OrderSuccessScreen extends StatelessWidget {
                 width: double.infinity,
                 child: GlassButton(
                   text: 'Track Order',
-                  onPressed: () => context.go('/map/1'),
+                  icon: Icons.navigation_rounded,
+                  onPressed: () {
+                    if (effectiveOrderId != null) {
+                      context.go('/map/$effectiveOrderId');
+                    } else {
+                      context.go('/map');
+                    }
+                  },
                 ),
               ).animate().fade(delay: 700.ms),
               const SizedBox(height: 16),
-              TextButton(
+              TextButton.icon(
                 onPressed: () => context.go('/home'),
-                child: Text('Back to Home', style: TextStyle(color: GlassTheme.textMuted, fontSize: 16)),
+                icon: const Icon(Icons.home_outlined, size: 18, color: Colors.white70),
+                label: const Text('Back to Home', style: TextStyle(color: Colors.white70, fontSize: 16)),
               ).animate().fade(delay: 800.ms),
             ],
           ),

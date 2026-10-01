@@ -90,7 +90,16 @@ if os.environ.get('DATABASE_URL'):
         'USER': parsed_database_url.username,
         'PASSWORD': parsed_database_url.password,
         'HOST': parsed_database_url.hostname,
-        'PORT': parsed_database_url.port,
+        'PORT': parsed_database_url.port or 5432,
+    }
+elif os.environ.get('DB_NAME') and os.environ.get('DB_HOST'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASS', os.environ.get('DB_PASSWORD', '')),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': int(os.environ.get('DB_PORT', '5432')),
     }
 
 AUTH_USER_MODEL = 'core.User'
@@ -284,8 +293,19 @@ JAZZMIN_UI_TWEAKS = {
     "actions_sticky_top": True,
 }
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    },
-}
+redis_url = os.environ.get('REDIS_URL') or os.environ.get('CHANNEL_REDIS_URL')
+if redis_url:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [redis_url],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }

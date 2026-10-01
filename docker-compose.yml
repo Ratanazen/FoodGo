@@ -32,6 +32,7 @@ services:
       - db
       - redis
     environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/foodgo
       - DB_HOST=db
       - DB_NAME=foodgo
       - DB_USER=postgres

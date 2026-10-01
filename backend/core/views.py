@@ -1,4 +1,5 @@
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from decimal import Decimal
 
 from django.db import transaction
@@ -63,17 +64,6 @@ class FoodItemViewSet(viewsets.ModelViewSet):
             return queryset.filter(category__restaurant__owner=self.request.user)
         return queryset.filter(is_available=True) if self.request.method == 'GET' else queryset
 
-    
-    @action(detail=False, methods=['get'])
-    def my_restaurant(self, request):
-        if request.user.role != 'restaurant_owner':
-            return Response({'detail': 'Not a restaurant owner'}, status=403)
-        restaurant = Restaurant.objects.filter(owner=request.user).first()
-        if not restaurant:
-            return Response({'detail': 'Restaurant not found'}, status=404)
-        serializer = self.get_serializer(restaurant)
-        return Response(serializer.data)
-
     def perform_create(self, serializer):
         category = serializer.validated_data['category']
         if not self.request.user.is_staff and category.restaurant.owner_id != self.request.user.id:
@@ -84,6 +74,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         user = self.request.user
         if user.role == 'customer' and not user.is_staff:
@@ -93,17 +84,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Order.objects.all()
 
     @transaction.atomic
-    
-    @action(detail=False, methods=['get'])
-    def my_restaurant(self, request):
-        if request.user.role != 'restaurant_owner':
-            return Response({'detail': 'Not a restaurant owner'}, status=403)
-        restaurant = Restaurant.objects.filter(owner=request.user).first()
-        if not restaurant:
-            return Response({'detail': 'Restaurant not found'}, status=404)
-        serializer = self.get_serializer(restaurant)
-        return Response(serializer.data)
-
     def perform_create(self, serializer):
         user = self.request.user
         if user.role != 'customer' and not user.is_staff:
@@ -188,9 +168,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         cart.restaurant = None
         cart.save(update_fields=['restaurant'])
 
-    from rest_framework.decorators import action
-    from rest_framework.response import Response
-    
     @action(detail=True, methods=['get'])
     def track(self, request, pk=None):
         order = self.get_object()
@@ -246,17 +223,6 @@ class CartViewSet(viewsets.ModelViewSet):
             return Cart.objects.all()
         return Cart.objects.filter(customer=user)
 
-    
-    @action(detail=False, methods=['get'])
-    def my_restaurant(self, request):
-        if request.user.role != 'restaurant_owner':
-            return Response({'detail': 'Not a restaurant owner'}, status=403)
-        restaurant = Restaurant.objects.filter(owner=request.user).first()
-        if not restaurant:
-            return Response({'detail': 'Restaurant not found'}, status=404)
-        serializer = self.get_serializer(restaurant)
-        return Response(serializer.data)
-
     def perform_create(self, serializer):
         serializer.save(customer=self.request.user)
 
@@ -270,17 +236,6 @@ class CartItemViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff:
             return queryset
         return queryset.filter(cart__customer=self.request.user)
-
-    
-    @action(detail=False, methods=['get'])
-    def my_restaurant(self, request):
-        if request.user.role != 'restaurant_owner':
-            return Response({'detail': 'Not a restaurant owner'}, status=403)
-        restaurant = Restaurant.objects.filter(owner=request.user).first()
-        if not restaurant:
-            return Response({'detail': 'Restaurant not found'}, status=404)
-        serializer = self.get_serializer(restaurant)
-        return Response(serializer.data)
 
     def perform_create(self, serializer):
         user = self.request.user

@@ -183,4 +183,17 @@ void main() {
       expect(eta >= 3 && eta <= 30, true);
     });
   });
+
+  group('CartProvider LastOrderId Tests', () {
+    test('lastOrderId can be set and read properly', () {
+      final cart = CartProvider();
+      expect(cart.lastOrderId, null);
+
+      cart.setLastOrderId(789);
+      expect(cart.lastOrderId, 789);
+
+      cart.setLastOrderId(null);
+      expect(cart.lastOrderId, null);
+    });
+  });
 }

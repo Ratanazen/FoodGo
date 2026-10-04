@@ -158,3 +158,49 @@ class PaymentIntegrationTests(TestCase):
         self.assertEqual(self.order.payment_status, 'PAID')
         self.assertEqual(self.order.status, 'confirmed')
 
+    def test_payment_status_polling(self):
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+
+        status_url = reverse('payment_status', args=[payment_id])
+        res = self.client.post(status_url, {}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['id'], payment_id)
+        self.assertEqual(res.data['status'], 'PENDING')
+
+    def test_payment_status_permission_denied_for_other_user(self):
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+
+        other_user = User.objects.create_user(username='other_guy', email='other@test.com', password='password123', role='customer')
+        self.client.force_authenticate(user=other_user)
+
+        status_url = reverse('payment_status', args=[payment_id])
+        res = self.client.post(status_url, {}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_cancel_payment_success(self):
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+
+        cancel_url = reverse('payment_cancel', args=[payment_id])
+        res = self.client.post(cancel_url, {}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['payment']['status'], 'CANCELLED')
+
+        payment = Payment.objects.get(id=payment_id)
+        self.assertEqual(payment.status, 'CANCELLED')
+
+    def test_cancel_payment_already_paid_rejected(self):
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+
+        payment = Payment.objects.get(id=payment_id)
+        payment.status = 'PAID'
+        payment.save()
+
+        cancel_url = reverse('payment_cancel', args=[payment_id])
+        res = self.client.post(cancel_url, {}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Cannot cancel payment in PAID status', res.data['detail'])
+

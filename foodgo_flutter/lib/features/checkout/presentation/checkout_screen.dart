@@ -180,7 +180,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
       bottomNavigationBar: Consumer<CartProvider>(
         builder: (context, cart, child) {
-          final total = cart.totalAmount > 0 ? cart.totalAmount + 2.99 : 0.0;
+          final total = cart.grandTotal;
 
           String buttonText;
           IconData buttonIcon;

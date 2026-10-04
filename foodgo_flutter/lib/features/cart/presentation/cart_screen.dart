@@ -86,7 +86,7 @@ class CartScreen extends StatelessWidget {
                                 children: [
                                   IconButton(
                                     onPressed: () {
-                                      cart.removeItem(item.id);
+                                      cart.decrementItem(item.id);
                                     }, 
                                     icon: const Icon(Icons.remove, size: 20),
                                     padding: EdgeInsets.zero,
@@ -97,7 +97,14 @@ class CartScreen extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   IconButton(
                                     onPressed: () {
-                                      cart.addItem(item.id, item.name, item.price, item.image);
+                                      cart.addItem(
+                                        item.id,
+                                        item.name,
+                                        item.price,
+                                        item.image,
+                                        restaurantId: item.restaurantId,
+                                        restaurantName: item.restaurantName,
+                                      );
                                     }, 
                                     icon: const Icon(Icons.add, size: 20, color: GlassTheme.primaryGreen),
                                     padding: EdgeInsets.zero,
@@ -128,11 +135,11 @@ class CartScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Delivery Fee', style: TextStyle(fontSize: 16)),
-                          Text('\$2.99', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          const Text('Delivery Fee', style: TextStyle(fontSize: 16)),
+                          Text('\$${cart.deliveryFee.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -150,7 +157,7 @@ class CartScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Total', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                          Text('\$${(cart.totalAmount + 2.99).toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen)),
+                          Text('\$${cart.grandTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen)),
                         ],
                       ),
                       const SizedBox(height: 24),

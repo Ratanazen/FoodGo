@@ -65,7 +65,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
   void _connectWebSocket() {
     try {
-      final wsUrl = Uri.parse('ws://127.0.0.1:8000/ws/tracking/${widget.orderId}/');
+      const defaultWsBase = String.fromEnvironment('FOODGO_WS_URL', defaultValue: 'ws://127.0.0.1:8000/ws/tracking/');
+      final normalizedWsBase = defaultWsBase.endsWith('/') ? defaultWsBase : '$defaultWsBase/';
+      final wsUrl = Uri.parse('$normalizedWsBase${widget.orderId}/');
       _channel = WebSocketChannel.connect(wsUrl);
       _channel?.stream.listen((message) {
         if (!mounted) return;

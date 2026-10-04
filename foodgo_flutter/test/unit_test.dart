@@ -196,4 +196,71 @@ void main() {
       expect(cart.lastOrderId, null);
     });
   });
+
+  group('CartProvider Decrement & Fee Tests', () {
+    test('decrementItem reduces quantity when > 1', () {
+      final cart = CartProvider();
+      cart.addItem(1, 'Burger', 5.0, null);
+      cart.addItem(1, 'Burger', 5.0, null);
+      cart.addItem(1, 'Burger', 5.0, null);
+      expect(cart.items[1]!.quantity, 3);
+      expect(cart.totalAmount, 15.0);
+
+      cart.decrementItem(1);
+      expect(cart.items[1]!.quantity, 2);
+      expect(cart.totalAmount, 10.0);
+    });
+
+    test('decrementItem removes item when quantity reaches 1', () {
+      final cart = CartProvider();
+      cart.addItem(1, 'Burger', 5.0, null);
+      expect(cart.itemCount, 1);
+
+      cart.decrementItem(1);
+      expect(cart.itemCount, 0);
+      expect(cart.totalAmount, 0.0);
+    });
+
+    test('decrementItem on missing item does not crash', () {
+      final cart = CartProvider();
+      expect(() => cart.decrementItem(999), returnsNormally);
+    });
+
+    test('deliveryFee and grandTotal calculate accurately', () {
+      final cart = CartProvider();
+      expect(cart.deliveryFee, 0.0);
+      expect(cart.grandTotal, 0.0);
+
+      cart.addItem(1, 'Pizza', 12.0, null, deliveryFee: 1.50);
+      expect(cart.totalAmount, 12.0);
+      expect(cart.deliveryFee, 1.50);
+      expect(cart.grandTotal, 13.50);
+
+      cart.setDeliveryFee(3.00);
+      expect(cart.deliveryFee, 3.00);
+      expect(cart.grandTotal, 15.00);
+
+      cart.clear();
+      expect(cart.deliveryFee, 0.0);
+      expect(cart.grandTotal, 0.0);
+    });
+  });
+
+  group('PaymentModel Cancelled State Tests', () {
+    test('PaymentModel handles CANCELLED status', () {
+      final json = {
+        'id': 108,
+        'order': 50,
+        'provider': 'BAKONG',
+        'method': 'KHQR',
+        'amount': '20.00',
+        'currency': 'USD',
+        'status': 'CANCELLED',
+      };
+      final payment = PaymentModel.fromJson(json);
+      expect(payment.isCancelled, true);
+      expect(payment.isPending, false);
+      expect(payment.isPaid, false);
+    });
+  });
 }

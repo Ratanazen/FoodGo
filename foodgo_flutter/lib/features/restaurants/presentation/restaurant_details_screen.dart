@@ -22,11 +22,31 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
   bool _isFavorite = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<RestaurantProvider>();
+      if (provider.restaurants.isEmpty && !provider.isLoading) {
+        provider.fetchRestaurants();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Consumer<RestaurantProvider>(
         builder: (context, provider, child) {
+          if (provider.isLoading && provider.restaurants.isEmpty) {
+            return const Scaffold(
+              appBar: GlassAppBar(title: 'Loading Restaurant...'),
+              body: Center(
+                child: CircularProgressIndicator(color: GlassTheme.primaryGreen),
+              ),
+            );
+          }
+
           final restaurant = provider.restaurants.firstWhere(
             (r) => r['id'].toString() == widget.id,
             orElse: () => null,
@@ -35,7 +55,27 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
           if (restaurant == null) {
             return Scaffold(
               appBar: const GlassAppBar(title: 'Restaurant'),
-              body: const Center(child: Text('Restaurant not found')),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.store_mall_directory_outlined, size: 64, color: GlassTheme.textMuted),
+                      const SizedBox(height: 16),
+                      const Text('Restaurant not found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(height: 8),
+                      Text('The requested restaurant may be closed or unavailable.', textAlign: TextAlign.center, style: TextStyle(color: GlassTheme.textMuted, fontSize: 13)),
+                      const SizedBox(height: 24),
+                      GlassButton(
+                        text: 'Explore Restaurants',
+                        icon: Icons.explore,
+                        onPressed: () => context.go('/explore'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             );
           }
 

@@ -23,6 +23,7 @@ class CartItem {
 class CartProvider with ChangeNotifier {
   final Map<int, CartItem> _items = {};
   int? _lastOrderId;
+  double _deliveryFee = 2.99;
 
   Map<int, CartItem> get items => _items;
   int? get lastOrderId => _lastOrderId;
@@ -44,6 +45,13 @@ class CartProvider with ChangeNotifier {
     return _items.values.first.restaurantName;
   }
 
+  double get deliveryFee => _items.isEmpty ? 0.0 : _deliveryFee;
+
+  void setDeliveryFee(double fee) {
+    _deliveryFee = fee;
+    notifyListeners();
+  }
+
   double get totalAmount {
     var total = 0.0;
     _items.forEach((key, cartItem) {
@@ -52,6 +60,8 @@ class CartProvider with ChangeNotifier {
     return total;
   }
 
+  double get grandTotal => totalAmount > 0 ? totalAmount + deliveryFee : 0.0;
+
   void addItem(
     int id,
     String name,
@@ -59,7 +69,11 @@ class CartProvider with ChangeNotifier {
     String? image, {
     int? restaurantId,
     String? restaurantName,
+    double? deliveryFee,
   }) {
+    if (deliveryFee != null && deliveryFee >= 0) {
+      _deliveryFee = deliveryFee;
+    }
     if (_items.containsKey(id)) {
       _items.update(
         id,
@@ -89,6 +103,29 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Decreases item quantity by 1; removes completely if quantity reaches 0.
+  void decrementItem(int id) {
+    if (!_items.containsKey(id)) return;
+    if (_items[id]!.quantity > 1) {
+      _items.update(
+        id,
+        (existingItem) => CartItem(
+          id: existingItem.id,
+          name: existingItem.name,
+          price: existingItem.price,
+          quantity: existingItem.quantity - 1,
+          image: existingItem.image,
+          restaurantId: existingItem.restaurantId,
+          restaurantName: existingItem.restaurantName,
+        ),
+      );
+    } else {
+      _items.remove(id);
+    }
+    notifyListeners();
+  }
+
+  /// Removes the item completely from the cart regardless of quantity.
   void removeItem(int id) {
     _items.remove(id);
     notifyListeners();

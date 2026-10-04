@@ -260,7 +260,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 child: const Text(
                                   'G',
                                   style: TextStyle(
-                                    color: Color(0xFF4285F4),
+                                    color: GlassTheme.googleBlue,
                                     fontWeight: FontWeight.w900,
                                     fontSize: 16,
                                   ),

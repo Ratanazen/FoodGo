@@ -133,8 +133,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         ? 'Bakong KHQR (NBC Open API)'
         : (isAba ? 'ABA KHQR' : 'ACLEDA KHQR');
     final Color brandColor = isBakong
-        ? const Color(0xFFE41E26)
-        : (isAba ? const Color(0xFF005A87) : const Color(0xFF16325C));
+        ? GlassTheme.bakongRed
+        : (isAba ? GlassTheme.abaBlue : GlassTheme.acledaNavy);
 
     final String qrString = _currentPayment.qrPayload ?? 'https://foodgo.app/khqr/pay';
 
@@ -197,7 +197,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.qr_code_2, size: 16, color: brandColor == const Color(0xFFE41E26) ? Colors.redAccent : Colors.white),
+                            Icon(Icons.qr_code_2, size: 16, color: brandColor == GlassTheme.bakongRed ? Colors.redAccent : Colors.white),
                             const SizedBox(width: 6),
                             Text(
                               providerTitle,
@@ -241,9 +241,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE41E26),
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          decoration: const BoxDecoration(
+                            color: GlassTheme.khqrBannerRed,
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                           ),
                           child: const Center(
                             child: Text(
@@ -286,7 +286,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                               Text(
                                 '${_currentPayment.currency} ${_currentPayment.amount.toStringAsFixed(2)}',
                                 style: const TextStyle(
-                                  color: Color(0xFF1E293B),
+                                  color: GlassTheme.textDark,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 18,
                                 ),
@@ -402,7 +402,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                   style: const TextStyle(
                                     fontFamily: 'monospace',
                                     fontSize: 11,
-                                    color: Color(0xFF7FFFB3),
+                                    color: GlassTheme.primaryGreenAccent,
                                   ),
                                 ),
                                 if (_currentPayment.merchantReference != null) ...[

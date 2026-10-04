@@ -27,12 +27,7 @@ class FloatingMiniCartBar extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF2EAA60),
-                  Color(0xFF1E8A4A),
-                ],
-              ),
+              gradient: GlassTheme.primaryGradient,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(

@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'subtitle': 'On your orders above \$5',
       'tag': 'Limited Time',
       'code': 'FOODGOFREE',
-      'color': const Color(0xFF1E8A4A),
+      'color': GlassTheme.primaryGreenDark,
       'icon': Icons.moped,
     },
     {
@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'subtitle': 'Save big on selected burgers',
       'tag': 'HOT DEAL',
       'code': 'FOODGO30',
-      'color': const Color(0xFFD70F64),
+      'color': GlassTheme.foodpandaPink,
       'icon': Icons.local_fire_department,
     },
     {
@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'subtitle': 'Hot meals delivered in <25 mins',
       'tag': 'FAST TRACK',
       'code': 'EXPRESS',
-      'color': const Color(0xFF2979FF),
+      'color': GlassTheme.promoBlue,
       'icon': Icons.bolt,
     },
   ];

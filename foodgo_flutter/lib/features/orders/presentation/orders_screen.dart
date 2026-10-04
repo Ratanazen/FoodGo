@@ -367,7 +367,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
-          color: Color(0xFF141F18),
+          color: GlassTheme.surfaceDark,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SafeArea(

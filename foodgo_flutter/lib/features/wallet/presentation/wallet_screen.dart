@@ -97,7 +97,7 @@ class _WalletScreenState extends State<WalletScreen> {
         context: context,
         builder: (dialogCtx) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            backgroundColor: const Color(0xFF161F1A),
+            backgroundColor: GlassTheme.dialogDark,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
               side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
@@ -107,7 +107,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE41E26).withValues(alpha: 0.2),
+                    color: GlassTheme.bakongRed.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const SvgAssetIcon(assetName: 'khqr_logo', size: 24),
@@ -132,7 +132,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE41E26),
+                      color: GlassTheme.khqrBannerRed,
                       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                     ),
                     child: const Center(
@@ -251,7 +251,7 @@ class _WalletScreenState extends State<WalletScreen> {
                             style: const TextStyle(
                               fontFamily: 'monospace',
                               fontSize: 10,
-                              color: Color(0xFF7FFFB3),
+                              color: GlassTheme.primaryGreenAccent,
                             ),
                           ),
                         ],
@@ -416,7 +416,7 @@ class _WalletScreenState extends State<WalletScreen> {
                               height: 52,
                               child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF005A87),
+                                  backgroundColor: GlassTheme.abaBlue,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 ),

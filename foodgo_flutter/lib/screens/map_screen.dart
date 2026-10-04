@@ -410,7 +410,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         onTap: () => _showMarkerInfo('Restaurant', _restaurantName ?? 'Preparing your meal here'),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1976D2),
+                            color: GlassTheme.mapBlue,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                             boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6, spreadRadius: 1)],
@@ -430,7 +430,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         onTap: () => _showMarkerInfo('Drop-Off Destination', _deliveryAddress ?? 'Your delivery location'),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE53935),
+                            color: GlassTheme.mapRed,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                             boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6, spreadRadius: 1)],
@@ -501,7 +501,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                             },
                             child: Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1E88E5),
+                                color: GlassTheme.mapDriverBike,
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 2),
                                 boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 5)],
@@ -851,7 +851,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2620),
+        backgroundColor: GlassTheme.badgeTagDark,
         shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         content: Text(description, style: const TextStyle(color: Colors.white70)),

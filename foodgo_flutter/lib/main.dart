@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app/router/app_router.dart';
 import 'app/theme/app_theme.dart';
+import 'core/theme/glass_theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/restaurant_provider.dart';
@@ -40,7 +41,7 @@ class FoodGoApp extends StatelessWidget {
           routerConfig: appRouter,
           builder: (context, child) {
             return Container(
-              color: const Color(0xFF070B09), // Very dark background outside the app
+              color: GlassTheme.outerBackground, // Very dark background outside the app
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 450),

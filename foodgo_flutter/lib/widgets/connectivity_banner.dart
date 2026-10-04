@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import '../core/theme/glass_theme.dart';
 
 class ConnectivityBanner extends StatefulWidget {
   final Widget child;
@@ -49,7 +50,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           height: _isOffline ? 36.0 : 0.0,
-          color: const Color(0xFFD32F2F),
+          color: GlassTheme.offlineRed,
           child: _isOffline
               ? const Row(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -116,7 +116,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF141C16),
+                color: GlassTheme.surfaceCardDark,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
@@ -159,7 +159,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                     if (!isCreatingNewCat && _categories.isNotEmpty) ...[
                       DropdownButtonFormField<int>(
                         initialValue: selectedCatId,
-                        dropdownColor: const Color(0xFF1A261D),
+                        dropdownColor: GlassTheme.dropdownDark,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           labelText: 'Category',
@@ -544,7 +544,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
-          color: Color(0xFF141F18),
+          color: GlassTheme.surfaceDark,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SafeArea(

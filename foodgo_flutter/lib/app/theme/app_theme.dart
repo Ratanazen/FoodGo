@@ -4,7 +4,7 @@ import '../../core/theme/glass_theme.dart';
 class AppTheme {
   static const Color primaryColor = GlassTheme.primaryGreen;
   static const Color primaryDark = GlassTheme.primaryGreenDark;
-  static const Color accentColor = Color(0xFFFFB300); // Warm Yellow if needed
+  static const Color accentColor = GlassTheme.ratingAmber;
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -13,11 +13,12 @@ class AppTheme {
         seedColor: primaryColor,
         primary: primaryColor,
         secondary: accentColor,
+        error: GlassTheme.discountRed,
         brightness: Brightness.light,
         surface: GlassTheme.backgroundLight,
       ),
       scaffoldBackgroundColor: GlassTheme.backgroundLight,
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -46,16 +47,35 @@ class AppTheme {
           borderRadius: GlassTheme.borderRadius,
         ),
       ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: GlassTheme.borderRadiusSmall,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.white,
+        modalBackgroundColor: Colors.white,
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: GlassTheme.surfaceDark,
+        contentTextStyle: TextStyle(color: Colors.white),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: GlassTheme.borderLight,
+        thickness: 1,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: GlassTheme.glassWhite,
         border: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
-          borderSide: BorderSide(color: GlassTheme.borderLight),
+          borderSide: const BorderSide(color: GlassTheme.borderLight),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
-          borderSide: BorderSide(color: GlassTheme.borderLight),
+          borderSide: const BorderSide(color: GlassTheme.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
@@ -72,6 +92,7 @@ class AppTheme {
         seedColor: primaryColor,
         primary: primaryColor,
         secondary: accentColor,
+        error: GlassTheme.discountRed,
         brightness: Brightness.dark,
         surface: GlassTheme.backgroundDark,
       ),
@@ -105,16 +126,35 @@ class AppTheme {
           borderRadius: GlassTheme.borderRadius,
         ),
       ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: GlassTheme.dialogDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: GlassTheme.borderRadiusSmall,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: GlassTheme.surfaceDark,
+        modalBackgroundColor: GlassTheme.surfaceDark,
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: GlassTheme.surfaceDark,
+        contentTextStyle: TextStyle(color: Colors.white),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: GlassTheme.borderDark,
+        thickness: 1,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: GlassTheme.glassDark,
         border: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
-          borderSide: BorderSide(color: GlassTheme.borderDark),
+          borderSide: const BorderSide(color: GlassTheme.borderDark),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
-          borderSide: BorderSide(color: GlassTheme.borderDark),
+          borderSide: const BorderSide(color: GlassTheme.borderDark),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,

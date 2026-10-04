@@ -42,7 +42,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
         width: width,
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF141C17)
+              ? GlassTheme.surfaceCardDark
               : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(

@@ -5,7 +5,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from core.models import (
     User, Restaurant, FoodCategory, FoodItem, Order, OrderItem,
-    Cart, CartItem, Wallet, Review
+    Cart, CartItem, Wallet, Review, Driver, Delivery
 )
 
 class FoodGoCoreAPITests(TestCase):
@@ -168,4 +168,56 @@ class FoodGoCoreAPITests(TestCase):
         self.assertIn('access', res.data)
         self.assertFalse(res.data['is_new_user'])
         self.assertEqual(res.data['user']['username'], 'khmer_foodie')
+
+    def test_list_drivers(self):
+        driver_user = User.objects.create_user(
+            username='rider_test',
+            email='rider@foodgo.kh',
+            password='Password123!',
+            role='driver',
+            phone='+85512345678'
+        )
+        Driver.objects.create(
+            user=driver_user,
+            vehicle_type='Honda Wave',
+            license_plate='PP-9999',
+            is_online=True
+        )
+        res = self.client.get('/api/drivers/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(res.data), 1)
+        driver_data = next((d for d in res.data if d['username'] == 'rider_test'), None)
+        self.assertIsNotNone(driver_data)
+        self.assertEqual(driver_data['vehicle_type'], 'Honda Wave')
+        self.assertTrue(driver_data['is_online'])
+
+    def test_order_creation_with_driver_assignment(self):
+        self.client.force_authenticate(user=self.customer)
+        driver_user = User.objects.create_user(
+            username='speedy_rider',
+            email='speedy@foodgo.kh',
+            password='Password123!',
+            role='driver'
+        )
+        driver = Driver.objects.create(
+            user=driver_user,
+            vehicle_type='Yamaha Fazzio',
+            license_plate='PP-8888',
+            is_online=True
+        )
+        res = self.client.post('/api/orders/', {
+            'restaurant': self.restaurant.id,
+            'driver_id': driver.id,
+            'items': [{'food_item': self.food_item.id, 'quantity': 2}]
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        order_id = res.data['id']
+        self.assertEqual(res.data['assigned_driver']['name'], 'speedy_rider')
+
+        # Test tracking returns driver profile
+        track_res = self.client.get(f'/api/orders/{order_id}/track/')
+        self.assertEqual(track_res.status_code, status.HTTP_200_OK)
+        self.assertIn('driver', track_res.data)
+        self.assertEqual(track_res.data['driver']['id'], driver.id)
+        self.assertEqual(track_res.data['driver']['vehicle_type'], 'Yamaha Fazzio')
 

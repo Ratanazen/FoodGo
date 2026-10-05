@@ -57,19 +57,45 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'food_item', 'food_name', 'quantity', 'price']
         read_only_fields = ['id', 'price', 'food_name']
 
+class DriverSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    full_name = serializers.SerializerMethodField()
+    phone = serializers.SerializerMethodField()
+    email = serializers.CharField(source='user.email', read_only=True)
+    rating = serializers.FloatField(default=4.9, read_only=True)
+
+    class Meta:
+        model = Driver
+        fields = [
+            'id', 'user_id', 'username', 'full_name', 'phone', 'email',
+            'vehicle_type', 'license_plate', 'is_online',
+            'current_lat', 'current_lng', 'rating',
+        ]
+        read_only_fields = ['id', 'user_id', 'username', 'email']
+
+    def get_full_name(self, obj):
+        name = obj.user.get_full_name()
+        return name if name else obj.user.username
+
+    def get_phone(self, obj):
+        return obj.user.phone or '+855 12 888 999'
+
+
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     restaurant = serializers.PrimaryKeyRelatedField(queryset=Restaurant.objects.all(), required=False)
     restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)
     restaurant_image = serializers.SerializerMethodField()
+    assigned_driver = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
             'id', 'restaurant', 'restaurant_name', 'restaurant_image', 'address', 'status', 'payment_status', 'total_amount',
-            'special_instructions', 'created_at', 'items',
+            'special_instructions', 'created_at', 'items', 'assigned_driver',
         ]
-        read_only_fields = ['id', 'restaurant_name', 'restaurant_image', 'status', 'payment_status', 'total_amount', 'created_at', 'items']
+        read_only_fields = ['id', 'restaurant_name', 'restaurant_image', 'status', 'payment_status', 'total_amount', 'created_at', 'items', 'assigned_driver']
 
     def get_restaurant_image(self, obj):
         if obj.restaurant:
@@ -79,6 +105,23 @@ class OrderSerializer(serializers.ModelSerializer):
                 if request:
                     return request.build_absolute_uri(img.url)
                 return img.url
+        return None
+
+    def get_assigned_driver(self, obj):
+        delivery = getattr(obj, 'delivery', None)
+        if delivery and delivery.driver:
+            driver = delivery.driver
+            return {
+                'id': driver.id,
+                'name': driver.user.get_full_name() or driver.user.username,
+                'phone': driver.user.phone or '+855 12 888 999',
+                'vehicle_type': driver.vehicle_type,
+                'license_plate': driver.license_plate,
+                'is_online': driver.is_online,
+                'status': delivery.status,
+                'current_lat': float(driver.current_lat) if driver.current_lat else None,
+                'current_lng': float(driver.current_lng) if driver.current_lng else None,
+            }
         return None
 
 

@@ -41,8 +41,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       if (success) {
-        context.read<UserProvider>().fetchUser();
-        context.go('/home');
+        final userProvider = context.read<UserProvider>();
+        await userProvider.fetchUser();
+        if (!mounted) return;
+        final role = userProvider.user?['role']?.toString().toLowerCase();
+        if (role == 'driver') {
+          context.go('/driver-dashboard');
+        } else if (role == 'restaurant_owner') {
+          context.go('/restaurant-dashboard');
+        } else {
+          context.go('/home');
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -246,6 +255,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               setState(() {
                                 _usernameController.text = 'customer1';
                                 _passwordController.text = 'customer123';
+                              });
+                            },
+                          ),
+                          ActionChip(
+                            avatar: const Text('🚴', style: TextStyle(fontSize: 12)),
+                            label: const Text('Driver', style: TextStyle(fontSize: 12, color: Colors.white)),
+                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+                            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                            onPressed: () {
+                              setState(() {
+                                _usernameController.text = 'driver1';
+                                _passwordController.text = 'driver123';
                               });
                             },
                           ),

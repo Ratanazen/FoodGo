@@ -1,7 +1,7 @@
 from decimal import Decimal
 import os
 from django.core.management.base import BaseCommand
-from core.models import User, Wallet, Address
+from core.models import User, Wallet, Address, Driver
 
 class Command(BaseCommand):
     help = 'Ensures admin, customer, driver, and owner accounts exist with working passwords'
@@ -76,23 +76,70 @@ class Command(BaseCommand):
             }
         )
 
-        # 3. Driver User
-        driver_user = User.objects.filter(username='driver1').first()
-        if not driver_user:
-            driver_user = User.objects.create(
+        # 3. Delivery Drivers (driver1 and driver2)
+        driver1_user = User.objects.filter(username='driver1').first()
+        if not driver1_user:
+            driver1_user = User.objects.create(
                 username='driver1',
                 email='driver@foodgo.com',
                 first_name='Bob',
                 last_name='Rider',
+                phone='+855 12 888 999',
                 role='driver',
                 is_active=True
             )
         else:
-            driver_user.email = 'driver@foodgo.com'
-            driver_user.role = 'driver'
-            driver_user.is_active = True
-        driver_user.set_password('driver123')
-        driver_user.save()
+            driver1_user.email = 'driver@foodgo.com'
+            driver1_user.first_name = 'Bob'
+            driver1_user.last_name = 'Rider'
+            driver1_user.phone = '+855 12 888 999'
+            driver1_user.role = 'driver'
+            driver1_user.is_active = True
+        driver1_user.set_password('driver123')
+        driver1_user.save()
+
+        Driver.objects.update_or_create(
+            user=driver1_user,
+            defaults={
+                'vehicle_type': 'Motorcycle (Honda Wave 125i)',
+                'license_plate': 'PP-1AB-2026',
+                'is_online': True,
+                'current_lat': Decimal('11.5580'),
+                'current_lng': Decimal('104.9210'),
+            }
+        )
+
+        driver2_user = User.objects.filter(username='driver2').first()
+        if not driver2_user:
+            driver2_user = User.objects.create(
+                username='driver2',
+                email='driver2@foodgo.com',
+                first_name='Sophea',
+                last_name='Swift',
+                phone='+855 12 777 666',
+                role='driver',
+                is_active=True
+            )
+        else:
+            driver2_user.email = 'driver2@foodgo.com'
+            driver2_user.first_name = 'Sophea'
+            driver2_user.last_name = 'Swift'
+            driver2_user.phone = '+855 12 777 666'
+            driver2_user.role = 'driver'
+            driver2_user.is_active = True
+        driver2_user.set_password('driver123')
+        driver2_user.save()
+
+        Driver.objects.update_or_create(
+            user=driver2_user,
+            defaults={
+                'vehicle_type': 'Scooter (Yamaha Fazzio 125)',
+                'license_plate': 'PP-2CD-2026',
+                'is_online': True,
+                'current_lat': Decimal('11.5610'),
+                'current_lng': Decimal('104.9195'),
+            }
+        )
 
         # 4. Owner User
         owner_user = User.objects.filter(username='owner').first()

@@ -46,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (user?['role'] == 'restaurant_owner') ...[
+                  if (user?['role'] == 'restaurant_owner' || user?['role'] == 'admin') ...[
                     const SizedBox(height: 16),
                     GlassContainer(
                       padding: const EdgeInsets.all(4),
@@ -59,7 +59,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-                  if (user?['role'] == 'driver') ...[
+                  if (user?['role'] == 'driver' || user?['role'] == 'admin') ...[
                     const SizedBox(height: 16),
                     GlassContainer(
                       padding: const EdgeInsets.all(4),

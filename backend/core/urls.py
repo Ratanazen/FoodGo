@@ -18,6 +18,7 @@ router.register(r'recommendations', RecommendationViewSet, basename='recommendat
 router.register(r'carts', CartViewSet)
 router.register(r'cart-items', CartItemViewSet)
 router.register(r'live-items', LiveItemViewSet)
+router.register(r'drivers', DriverViewSet, basename='driver')
 urlpatterns = [
     path('auth/phone-login/request/', RequestOTPView.as_view(), name='otp_request'),
     path('auth/phone-login/verify/', VerifyOTPView.as_view(), name='otp_verify'),

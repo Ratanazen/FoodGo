@@ -167,9 +167,13 @@ def image_preview(image_field=None, image_url=None, size=50):
     return format_html('<span style="color:#aaa;font-size:11px;background:rgba(0,0,0,0.05);padding:3px 8px;border-radius:6px;">No photo</span>')
 
 
-# ─────────────────────────────────────────────
-# Users & Profiles
-# ─────────────────────────────────────────────
+class DriverInline(admin.StackedInline):
+    model = Driver
+    extra = 0
+    can_delete = False
+    fields = ['vehicle_type', 'license_plate', 'is_online', 'current_lat', 'current_lng']
+
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
@@ -178,11 +182,58 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ('Extra Info', {'fields': ('role', 'phone')}),
     )
+    inlines = [DriverInline]
     list_display = ['username', 'email', 'role_badge', 'phone', 'is_staff', 'is_active', 'date_joined']
     list_filter = ['role', 'is_staff', 'is_active']
     search_fields = ['username', 'email', 'phone']
     ordering = ['-date_joined']
     readonly_fields = ['date_joined', 'last_login']
+    actions = ['promote_to_admin', 'convert_to_driver', 'convert_to_customer']
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if obj.role == 'driver' and not hasattr(obj, 'driver_profile'):
+            from decimal import Decimal
+            Driver.objects.get_or_create(
+                user=obj,
+                defaults={
+                    'vehicle_type': 'Motorcycle (Honda Wave 125i)',
+                    'license_plate': 'PP-1AB-2026',
+                    'is_online': True,
+                    'current_lat': Decimal('11.5580'),
+                    'current_lng': Decimal('104.9210'),
+                }
+            )
+
+    @admin.action(description='👑 Promote Selected Users to Admin (Staff + Superuser)')
+    def promote_to_admin(self, request, queryset):
+        count = queryset.update(role='admin', is_staff=True, is_superuser=True)
+        self.message_user(request, f'Successfully promoted {count} user(s) to Admin.')
+
+    @admin.action(description='🚴 Convert Selected Users to Delivery Driver')
+    def convert_to_driver(self, request, queryset):
+        from decimal import Decimal
+        count = 0
+        for user in queryset:
+            user.role = 'driver'
+            user.save(update_fields=['role'])
+            Driver.objects.get_or_create(
+                user=user,
+                defaults={
+                    'vehicle_type': 'Motorcycle (Honda Wave 125i)',
+                    'license_plate': 'PP-1AB-2026',
+                    'is_online': True,
+                    'current_lat': Decimal('11.5580'),
+                    'current_lng': Decimal('104.9210'),
+                }
+            )
+            count += 1
+        self.message_user(request, f'Converted {count} user(s) to Delivery Driver.')
+
+    @admin.action(description='👤 Convert Selected Users to Customer')
+    def convert_to_customer(self, request, queryset):
+        count = queryset.update(role='customer')
+        self.message_user(request, f'Converted {count} user(s) to Customer.')
 
     @admin.display(description='Role')
     def role_badge(self, obj):
@@ -259,7 +310,7 @@ class RestaurantAdmin(admin.ModelAdmin):
 
 class FoodItemInline(admin.TabularInline):
     model = FoodItem
-    extra = 1
+    extra = 3
     fields = ['food_thumb', 'name', 'price', 'image_url', 'is_available']
     readonly_fields = ['food_thumb']
     show_change_link = True
@@ -287,14 +338,42 @@ class FoodCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(FoodItem)
 class FoodItemAdmin(admin.ModelAdmin):
-    list_display = ['food_image', 'name', 'get_restaurant', 'category', 'price_display', 'is_available']
+    list_display = ['food_image', 'name', 'get_restaurant', 'category', 'price', 'is_available']
     list_filter = ['is_available', 'category__restaurant', 'category']
     search_fields = ['name', 'description', 'category__name', 'category__restaurant__name', 'ingredients']
-    list_editable = ['is_available']
+    list_editable = ['price', 'is_available']
     list_per_page = 25
     save_on_top = True
     save_as = True
     autocomplete_fields = ['category']
+    actions = ['duplicate_items', 'make_available', 'make_unavailable']
+
+    @admin.action(description='📋 Duplicate Selected Food Items')
+    def duplicate_items(self, request, queryset):
+        count = 0
+        for item in queryset:
+            FoodItem.objects.create(
+                category=item.category,
+                name=f"{item.name} (Copy)",
+                description=item.description,
+                price=item.price,
+                image=item.image,
+                image_url=item.image_url,
+                is_available=item.is_available,
+                ingredients=item.ingredients,
+            )
+            count += 1
+        self.message_user(request, f'Successfully duplicated {count} item(s).')
+
+    @admin.action(description='✅ Mark Selected Items Available')
+    def make_available(self, request, queryset):
+        count = queryset.update(is_available=True)
+        self.message_user(request, f'Marked {count} items as available.')
+
+    @admin.action(description='❌ Mark Selected Items Unavailable')
+    def make_unavailable(self, request, queryset):
+        count = queryset.update(is_available=False)
+        self.message_user(request, f'Marked {count} items as unavailable.')
 
     fieldsets = (
         ('Basic Information', {
@@ -341,15 +420,66 @@ class OrderItemInline(admin.TabularInline):
     can_delete = False
 
 
+class DeliveryInline(admin.StackedInline):
+    model = Delivery
+    extra = 0
+    fields = ['driver', 'status', 'pickup_time', 'delivery_time']
+    autocomplete_fields = ['driver']
+
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer', 'restaurant', 'status_badge', 'payment_status', 'total_amount', 'bill_action', 'created_at']
+    list_display = ['id', 'customer', 'restaurant', 'assigned_driver_badge', 'status_badge', 'payment_status', 'total_amount', 'bill_action', 'created_at']
     list_filter = ['status', 'payment_status', 'created_at', 'restaurant']
     search_fields = ['customer__username', 'id']
-    inlines = [OrderItemInline]
+    inlines = [OrderItemInline, DeliveryInline]
     readonly_fields = ['created_at', 'view_bill_link']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
+    actions = ['auto_assign_driver', 'mark_preparing', 'mark_on_the_way', 'mark_delivered']
+
+    @admin.display(description='Assigned Driver')
+    def assigned_driver_badge(self, obj):
+        delivery = getattr(obj, 'delivery', None)
+        if delivery and delivery.driver:
+            driver = delivery.driver
+            online_dot = '🟢' if driver.is_online else '⚪'
+            return format_html(
+                '<span style="background:#1e293b;color:#f8fafc;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;">'
+                '{} <strong>{}</strong> <span style="opacity:0.75;">({})</span></span>',
+                online_dot, driver.user.username, driver.vehicle_type or 'Bike'
+            )
+        return format_html('<span style="color:#94a3b8;font-size:11px;font-style:italic;">— Unassigned —</span>')
+
+    @admin.action(description='🚴 Auto-Assign Available Online Driver')
+    def auto_assign_driver(self, request, queryset):
+        driver = Driver.objects.filter(is_online=True).first() or Driver.objects.first()
+        if not driver:
+            self.message_user(request, 'No drivers exist. Please create a driver first.', level='error')
+            return
+        count = 0
+        for order in queryset:
+            Delivery.objects.update_or_create(order=order, defaults={'driver': driver, 'status': 'assigned'})
+            if order.status == 'pending':
+                order.status = 'confirmed'
+                order.save(update_fields=['status'])
+            count += 1
+        self.message_user(request, f'Assigned driver {driver.user.username} to {count} order(s).')
+
+    @admin.action(description='👨‍🍳 Mark Selected Orders as Preparing')
+    def mark_preparing(self, request, queryset):
+        count = queryset.update(status='preparing')
+        self.message_user(request, f'Updated {count} order(s) to Preparing.')
+
+    @admin.action(description='🛵 Mark Selected Orders as On the Way')
+    def mark_on_the_way(self, request, queryset):
+        count = queryset.update(status='on_the_way')
+        self.message_user(request, f'Updated {count} order(s) to On the Way.')
+
+    @admin.action(description='✅ Mark Selected Orders as Delivered')
+    def mark_delivered(self, request, queryset):
+        count = queryset.update(status='delivered')
+        self.message_user(request, f'Updated {count} order(s) to Delivered.')
 
     def get_urls(self):
         from django.urls import path
@@ -486,13 +616,34 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
-    list_display = ['user', 'vehicle_type', 'license_plate', 'online_badge']
-    list_filter = ['is_online']
-    search_fields = ['user__username', 'license_plate']
+    list_display = ['user', 'driver_phone', 'vehicle_type', 'license_plate', 'is_online', 'deliveries_count']
+    list_filter = ['is_online', 'vehicle_type']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'license_plate', 'user__phone']
+    list_editable = ['vehicle_type', 'license_plate', 'is_online']
+    actions = ['make_online', 'make_offline']
+
+    @admin.display(description='Phone')
+    def driver_phone(self, obj):
+        return obj.user.phone or '—'
 
     @admin.display(description='Online', boolean=True)
     def online_badge(self, obj):
         return obj.is_online
+
+    @admin.display(description='Deliveries')
+    def deliveries_count(self, obj):
+        count = obj.deliveries.count()
+        return format_html('<span style="background:#34495e;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">{}</span>', count)
+
+    @admin.action(description='🟢 Set Selected Drivers Online')
+    def make_online(self, request, queryset):
+        count = queryset.update(is_online=True)
+        self.message_user(request, f'Set {count} driver(s) online.')
+
+    @admin.action(description='🔴 Set Selected Drivers Offline')
+    def make_offline(self, request, queryset):
+        count = queryset.update(is_online=False)
+        self.message_user(request, f'Set {count} driver(s) offline.')
 
 
 @admin.register(Delivery)

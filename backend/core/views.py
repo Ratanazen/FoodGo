@@ -129,6 +129,19 @@ class OrderViewSet(viewsets.ModelViewSet):
                 for food, qty, price in order_items_to_create
             ])
 
+            # Assign selected driver or auto-assign online driver
+            driver_id = self.request.data.get('driver_id') or self.request.data.get('driver')
+            driver = None
+            if driver_id:
+                try:
+                    driver = Driver.objects.filter(pk=driver_id).first()
+                except Exception:
+                    pass
+            if not driver:
+                driver = Driver.objects.filter(is_online=True).first()
+            if driver:
+                Delivery.objects.create(order=order, driver=driver, status='assigned')
+
             cart = getattr(user, 'cart', None)
             if cart:
                 cart.items.all().delete()
@@ -164,6 +177,20 @@ class OrderViewSet(viewsets.ModelViewSet):
             OrderItem(order=order, food_item=item.food_item, quantity=item.quantity, price=item.food_item.price)
             for item in cart_items
         ])
+
+        # Assign selected driver or auto-assign online driver
+        driver_id = self.request.data.get('driver_id') or self.request.data.get('driver')
+        driver = None
+        if driver_id:
+            try:
+                driver = Driver.objects.filter(pk=driver_id).first()
+            except Exception:
+                pass
+        if not driver:
+            driver = Driver.objects.filter(is_online=True).first()
+        if driver:
+            Delivery.objects.create(order=order, driver=driver, status='assigned')
+
         cart.items.all().delete()
         cart.restaurant = None
         cart.save(update_fields=['restaurant'])
@@ -180,11 +207,34 @@ class OrderViewSet(viewsets.ModelViewSet):
         
         driver_lat = None
         driver_lng = None
+        driver_obj = None
         if hasattr(order, 'delivery') and order.delivery and order.delivery.driver:
             driver = order.delivery.driver
+            driver_obj = {
+                'id': driver.id,
+                'name': driver.user.get_full_name() or driver.user.username,
+                'phone': driver.user.phone or '+855 12 888 999',
+                'vehicle_type': driver.vehicle_type or 'Motorcycle',
+                'license_plate': driver.license_plate or 'PP-1AB-2026',
+                'is_online': driver.is_online,
+                'rating': 4.9,
+            }
             if driver.current_lat and driver.current_lng:
                 driver_lat = float(driver.current_lat)
                 driver_lng = float(driver.current_lng)
+        
+        if driver_obj is None:
+            first_driver = Driver.objects.first()
+            if first_driver:
+                driver_obj = {
+                    'id': first_driver.id,
+                    'name': first_driver.user.get_full_name() or first_driver.user.username,
+                    'phone': first_driver.user.phone or '+855 12 888 999',
+                    'vehicle_type': first_driver.vehicle_type or 'Motorcycle (Honda Wave)',
+                    'license_plate': first_driver.license_plate or 'PP-1AB-2026',
+                    'is_online': True,
+                    'rating': 4.9,
+                }
         
         if driver_lat is None:
             # Active in-transit driver estimation along path
@@ -208,9 +258,65 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'lat': driver_lat,
                 'lng': driver_lng,
             },
+            'driver': driver_obj,
         }
         
         return Response(data)
+
+
+class DriverViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Driver.objects.select_related('user').all()
+    serializer_class = DriverSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        qs = Driver.objects.select_related('user').all()
+        if self.request.query_params.get('online') == 'true':
+            qs = qs.filter(is_online=True)
+        return qs
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def location(self, request):
+        user = request.user
+        driver = getattr(user, 'driver_profile', None)
+        if not driver:
+            if user.is_staff or user.role == 'driver':
+                driver, _ = Driver.objects.get_or_create(
+                    user=user,
+                    defaults={'vehicle_type': 'Motorcycle (Honda Wave)', 'license_plate': 'PP-2026', 'is_online': True}
+                )
+            else:
+                return Response({'error': 'User is not registered as a driver'}, status=403)
+
+        lat = request.data.get('lat')
+        lng = request.data.get('lng')
+        if lat is not None and lng is not None:
+            driver.current_lat = Decimal(str(lat))
+            driver.current_lng = Decimal(str(lng))
+            driver.save(update_fields=['current_lat', 'current_lng'])
+            return Response({'status': 'Location updated', 'lat': float(driver.current_lat), 'lng': float(driver.current_lng)})
+        return Response({'error': 'lat and lng required'}, status=400)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='toggle-online')
+    def toggle_online(self, request):
+        user = request.user
+        driver = getattr(user, 'driver_profile', None)
+        if not driver:
+            if user.is_staff or user.role == 'driver':
+                driver, _ = Driver.objects.get_or_create(
+                    user=user,
+                    defaults={'vehicle_type': 'Motorcycle (Honda Wave)', 'license_plate': 'PP-2026', 'is_online': True}
+                )
+            else:
+                return Response({'error': 'User is not registered as a driver'}, status=403)
+
+        is_online = request.data.get('is_online')
+        if is_online is not None:
+            driver.is_online = bool(is_online)
+        else:
+            driver.is_online = not driver.is_online
+        driver.save(update_fields=['is_online'])
+        return Response({'status': 'Status updated', 'is_online': driver.is_online})
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()

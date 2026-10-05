@@ -86,25 +86,65 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 GlassContainer(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(20),
                   borderRadius: GlassTheme.borderRadiusSmall,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Driver Status', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                          Text(_isOnline ? 'Online & Ready' : 'Offline', style: TextStyle(color: _isOnline ? GlassTheme.primaryGreen : Colors.redAccent)),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Driver Status', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Text(_isOnline ? '🟢 Online & Ready for Orders' : '⚪ Offline', style: TextStyle(color: _isOnline ? GlassTheme.primaryGreen : Colors.redAccent)),
+                            ],
+                          ),
+                          Switch(
+                            value: _isOnline,
+                            activeTrackColor: GlassTheme.primaryGreen,
+                            onChanged: (val) async {
+                              setState(() => _isOnline = val);
+                              try {
+                                await _api.post('drivers/toggle-online/', {'is_online': val});
+                              } catch (_) {}
+                            },
+                          ),
                         ],
                       ),
-                      Switch(
-                        value: _isOnline,
-                        activeTrackColor: GlassTheme.primaryGreen,
-                        onChanged: (val) {
-                          setState(() => _isOnline = val);
-                        },
-                      ),
+                      if (_isOnline) ...[
+                        const Divider(color: Colors.white12, height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Live GPS Broadcaster', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                            TextButton.icon(
+                              style: TextButton.styleFrom(
+                                foregroundColor: GlassTheme.primaryGreen,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              ),
+                              icon: const Icon(Icons.my_location, size: 16),
+                              label: const Text('Broadcast Location', style: TextStyle(fontSize: 12)),
+                              onPressed: () async {
+                                try {
+                                  await _api.post('drivers/location/', {
+                                    'lat': 11.5580,
+                                    'lng': 104.9210,
+                                  });
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('GPS coordinates broadcast to active orders!'),
+                                      backgroundColor: GlassTheme.primaryGreen,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                } catch (_) {}
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

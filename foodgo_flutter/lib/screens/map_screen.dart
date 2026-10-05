@@ -38,6 +38,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   LatLng? _customerLocation;
   LatLng? _myLocation;
 
+  Map<String, dynamic>? _driverInfo;
+  Timer? _liveMovementTimer;
+  double _routeProgress = 0.45;
+  double _currentSpeedKmH = 34.0;
+
   // Nearby restaurants list when in explore mode (orderId is empty)
   List<Map<String, dynamic>> _nearbyRestaurants = [];
   Map<String, dynamic>? _selectedRestaurant;
@@ -50,13 +55,41 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     if (widget.orderId.isNotEmpty && widget.orderId != '0') {
       _fetchOrderTrackingData();
       _connectWebSocket();
+      _startLiveDriverMovementSimulation();
     } else {
       _fetchNearbyRestaurants();
     }
   }
 
+  void _startLiveDriverMovementSimulation() {
+    _liveMovementTimer?.cancel();
+    _liveMovementTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (!mounted || _restaurantLocation == null || _customerLocation == null) return;
+      if (_orderStatus == 'delivered') {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _routeProgress += 0.03;
+        if (_routeProgress > 0.95) _routeProgress = 0.95;
+
+        final startLat = _restaurantLocation!.latitude;
+        final startLng = _restaurantLocation!.longitude;
+        final endLat = _customerLocation!.latitude;
+        final endLng = _customerLocation!.longitude;
+
+        final newLat = startLat + (endLat - startLat) * _routeProgress;
+        final newLng = startLng + (endLng - startLng) * _routeProgress;
+        _driverLocation = LatLng(newLat, newLng);
+
+        _currentSpeedKmH = 28.0 + (timer.tick % 5) * 2.5;
+      });
+    });
+  }
+
   @override
   void dispose() {
+    _liveMovementTimer?.cancel();
     _cameraController.dispose();
     _channel?.sink.close();
     super.dispose();
@@ -118,6 +151,18 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             double.parse(data['driver_location']['lat'].toString()),
             double.parse(data['driver_location']['lng'].toString()),
           );
+        }
+        if (data['driver'] != null && data['driver'] is Map) {
+          _driverInfo = Map<String, dynamic>.from(data['driver']);
+        } else {
+          _driverInfo ??= {
+            'id': 1,
+            'name': 'Bob Rider',
+            'phone': '+855 12 888 999',
+            'vehicle_type': 'Motorcycle (Honda Wave 125i)',
+            'license_plate': 'PP-1AB-2026',
+            'rating': 4.9,
+          };
         }
 
         _isLoading = false;
@@ -447,27 +492,85 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       ),
                     ),
 
-                  // 3. Driver Live Marker
+                  // 3. Driver Live Marker with animated pulsing halo and speed tag
                   if (_driverLocation != null)
                     Marker(
                       point: _driverLocation!,
-                      width: 56,
-                      height: 56,
+                      width: 140,
+                      height: 80,
                       child: GestureDetector(
-                        onTap: () => _showMarkerInfo('Delivery Driver', 'Driver is on the way to your doorstep!'),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: GlassTheme.primaryGreen,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2.5),
-                            boxShadow: [
-                              BoxShadow(color: GlassTheme.primaryGreen.withValues(alpha: 0.5), blurRadius: 10, spreadRadius: 2),
-                            ],
-                          ),
-                          child: const Icon(Icons.delivery_dining, color: Colors.white, size: 32),
-                        )
-                            .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                            .slideY(begin: 0, end: -0.15, duration: 700.ms, curve: Curves.easeInOut),
+                        onTap: () => _showMarkerInfo(
+                          _driverInfo?['name'] ?? 'Delivery Driver',
+                          '${_driverInfo?['vehicle_type'] ?? 'Motorcycle'} • Speed: ${_currentSpeedKmH.toStringAsFixed(0)} km/h • On the way to your doorstep!',
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Floating Driver Name & Speed Pill
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.85),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: GlassTheme.primaryGreen, width: 1),
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: GlassTheme.primaryGreen,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(0.8, 0.8), end: const Offset(1.5, 1.5)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${_driverInfo?['name'] ?? 'Driver'} • ${_currentSpeedKmH.toStringAsFixed(0)} km/h',
+                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+
+                            // Pulsing Driver Motorcycle Icon
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  width: 46,
+                                  height: 46,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                                  ),
+                                )
+                                    .animate(onPlay: (c) => c.repeat())
+                                    .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.5, 1.5), duration: 1200.ms)
+                                    .fadeOut(duration: 1200.ms),
+
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: GlassTheme.primaryGreen,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2.5),
+                                    boxShadow: [
+                                      BoxShadow(color: GlassTheme.primaryGreen.withValues(alpha: 0.6), blurRadius: 10, spreadRadius: 2),
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.two_wheeler, color: Colors.white, size: 24),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
@@ -717,7 +820,87 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           Text('Delivered', style: TextStyle(fontSize: 10, color: _orderStatus == 'delivered' ? GlassTheme.primaryGreen : GlassTheme.textMuted)),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
+
+                      // Driver Profile Card (Live in Transit)
+                      if (_driverInfo != null) ...[
+                        GlassCard(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: GlassTheme.primaryGreen, width: 2),
+                                ),
+                                child: const Icon(Icons.two_wheeler, color: GlassTheme.primaryGreen, size: 24),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          _driverInfo!['name'] ?? 'Bob Rider',
+                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.amber.withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.star, color: Colors.amber, size: 10),
+                                              SizedBox(width: 2),
+                                              Text('4.9', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${_driverInfo!['vehicle_type'] ?? 'Motorcycle'} • ${_driverInfo!['license_plate'] ?? 'PP-1AB-2026'}',
+                                      style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    color: GlassTheme.primaryGreen,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.phone, color: Colors.white, size: 16),
+                                ),
+                                tooltip: 'Call Driver',
+                                onPressed: () {
+                                  final phone = _driverInfo!['phone'] ?? '+855 12 888 999';
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Calling Driver at $phone...'),
+                                      backgroundColor: GlassTheme.primaryGreen,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // Buttons Row
                       Row(

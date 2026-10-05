@@ -1,0 +1,19 @@
+# Multi-stage Docker build for Flutter Web on Render
+FROM ghcr.io/cirruslabs/flutter:stable AS build
+
+WORKDIR /app
+COPY foodgo_flutter/pubspec.yaml foodgo_flutter/pubspec.lock ./
+RUN flutter pub get
+
+COPY foodgo_flutter/ .
+RUN flutter build web --release
+
+# Stage 2: High-performance Nginx web server
+FROM nginx:alpine
+
+COPY --from=build /app/build/web /usr/share/nginx/html
+COPY foodgo_flutter/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80 8080 10000
+
+CMD ["nginx", "-g", "daemon off;"]

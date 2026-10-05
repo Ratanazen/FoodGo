@@ -14,3 +14,9 @@ services:
         value: "127.0.0.1,localhost,0.0.0.0,.onrender.com"
       - key: CORS_ALLOW_ALL_ORIGINS
         value: "True"
+  - type: web
+    name: foodgo-frontend
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile.frontend

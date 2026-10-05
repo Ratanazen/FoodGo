@@ -2,51 +2,68 @@ import 'dart:math';
 import 'package:latlong2/latlong.dart';
 
 enum MapLayerType {
-  googleRoadmap,
-  googleSatellite,
-  googleTerrain,
   openStreetMap,
+  cartoDark,
+  cartoVoyager,
+  openTopoMap,
+  googleRoadmap,
 }
 
 class MapConfig {
-  /// Google Maps Platform API Key
-  static const String googleMapsApiKey = String.fromEnvironment(
-    'GOOGLE_MAPS_API_KEY',
-    defaultValue: 'AIzaSyC3asDbdqC77DpPZt8DSttWJ2r9hLGT2PA',
-  );
-
   /// Default center coordinates for FoodGo (Phnom Penh, Cambodia)
   static const LatLng defaultCenter = LatLng(11.5564, 104.9282);
   static const double defaultZoom = 14.5;
 
-  /// High-performance Google Maps tile subdomains
+  /// Subdomains for OpenMap & Carto tiles
+  static const List<String> openSubdomains = ['a', 'b', 'c', 'd'];
   static const List<String> googleSubdomains = ['0', '1', '2', '3'];
+
+  /// Optional Google Maps Platform API Key (if using Google fallback)
+  static const String googleMapsApiKey = String.fromEnvironment(
+    'GOOGLE_MAPS_API_KEY',
+    defaultValue: '',
+  );
 
   /// Returns the appropriate tile URL template for the selected map layer
   static String getTileUrl(MapLayerType type) {
     switch (type) {
-      case MapLayerType.googleRoadmap:
-        return 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=$googleMapsApiKey';
-      case MapLayerType.googleSatellite:
-        return 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&key=$googleMapsApiKey';
-      case MapLayerType.googleTerrain:
-        return 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}&key=$googleMapsApiKey';
       case MapLayerType.openStreetMap:
         return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+      case MapLayerType.cartoDark:
+        return 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
+      case MapLayerType.cartoVoyager:
+        return 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+      case MapLayerType.openTopoMap:
+        return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+      case MapLayerType.googleRoadmap:
+        if (googleMapsApiKey.isNotEmpty) {
+          return 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=$googleMapsApiKey';
+        }
+        return 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
     }
+  }
+
+  /// Returns subdomains list for the layer
+  static List<String> getSubdomains(MapLayerType type) {
+    if (type == MapLayerType.googleRoadmap) {
+      return googleSubdomains;
+    }
+    return openSubdomains;
   }
 
   /// Human-readable label for map layers
   static String getLayerName(MapLayerType type) {
     switch (type) {
+      case MapLayerType.openStreetMap:
+        return 'OpenStreetMap (Standard)';
+      case MapLayerType.cartoDark:
+        return 'OpenMap Dark (FoodGo)';
+      case MapLayerType.cartoVoyager:
+        return 'OpenMap Voyager (Clean)';
+      case MapLayerType.openTopoMap:
+        return 'OpenTopoMap (Terrain)';
       case MapLayerType.googleRoadmap:
         return 'Google Roadmap';
-      case MapLayerType.googleSatellite:
-        return 'Google Satellite';
-      case MapLayerType.googleTerrain:
-        return 'Google Terrain';
-      case MapLayerType.openStreetMap:
-        return 'OpenStreetMap';
     }
   }
 

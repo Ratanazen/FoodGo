@@ -27,7 +27,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   late final AnimationController _cameraController;
   WebSocketChannel? _channel;
 
-  MapLayerType _selectedLayer = MapLayerType.googleRoadmap;
+  MapLayerType _selectedLayer = MapLayerType.openStreetMap;
   bool _isLoading = true;
   String _orderStatus = 'pending';
   String? _restaurantName;
@@ -246,37 +246,43 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.2),
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text('Google Maps Engine', style: TextStyle(color: Colors.blueAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                    child: const Text('OpenMap Engine', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 11, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               _buildLayerOption(
-                MapLayerType.googleRoadmap,
-                'Google Roadmap',
-                'Official street vectors with labeled landmarks',
+                MapLayerType.openStreetMap,
+                'OpenStreetMap',
+                'Official community street map (Keyless & Open)',
+                Icons.public,
+              ),
+              _buildLayerOption(
+                MapLayerType.cartoDark,
+                'OpenMap Dark Mode',
+                'Sleek dark theme matching FoodGo styling',
+                Icons.dark_mode,
+              ),
+              _buildLayerOption(
+                MapLayerType.cartoVoyager,
+                'OpenMap Voyager',
+                'Clean, crisp modern street map',
                 Icons.map,
               ),
               _buildLayerOption(
-                MapLayerType.googleSatellite,
-                'Google Satellite / Hybrid',
-                'High-resolution aerial satellite imagery with streets',
-                Icons.satellite_alt,
-              ),
-              _buildLayerOption(
-                MapLayerType.googleTerrain,
-                'Google Terrain',
+                MapLayerType.openTopoMap,
+                'OpenTopoMap',
                 'Topographical contours and elevation features',
                 Icons.terrain,
               ),
               _buildLayerOption(
-                MapLayerType.openStreetMap,
-                'OpenStreetMap',
-                'Open community street raster tiles',
-                Icons.public,
+                MapLayerType.googleRoadmap,
+                'Google Roadmap',
+                'Optional Google vector street map fallback',
+                Icons.layers,
               ),
             ],
           ),
@@ -337,12 +343,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       etaMinutes = MapConfig.estimateDeliveryMinutes(distanceKm);
     }
 
-    final isGoogleLayer = _selectedLayer != MapLayerType.openStreetMap;
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
-        title: _isTrackingMode ? 'Live Order Tracking' : 'Explore on Google Maps',
+        title: _isTrackingMode ? 'Live Order Tracking' : 'Explore on Map',
         actions: [
           IconButton(
             icon: const Icon(Icons.layers_outlined, color: Colors.white),
@@ -370,7 +374,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             children: [
               TileLayer(
                 urlTemplate: MapConfig.getTileUrl(_selectedLayer),
-                subdomains: isGoogleLayer ? MapConfig.googleSubdomains : const ['a', 'b', 'c'],
+                subdomains: MapConfig.getSubdomains(_selectedLayer),
                 userAgentPackageName: 'com.foodgo.app',
               ),
 
@@ -518,31 +522,30 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ],
           ),
 
-          // ── Google Watermark / Attribution ───────────────────────
-          if (isGoogleLayer)
-            Positioned(
-              left: 12,
-              bottom: _isTrackingMode ? 260 : 130,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.65),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.white12),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.map, size: 12, color: Colors.white70),
-                    SizedBox(width: 4),
-                    Text(
-                      'Google Maps',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+          // ── Map Attribution ───────────────────────
+          Positioned(
+            left: 12,
+            bottom: _isTrackingMode ? 260 : 130,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.65),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.public, size: 12, color: GlassTheme.primaryGreen),
+                  const SizedBox(width: 4),
+                  Text(
+                    MapConfig.getLayerName(_selectedLayer),
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
             ),
+          ),
 
           // ── Top ETA & Distance Floating Pill (Tracking Mode) ─────
           if (_isTrackingMode && distanceKm != null && etaMinutes != null)

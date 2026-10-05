@@ -166,13 +166,20 @@ void main() {
   });
 
   group('MapConfig Tests', () {
-    test('Tile URLs contain Google Maps API Key', () {
-      final roadmapUrl = MapConfig.getTileUrl(MapLayerType.googleRoadmap);
-      expect(roadmapUrl.contains('key=AIzaSyC3asDbdqC77DpPZt8DSttWJ2r9hLGT2PA'), true);
-      expect(roadmapUrl.contains('lyrs=m'), true);
+    test('OpenStreetMap and OpenMap tile URLs return valid templates without API keys', () {
+      final osmUrl = MapConfig.getTileUrl(MapLayerType.openStreetMap);
+      expect(osmUrl.contains('tile.openstreetmap.org'), true);
 
-      final satelliteUrl = MapConfig.getTileUrl(MapLayerType.googleSatellite);
-      expect(satelliteUrl.contains('lyrs=y'), true);
+      final darkUrl = MapConfig.getTileUrl(MapLayerType.cartoDark);
+      expect(darkUrl.contains('basemaps.cartocdn.com'), true);
+      expect(darkUrl.contains('dark_all'), true);
+
+      final voyagerUrl = MapConfig.getTileUrl(MapLayerType.cartoVoyager);
+      expect(voyagerUrl.contains('basemaps.cartocdn.com'), true);
+      expect(voyagerUrl.contains('voyager'), true);
+
+      final subdomains = MapConfig.getSubdomains(MapLayerType.openStreetMap);
+      expect(subdomains.contains('a') && subdomains.contains('b'), true);
     });
 
     test('Distance and ETA calculations return positive reasonable values', () {

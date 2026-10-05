@@ -1,12 +1,86 @@
 from decimal import Decimal
 from django.core.management.base import BaseCommand
-from core.models import Restaurant, RestaurantCategory, FoodCategory, FoodItem
+from core.models import User, Address, Wallet, Restaurant, RestaurantCategory, FoodCategory, FoodItem
 
 class Command(BaseCommand):
-    help = 'Seeds the database with a full, rich food delivery menu across restaurants and categories'
+    help = 'Seeds the database with a full, rich food delivery menu across restaurants, categories, and demo user accounts'
 
     def handle(self, *args, **options):
-        self.stdout.write('Starting menu seeding...')
+        self.stdout.write('Starting full database seeding...')
+
+        # Ensure demo users
+        admin_user, _ = User.objects.get_or_create(
+            username='admin',
+            defaults={'role': 'admin', 'email': 'admin@foodgo.com', 'is_staff': True, 'is_superuser': True}
+        )
+        admin_user.set_password('admin123')
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.role = 'admin'
+        admin_user.save()
+
+        owner1, _ = User.objects.get_or_create(
+            username='owner',
+            defaults={'role': 'restaurant_owner', 'email': 'owner@foodgo.com'}
+        )
+        owner1.set_password('owner123')
+        owner1.role = 'restaurant_owner'
+        owner1.save()
+
+        owner2, _ = User.objects.get_or_create(
+            username='owner2',
+            defaults={'role': 'restaurant_owner', 'email': 'owner2@foodgo.com'}
+        )
+        owner2.set_password('owner123')
+        owner2.role = 'restaurant_owner'
+        owner2.save()
+
+        owner3, _ = User.objects.get_or_create(
+            username='owner3',
+            defaults={'role': 'restaurant_owner', 'email': 'owner3@foodgo.com'}
+        )
+        owner3.set_password('owner123')
+        owner3.role = 'restaurant_owner'
+        owner3.save()
+
+        customer1, _ = User.objects.get_or_create(
+            username='customer1',
+            defaults={'role': 'customer', 'email': 'customer@foodgo.com', 'first_name': 'Alice', 'last_name': 'Smith'}
+        )
+        customer1.set_password('customer123')
+        customer1.role = 'customer'
+        customer1.save()
+
+        driver1, _ = User.objects.get_or_create(
+            username='driver1',
+            defaults={'role': 'driver', 'email': 'driver@foodgo.com', 'first_name': 'Bob', 'last_name': 'Rider'}
+        )
+        driver1.set_password('driver123')
+        driver1.role = 'driver'
+        driver1.save()
+
+        # Customer wallet
+        wallet, _ = Wallet.objects.get_or_create(
+            user=customer1,
+            defaults={'balance': Decimal('100.00')}
+        )
+        if wallet.balance < Decimal('10.00'):
+            wallet.balance = Decimal('100.00')
+            wallet.save()
+
+        # Customer default address
+        Address.objects.get_or_create(
+            user=customer1,
+            defaults={
+                'street': 'Street 308, Tonle Bassac',
+                'city': 'Phnom Penh',
+                'state': 'Phnom Penh',
+                'zip_code': '120101',
+                'lat': Decimal('11.550500'),
+                'lng': Decimal('104.928000'),
+                'is_default': True
+            }
+        )
 
         # Ensure restaurant categories
         cat_pizza, _ = RestaurantCategory.objects.get_or_create(name='Pizza')
@@ -15,36 +89,92 @@ class Command(BaseCommand):
         cat_drinks, _ = RestaurantCategory.objects.get_or_create(name='Drinks & Shakes')
 
         # 1. Update/Setup Restaurants
-        r1 = Restaurant.objects.filter(id=1).first()
-        if r1:
-            r1.category = cat_burger
-            r1.description = 'Phnom Penh finest smashed burgers, hand-crafted sides, and thick shakes.'
-            r1.address = 'Street 308, BKK1, Phnom Penh'
-            r1.phone = '+855 12 345 678'
-            r1.rating = Decimal('4.85')
-            r1.delivery_fee = Decimal('1.50')
-            r1.save()
+        r1 = Restaurant.objects.filter(id=1).first() or Restaurant.objects.filter(owner=owner1).first()
+        if not r1:
+            r1 = Restaurant.objects.create(
+                owner=owner1,
+                name='Glass Burger',
+                category=cat_burger,
+                address='Street 308, BKK1, Phnom Penh',
+                phone='+855 12 345 678',
+                rating=Decimal('4.85'),
+                delivery_fee=Decimal('1.50'),
+                delivery_time_min=15,
+                delivery_time_max=35,
+                lat=Decimal('11.556400'),
+                lng=Decimal('104.928200'),
+                is_active=True,
+            )
+        r1.name = 'Glass Burger'
+        r1.category = cat_burger
+        r1.description = 'Phnom Penh finest smashed burgers, hand-crafted sides, and thick shakes.'
+        r1.address = 'Street 308, BKK1, Phnom Penh'
+        r1.phone = '+855 12 345 678'
+        r1.rating = Decimal('4.85')
+        r1.delivery_fee = Decimal('1.50')
+        r1.lat = Decimal('11.556400')
+        r1.lng = Decimal('104.928200')
+        r1.is_active = True
+        r1.save()
 
-        r2 = Restaurant.objects.filter(id=2).first()
-        if r2:
-            r2.category = cat_pizza
-            r2.description = 'Authentic wood-fired Neapolitan pizzas, artisanal cheeses, and classic pastas.'
-            r2.address = 'Bassac Lane, Chamkarmon, Phnom Penh'
-            r2.phone = '+855 23 987 654'
-            r2.rating = Decimal('4.90')
-            r2.delivery_fee = Decimal('2.00')
-            r2.save()
+        r2 = Restaurant.objects.filter(id=2).first() or Restaurant.objects.filter(owner=owner2).first()
+        if not r2:
+            r2 = Restaurant.objects.create(
+                owner=owner2,
+                name='Crystal Pizza',
+                category=cat_pizza,
+                address='Bassac Lane, Chamkarmon, Phnom Penh',
+                phone='+855 23 987 654',
+                rating=Decimal('4.90'),
+                delivery_fee=Decimal('2.00'),
+                delivery_time_min=20,
+                delivery_time_max=45,
+                lat=Decimal('11.551000'),
+                lng=Decimal('104.933000'),
+                is_active=True,
+            )
+        r2.name = 'Crystal Pizza'
+        r2.category = cat_pizza
+        r2.description = 'Authentic wood-fired Neapolitan pizzas, artisanal cheeses, and classic pastas.'
+        r2.address = 'Bassac Lane, Chamkarmon, Phnom Penh'
+        r2.phone = '+855 23 987 654'
+        r2.rating = Decimal('4.90')
+        r2.delivery_fee = Decimal('2.00')
+        r2.lat = Decimal('11.551000')
+        r2.lng = Decimal('104.933000')
+        r2.is_active = True
+        r2.save()
 
         r3 = Restaurant.objects.filter(id=3).first()
-        if r3:
-            r3.name = 'Phnom Penh Flavors (Khmer Kitchen)'
-            r3.category = cat_asian
-            r3.description = 'Authentic Cambodian home-style recipes, fragrant curries, Lok Lak, and refreshing drinks.'
-            r3.address = 'Street 240, Daun Penh, Phnom Penh'
-            r3.phone = '+855 96 111 2233'
-            r3.rating = Decimal('4.95')
-            r3.delivery_fee = Decimal('1.25')
-            r3.save()
+        if not r3:
+            r3_owner = owner3 if not hasattr(owner3, 'restaurant') else (User.objects.filter(username='rat').first() or owner3)
+            r3, _ = Restaurant.objects.get_or_create(
+                owner=r3_owner,
+                defaults={
+                    'name': 'Phnom Penh Flavors (Khmer Kitchen)',
+                    'category': cat_asian,
+                    'address': 'Street 240, Daun Penh, Phnom Penh',
+                    'phone': '+855 96 111 2233',
+                    'rating': Decimal('4.95'),
+                    'delivery_fee': Decimal('1.25'),
+                    'delivery_time_min': 20,
+                    'delivery_time_max': 40,
+                    'lat': Decimal('11.562000'),
+                    'lng': Decimal('104.925000'),
+                    'is_active': True,
+                }
+            )
+        r3.name = 'Phnom Penh Flavors (Khmer Kitchen)'
+        r3.category = cat_asian
+        r3.description = 'Authentic Cambodian home-style recipes, fragrant curries, Lok Lak, and refreshing drinks.'
+        r3.address = 'Street 240, Daun Penh, Phnom Penh'
+        r3.phone = '+855 96 111 2233'
+        r3.rating = Decimal('4.95')
+        r3.delivery_fee = Decimal('1.25')
+        r3.lat = Decimal('11.562000')
+        r3.lng = Decimal('104.925000')
+        r3.is_active = True
+        r3.save()
 
         # ==========================
         # RESTAURANT 1: Glass Burger
@@ -137,4 +267,16 @@ class Command(BaseCommand):
                     }
                 )
 
-        self.stdout.write(self.style.SUCCESS(f'Successfully seeded {FoodItem.objects.count()} food items with high-res photos across {FoodCategory.objects.count()} categories!'))
+        self.stdout.write(self.style.SUCCESS(f'Successfully seeded {FoodItem.objects.count()} food items with high-res photos across {FoodCategory.objects.count()} categories and {Restaurant.objects.count()} restaurants!'))
+        self.stdout.write('\n' + '='*60)
+        self.stdout.write('🍔 FOODGO DEMO ACCOUNTS READY:')
+        self.stdout.write('='*60)
+        self.stdout.write('  Role             Username      Password     Details')
+        self.stdout.write('  ------------------------------------------------------------')
+        self.stdout.write('  Customer         customer1     customer123  Wallet: $100.00, Default Address')
+        self.stdout.write('  Restaurant Owner owner         owner123     Glass Burger')
+        self.stdout.write('  Restaurant Owner owner2        owner123     Crystal Pizza')
+        self.stdout.write('  Restaurant Owner owner3        owner123     Phnom Penh Flavors')
+        self.stdout.write('  Delivery Driver  driver1       driver123    Active driver')
+        self.stdout.write('  System Admin     admin         admin123     Admin & staff permissions')
+        self.stdout.write('='*60 + '\n')

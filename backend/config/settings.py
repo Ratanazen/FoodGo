@@ -81,6 +81,17 @@ DATABASES = {
     }
 }
 
+if 'VERCEL' in os.environ and not os.environ.get('DATABASE_URL'):
+    import shutil
+    _tmp_db = Path('/tmp') / 'db.sqlite3'
+    _src_db = BASE_DIR / 'db.sqlite3'
+    if not _tmp_db.exists() and _src_db.exists():
+        try:
+            shutil.copy2(_src_db, _tmp_db)
+        except Exception:
+            pass
+    DATABASES['default']['NAME'] = _tmp_db
+
 if os.environ.get('DATABASE_URL'):
     from urllib.parse import urlparse
 
@@ -151,15 +162,30 @@ if 'RENDER' in os.environ:
         if _render_origin not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(_render_origin)
 
+# Vercel automatic host & CSRF support
+if 'VERCEL' in os.environ:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    if '.vercel.app' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.vercel.app')
+    if 'https://*.vercel.app' not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append('https://*.vercel.app')
+    _vercel_url = os.environ.get('VERCEL_URL')
+    if _vercel_url:
+        if _vercel_url not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_vercel_url)
+        _vercel_origin = f'https://{_vercel_url}'
+        if _vercel_origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_vercel_origin)
+
 IS_TESTING = 'test' in sys.argv
 
 if not DEBUG and not IS_TESTING:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # Render and Cloudflare handle SSL termination & redirection at the edge.
+    # Render, Vercel, and Cloudflare handle SSL termination & redirection at the edge.
     # Enabling SECURE_SSL_REDIRECT internally causes infinite 301 loops behind reverse proxies.
-    if 'RENDER' in os.environ:
+    if 'RENDER' in os.environ or 'VERCEL' in os.environ:
         SECURE_SSL_REDIRECT = False
     else:
         SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1')

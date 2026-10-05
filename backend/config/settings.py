@@ -196,9 +196,14 @@ if not DEBUG and not IS_TESTING:
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_REFERRER_POLICY = 'same-origin'
-    X_FRAME_OPTIONS = 'DENY'
+    # Must be SAMEORIGIN so Jazzmin admin related object modals/popups load in iframes
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
 else:
     SECURE_SSL_REDIRECT = False
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# Global fallback: ensure SAMEORIGIN is active across all environments
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

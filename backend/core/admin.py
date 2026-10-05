@@ -291,6 +291,11 @@ class RestaurantAdmin(admin.ModelAdmin):
     inlines = [FoodCategoryInline]
     save_on_top = True
 
+    def get_inlines(self, request, obj=None):
+        if '_popup' in request.GET or '_popup' in request.POST:
+            return []
+        return super().get_inlines(request, obj)
+
     @admin.display(description='Logo')
     def restaurant_logo(self, obj):
         return image_preview(obj.logo, size=40)
@@ -329,6 +334,11 @@ class FoodCategoryAdmin(admin.ModelAdmin):
     search_fields = ['name', 'restaurant__name']
     inlines = [FoodItemInline]
     save_on_top = True
+
+    def get_inlines(self, request, obj=None):
+        if '_popup' in request.GET or '_popup' in request.POST:
+            return []
+        return super().get_inlines(request, obj)
 
     @admin.display(description='Items')
     def items_count(self, obj):

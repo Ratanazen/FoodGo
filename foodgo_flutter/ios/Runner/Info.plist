@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Foodgo Flutter</string>
+	<string>FoodGo</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -66,5 +66,17 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- Location Permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>FoodGo needs your location to show nearby restaurants, estimate delivery times, and track orders.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>FoodGo uses your location for accurate real-time driver delivery tracking.</string>
+
+	<!-- Camera & Photo Permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>FoodGo needs camera access to scan KHQR payment QR codes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>FoodGo needs access to your photos to upload receipts and profile photos.</string>
 </dict>
 </plist>

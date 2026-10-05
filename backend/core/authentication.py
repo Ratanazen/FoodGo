@@ -5,19 +5,26 @@ User = get_user_model()
 
 class EmailAuthBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        # Allow authentication with email or username
-        email = kwargs.get('email', username)
-        try:
-            # Check if user exists by email
-            user = User.objects.get(email=email)
-            if user.check_password(password):
-                return user
-        except User.DoesNotExist:
-            # Fallback to username
-            try:
-                user = User.objects.get(username=username)
-                if user.check_password(password):
-                    return user
-            except User.DoesNotExist:
-                return None
+        # Allow authentication with email or username (case-insensitive)
+        identifier = kwargs.get('email') or username
+        if not identifier or not password:
+            return None
+
+        identifier = identifier.strip()
+        user = None
+
+        # 1. If identifier contains '@', prioritize email lookup
+        if '@' in identifier:
+            user = User.objects.filter(email__iexact=identifier).first()
+
+        # 2. Try username lookup (case-insensitive)
+        if not user:
+            user = User.objects.filter(username__iexact=identifier).first()
+
+        # 3. Fallback: try email lookup in case user provided an email without '@' check
+        if not user:
+            user = User.objects.filter(email__iexact=identifier).first()
+
+        if user and user.check_password(password) and self.user_can_authenticate(user):
+            return user
         return None

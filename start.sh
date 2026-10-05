@@ -7,6 +7,10 @@ cd backend
 echo "==> Running database migrations..."
 python manage.py migrate --noinput || true
 
+echo "==> Ensuring admin & demo accounts..."
+python manage.py ensure_admin || true
+python manage.py seed_full_menu || true
+
 echo "==> Collecting static files..."
 python manage.py collectstatic --noinput || true
 

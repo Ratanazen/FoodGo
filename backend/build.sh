@@ -11,4 +11,8 @@ python manage.py collectstatic --noinput
 echo "==> Running database migrations..."
 python manage.py migrate --noinput
 
+echo "==> Ensuring admin & demo accounts..."
+python manage.py ensure_admin || true
+python manage.py seed_full_menu || true
+
 echo "==> Backend build completed successfully!"

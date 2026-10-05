@@ -10,6 +10,7 @@ import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../core/config/app_config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -60,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.loginWithGoogle(
-      idToken: 'test-google-token',
+      idToken: 'mock-google-token-verified',
       email: 'customer.google@gmail.com',
       displayName: 'Google Customer',
     );
@@ -82,6 +83,92 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     }
+  }
+
+  void _showServerDialog() {
+    final controller = TextEditingController(text: AppConfig.apiBaseUrl);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E2620),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.dns, color: GlassTheme.primaryGreen, size: 20),
+            SizedBox(width: 8),
+            Text('API Server URL', style: TextStyle(color: Colors.white, fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Select or paste your backend server URL:',
+              style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              decoration: InputDecoration(
+                labelText: 'Base URL',
+                labelStyle: const TextStyle(color: GlassTheme.primaryGreen),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.05),
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text('Presets:', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                ActionChip(
+                  label: const Text('Render', style: TextStyle(fontSize: 11)),
+                  onPressed: () => controller.text = 'https://foodgo-53pl.onrender.com/api/',
+                ),
+                ActionChip(
+                  label: const Text('Vercel', style: TextStyle(fontSize: 11)),
+                  onPressed: () => controller.text = 'https://food-go-backend.vercel.app/api/',
+                ),
+                ActionChip(
+                  label: const Text('Local (10.0.2.2)', style: TextStyle(fontSize: 11)),
+                  onPressed: () => controller.text = 'http://10.0.2.2:8000/api/',
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: GlassTheme.primaryGreen),
+            onPressed: () async {
+              final newUrl = controller.text;
+              await AppConfig.setCustomApiUrl(newUrl);
+              if (ctx.mounted) {
+                Navigator.pop(ctx);
+              }
+              if (!mounted) return;
+              setState(() {});
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Server URL updated successfully!'),
+                  backgroundColor: GlassTheme.primaryGreen,
+                ),
+              );
+            },
+            child: const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
 
@@ -122,7 +209,49 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                         textAlign: TextAlign.center,
                       ).animate().fade(delay: 300.ms).slideY(),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: _showServerDialog,
+                          icon: const Icon(Icons.dns, size: 14, color: GlassTheme.primaryGreen),
+                          label: Text(
+                            'API: ${Uri.tryParse(AppConfig.apiBaseUrl)?.host ?? "Config"}',
+                            style: const TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                          ),
+                        ),
+                      ).animate().fade(delay: 350.ms),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        children: [
+                          ActionChip(
+                            avatar: const Text('👑', style: TextStyle(fontSize: 12)),
+                            label: const Text('Admin', style: TextStyle(fontSize: 12, color: Colors.white)),
+                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+                            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                            onPressed: () {
+                              setState(() {
+                                _usernameController.text = 'admin';
+                                _passwordController.text = 'admin123';
+                              });
+                            },
+                          ),
+                          ActionChip(
+                            avatar: const Text('👤', style: TextStyle(fontSize: 12)),
+                            label: const Text('Customer', style: TextStyle(fontSize: 12, color: Colors.white)),
+                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+                            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                            onPressed: () {
+                              setState(() {
+                                _usernameController.text = 'customer1';
+                                _passwordController.text = 'customer123';
+                              });
+                            },
+                          ),
+                        ],
+                      ).animate().fade(delay: 380.ms),
+                      const SizedBox(height: 20),
                       TextFormField(
                         controller: _usernameController,
                         style: const TextStyle(color: Colors.white),

@@ -58,14 +58,48 @@
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
+    // 3. Real-time CSRF sync on form submission
+    // Guarantees the form always submits the currently active csrftoken cookie,
+    // completely preventing "CSRF token from POST incorrect" errors if a token
+    // was rotated in another tab or after authentication.
+    function setupCsrfSync() {
+        document.addEventListener('submit', function(e) {
+            var form = e.target;
+            if (!form || !form.querySelector) return;
+            var csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+            if (csrfInput) {
+                var match = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+                if (match && match[2]) {
+                    var currentToken = decodeURIComponent(match[2]);
+                    if (currentToken && currentToken.length >= 32) {
+                        csrfInput.value = currentToken;
+                    }
+                }
+            }
+        }, true);
+
+        if (window.jQuery) {
+            window.jQuery(document).ajaxSend(function(event, xhr, settings) {
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    var match = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+                    if (match && match[2]) {
+                        xhr.setRequestHeader("X-CSRFToken", decodeURIComponent(match[2]));
+                    }
+                }
+            });
+        }
+    }
+
     // Initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             loadSvgIcons();
             observeDynamicIcons();
+            setupCsrfSync();
         });
     } else {
         loadSvgIcons();
         observeDynamicIcons();
+        setupCsrfSync();
     }
 })();

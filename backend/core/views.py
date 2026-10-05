@@ -507,9 +507,11 @@ def csrf_failure_view(request, reason=""):
         rotate_token(request)
         return redirect(f"{request.get_full_path()}{'&' if '?' in request.get_full_path() else '?'}csrf_retry=1")
 
+    fresh_token = get_token(request)
     context = {
         'reason': reason or 'CSRF token from POST incorrect.',
         'return_url': request.get_full_path() or '/admin/',
+        'csrf_token': fresh_token,
     }
     response = render(request, '403_csrf.html', context, status=403)
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'

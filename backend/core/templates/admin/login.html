@@ -78,6 +78,7 @@
 
     <form action="{{ app_path }}" method="post" autocomplete="on">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next|default:'/admin/' }}">
         {% if user.is_authenticated %}
             <div class="callout callout-danger">
                 <p>

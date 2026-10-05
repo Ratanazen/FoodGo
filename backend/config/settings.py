@@ -95,6 +95,8 @@ if 'VERCEL' in os.environ and not os.environ.get('DATABASE_URL'):
         except Exception:
             pass
     DATABASES['default']['NAME'] = _tmp_db
+    # On serverless Vercel without persistent Postgres, signed cookies keep users logged in across lambda instances
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
 if os.environ.get('DATABASE_URL'):
     from urllib.parse import urlparse
@@ -187,6 +189,13 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = False
 CSRF_FAILURE_VIEW = 'core.views.csrf_failure_view'
+
+# Authentication & Redirect URLs (fixes /accounts/profile/ 404 error)
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/admin/login/'
+LOGIN_URL = '/admin/login/'
+SESSION_COOKIE_AGE = 1209600
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Render.com automatic host & CSRF support
 if 'RENDER' in os.environ:

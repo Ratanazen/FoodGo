@@ -205,8 +205,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Center(
-                        child: FoodGoLogo(size: 95),
+                      Center(
+                        child: GestureDetector(
+                          onLongPress: _showServerDialog,
+                          child: const FoodGoLogo(size: 95),
+                        ),
                       ).animate().fade(duration: 500.ms).scale(delay: 200.ms),
                       const SizedBox(height: 16),
                       Text(
@@ -218,18 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                         textAlign: TextAlign.center,
                       ).animate().fade(delay: 300.ms).slideY(),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: TextButton.icon(
-                          onPressed: _showServerDialog,
-                          icon: const Icon(Icons.dns, size: 14, color: GlassTheme.primaryGreen),
-                          label: Text(
-                            'API: ${Uri.tryParse(AppConfig.apiBaseUrl)?.host ?? "Config"}',
-                            style: const TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                          ),
-                        ),
-                      ).animate().fade(delay: 350.ms),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       TextFormField(
                         controller: _usernameController,
                         style: const TextStyle(color: Colors.white),

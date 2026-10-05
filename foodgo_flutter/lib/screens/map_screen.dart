@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../core/theme/glass_theme.dart';
 import '../core/config/map_config.dart';
+import '../core/config/app_config.dart';
 import '../widgets/glass/glass_widgets.dart';
 import '../widgets/glass_container.dart';
 import '../services/api_service.dart';
@@ -65,7 +66,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
   void _connectWebSocket() {
     try {
-      const defaultWsBase = String.fromEnvironment('FOODGO_WS_URL', defaultValue: 'ws://127.0.0.1:8000/ws/tracking/');
+      final defaultWsBase = AppConfig.wsBaseUrl;
       final normalizedWsBase = defaultWsBase.endsWith('/') ? defaultWsBase : '$defaultWsBase/';
       final wsUrl = Uri.parse('$normalizedWsBase${widget.orderId}/');
       _channel = WebSocketChannel.connect(wsUrl);

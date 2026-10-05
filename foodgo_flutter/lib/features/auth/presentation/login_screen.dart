@@ -229,50 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ).animate().fade(delay: 350.ms),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8,
-                        children: [
-                          ActionChip(
-                            avatar: const Text('👑', style: TextStyle(fontSize: 12)),
-                            label: const Text('Admin', style: TextStyle(fontSize: 12, color: Colors.white)),
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                            onPressed: () {
-                              setState(() {
-                                _usernameController.text = 'admin';
-                                _passwordController.text = 'admin123';
-                              });
-                            },
-                          ),
-                          ActionChip(
-                            avatar: const Text('👤', style: TextStyle(fontSize: 12)),
-                            label: const Text('Customer', style: TextStyle(fontSize: 12, color: Colors.white)),
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                            onPressed: () {
-                              setState(() {
-                                _usernameController.text = 'customer1';
-                                _passwordController.text = 'customer123';
-                              });
-                            },
-                          ),
-                          ActionChip(
-                            avatar: const Text('🚴', style: TextStyle(fontSize: 12)),
-                            label: const Text('Driver', style: TextStyle(fontSize: 12, color: Colors.white)),
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                            onPressed: () {
-                              setState(() {
-                                _usernameController.text = 'driver1';
-                                _passwordController.text = 'driver123';
-                              });
-                            },
-                          ),
-                        ],
-                      ).animate().fade(delay: 380.ms),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: _usernameController,
                         style: const TextStyle(color: Colors.white),

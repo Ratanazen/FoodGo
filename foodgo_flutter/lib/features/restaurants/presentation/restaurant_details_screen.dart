@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/floating_mini_cart_bar.dart';
+import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/restaurant_provider.dart';
 import '../../../providers/cart_provider.dart';
@@ -105,8 +106,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
 
           return Stack(
             children: [
-              CustomScrollView(
-                slivers: [
+              ResponsiveWebContainer(
+                maxWidth: 1150,
+                child: CustomScrollView(
+                  slivers: [
                   // ── Hero Banner AppBar (Foodpanda / Grab style) ────────
                   SliverAppBar(
                     expandedHeight: 250.0,
@@ -489,6 +492,7 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                   ),
                 ],
               ),
+            ),
 
               // ── Sticky Bottom Checkout Bar (Foodpanda Style) ─────────
               const FloatingMiniCartBar(bottomOffset: 24.0),

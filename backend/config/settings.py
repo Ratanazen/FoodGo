@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.AdminNoCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -64,9 +65,12 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
             ],
         },
     },
@@ -134,6 +138,9 @@ try:
     STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 except Exception:
     pass
+STATICFILES_DIRS = [
+    BASE_DIR / 'core' / 'static',
+]
 WHITENOISE_USE_FINDERS = True
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
@@ -150,18 +157,39 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
     'https://foodgo-53pl.onrender.com',
     'https://*.onrender.com',
+    'https://*.ngrok-free.app',
+    'https://*.ngrok.io',
+    'https://*.loca.lt',
+    'http://localhost',
     'http://localhost:8000',
-    'http://127.0.0.1:8000',
     'http://localhost:3000',
+    'http://localhost:5000',
+    'http://localhost:8080',
+    'http://127.0.0.1',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:3000',
+    'http://0.0.0.0:8000',
+    'http://10.0.2.2:8000',
 ] + [
     origin.strip()
     for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()
 ]
 
+# Robust Reverse Proxy & SSL Forwarding headers across all environments
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
+# CSRF & Session cookie settings to prevent 403 token mismatch errors
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure_view'
+
 # Render.com automatic host & CSRF support
 if 'RENDER' in os.environ:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     if '.onrender.com' not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append('.onrender.com')
     if 'https://*.onrender.com' not in CSRF_TRUSTED_ORIGINS:
@@ -176,7 +204,6 @@ if 'RENDER' in os.environ:
 
 # Vercel automatic host & CSRF support
 if 'VERCEL' in os.environ:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     if '*' not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append('*')
     if 'https://*.vercel.app' not in CSRF_TRUSTED_ORIGINS:
@@ -190,9 +217,8 @@ if 'VERCEL' in os.environ:
 IS_TESTING = 'test' in sys.argv
 
 if not DEBUG and not IS_TESTING:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True').lower() in ('true', '1')
+    CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'True').lower() in ('true', '1')
     # Render, Vercel, and Cloudflare handle SSL termination & redirection at the edge.
     # Enabling SECURE_SSL_REDIRECT internally causes infinite 301 loops behind reverse proxies.
     if 'RENDER' in os.environ or 'VERCEL' in os.environ:
@@ -207,6 +233,8 @@ if not DEBUG and not IS_TESTING:
     # Must be SAMEORIGIN so Jazzmin admin related object modals/popups load in iframes
     X_FRAME_OPTIONS = 'SAMEORIGIN'
 else:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
     SECURE_SSL_REDIRECT = False
     X_FRAME_OPTIONS = 'SAMEORIGIN'
 
@@ -313,8 +341,8 @@ JAZZMIN_SETTINGS = {
     "default_icon_children": "fas fa-circle",
     "default_theme_mode": "auto",
     "related_modal_active": True,
-    "custom_css": None,
-    "custom_js": None,
+    "custom_css": "core/css/admin_svg.css",
+    "custom_js": "core/js/admin_svg.js",
     "use_google_fonts_cdn": True,
 
     # Enable the UI builder so you can tweak the theme live from the sidebar

@@ -8,6 +8,7 @@ import '../../../widgets/glass_container.dart';
 import '../../../widgets/food_delivery_card.dart';
 import '../../../widgets/floating_mini_cart_bar.dart';
 import '../../../widgets/svg_icon.dart';
+import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -65,9 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              children: [
+            child: ResponsiveWebContainer(
+              maxWidth: 1200,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                children: [
                 // ── Top Bar: Delivery / Pick-up Switcher + Location ────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -366,15 +369,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       return const Center(child: Text("No restaurants found."));
                     }
 
-                    return Column(
+                    return ResponsiveCardGrid(
+                      minCardWidth: 320,
+                      spacing: 16,
+                      runSpacing: 16,
                       children: restaurants.map((res) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: FoodDeliveryCard(
-                            restaurant: res,
-                            isHorizontal: false,
-                            onTap: () => context.push('/restaurant/${res["id"]}'),
-                          ),
+                        return FoodDeliveryCard(
+                          restaurant: res,
+                          isHorizontal: false,
+                          onTap: () => context.push('/restaurant/${res["id"]}'),
                         ).animate().fade().slideY(begin: 0.1);
                       }).toList(),
                     );
@@ -384,6 +387,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+        ),
 
           // ── Sticky Floating Mini-Cart Bar (Foodpanda Style) ────────
           const FloatingMiniCartBar(bottomOffset: 95.0),

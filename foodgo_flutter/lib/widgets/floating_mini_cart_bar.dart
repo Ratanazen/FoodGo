@@ -19,12 +19,15 @@ class FloatingMiniCartBar extends StatelessWidget {
       bottom: bottomOffset,
       left: 16,
       right: 16,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => context.push('/cart'),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.push('/cart'),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               gradient: GlassTheme.primaryGradient,
@@ -91,6 +94,8 @@ class FloatingMiniCartBar extends StatelessWidget {
           ),
         ),
       ).animate().slideY(begin: 0.6, end: 0, duration: 400.ms, curve: Curves.easeOutBack),
-    );
+    ),
+  ),
+);
   }
 }

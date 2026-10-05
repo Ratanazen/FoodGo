@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
@@ -699,31 +700,34 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-            child: Text(
-              'My Orders',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+      child: ResponsiveWebContainer(
+        maxWidth: 900,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+              child: Text(
+                'My Orders',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          if (!_isLoading && _error == null && _orders.isNotEmpty)
-            _buildFilterChips(),
-          Expanded(
-            child: _isLoading
-                ? _buildLoading()
-                : _error != null
-                    ? _buildError()
-                    : _orders.isEmpty
-                        ? _buildEmpty()
-                        : _buildOrderList(),
-          ),
-        ],
+            if (!_isLoading && _error == null && _orders.isNotEmpty)
+              _buildFilterChips(),
+            Expanded(
+              child: _isLoading
+                  ? _buildLoading()
+                  : _error != null
+                      ? _buildError()
+                      : _orders.isEmpty
+                          ? _buildEmpty()
+                          : _buildOrderList(),
+            ),
+          ],
+        ),
       ),
     );
   }

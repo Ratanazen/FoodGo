@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
+import '../../../../widgets/responsive_layout.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../providers/user_provider.dart';
 
@@ -498,9 +499,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
+      body: ResponsiveWebContainer(
+        maxWidth: 680,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -626,7 +629,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildField({

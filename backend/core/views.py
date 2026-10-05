@@ -484,3 +484,34 @@ class RecommendationViewSet(viewsets.ViewSet):
             
         serializer = FoodItemSerializer(recommended_foods, many=True, context={'request': request})
         return Response(serializer.data)
+
+
+def csrf_failure_view(request, reason=""):
+    """
+    Custom CSRF failure handler to prevent raw 403 crashes.
+    Gracefully handles admin login retries, JSON API clients, and renders
+    a branded recovery screen for form submissions.
+    """
+    from django.shortcuts import redirect, render
+    from django.http import JsonResponse
+    from django.middleware.csrf import rotate_token, get_token
+
+    if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
+        return JsonResponse({
+            'detail': 'CSRF verification failed. Request aborted.',
+            'reason': reason or 'CSRF token from POST incorrect or missing.'
+        }, status=403)
+
+    # Admin login retry: rotate token and redirect back to login smoothly
+    if request.path.startswith('/admin/login'):
+        rotate_token(request)
+        return redirect(f"{request.get_full_path()}{'&' if '?' in request.get_full_path() else '?'}csrf_retry=1")
+
+    context = {
+        'reason': reason or 'CSRF token from POST incorrect.',
+        'return_url': request.get_full_path() or '/admin/',
+    }
+    response = render(request, '403_csrf.html', context, status=403)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
+    return response
+

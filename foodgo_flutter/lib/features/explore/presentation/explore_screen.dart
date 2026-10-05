@@ -8,6 +8,7 @@ import '../../../widgets/glass_container.dart';
 import '../../../widgets/food_delivery_card.dart';
 import '../../../widgets/floating_mini_cart_bar.dart';
 import '../../../widgets/svg_icon.dart';
+import '../../../widgets/responsive_layout.dart';
 import '../../../providers/restaurant_provider.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -44,11 +45,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          ResponsiveWebContainer(
+            maxWidth: 1200,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Search Input with clear button
                 GlassContainer(
                   borderRadius: BorderRadius.circular(16),
@@ -207,16 +210,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           style: TextStyle(color: GlassTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        ...restaurants.map((restaurant) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: FoodDeliveryCard(
+                        ResponsiveCardGrid(
+                          minCardWidth: 320,
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: restaurants.map((restaurant) {
+                            return FoodDeliveryCard(
                               restaurant: restaurant,
                               isHorizontal: false,
                               onTap: () => context.push('/restaurant/${restaurant["id"]}'),
-                            ),
-                          ).animate().fade().slideY(begin: 0.1);
-                        }),
+                            ).animate().fade().slideY(begin: 0.1);
+                          }).toList(),
+                        ),
                       ],
                     );
                   },
@@ -225,6 +230,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ],
             ),
           ),
+        ),
 
           // ── Sticky Floating Mini-Cart Bar ──────────────────────────
           const FloatingMiniCartBar(bottomOffset: 95.0),

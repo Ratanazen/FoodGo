@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/responsive_layout.dart';
 import '../../../services/api_service.dart';
 
 class RestaurantDashboardScreen extends StatefulWidget {
@@ -343,11 +344,13 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
               ? const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen))
               : _restaurant == null
                   ? Center(child: Text('You do not own a restaurant.', style: TextStyle(color: GlassTheme.textMuted)))
-                  : Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
+                  : ResponsiveWebContainer(
+                      maxWidth: 1050,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                           // Restaurant Header Card
                           GlassContainer(
                             padding: const EdgeInsets.all(20),
@@ -445,6 +448,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                         ],
                       ),
                     ),
+                  ),
         ),
       ),
     );

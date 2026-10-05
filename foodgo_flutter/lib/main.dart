@@ -46,18 +46,8 @@ class FoodGoApp extends StatelessWidget {
           routerConfig: appRouter,
           builder: (context, child) {
             return Container(
-              color: GlassTheme.outerBackground, // Very dark background outside the app
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 450),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      MediaQuery.of(context).size.width > 450 ? 24.0 : 0.0,
-                    ),
-                    child: ConnectivityBanner(child: child!),
-                  ),
-                ),
-              ),
+              color: GlassTheme.backgroundDark,
+              child: ConnectivityBanner(child: child!),
             );
           },
         );

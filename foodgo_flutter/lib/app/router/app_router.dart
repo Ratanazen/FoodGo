@@ -35,6 +35,7 @@ import '../../features/dashboard/presentation/driver_dashboard_screen.dart';
 
 // Widgets
 import '../../widgets/glass/glass_bottom_navigation.dart';
+import '../../widgets/responsive_layout.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -116,11 +117,28 @@ class MainScreenShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = ResponsiveBreakpoints.isWide(context);
+    final selectedIdx = _calculateSelectedIndex(context);
+
+    if (isWide) {
+      return Scaffold(
+        body: Column(
+          children: [
+            WebHeaderNavBar(
+              selectedIndex: selectedIdx,
+              onDestinationSelected: (int idx) => _onItemTapped(idx, context),
+            ),
+            Expanded(child: child),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       extendBody: true,
       body: child,
       bottomNavigationBar: GlassBottomNavigation(
-        selectedIndex: _calculateSelectedIndex(context),
+        selectedIndex: selectedIdx,
         onDestinationSelected: (int idx) => _onItemTapped(idx, context),
       ),
     );

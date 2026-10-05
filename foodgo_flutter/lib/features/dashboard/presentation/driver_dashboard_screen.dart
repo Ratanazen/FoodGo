@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/responsive_layout.dart';
 import '../../../services/api_service.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
@@ -251,11 +252,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+          child: ResponsiveWebContainer(
+            maxWidth: 1000,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                 GlassContainer(
                   padding: const EdgeInsets.all(20),
                   borderRadius: GlassTheme.borderRadiusSmall,
@@ -425,6 +428,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

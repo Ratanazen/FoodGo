@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:foodgo_flutter/widgets/responsive_layout.dart';
 import 'package:foodgo_flutter/providers/cart_provider.dart';
 import 'package:foodgo_flutter/providers/favorites_provider.dart';
 import 'package:foodgo_flutter/features/payment/models/payment_model.dart';
@@ -314,6 +316,32 @@ void main() {
       expect(favorites.isFoodFavorite(101), false);
       expect(favorites.favoriteFoodItems.length, 0);
       expect(favorites.totalFavoritesCount, 0);
+    });
+  });
+
+  group('ResponsiveLayout Tests', () {
+    test('ResponsiveBreakpoints defined accurately for desktop, tablet, and mobile', () {
+      expect(ResponsiveBreakpoints.mobileMax, 650.0);
+      expect(ResponsiveBreakpoints.tabletMax, 1050.0);
+      expect(ResponsiveBreakpoints.wideThreshold, 800.0);
+      expect(ResponsiveBreakpoints.mobileMax < ResponsiveBreakpoints.wideThreshold, true);
+      expect(ResponsiveBreakpoints.wideThreshold < ResponsiveBreakpoints.tabletMax, true);
+    });
+
+    testWidgets('ResponsiveWebContainer constrains width on wide screens', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: ResponsiveWebContainer(
+              maxWidth: 800,
+              child: Text('FoodGo Web Content'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('FoodGo Web Content'), findsOneWidget);
+      expect(find.byType(ResponsiveWebContainer), findsOneWidget);
     });
   });
 }

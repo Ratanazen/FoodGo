@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
@@ -14,9 +15,11 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
+      child: ResponsiveWebContainer(
+        maxWidth: 760,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
           Consumer<UserProvider>(
             builder: (context, userProvider, child) {
               final user = userProvider.user;
@@ -169,7 +172,8 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 100), // spacing for bottom nav
         ],
       ),
-    );
+    ),
+  );
   }
 }
 

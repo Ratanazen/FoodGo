@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/svg_icon.dart';
+import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../../providers/cart_provider.dart';
 import '../../../../providers/restaurant_provider.dart';
@@ -149,11 +150,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         title: 'Checkout',
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: ResponsiveWebContainer(
+        maxWidth: 800,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             const Text('Delivery Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             GlassCard(
@@ -360,7 +363,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Consumer<CartProvider>(
+    ),
+    bottomNavigationBar: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Consumer<CartProvider>(
         builder: (context, cart, child) {
           final total = cart.grandTotal;
 
@@ -418,7 +425,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           );
         },
       ),
-    );
+    ),
+  ),
+);
   }
 }
 

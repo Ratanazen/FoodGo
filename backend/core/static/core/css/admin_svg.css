@@ -1,0 +1,76 @@
+/* ==========================================================================
+   FoodGo Admin - Pure Vector SVG Styles
+   ========================================================================== */
+
+/* Universal SVG Icon alignment */
+.svg-inline--fa {
+    display: inline-block;
+    height: 1.15em;
+    width: 1.15em;
+    vertical-align: -0.15em;
+    overflow: visible;
+    fill: currentColor;
+    transition: transform 0.18s ease, fill 0.18s ease;
+}
+
+/* Sidebar Nav SVG Icons */
+.nav-sidebar .nav-link > .svg-inline--fa,
+.nav-sidebar .nav-link > i {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    margin-right: 0.65rem;
+    text-align: center;
+    color: #48bb78 !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
+.nav-sidebar .nav-link.active > .svg-inline--fa,
+.nav-sidebar .nav-link:hover > .svg-inline--fa {
+    color: #38a169 !important;
+    transform: scale(1.1);
+}
+
+/* Brand Logo Icon */
+.brand-link .svg-inline--fa {
+    margin-right: 0.5rem;
+    font-size: 1.35rem;
+    color: #38a169;
+}
+
+/* Top Navigation Bar SVG Icons */
+#jazzy-navbar .nav-link .svg-inline--fa {
+    font-size: 1.1rem;
+    margin-right: 0.35rem;
+}
+
+/* Buttons and Action Tools */
+.btn .svg-inline--fa {
+    margin-right: 0.35rem;
+}
+
+/* Change list and table headers */
+th .svg-inline--fa {
+    opacity: 0.75;
+}
+
+/* Stat card icon SVGs in Dashboard */
+.stat-icon svg {
+    width: 32px;
+    height: 32px;
+    fill: currentColor;
+}
+
+/* Quick Action button SVGs */
+.qa-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* Login box SVG icons */
+.login-box .input-group-text .svg-inline--fa,
+.login-box .input-group-text svg {
+    width: 1rem;
+    height: 1rem;
+    color: #38a169;
+}

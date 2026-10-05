@@ -157,7 +157,12 @@ if not DEBUG and not IS_TESTING:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1')
+    # Render and Cloudflare handle SSL termination & redirection at the edge.
+    # Enabling SECURE_SSL_REDIRECT internally causes infinite 301 loops behind reverse proxies.
+    if 'RENDER' in os.environ:
+        SECURE_SSL_REDIRECT = False
+    else:
+        SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1')
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True

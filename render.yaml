@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: foodgo-backend
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "127.0.0.1,localhost,0.0.0.0,.onrender.com"
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "True"

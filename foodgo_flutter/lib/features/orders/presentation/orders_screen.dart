@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -18,6 +20,65 @@ class _OrdersScreenState extends State<OrdersScreen> {
   List<dynamic> _orders = [];
   bool _isLoading = true;
   String? _error;
+  String _selectedFilter = 'All';
+
+  List<dynamic> get _filteredOrders {
+    if (_selectedFilter == 'All') return _orders;
+    if (_selectedFilter == 'Active') {
+      return _orders.where((o) => _isInProgress((o['status'] as String?) ?? '')).toList();
+    }
+    if (_selectedFilter == 'Delivered') {
+      return _orders.where((o) => (o['status'] as String?) == 'delivered').toList();
+    }
+    if (_selectedFilter == 'Cancelled') {
+      return _orders.where((o) => (o['status'] as String?) == 'cancelled').toList();
+    }
+    return _orders;
+  }
+
+  void _reorderItems(Map<String, dynamic> order) {
+    final items = (order['items'] as List<dynamic>?) ?? [];
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No items found in this order to re-order.'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: GlassTheme.surfaceDark,
+        ),
+      );
+      return;
+    }
+
+    final cart = context.read<CartProvider>();
+    int addedCount = 0;
+    for (final it in items) {
+      final id = int.tryParse(it['food_item']?.toString() ?? it['id']?.toString() ?? '0') ?? 0;
+      final name = it['food_item_name']?.toString() ?? it['name']?.toString() ?? 'Item';
+      final price = double.tryParse(it['price']?.toString() ?? '0') ?? 0.0;
+      final qty = int.tryParse(it['quantity']?.toString() ?? '1') ?? 1;
+      final img = it['image']?.toString();
+
+      for (int i = 0; i < qty; i++) {
+        cart.addItem(id, name, price, img);
+        addedCount++;
+      }
+    }
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Added $addedCount item(s) from Order #${order['id']} to your cart!'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: GlassTheme.primaryGreenDark,
+        action: SnackBarAction(
+          label: 'View Cart',
+          textColor: Colors.white,
+          onPressed: () => context.push('/cart'),
+        ),
+      ),
+    );
+    context.push('/cart');
+  }
 
   @override
   void initState() {
@@ -333,7 +394,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     onPressed: () => _showOrderBillDialog(order),
                   ),
                 ),
-                if (status == 'delivered' || status == 'on_delivery' || status == 'picked_up') ...[
+                if (_isInProgress(status) || status == 'on_delivery' || status == 'picked_up') ...[
                   const SizedBox(width: 10),
                   Expanded(
                     child: GlassButton(
@@ -341,6 +402,22 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       icon: Icons.map_outlined,
                       onPressed: () => context.push('/map/${order['id']}'),
                       color: Colors.transparent,
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlassTheme.primaryGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        elevation: 0,
+                      ),
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Order Again', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      onPressed: () => _reorderItems(order),
                     ),
                   ),
                 ],
@@ -524,16 +601,78 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
+  Widget _buildFilterChips() {
+    const filters = ['All', 'Active', 'Delivered', 'Cancelled'];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: Row(
+        children: filters.map((filter) {
+          final isSelected = _selectedFilter == filter;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ChoiceChip(
+              label: Text(filter),
+              selected: isSelected,
+              selectedColor: GlassTheme.primaryGreen,
+              backgroundColor: GlassTheme.surfaceDark,
+              side: BorderSide(
+                color: isSelected ? GlassTheme.primaryGreen : GlassTheme.borderDark,
+                width: 1,
+              ),
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : Colors.white70,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13,
+              ),
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() => _selectedFilter = filter);
+                }
+              },
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildOrderList() {
+    final list = _filteredOrders;
+    if (list.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.filter_list_off, size: 56, color: Colors.white.withValues(alpha: 0.3)),
+              const SizedBox(height: 12),
+              Text(
+                'No $_selectedFilter orders found',
+                style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Orders will appear here once updated to this status.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return RefreshIndicator(
       color: GlassTheme.primaryGreen,
       onRefresh: _fetchOrders,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16.0),
-        itemCount: _orders.length,
+        itemCount: list.length,
         itemBuilder: (context, index) {
-          final order = _orders[index] as Map<String, dynamic>;
+          final order = list[index] as Map<String, dynamic>;
           return _buildOrderCard(order, index);
         },
       ),
@@ -547,7 +686,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
             child: Text(
               'My Orders',
               style: Theme.of(context)
@@ -556,6 +695,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
+          if (!_isLoading && _error == null && _orders.isNotEmpty)
+            _buildFilterChips(),
           Expanded(
             child: _isLoading
                 ? _buildLoading()

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../core/theme/glass_theme.dart';
+import '../providers/favorites_provider.dart';
 
 class FoodDeliveryCard extends StatefulWidget {
   final Map<String, dynamic> restaurant;
@@ -19,11 +21,10 @@ class FoodDeliveryCard extends StatefulWidget {
 }
 
 class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
-  bool _isFavorite = false;
-
   @override
   Widget build(BuildContext context) {
     final res = widget.restaurant;
+    final isFavorite = context.watch<FavoritesProvider>().isRestaurantFavorite(res['id']);
     final name = res['name']?.toString() ?? 'Restaurant';
     final banner = res['banner']?.toString();
     final rating = res['rating']?.toString() ?? '4.8';
@@ -130,22 +131,25 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                     shape: const CircleBorder(),
                     child: InkWell(
                       customBorder: const CircleBorder(),
-                      onTap: () {
-                        setState(() => _isFavorite = !_isFavorite);
+                      onTap: () async {
+                        final added = await context.read<FavoritesProvider>().toggleRestaurant(res);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(_isFavorite ? 'Saved to Favorites' : 'Removed from Favorites'),
+                            content: Text(added ? 'Saved $name to Favorites' : 'Removed $name from Favorites'),
                             duration: const Duration(seconds: 1),
                             behavior: SnackBarBehavior.floating,
+                            backgroundColor: GlassTheme.surfaceDark,
                           ),
                         );
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(6.0),
                         child: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
                           size: 18,
-                          color: _isFavorite ? GlassTheme.foodpandaPink : Colors.white,
+                          color: isFavorite ? GlassTheme.foodpandaPink : Colors.white,
                         ),
                       ),
                     ),

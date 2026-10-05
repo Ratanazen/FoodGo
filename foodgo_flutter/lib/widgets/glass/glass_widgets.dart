@@ -108,8 +108,15 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
   final Widget? leading;
+  final PreferredSizeWidget? bottom;
 
-  const GlassAppBar({super.key, required this.title, this.actions, this.leading});
+  const GlassAppBar({
+    super.key,
+    required this.title,
+    this.actions,
+    this.leading,
+    this.bottom,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -117,24 +124,30 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
       borderRadius: BorderRadius.zero,
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 8,
-        bottom: 8,
+        bottom: bottom != null ? 0 : 8,
         left: 16,
         right: 16,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          leading ?? const SizedBox(width: 40),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              leading ?? const SizedBox(width: 40),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Row(children: actions ?? [const SizedBox(width: 40)]),
+            ],
           ),
-          Row(children: actions ?? [const SizedBox(width: 40)]),
+          ?bottom,
         ],
       ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 20);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + 20 + (bottom?.preferredSize.height ?? 0));
 }

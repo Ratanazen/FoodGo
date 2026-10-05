@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:foodgo_flutter/providers/cart_provider.dart';
+import 'package:foodgo_flutter/providers/favorites_provider.dart';
 import 'package:foodgo_flutter/features/payment/models/payment_model.dart';
 import 'package:foodgo_flutter/core/config/map_config.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('CartProvider Tests', () {
@@ -261,6 +263,50 @@ void main() {
       expect(payment.isCancelled, true);
       expect(payment.isPending, false);
       expect(payment.isPaid, false);
+    });
+  });
+
+  group('FavoritesProvider Tests', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    test('Toggling restaurant adds and removes from favorites', () async {
+      final favorites = FavoritesProvider();
+      await favorites.loadFavorites();
+
+      final restaurant = {'id': 10, 'name': 'Burger King'};
+      expect(favorites.isRestaurantFavorite(10), false);
+      expect(favorites.favoriteRestaurants.length, 0);
+
+      await favorites.toggleRestaurant(restaurant);
+      expect(favorites.isRestaurantFavorite(10), true);
+      expect(favorites.favoriteRestaurants.length, 1);
+      expect(favorites.totalFavoritesCount, 1);
+
+      await favorites.toggleRestaurant(restaurant);
+      expect(favorites.isRestaurantFavorite(10), false);
+      expect(favorites.favoriteRestaurants.length, 0);
+      expect(favorites.totalFavoritesCount, 0);
+    });
+
+    test('Toggling food item adds and removes from favorites', () async {
+      final favorites = FavoritesProvider();
+      await favorites.loadFavorites();
+
+      final food = {'id': 101, 'name': 'Classic Cheese Burger', 'price': 6.50};
+      expect(favorites.isFoodFavorite(101), false);
+      expect(favorites.favoriteFoodItems.length, 0);
+
+      await favorites.toggleFoodItem(food);
+      expect(favorites.isFoodFavorite(101), true);
+      expect(favorites.favoriteFoodItems.length, 1);
+      expect(favorites.totalFavoritesCount, 1);
+
+      await favorites.toggleFoodItem(food);
+      expect(favorites.isFoodFavorite(101), false);
+      expect(favorites.favoriteFoodItems.length, 0);
+      expect(favorites.totalFavoritesCount, 0);
     });
   });
 }

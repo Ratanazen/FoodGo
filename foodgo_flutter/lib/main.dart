@@ -5,6 +5,7 @@ import 'app/theme/app_theme.dart';
 import 'core/theme/glass_theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
+import 'providers/favorites_provider.dart';
 import 'providers/restaurant_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
@@ -19,6 +20,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => RestaurantProvider()..fetchRestaurants()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()..fetchUser()),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
       ],
       child: const FoodGoApp(),
     ),

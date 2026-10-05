@@ -15,3 +15,15 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 application = get_wsgi_application()
 app = application
+
+# Vercel serverless cold-start initialization
+if 'VERCEL' in os.environ and not os.environ.get('DATABASE_URL'):
+    try:
+        from django.core.management import call_command
+        from django.db import connection
+        _tables = connection.introspection.table_names()
+        if 'core_user' not in _tables:
+            call_command('migrate', interactive=False)
+            call_command('seed_full_menu')
+    except Exception as _e:
+        print(f"Vercel auto-init note: {_e}")

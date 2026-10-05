@@ -130,7 +130,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+try:
+    STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
+WHITENOISE_USE_FINDERS = True
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -165,14 +169,12 @@ if 'RENDER' in os.environ:
 # Vercel automatic host & CSRF support
 if 'VERCEL' in os.environ:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    if '.vercel.app' not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append('.vercel.app')
+    if '*' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('*')
     if 'https://*.vercel.app' not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append('https://*.vercel.app')
     _vercel_url = os.environ.get('VERCEL_URL')
     if _vercel_url:
-        if _vercel_url not in ALLOWED_HOSTS:
-            ALLOWED_HOSTS.append(_vercel_url)
         _vercel_origin = f'https://{_vercel_url}'
         if _vercel_origin not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(_vercel_origin)

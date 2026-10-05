@@ -138,6 +138,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Render.com automatic host & CSRF support
 if 'RENDER' in os.environ:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     if '.onrender.com' not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append('.onrender.com')
     if 'https://*.onrender.com' not in CSRF_TRUSTED_ORIGINS:
@@ -153,6 +154,7 @@ if 'RENDER' in os.environ:
 IS_TESTING = 'test' in sys.argv
 
 if not DEBUG and not IS_TESTING:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1')

@@ -8,12 +8,18 @@ services:
     envVars:
       - key: DJANGO_DEBUG
         value: "False"
+      - key: DEBUG
+        value: "False"
       - key: SECRET_KEY
         generateValue: true
       - key: DJANGO_ALLOWED_HOSTS
         value: "127.0.0.1,localhost,0.0.0.0,.onrender.com"
+      - key: ALLOWED_HOSTS
+        value: "127.0.0.1,localhost,0.0.0.0,.onrender.com"
       - key: CORS_ALLOW_ALL_ORIGINS
         value: "True"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
   - type: web
     name: foodgo-frontend
     runtime: docker

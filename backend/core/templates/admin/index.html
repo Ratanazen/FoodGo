@@ -17,50 +17,116 @@
   }
   body { font-family: 'Inter', sans-serif !important; }
 
+  .dash-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 4px;
+    box-sizing: border-box;
+  }
+
+  /* ── Section headings ─────────────────────────── */
+  .section-heading {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.2px;
+  }
+  .section-heading svg {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+  }
+
+  /* ── Quick Actions ─────────────────────────────── */
+  .quick-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .qa-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .qa-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: #ffffff;
+    flex-shrink: 0;
+  }
+  .qa-btn:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .qa-green  { background: var(--green);  color: #fff !important; }
+  .qa-blue   { background: var(--blue);   color: #fff !important; }
+  .qa-orange { background: var(--orange); color: #fff !important; }
+  .qa-purple { background: var(--purple); color: #fff !important; }
+
   /* ── Stat cards ───────────────────────────────── */
   .dash-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 18px;
-    margin: 20px 0;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
   }
   .stat-card {
     border-radius: 14px;
-    padding: 20px 22px;
+    padding: 18px 16px;
     color: #fff;
     display: flex;
     align-items: center;
-    gap: 18px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    gap: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     position: relative;
     overflow: hidden;
-    transition: transform .2s, box-shadow .2s;
+    transition: transform .2s ease, box-shadow .2s ease;
   }
-  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.2); }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
   .stat-card::after {
     content: '';
     position: absolute;
-    right: -20px; top: -20px;
-    width: 100px; height: 100px;
+    right: -15px; top: -15px;
+    width: 80px; height: 80px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.12);
+    pointer-events: none;
   }
   .stat-icon {
-    width: 56px; height: 56px;
+    width: 48px; height: 48px;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.2);
-    border-radius: 14px;
+    background: rgba(255,255,255,0.22);
+    border-radius: 12px;
     flex-shrink: 0;
   }
   .stat-icon svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     stroke: #ffffff;
   }
-  .stat-info { flex: 1; }
-  .stat-value { font-size: 30px; font-weight: 800; line-height: 1; }
-  .stat-label { font-size: 13px; opacity: .85; margin-top: 4px; font-weight: 500; }
-  .stat-sub   { font-size: 11px; opacity: .7;  margin-top: 6px; }
+  .stat-info { flex: 1; min-width: 0; }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stat-label { font-size: 12px; opacity: .88; margin-top: 3px; font-weight: 500; }
+  .stat-sub   { font-size: 10px; opacity: .75; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .card-green  { background: linear-gradient(135deg, #35B86B, #289A57); }
   .card-orange { background: linear-gradient(135deg, #FF8F00, #E65100); }
@@ -74,14 +140,15 @@
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 18px;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
   }
   .chart-card {
     background: var(--body-bg, #fff);
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 14px;
-    padding: 22px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    box-sizing: border-box;
   }
   .chart-title {
     font-size: 15px;
@@ -92,13 +159,19 @@
     gap: 8px;
   }
   .chart-title svg {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
   }
   .chart-sub {
     font-size: 12px;
     color: #888;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
+  }
+  .chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 250px;
   }
 
   /* ── Tables row ───────────────────────────────── */
@@ -106,10 +179,17 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 18px;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
+  }
+  .dash-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
   }
   .dash-table {
     width: 100%;
+    min-width: 360px;
     border-collapse: collapse;
     font-size: 13px;
   }
@@ -122,9 +202,10 @@
     letter-spacing: .5px;
     color: #888;
     border-bottom: 2px solid rgba(0,0,0,0.06);
+    white-space: nowrap;
   }
   .dash-table td {
-    padding: 10px 10px;
+    padding: 10px;
     border-bottom: 1px solid rgba(0,0,0,0.04);
     vertical-align: middle;
   }
@@ -137,6 +218,7 @@
     border-radius: 999px;
     font-size: 11px;
     font-weight: 600;
+    white-space: nowrap;
   }
   .badge-green  { background: rgba(53,184,107,.15); color: #289A57; }
   .badge-orange { background: rgba(255,143,0,.15);  color: #E65100; }
@@ -144,57 +226,161 @@
   .badge-red    { background: rgba(229,57,53,.15);  color: #B71C1C; }
   .badge-purple { background: rgba(142,36,170,.15); color: #6A1B9A; }
 
-  /* Quick action buttons */
-  .quick-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 18px;
-  }
-  .qa-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 18px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all .2s;
-    border: none;
-    cursor: pointer;
-  }
-  .qa-btn svg {
-    width: 16px;
-    height: 16px;
-    stroke: #ffffff;
-  }
-  .qa-btn:hover { opacity: .88; transform: translateY(-1px); }
-  .qa-green  { background: var(--green);  color: #fff; }
-  .qa-blue   { background: var(--blue);   color: #fff; }
-  .qa-orange { background: var(--orange); color: #fff; }
-  .qa-purple { background: var(--purple); color: #fff; }
+  /* ==========================================================================
+     RESPONSIVE BREAKPOINTS (PC, IPAD / TABLET, PHONE)
+     ========================================================================== */
 
-  /* Section headings */
-  .section-heading {
-    font-size: 17px;
-    font-weight: 700;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  /* iPad / Tablet Landscape (992px to 1199px) */
+  @media (max-width: 1199px) {
+    .dash-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .chart-row {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .table-row {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
   }
-  .section-heading svg {
-    width: 20px;
-    height: 20px;
+
+  /* iPad Portrait & Small Tablets (768px to 991px) */
+  @media (max-width: 991px) {
+    .dash-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .stat-card {
+      padding: 14px 12px;
+    }
+    .stat-icon {
+      width: 42px;
+      height: 42px;
+    }
+    .stat-value {
+      font-size: 21px;
+    }
+    .chart-row, .table-row {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .chart-wrapper {
+      height: 230px;
+    }
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+  }
+
+  /* Mobile Phones (< 768px) */
+  @media (max-width: 767px) {
+    .dash-container {
+      padding: 0;
+    }
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .qa-btn {
+      width: 100%;
+      padding: 11px 10px;
+      font-size: 12.5px;
+      border-radius: 10px;
+    }
+    .dash-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      padding: 12px 10px;
+      gap: 10px;
+      border-radius: 12px;
+    }
+    .stat-card::after {
+      display: none;
+    }
+    .stat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+    }
+    .stat-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+    .stat-value {
+      font-size: 19px;
+    }
+    .stat-label {
+      font-size: 11px;
+    }
+    .stat-sub {
+      font-size: 9.5px;
+      margin-top: 2px;
+    }
+    .chart-card {
+      padding: 16px 14px;
+      border-radius: 12px;
+    }
+    .chart-wrapper {
+      height: 210px;
+    }
+    .chart-row, .table-row {
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .dash-table {
+      font-size: 12px;
+    }
+    .dash-table th, .dash-table td {
+      padding: 8px;
+    }
+  }
+
+  /* Extra Small Mobile Phones (< 400px) */
+  @media (max-width: 399px) {
+    .stat-card {
+      padding: 10px 8px;
+      gap: 8px;
+    }
+    .stat-icon {
+      width: 34px;
+      height: 34px;
+    }
+    .stat-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+    .stat-value {
+      font-size: 17px;
+    }
+    .stat-label {
+      font-size: 10px;
+    }
+    .qa-btn {
+      font-size: 12px;
+      padding: 9px 6px;
+    }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="padding: 0 4px;">
+<div class="dash-container">
 
-  <!-- Quick Actions with SVG icons -->
+  <!-- Quick Actions with Responsive SVG Grid -->
   <div class="section-heading">
     <svg viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
@@ -235,7 +421,7 @@
     </a>
   </div>
 
-  <!-- Stat Cards with High-Res SVG Icons -->
+  <!-- Stat Cards: PC (6 col), iPad (3 col), Phone (2 col) -->
   <div class="section-heading">
     <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -283,7 +469,7 @@
       </div>
       <div class="stat-info">
         <div class="stat-value">{{ total_users }}</div>
-        <div class="stat-label">Registered Users</div>
+        <div class="stat-label">Users</div>
         <div class="stat-sub">{{ customer_count }} customers</div>
       </div>
     </div>
@@ -327,12 +513,12 @@
       <div class="stat-info">
         <div class="stat-value">{{ total_drivers }}</div>
         <div class="stat-label">Drivers</div>
-        <div class="stat-sub">{{ online_drivers }} online now</div>
+        <div class="stat-sub">{{ online_drivers }} online</div>
       </div>
     </div>
   </div>
 
-  <!-- Charts Row -->
+  <!-- Charts Row: Stack on iPad & Mobile, Side-by-side on PC -->
   <div class="chart-row">
     <div class="chart-card">
       <div class="chart-title" style="color:var(--green);">
@@ -342,7 +528,9 @@
         Orders This Week
       </div>
       <div class="chart-sub">Daily order volume</div>
-      <canvas id="ordersChart" height="100"></canvas>
+      <div class="chart-wrapper">
+        <canvas id="ordersChart"></canvas>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-title" style="color:var(--blue);">
@@ -353,11 +541,13 @@
         Order Status
       </div>
       <div class="chart-sub">Current distribution</div>
-      <canvas id="statusChart" height="180"></canvas>
+      <div class="chart-wrapper">
+        <canvas id="statusChart"></canvas>
+      </div>
     </div>
   </div>
 
-  <!-- Tables Row -->
+  <!-- Tables Row: Horizontal touch-scrolling wrappers -->
   <div class="table-row">
     <!-- Recent Orders -->
     <div class="chart-card">
@@ -368,42 +558,44 @@
         </svg>
         Recent Orders
       </div>
-      <table class="dash-table">
-        <thead>
-          <tr>
-            <th>#ID</th>
-            <th>Customer</th>
-            <th>Amount</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for order in recent_orders %}
-          <tr>
-            <td><strong>#{{ order.id }}</strong></td>
-            <td>{{ order.customer.username }}</td>
-            <td><strong>${{ order.total_amount }}</strong></td>
-            <td>
-              {% if order.status == 'delivered' %}
-                <span class="badge badge-green">Delivered</span>
-              {% elif order.status == 'pending' %}
-                <span class="badge badge-orange">Pending</span>
-              {% elif order.status == 'preparing' %}
-                <span class="badge badge-blue">Preparing</span>
-              {% elif order.status == 'cancelled' %}
-                <span class="badge badge-red">Cancelled</span>
-              {% elif order.status == 'on_the_way' %}
-                <span class="badge badge-purple">On the Way</span>
-              {% else %}
-                <span class="badge badge-blue">{{ order.get_status_display }}</span>
-              {% endif %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No orders yet</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="dash-table-wrapper">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>#ID</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in recent_orders %}
+            <tr>
+              <td><strong>#{{ order.id }}</strong></td>
+              <td>{{ order.customer.username }}</td>
+              <td><strong>${{ order.total_amount }}</strong></td>
+              <td>
+                {% if order.status == 'delivered' %}
+                  <span class="badge badge-green">Delivered</span>
+                {% elif order.status == 'pending' %}
+                  <span class="badge badge-orange">Pending</span>
+                {% elif order.status == 'preparing' %}
+                  <span class="badge badge-blue">Preparing</span>
+                {% elif order.status == 'cancelled' %}
+                  <span class="badge badge-red">Cancelled</span>
+                {% elif order.status == 'on_the_way' %}
+                  <span class="badge badge-purple">On the Way</span>
+                {% else %}
+                  <span class="badge badge-blue">{{ order.get_status_display }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No orders yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Top Restaurants -->
@@ -418,40 +610,42 @@
         </svg>
         Top Restaurants
       </div>
-      <table class="dash-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Rating</th>
-            <th>Orders</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in top_restaurants %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td><strong>{{ r.name }}</strong></td>
-            <td>
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="#F9A825" stroke="#F9A825" stroke-width="1" style="vertical-align:-1px;">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-              </svg>
-              {{ r.rating }}
-            </td>
-            <td>{{ r.order_count }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No restaurants yet</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="dash-table-wrapper">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Rating</th>
+              <th>Orders</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in top_restaurants %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td><strong>{{ r.name }}</strong></td>
+              <td>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="#F9A825" stroke="#F9A825" stroke-width="1" style="vertical-align:-1px;">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                {{ r.rating }}
+              </td>
+              <td>{{ r.order_count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No restaurants yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
 </div>
 
 <script>
-// Orders bar chart
+// Responsive Orders bar chart
 const ordersCtx = document.getElementById('ordersChart').getContext('2d');
 new Chart(ordersCtx, {
   type: 'bar',
@@ -460,24 +654,25 @@ new Chart(ordersCtx, {
     datasets: [{
       label: 'Orders',
       data: {{ chart_data|safe }},
-      backgroundColor: 'rgba(53,184,107,0.7)',
+      backgroundColor: 'rgba(53,184,107,0.75)',
       borderColor: '#35B86B',
       borderWidth: 2,
-      borderRadius: 8,
+      borderRadius: 6,
       borderSkipped: false,
     }]
   },
   options: {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
-      y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } },
-      x: { grid: { display: false } }
+      y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
     }
   }
 });
 
-// Status doughnut chart
+// Responsive Status doughnut chart
 const statusCtx = document.getElementById('statusChart').getContext('2d');
 new Chart(statusCtx, {
   type: 'doughnut',
@@ -487,16 +682,17 @@ new Chart(statusCtx, {
       data: {{ status_data|safe }},
       backgroundColor: ['#35B86B','#FF8F00','#1E88E5','#8E24AA','#E53935'],
       borderWidth: 0,
-      hoverOffset: 8,
+      hoverOffset: 6,
     }]
   },
   options: {
     responsive: true,
-    cutout: '65%',
+    maintainAspectRatio: false,
+    cutout: '62%',
     plugins: {
       legend: {
         position: 'bottom',
-        labels: { padding: 12, font: { size: 12 } }
+        labels: { padding: 10, font: { size: 11 }, boxWidth: 12 }
       }
     }
   }

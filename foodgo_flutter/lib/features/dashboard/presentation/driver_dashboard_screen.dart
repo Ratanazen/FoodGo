@@ -332,93 +332,33 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           ? Center(child: Text('Go online to see orders', style: TextStyle(color: GlassTheme.textMuted)))
                           : _availableOrders.isEmpty
                               ? Center(child: Text('No orders waiting', style: TextStyle(color: GlassTheme.textMuted)))
-                              : ListView.builder(
-                                  itemCount: _availableOrders.length,
-                                  itemBuilder: (context, index) {
-                                    final order = _availableOrders[index];
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 16.0),
-                                      child: GlassCard(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text('Order #${order['id']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                  decoration: BoxDecoration(
-                                                    color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                                                    borderRadius: BorderRadius.circular(8),
-                                                  ),
-                                                  child: Text(
-                                                    order['status'].toString().toUpperCase(),
-                                                    style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.bold),
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                            const SizedBox(height: 12),
-                                            if (order['restaurant'] != null) ...[
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.store, color: GlassTheme.textMuted, size: 16),
-                                                  const SizedBox(width: 8),
-                                                  Text(order['restaurant']['name'] ?? 'Restaurant', style: const TextStyle(color: Colors.white70)),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 8),
-                                            ],
-                                            if (order['address'] != null) ...[
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.location_on, color: Colors.redAccent, size: 16),
-                                                  const SizedBox(width: 8),
-                                                  Text(order['address']['street'] ?? 'Unknown address', style: const TextStyle(color: Colors.white70)),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 16),
-                                            ],
-                                            Row(
-                                              children: [
-                                                if (order['status'] == 'preparing')
-                                                  Expanded(
-                                                    child: GlassButton(
-                                                      text: 'Wait at Restaurant',
-                                                      icon: Icons.hourglass_empty,
-                                                      onPressed: () {},
-                                                    ),
-                                                  ),
-                                                if (order['status'] == 'on_the_way') ...[
-                                                  Expanded(
-                                                    child: GlassButton(
-                                                      text: 'Scan QR Done',
-                                                      icon: Icons.qr_code_scanner,
-                                                      onPressed: () => _openQrScanner(order),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  IconButton(
-                                                    icon: Container(
-                                                      padding: const EdgeInsets.all(8),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white.withValues(alpha: 0.1),
-                                                        borderRadius: BorderRadius.circular(10),
-                                                        border: Border.all(color: Colors.white24),
-                                                      ),
-                                                      child: const Icon(Icons.check, color: GlassTheme.primaryGreen, size: 18),
-                                                    ),
-                                                    tooltip: 'Quick Mark Delivered',
-                                                    onPressed: () => _updateOrderStatus(order['id'].toString(), 'delivered'),
-                                                  ),
-                                                ],
-                                              ],
-                                            )
-                                          ],
+                              : LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final isWide = constraints.maxWidth >= 650;
+                                    if (isWide) {
+                                      return GridView.builder(
+                                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                          crossAxisSpacing: 16,
+                                          mainAxisSpacing: 16,
+                                          mainAxisExtent: 220,
                                         ),
-                                      ),
+                                        itemCount: _availableOrders.length,
+                                        itemBuilder: (context, index) {
+                                          final order = _availableOrders[index];
+                                          return _buildDriverOrderCard(order);
+                                        },
+                                      );
+                                    }
+                                    return ListView.builder(
+                                      itemCount: _availableOrders.length,
+                                      itemBuilder: (context, index) {
+                                        final order = _availableOrders[index];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(bottom: 16.0),
+                                          child: _buildDriverOrderCard(order),
+                                        );
+                                      },
                                     );
                                   },
                                 ),
@@ -430,5 +370,109 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       ),
     ),
   );
+  }
+
+  Widget _buildDriverOrderCard(dynamic order) {
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Order #${order['id']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      order['status'].toString().toUpperCase(),
+                      style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (order['restaurant'] != null) ...[
+                Row(
+                  children: [
+                    const Icon(Icons.store, color: GlassTheme.textMuted, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        order['restaurant']['name'] ?? 'Restaurant',
+                        style: const TextStyle(color: Colors.white70),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+              ],
+              if (order['address'] != null) ...[
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.redAccent, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        order['address']['street'] ?? 'Unknown address',
+                        style: const TextStyle(color: Colors.white70),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ],
+            ],
+          ),
+          Row(
+            children: [
+              if (order['status'] == 'preparing')
+                Expanded(
+                  child: GlassButton(
+                    text: 'Wait at Restaurant',
+                    icon: Icons.hourglass_empty,
+                    onPressed: () {},
+                  ),
+                ),
+              if (order['status'] == 'on_the_way') ...[
+                Expanded(
+                  child: GlassButton(
+                    text: 'Scan QR Done',
+                    icon: Icons.qr_code_scanner,
+                    onPressed: () => _openQrScanner(order),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: const Icon(Icons.check, color: GlassTheme.primaryGreen, size: 18),
+                  ),
+                  tooltip: 'Quick Mark Delivered',
+                  onPressed: () => _updateOrderStatus(order['id'].toString(), 'delivered'),
+                ),
+              ],
+            ],
+          )
+        ],
+      ),
+    );
   }
 }

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   FoodGo Admin - Pure Vector SVG Styles
+   FoodGo Admin - Pure Vector SVG & Full Responsive Styles (PC, iPad, Phone)
    ========================================================================== */
 
 /* Universal SVG Icon alignment */
@@ -27,7 +27,7 @@
 .nav-sidebar .nav-link.active > .svg-inline--fa,
 .nav-sidebar .nav-link:hover > .svg-inline--fa {
     color: #38a169 !important;
-    transform: scale(1.1);
+    transform: scale(1.08);
 }
 
 /* Brand Logo Icon */
@@ -55,22 +55,276 @@ th .svg-inline--fa {
 
 /* Stat card icon SVGs in Dashboard */
 .stat-icon svg {
-    width: 32px;
-    height: 32px;
-    fill: currentColor;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 /* Quick Action button SVGs */
 .qa-btn svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 /* Login box SVG icons */
 .login-box .input-group-text .svg-inline--fa,
 .login-box .input-group-text svg {
-    width: 1rem;
-    height: 1rem;
+    width: 1.1rem;
+    height: 1.1rem;
     color: #38a169;
+}
+
+/* ==========================================================================
+   GLOBAL RESPONSIVE ENHANCEMENTS FOR DJANGO ADMIN / JAZZMIN
+   ========================================================================== */
+
+/* Prevent horizontal page blowouts */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+.app-wrapper {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* ── Change list tables: silky smooth horizontal scrolling ─────────────── */
+#changelist .results {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 16px;
+    background: #fff;
+}
+
+#result_list {
+    min-width: 620px;
+}
+
+/* ── Responsive Search & Actions Bar ───────────────────────────────────── */
+#changelist-search {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    margin-bottom: 14px;
+}
+
+.actions label {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Inline formsets & Tabular inlines ──────────────────────────────────── */
+.inline-group .tabular {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+}
+
+.inline-group .tabular table {
+    min-width: 550px;
+}
+
+/* ── Horizontal navigation tabs ─────────────────────────────────────────── */
+.nav-tabs {
+    display: flex;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin;
+}
+
+.nav-tabs .nav-link {
+    white-space: nowrap;
+    padding: 10px 16px;
+}
+
+/* ==========================================================================
+   BREAKPOINTS: PC, IPAD / TABLET, PHONE
+   ========================================================================== */
+
+/* ── iPad & Tablet Viewports (768px to 1024px) ─────────────────────────── */
+@media (max-width: 1024px) {
+    .content-wrapper {
+        padding: 12px 14px !important;
+    }
+
+    #jazzy-navbar .navbar-nav {
+        gap: 4px;
+    }
+
+    .card-body {
+        padding: 14px !important;
+    }
+
+    /* Paginator wrapping */
+    .paginator {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 13px;
+        padding: 10px 0;
+    }
+}
+
+/* ── Phone / Mobile Viewports (< 768px) ─────────────────────────────────── */
+@media (max-width: 767px) {
+    /* Navbar compact sizing */
+    #jazzy-navbar {
+        padding: 6px 10px;
+    }
+
+    .brand-link .brand-text {
+        font-size: 1.05rem;
+    }
+
+    /* Form inputs: 16px to prevent iOS auto-zoom on focus! */
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    select,
+    textarea {
+        font-size: 16px !important;
+        max-width: 100% !important;
+        border-radius: 8px !important;
+    }
+
+    /* Form rows: stack fields cleanly */
+    .form-row {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .form-row > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 8px;
+    }
+
+    /* Submit buttons bar */
+    .submit-row {
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        gap: 8px !important;
+        padding: 12px !important;
+        position: static !important;
+        width: 100% !important;
+    }
+
+    .submit-row input,
+    .submit-row button,
+    .submit-row .btn {
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 14px !important;
+        border-radius: 10px !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+
+    /* Search bar: full width on mobile */
+    #changelist-search {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #changelist-search input[type="text"] {
+        width: 100% !important;
+        margin-right: 0 !important;
+        margin-bottom: 6px !important;
+    }
+
+    #changelist-search input[type="submit"] {
+        width: 100% !important;
+        padding: 10px !important;
+    }
+
+    /* Action bar on changelists */
+    .actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .actions select {
+        width: 100% !important;
+        margin-bottom: 6px;
+    }
+
+    .actions button,
+    .actions .button {
+        width: 100% !important;
+        padding: 10px !important;
+        text-align: center;
+    }
+
+    /* Object tools (e.g. Add user, Add order buttons) */
+    .object-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    .object-tools li {
+        width: 100%;
+        margin: 0 !important;
+    }
+
+    .object-tools a {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 10px 14px !important;
+        border-radius: 8px;
+    }
+
+    /* Admin Login Box on Phones */
+    .login-box {
+        width: 92% !important;
+        max-width: 380px !important;
+        margin: 30px auto !important;
+    }
+
+    .login-card-body {
+        padding: 24px 18px !important;
+        border-radius: 16px !important;
+    }
+
+    /* Related Object Popups and Modals */
+    .modal-dialog {
+        margin: 8px !important;
+        max-width: calc(100vw - 16px) !important;
+    }
 }

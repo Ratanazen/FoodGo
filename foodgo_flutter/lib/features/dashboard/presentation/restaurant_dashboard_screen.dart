@@ -458,79 +458,108 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
     if (_orders.isEmpty) {
       return Center(child: Text('No orders yet', style: TextStyle(color: GlassTheme.textMuted)));
     }
-    return ListView.builder(
-      itemCount: _orders.length,
-      itemBuilder: (context, index) {
-        final order = _orders[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
-          child: GlassCard(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Order #${order['id']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        order['status'].toString().toUpperCase(),
-                        style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text('Total: \$${order['total_amount']}', style: const TextStyle(color: Colors.white70)),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                        ),
-                        icon: const Icon(Icons.receipt_long, size: 16, color: GlassTheme.primaryGreen),
-                        label: const Text('View Bill', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                        onPressed: () => _showRestaurantOrderBill(order),
-                      ),
-                    ),
-                    if (order['status'] == 'pending') ...[
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: GlassButton(
-                          text: 'Cook',
-                          icon: Icons.soup_kitchen,
-                          onPressed: () => _updateOrderStatus(order['id'].toString(), 'preparing'),
-                        ),
-                      ),
-                    ],
-                    if (order['status'] == 'preparing') ...[
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: GlassButton(
-                          text: 'Driver',
-                          icon: Icons.delivery_dining,
-                          onPressed: () => _updateOrderStatus(order['id'].toString(), 'on_the_way'),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 650;
+        if (isWide) {
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              mainAxisExtent: 175,
             ),
-          ),
+            itemCount: _orders.length,
+            itemBuilder: (context, index) {
+              final order = _orders[index];
+              return _buildRestaurantOrderCard(order);
+            },
+          );
+        }
+        return ListView.builder(
+          itemCount: _orders.length,
+          itemBuilder: (context, index) {
+            final order = _orders[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: _buildRestaurantOrderCard(order),
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildRestaurantOrderCard(dynamic order) {
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Order #${order['id']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      order['status'].toString().toUpperCase(),
+                      style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text('Total: \$${order['total_amount']}', style: const TextStyle(color: Colors.white70)),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  icon: const Icon(Icons.receipt_long, size: 16, color: GlassTheme.primaryGreen),
+                  label: const Text('View Bill', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  onPressed: () => _showRestaurantOrderBill(order),
+                ),
+              ),
+              if (order['status'] == 'pending') ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GlassButton(
+                    text: 'Cook',
+                    icon: Icons.soup_kitchen,
+                    onPressed: () => _updateOrderStatus(order['id'].toString(), 'preparing'),
+                  ),
+                ),
+              ],
+              if (order['status'] == 'preparing') ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GlassButton(
+                    text: 'Driver',
+                    icon: Icons.delivery_dining,
+                    onPressed: () => _updateOrderStatus(order['id'].toString(), 'on_the_way'),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -684,102 +713,128 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
         Expanded(
           child: _foodItems.isEmpty
               ? Center(child: Text('No food items on menu yet. Add one above!', style: TextStyle(color: GlassTheme.textMuted)))
-              : ListView.builder(
-                  itemCount: _foodItems.length,
-                  itemBuilder: (context, index) {
-                    final item = _foodItems[index];
-                    final bool isAvail = item['is_available'] ?? true;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            // Thumbnail
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Container(
-                                width: 56,
-                                height: 56,
-                                color: Colors.white.withValues(alpha: 0.05),
-                                child: item['image'] != null && item['image'].toString().isNotEmpty
-                                    ? CachedNetworkImage(
-                                        imageUrl: item['image'],
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) => const Center(
-                                          child: SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
-                                      )
-                                    : const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item['name'] ?? '',
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.08),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          item['category_name'] ?? '',
-                                          style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '\$${item['price']}',
-                                        style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // In Stock switch
-                            Column(
-                              children: [
-                                Switch(
-                                  value: isAvail,
-                                  activeThumbColor: GlassTheme.primaryGreen,
-                                  activeTrackColor: GlassTheme.primaryGreen.withValues(alpha: 0.5),
-                                  onChanged: (_) => _toggleItemAvailability(item['id'], isAvail),
-                                ),
-                                Text(
-                                  isAvail ? 'In Stock' : 'Sold Out',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: isAvail ? GlassTheme.primaryGreen : Colors.redAccent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth >= 650;
+                    if (isWide) {
+                      return GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          mainAxisExtent: 96,
                         ),
-                      ),
+                        itemCount: _foodItems.length,
+                        itemBuilder: (context, index) {
+                          final item = _foodItems[index];
+                          return _buildMenuItemCard(item);
+                        },
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: _foodItems.length,
+                      itemBuilder: (context, index) {
+                        final item = _foodItems[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: _buildMenuItemCard(item),
+                        );
+                      },
                     );
                   },
                 ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMenuItemCard(dynamic item) {
+    final bool isAvail = item['is_available'] ?? true;
+    return GlassCard(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          // Thumbnail
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 56,
+              height: 56,
+              color: Colors.white.withValues(alpha: 0.05),
+              child: item['image'] != null && item['image'].toString().isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: item['image'],
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
+                    )
+                  : const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  item['name'] ?? '',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        item['category_name'] ?? '',
+                        style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '\$${item['price']}',
+                      style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // In Stock switch
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Switch(
+                value: isAvail,
+                activeThumbColor: GlassTheme.primaryGreen,
+                activeTrackColor: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                onChanged: (_) => _toggleItemAvailability(item['id'], isAvail),
+              ),
+              Text(
+                isAvail ? 'In Stock' : 'Sold Out',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isAvail ? GlassTheme.primaryGreen : Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

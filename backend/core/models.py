@@ -12,6 +12,8 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
     phone = models.CharField(max_length=20, blank=True, null=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar_url = models.URLField(max_length=500, blank=True, null=True, help_text="Direct web link or Google profile photo")
 
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')

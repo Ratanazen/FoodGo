@@ -74,12 +74,14 @@ class GoogleLoginView(APIView):
         id_token = request.data.get('id_token')
         email = request.data.get('email')
         name = request.data.get('name')
+        avatar_url = request.data.get('avatar_url')
 
         if not id_token and not email:
             return Response({'detail': 'id_token or email is required.'}, status=400)
 
         user_email = email
         user_name = name or ''
+        user_avatar = avatar_url or ''
 
         # 1. Verify with Google TokenInfo API if id_token provided
         if id_token:
@@ -98,6 +100,8 @@ class GoogleLoginView(APIView):
                         payload = resp.json()
                         user_email = payload.get('email')
                         user_name = payload.get('name', '')
+                        if not user_avatar:
+                            user_avatar = payload.get('picture', '')
                     else:
                         if not user_email:
                             return Response({'detail': 'Invalid Google ID token.'}, status=401)
@@ -128,16 +132,25 @@ class GoogleLoginView(APIView):
                 email=user_email,
                 first_name=first_name,
                 last_name=last_name,
-                role='customer'
+                role='customer',
+                avatar_url=user_avatar or None,
             )
             is_new_user = True
         else:
+            updated_fields = []
             if not user.first_name and user_name:
                 user.first_name = user_name.split()[0]
-                user.save(update_fields=['first_name'])
+                updated_fields.append('first_name')
+            if not user.avatar_url and user_avatar:
+                user.avatar_url = user_avatar
+                updated_fields.append('avatar_url')
+            if updated_fields:
+                user.save(update_fields=updated_fields)
 
         # 3. Issue FoodGo JWT tokens
         refresh = RefreshToken.for_user(user)
+
+        user_photo = user.avatar_url or (user.avatar.url if user.avatar else None)
 
         return Response({
             'refresh': str(refresh),
@@ -150,7 +163,8 @@ class GoogleLoginView(APIView):
                 'first_name': user.first_name,
                 'last_name': user.last_name,
                 'role': user.role,
-                'phone': user.phone
+                'phone': user.phone,
+                'avatar_url': user_photo,
             }
         })
 

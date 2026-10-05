@@ -53,6 +53,177 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     }
   }
 
+  void _openQrScanner(Map<String, dynamic> order) {
+    final orderId = order['id'].toString();
+    final expectedPin = 'FG-${(int.tryParse(orderId) ?? 1) * 73 % 9000 + 1000}';
+    final pinController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GlassContainer(
+            borderRadius: BorderRadius.circular(28),
+            padding: const EdgeInsets.all(22),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.qr_code_scanner, color: GlassTheme.primaryGreen, size: 22),
+                          ),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Scan Customer QR', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                              Text('Order #$orderId Handover', style: const TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white60, size: 20),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Camera viewfinder with scanning effect
+                  Container(
+                    width: 210,
+                    height: 210,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: GlassTheme.primaryGreen, width: 2),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned(top: 10, left: 10, child: _scannerCorner(isTop: true, isLeft: true)),
+                        Positioned(top: 10, right: 10, child: _scannerCorner(isTop: true, isLeft: false)),
+                        Positioned(bottom: 10, left: 10, child: _scannerCorner(isTop: false, isLeft: true)),
+                        Positioned(bottom: 10, right: 10, child: _scannerCorner(isTop: false, isLeft: false)),
+
+                        Icon(Icons.qr_code_2, size: 90, color: Colors.white.withValues(alpha: 0.3)),
+
+                        Positioned(
+                          left: 20,
+                          right: 20,
+                          child: Container(
+                            height: 2,
+                            decoration: BoxDecoration(
+                              color: GlassTheme.primaryGreen,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: GlassTheme.primaryGreen.withValues(alpha: 0.9),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        Positioned(
+                          bottom: 14,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black87,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text('READY TO SCAN', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Align customer\'s Delivery QR code within the frame, or enter PIN below:',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 14),
+
+                  TextField(
+                    controller: pinController,
+                    style: const TextStyle(color: Colors.white, letterSpacing: 2, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      hintText: 'PIN: $expectedPin',
+                      hintStyle: const TextStyle(color: Colors.white30, fontSize: 12, letterSpacing: 1),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlassTheme.primaryGreen,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      icon: const Icon(Icons.check_circle, size: 20),
+                      label: const Text('Verify QR & Mark Done', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        _updateOrderStatus(orderId, 'delivered');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('🎉 Order #$orderId Handover Verified! Marked as Delivered (Done).'),
+                            backgroundColor: GlassTheme.primaryGreen,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _scannerCorner({required bool isTop, required bool isLeft}) {
+    return Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        border: Border(
+          top: isTop ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
+          bottom: !isTop ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
+          left: isLeft ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
+          right: !isLeft ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -217,14 +388,29 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                       onPressed: () {},
                                                     ),
                                                   ),
-                                                if (order['status'] == 'on_the_way')
+                                                if (order['status'] == 'on_the_way') ...[
                                                   Expanded(
                                                     child: GlassButton(
-                                                      text: 'Mark Delivered',
-                                                      icon: Icons.check_circle,
-                                                      onPressed: () => _updateOrderStatus(order['id'].toString(), 'delivered'),
+                                                      text: 'Scan QR Done',
+                                                      icon: Icons.qr_code_scanner,
+                                                      onPressed: () => _openQrScanner(order),
                                                     ),
                                                   ),
+                                                  const SizedBox(width: 8),
+                                                  IconButton(
+                                                    icon: Container(
+                                                      padding: const EdgeInsets.all(8),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white.withValues(alpha: 0.1),
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        border: Border.all(color: Colors.white24),
+                                                      ),
+                                                      child: const Icon(Icons.check, color: GlassTheme.primaryGreen, size: 18),
+                                                    ),
+                                                    tooltip: 'Quick Mark Delivered',
+                                                    onPressed: () => _updateOrderStatus(order['id'].toString(), 'delivered'),
+                                                  ),
+                                                ],
                                               ],
                                             )
                                           ],

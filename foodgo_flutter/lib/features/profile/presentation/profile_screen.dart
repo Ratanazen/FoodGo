@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -24,6 +25,9 @@ class ProfileScreen extends StatelessWidget {
               }
               final String username = user?['username'] ?? 'Guest';
               final String email = user?['email'] ?? 'guest@example.com';
+              final String phone = user?['phone'] ?? '';
+              final String? avatarUrl = user?['avatar_url'] ?? user?['avatar'];
+
               return Column(
                 children: [
                   GlassContainer(
@@ -31,18 +35,67 @@ class ProfileScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(32),
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                          child: Text(
-                            username.isNotEmpty ? username[0].toUpperCase() : 'G',
-                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: GlassTheme.primaryGreen, width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                                blurRadius: 14,
+                                spreadRadius: 1,
+                              ),
+                            ],
                           ),
+                          child: avatarUrl != null && avatarUrl.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: avatarUrl,
+                                  imageBuilder: (ctx, imageProvider) => CircleAvatar(
+                                    radius: 40,
+                                    backgroundImage: imageProvider,
+                                  ),
+                                  placeholder: (ctx, url) => CircleAvatar(
+                                    radius: 40,
+                                    backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                    child: const CircularProgressIndicator(color: GlassTheme.primaryGreen, strokeWidth: 2),
+                                  ),
+                                  errorWidget: (ctx, url, err) => CircleAvatar(
+                                    radius: 40,
+                                    backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                    child: Text(
+                                      username.isNotEmpty ? username[0].toUpperCase() : 'G',
+                                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                                    ),
+                                  ),
+                                )
+                              : CircleAvatar(
+                                  radius: 40,
+                                  backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                  child: Text(
+                                    username.isNotEmpty ? username[0].toUpperCase() : 'G',
+                                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                                  ),
+                                ),
                         ),
                         const SizedBox(height: 16),
                         Text(username, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                         const SizedBox(height: 4),
-                        Text(email, style: TextStyle(color: GlassTheme.textMuted)),
+                        Text(email, style: const TextStyle(color: GlassTheme.textMuted, fontSize: 13)),
+                        if (phone.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.phone_outlined, size: 14, color: GlassTheme.primaryGreen),
+                              const SizedBox(width: 6),
+                              Text(
+                                phone,
+                                style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),

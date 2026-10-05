@@ -8,6 +8,7 @@ import '../../../widgets/glass_container.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
+import '../../../widgets/delivery_qr_modal.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -395,7 +396,23 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                 ),
                 if (_isInProgress(status) || status == 'on_delivery' || status == 'picked_up') ...[
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: GlassTheme.primaryGreen,
+                      side: const BorderSide(color: GlassTheme.primaryGreen),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    ),
+                    icon: const Icon(Icons.qr_code_2, size: 16),
+                    label: const Text('QR', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    onPressed: () => DeliveryQrModal.show(
+                      context,
+                      orderId: order['id'].toString(),
+                      status: status,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: GlassButton(
                       text: 'Track',

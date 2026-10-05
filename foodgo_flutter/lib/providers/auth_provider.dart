@@ -83,11 +83,13 @@ class AuthProvider with ChangeNotifier {
     required String idToken,
     String? email,
     String? displayName,
+    String? avatarUrl,
   }) async {
     final success = await _apiService.googleLogin(
       idToken: idToken,
       email: email,
       displayName: displayName,
+      avatarUrl: avatarUrl,
     );
     if (success) {
       _isAuthenticated = true;

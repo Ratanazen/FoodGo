@@ -146,6 +146,14 @@ CORS_ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 CSRF_TRUSTED_ORIGINS = [
+    'https://food-go-app.vercel.app',
+    'https://*.vercel.app',
+    'https://foodgo-53pl.onrender.com',
+    'https://*.onrender.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost:3000',
+] + [
     origin.strip()
     for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()

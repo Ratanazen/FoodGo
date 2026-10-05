@@ -9,6 +9,7 @@ import '../../../widgets/glass/glass_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../services/google_auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -55,31 +56,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _loginWithGoogle() async {
+    final googleResult = await GoogleAuthService.signIn(context);
+    if (googleResult == null) return;
+
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.loginWithGoogle(
-      idToken: 'test-google-token',
-      email: 'customer.google@gmail.com',
-      displayName: 'Google Customer',
+      idToken: googleResult.idToken,
+      email: googleResult.email,
+      displayName: googleResult.displayName,
+      avatarUrl: googleResult.photoUrl,
     );
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (mounted) {
-      if (success) {
-        context.read<UserProvider>().fetchUser();
-        context.go('/home');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Google Sign-Up failed. Please try again.'),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
-          ),
-        );
-      }
+    if (success) {
+      context.read<UserProvider>().fetchUser();
+      context.go('/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Google Sign-Up failed. Please try again.'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
+        ),
+      );
     }
   }
 

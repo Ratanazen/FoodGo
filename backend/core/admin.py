@@ -177,15 +177,19 @@ class DriverInline(admin.StackedInline):
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
-        ('Extra Info', {'fields': ('role', 'phone')}),
+        ('Extra Info', {'fields': ('role', 'phone', 'avatar', 'avatar_url')}),
     )
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ('Extra Info', {'fields': ('role', 'phone')}),
+        ('Extra Info', {'fields': ('role', 'phone', 'avatar', 'avatar_url')}),
     )
     inlines = [DriverInline]
-    list_display = ['username', 'email', 'role_badge', 'phone', 'is_staff', 'is_active', 'date_joined']
+    list_display = ['user_avatar_thumb', 'username', 'email', 'role_badge', 'phone', 'is_staff', 'is_active', 'date_joined']
     list_filter = ['role', 'is_staff', 'is_active']
     search_fields = ['username', 'email', 'phone']
+
+    @admin.display(description='Avatar')
+    def user_avatar_thumb(self, obj):
+        return image_preview(obj.avatar, obj.avatar_url, size=36)
     ordering = ['-date_joined']
     readonly_fields = ['date_joined', 'last_login']
     actions = ['promote_to_admin', 'convert_to_driver', 'convert_to_customer']

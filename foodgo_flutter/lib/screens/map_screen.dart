@@ -12,6 +12,7 @@ import '../core/config/app_config.dart';
 import '../widgets/glass/glass_widgets.dart';
 import '../widgets/glass_container.dart';
 import '../services/api_service.dart';
+import '../widgets/delivery_qr_modal.dart';
 import 'map_screen_location.dart';
 
 class MapScreen extends StatefulWidget {
@@ -875,6 +876,24 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                   ],
                                 ),
                               ),
+                              IconButton(
+                                icon: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: GlassTheme.primaryGreen.withValues(alpha: 0.6)),
+                                  ),
+                                  child: const Icon(Icons.qr_code_2, color: GlassTheme.primaryGreen, size: 18),
+                                ),
+                                tooltip: 'Delivery Handover QR',
+                                onPressed: () => DeliveryQrModal.show(
+                                  context,
+                                  orderId: widget.orderId.toString(),
+                                  status: _orderStatus,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
                               IconButton(
                                 icon: Container(
                                   padding: const EdgeInsets.all(8),

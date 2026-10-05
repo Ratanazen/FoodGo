@@ -20,7 +20,7 @@ class ApiService {
   }
 
   
-  Future<dynamic> patch(String endpoint, Map<String, dynamic> data) async {
+  Future<dynamic> patch(String endpoint, dynamic data) async {
     try {
       final response = await _apiClient.dio.patch(endpoint, data: data);
       return response.data;
@@ -30,7 +30,7 @@ class ApiService {
     }
   }
 
-  Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
+  Future<dynamic> post(String endpoint, dynamic data) async {
     try {
       final response = await _apiClient.dio.post(endpoint, data: data);
       return response.data;
@@ -85,11 +85,13 @@ class ApiService {
     required String idToken,
     String? email,
     String? displayName,
+    String? avatarUrl,
   }) async {
     try {
       final payload = <String, dynamic>{'id_token': idToken};
       if (email != null) payload['email'] = email;
       if (displayName != null) payload['name'] = displayName;
+      if (avatarUrl != null) payload['avatar_url'] = avatarUrl;
 
       final response = await _apiClient.dio.post(
         'auth/google/',

@@ -62,7 +62,7 @@ class GlassBottomNavigation extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavItem extends StatefulWidget {
   final IconData icon;
   final IconData selectedIcon;
   final String label;
@@ -80,58 +80,117 @@ class _NavItem extends StatelessWidget {
   });
 
   @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin {
+  late AnimationController _bounceController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 0.85), weight: 40),
+      TweenSequenceItem(tween: Tween<double>(begin: 0.85, end: 1.15), weight: 35),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.15, end: 1.0), weight: 25),
+    ]).animate(CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut));
+  }
+
+  @override
+  void didUpdateWidget(covariant _NavItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSelected && !oldWidget.isSelected) {
+      _bounceController.forward(from: 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isSelected = widget.isSelected;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        _bounceController.forward(from: 0.0);
+        widget.onTap();
+      },
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
         padding: EdgeInsets.symmetric(horizontal: isSelected ? 16 : 8, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? GlassTheme.primaryGreen.withValues(alpha: 0.2) : Colors.transparent,
+          color: isSelected ? GlassTheme.primaryGreen.withValues(alpha: 0.22) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(isSelected ? selectedIcon : icon, color: isSelected ? GlassTheme.primaryGreen : GlassTheme.textMuted, size: 24),
-                if (badgeCount != null && badgeCount! > 0)
-                  Positioned(
-                    top: -4,
-                    right: -6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: GlassTheme.foodpandaPink,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                      ),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                      child: Center(
-                        child: Text(
-                          '$badgeCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+            ScaleTransition(
+              scale: _scaleAnimation,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    isSelected ? widget.selectedIcon : widget.icon,
+                    color: isSelected ? GlassTheme.primaryGreen : GlassTheme.textMuted,
+                    size: 24,
+                  ),
+                  if (widget.badgeCount != null && widget.badgeCount! > 0)
+                    Positioned(
+                      top: -4,
+                      right: -6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: GlassTheme.foodpandaPink,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                        ),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Center(
+                          child: Text(
+                            '${widget.badgeCount}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
             if (isSelected) ...[
               const SizedBox(width: 8),
-              Text(
-                label,
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
                 style: const TextStyle(
                   color: GlassTheme.primaryGreen,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
+                child: Text(widget.label),
               ),
             ],
           ],

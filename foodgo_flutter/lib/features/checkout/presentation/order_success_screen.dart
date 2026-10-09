@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/svg_icon.dart';
+import '../../../../widgets/lottie_assets.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../providers/cart_provider.dart';
 
@@ -26,10 +27,10 @@ class OrderSuccessScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GlassContainer(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(20),
                 borderRadius: BorderRadius.circular(100),
-                customColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(Icons.check_circle_rounded, size: 80, color: GlassTheme.primaryGreen),
+                customColor: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                child: LottieAsset.success(size: 100),
               ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
               const SizedBox(height: 32),
               const Text('Order Confirmed!', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)).animate().fade(delay: 400.ms).slideY(),

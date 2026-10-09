@@ -40,59 +40,159 @@ import '../../widgets/responsive_layout.dart';
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+enum PageTransitionType {
+  fade,
+  slideRight,
+  slideUp,
+  fadeScale,
+}
+
+Page<dynamic> _buildPage({
+  required GoRouterState state,
+  required Widget child,
+  PageTransitionType type = PageTransitionType.slideRight,
+}) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 280),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      switch (type) {
+        case PageTransitionType.fade:
+          return FadeTransition(
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+            child: child,
+          );
+        case PageTransitionType.slideRight:
+          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          return SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0.2, 0.0), end: Offset.zero).animate(curved),
+            child: FadeTransition(opacity: curved, child: child),
+          );
+        case PageTransitionType.slideUp:
+          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          return SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0.0, 0.2), end: Offset.zero).animate(curved),
+            child: FadeTransition(opacity: curved, child: child),
+          );
+        case PageTransitionType.fadeScale:
+          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          return ScaleTransition(
+            scale: Tween<double>(begin: 0.94, end: 1.0).animate(curved),
+            child: FadeTransition(opacity: curved, child: child),
+          );
+      }
+    },
+  );
+}
+
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
   routes: [
-    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-    GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
-    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(path: '/phone-login', builder: (context, state) => const PhoneLoginScreen()),
-    GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
-    GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
-    GoRoute(path: '/restaurant-dashboard', builder: (context, state) => const RestaurantDashboardScreen()),
-    GoRoute(path: '/driver-dashboard', builder: (context, state) => const DriverDashboardScreen()),
-    
+    GoRoute(
+      path: '/splash',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const SplashScreen(), type: PageTransitionType.fade),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const OnboardingScreen(), type: PageTransitionType.fade),
+    ),
+    GoRoute(
+      path: '/login',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const LoginScreen(), type: PageTransitionType.fadeScale),
+    ),
+    GoRoute(
+      path: '/phone-login',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const PhoneLoginScreen(), type: PageTransitionType.fadeScale),
+    ),
+    GoRoute(
+      path: '/register',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const RegisterScreen(), type: PageTransitionType.fadeScale),
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const ForgotPasswordScreen(), type: PageTransitionType.fadeScale),
+    ),
+    GoRoute(
+      path: '/restaurant-dashboard',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const RestaurantDashboardScreen(), type: PageTransitionType.slideRight),
+    ),
+    GoRoute(
+      path: '/driver-dashboard',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const DriverDashboardScreen(), type: PageTransitionType.slideRight),
+    ),
     GoRoute(
       path: '/restaurant/:id',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final id = state.pathParameters['id'];
-        return RestaurantDetailsScreen(id: id);
+        return _buildPage(state: state, child: RestaurantDetailsScreen(id: id), type: PageTransitionType.slideRight);
       },
     ),
-    GoRoute(path: '/checkout', builder: (context, state) => const CheckoutScreen()),
+    GoRoute(
+      path: '/checkout',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const CheckoutScreen(), type: PageTransitionType.slideRight),
+    ),
     GoRoute(
       path: '/qr-payment',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final payment = state.extra as PaymentModel;
-        return QRPaymentScreen(payment: payment);
+        return _buildPage(state: state, child: QRPaymentScreen(payment: payment), type: PageTransitionType.slideRight);
       },
     ),
     GoRoute(
       path: '/order-success',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final orderId = state.extra is int
             ? state.extra as int
             : int.tryParse(state.uri.queryParameters['orderId'] ?? '');
-        return OrderSuccessScreen(orderId: orderId);
+        return _buildPage(state: state, child: OrderSuccessScreen(orderId: orderId), type: PageTransitionType.fadeScale);
       },
     ),
-    GoRoute(path: '/map', builder: (context, state) => const MapScreen(orderId: '')),
+    GoRoute(
+      path: '/map',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const MapScreen(orderId: ''), type: PageTransitionType.slideRight),
+    ),
     GoRoute(
       path: '/map/:id',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final id = state.pathParameters['id'] ?? '';
-        return MapScreen(orderId: id);
+        return _buildPage(state: state, child: MapScreen(orderId: id), type: PageTransitionType.slideRight);
       },
     ),
-    GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
-    GoRoute(path: '/edit-profile', builder: (context, state) => const EditProfileScreen()),
-    GoRoute(path: '/favorites', builder: (context, state) => const FavoritesScreen()),
-    GoRoute(path: '/addresses', builder: (context, state) => const AddressesScreen()),
-    GoRoute(path: '/wallet', builder: (context, state) => const WalletScreen()),
-    GoRoute(path: '/payments', builder: (context, state) => const WalletScreen()),
-    GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
-    GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
+    GoRoute(
+      path: '/notifications',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const NotificationsScreen(), type: PageTransitionType.slideUp),
+    ),
+    GoRoute(
+      path: '/edit-profile',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const EditProfileScreen(), type: PageTransitionType.slideUp),
+    ),
+    GoRoute(
+      path: '/favorites',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const FavoritesScreen(), type: PageTransitionType.slideUp),
+    ),
+    GoRoute(
+      path: '/addresses',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const AddressesScreen(), type: PageTransitionType.slideUp),
+    ),
+    GoRoute(
+      path: '/wallet',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const WalletScreen(), type: PageTransitionType.slideUp),
+    ),
+    GoRoute(
+      path: '/payments',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const WalletScreen(), type: PageTransitionType.slideUp),
+    ),
+    GoRoute(
+      path: '/settings',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const SettingsScreen(), type: PageTransitionType.slideUp),
+    ),
+    GoRoute(
+      path: '/search',
+      pageBuilder: (context, state) => _buildPage(state: state, child: const SearchScreen(), type: PageTransitionType.slideRight),
+    ),
 
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
@@ -100,11 +200,26 @@ final GoRouter appRouter = GoRouter(
         return MainScreenShell(child: child);
       },
       routes: [
-        GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
-        GoRoute(path: '/explore', builder: (context, state) => const ExploreScreen()),
-        GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
-        GoRoute(path: '/orders', builder: (context, state) => const OrdersScreen()),
-        GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
+        GoRoute(
+          path: '/home',
+          pageBuilder: (context, state) => _buildPage(state: state, child: const HomeScreen(), type: PageTransitionType.fade),
+        ),
+        GoRoute(
+          path: '/explore',
+          pageBuilder: (context, state) => _buildPage(state: state, child: const ExploreScreen(), type: PageTransitionType.fade),
+        ),
+        GoRoute(
+          path: '/cart',
+          pageBuilder: (context, state) => _buildPage(state: state, child: const CartScreen(), type: PageTransitionType.fade),
+        ),
+        GoRoute(
+          path: '/orders',
+          pageBuilder: (context, state) => _buildPage(state: state, child: const OrdersScreen(), type: PageTransitionType.fade),
+        ),
+        GoRoute(
+          path: '/profile',
+          pageBuilder: (context, state) => _buildPage(state: state, child: const ProfileScreen(), type: PageTransitionType.fade),
+        ),
       ],
     ),
   ],

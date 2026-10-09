@@ -9,6 +9,7 @@ import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/restaurant_provider.dart';
 import '../../../providers/cart_provider.dart';
+import '../../../widgets/shimmer_widgets.dart';
 
 class RestaurantDetailsScreen extends StatefulWidget {
   final String? id;
@@ -42,8 +43,8 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
           if (provider.isLoading && provider.restaurants.isEmpty) {
             return const Scaffold(
               appBar: GlassAppBar(title: 'Loading Restaurant...'),
-              body: Center(
-                child: CircularProgressIndicator(color: GlassTheme.primaryGreen),
+              body: SafeArea(
+                child: ShimmerDetailHeader(),
               ),
             );
           }
@@ -156,14 +157,16 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                       background: Stack(
                         fit: StackFit.expand,
                         children: [
-                          if (restaurant['banner'] != null && restaurant['banner'].toString().isNotEmpty)
-                            CachedNetworkImage(
-                              imageUrl: restaurant['banner'].toString(),
-                              fit: BoxFit.cover,
-                              errorWidget: (context, url, error) => Container(color: Colors.grey.withValues(alpha: 0.2)),
-                            )
-                          else
-                            Container(color: Colors.grey.withValues(alpha: 0.2)),
+                          Hero(
+                            tag: 'restaurant_banner_${widget.id}',
+                            child: restaurant['banner'] != null && restaurant['banner'].toString().isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: restaurant['banner'].toString(),
+                                    fit: BoxFit.cover,
+                                    errorWidget: (context, url, error) => Container(color: Colors.grey.withValues(alpha: 0.2)),
+                                  )
+                                : Container(color: Colors.grey.withValues(alpha: 0.2)),
+                          ),
                           Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -182,12 +185,15 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                             right: 16,
                             child: Hero(
                               tag: 'restaurant_title_${widget.id}',
-                              child: Text(
-                                restaurant['name'] ?? 'Restaurant',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w900,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: Text(
+                                  restaurant['name'] ?? 'Restaurant',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
                               ),
                             ),

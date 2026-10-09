@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/glass_theme.dart';
 
 class AppTheme {
@@ -7,6 +8,13 @@ class AppTheme {
   static const Color accentColor = GlassTheme.ratingAmber;
 
   static ThemeData get lightTheme {
+    final baseTextTheme = ThemeData.light().textTheme;
+    final interTextTheme = GoogleFonts.interTextTheme(baseTextTheme).copyWith(
+      bodyLarge: const TextStyle(color: GlassTheme.textDark),
+      bodyMedium: const TextStyle(color: GlassTheme.textDark),
+      titleLarge: const TextStyle(color: GlassTheme.textDark, fontWeight: FontWeight.bold),
+    );
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -24,11 +32,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: GlassTheme.textDark,
       ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: GlassTheme.textDark),
-        bodyMedium: TextStyle(color: GlassTheme.textDark),
-        titleLarge: TextStyle(color: GlassTheme.textDark, fontWeight: FontWeight.bold),
-      ),
+      textTheme: interTextTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
@@ -86,6 +90,13 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
+    final baseTextTheme = ThemeData.dark().textTheme;
+    final interTextTheme = GoogleFonts.interTextTheme(baseTextTheme).copyWith(
+      bodyLarge: const TextStyle(color: GlassTheme.textLight),
+      bodyMedium: const TextStyle(color: GlassTheme.textLight),
+      titleLarge: const TextStyle(color: GlassTheme.textLight, fontWeight: FontWeight.bold),
+    );
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -103,11 +114,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
       ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: GlassTheme.textLight),
-        bodyMedium: TextStyle(color: GlassTheme.textLight),
-        titleLarge: TextStyle(color: GlassTheme.textLight, fontWeight: FontWeight.bold),
-      ),
+      textTheme: interTextTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,

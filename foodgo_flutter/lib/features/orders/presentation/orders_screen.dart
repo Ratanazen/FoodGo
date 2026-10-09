@@ -6,6 +6,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/shimmer_widgets.dart';
+import '../../../widgets/lottie_assets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
@@ -162,8 +164,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
   // ── UI builders ─────────────────────────────────────────────────────
 
   Widget _buildLoading() {
-    return const Center(
-      child: CircularProgressIndicator(color: GlassTheme.primaryGreen),
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: 4,
+      itemBuilder: (context, index) => const ShimmerOrderCard(),
     );
   }
 
@@ -209,8 +213,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.receipt_long_outlined,
-                size: 80, color: GlassTheme.textMuted),
+            LottieAsset.emptyBox(size: 150),
             const SizedBox(height: 16),
             const Text(
               'No orders yet',
@@ -295,16 +298,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
                 GlassContainer(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   borderRadius: GlassTheme.borderRadiusSmall,
                   customColor: color.withValues(alpha: 0.2),
-                  child: Text(
-                    _formatStatus(status),
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (status.toLowerCase() == 'preparing') ...[
+                        LottieAsset.cooking(size: 18),
+                        const SizedBox(width: 4),
+                      ] else if (status.toLowerCase() == 'on_delivery') ...[
+                        LottieAsset.deliveryBike(size: 18),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        _formatStatus(status),
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

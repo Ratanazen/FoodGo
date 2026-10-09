@@ -65,35 +65,38 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
             // ── Hero Banner with Badges ─────────────────────────────
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                  child: Container(
-                    height: imageHeight,
-                    width: double.infinity,
-                    color: Colors.white.withValues(alpha: 0.05),
-                    child: banner != null && banner.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: banner,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                Hero(
+                  tag: 'restaurant_banner_${res['id']}',
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                    child: Container(
+                      height: imageHeight,
+                      width: double.infinity,
+                      color: Colors.white.withValues(alpha: 0.05),
+                      child: banner != null && banner.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: banner,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                                  ),
                                 ),
                               ),
-                            ),
-                            errorWidget: (context, url, error) => Container(
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.grey.withValues(alpha: 0.15),
+                                child: const Icon(Icons.store, color: GlassTheme.textMuted, size: 40),
+                              ),
+                            )
+                          : Container(
                               color: Colors.grey.withValues(alpha: 0.15),
                               child: const Icon(Icons.store, color: GlassTheme.textMuted, size: 40),
                             ),
-                          )
-                        : Container(
-                            color: Colors.grey.withValues(alpha: 0.15),
-                            child: const Icon(Icons.store, color: GlassTheme.textMuted, size: 40),
-                          ),
+                    ),
                   ),
                 ),
 
@@ -192,11 +195,17 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          name,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Hero(
+                          tag: 'restaurant_title_${res['id']}',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Text(
+                              name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 6),

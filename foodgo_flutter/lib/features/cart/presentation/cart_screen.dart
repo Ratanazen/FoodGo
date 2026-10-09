@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/lottie_assets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 
@@ -164,14 +165,15 @@ class CartScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.shopping_cart_outlined, size: 80, color: GlassTheme.primaryGreen),
-                  const SizedBox(height: 24),
+                  LottieAsset.emptyBox(size: 150),
+                  const SizedBox(height: 16),
                   const Text('Your cart is empty', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  Text('Discover delicious food', style: TextStyle(color: GlassTheme.textMuted)),
+                  Text('Discover delicious food and add items to your cart', style: TextStyle(color: GlassTheme.textMuted)),
                   const SizedBox(height: 32),
                   GlassButton(
                     text: 'Explore Food',
+                    icon: Icons.explore,
                     onPressed: () => context.go('/explore'),
                   ),
                 ],

@@ -9,6 +9,7 @@ import '../../../widgets/food_delivery_card.dart';
 import '../../../widgets/floating_mini_cart_bar.dart';
 import '../../../widgets/svg_icon.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/shimmer_widgets.dart';
 import '../../../providers/restaurant_provider.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -47,9 +48,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
         children: [
           ResponsiveWebContainer(
             maxWidth: 1200,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Column(
+            child: RefreshIndicator(
+              color: GlassTheme.primaryGreen,
+              onRefresh: () => context.read<RestaurantProvider>().fetchRestaurants(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                 // Search Input with clear button
@@ -141,9 +146,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 Consumer<RestaurantProvider>(
                   builder: (context, provider, child) {
                     if (provider.isLoading) {
-                      return const Padding(
-                        padding: EdgeInsets.only(top: 40),
-                        child: Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen)),
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: ResponsiveCardGrid(
+                          minCardWidth: 320,
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: List.generate(4, (_) => const ShimmerFoodCard(isHorizontal: false)),
+                        ),
                       );
                     }
 
@@ -231,6 +241,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           ),
         ),
+      ),
 
           // ── Sticky Floating Mini-Cart Bar ──────────────────────────
           const FloatingMiniCartBar(bottomOffset: 95.0),

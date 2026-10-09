@@ -9,6 +9,7 @@ import '../../../widgets/food_delivery_card.dart';
 import '../../../widgets/floating_mini_cart_bar.dart';
 import '../../../widgets/svg_icon.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/shimmer_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -68,9 +69,13 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(
             child: ResponsiveWebContainer(
               maxWidth: 1200,
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                children: [
+              child: RefreshIndicator(
+                color: GlassTheme.primaryGreen,
+                onRefresh: () => context.read<RestaurantProvider>().fetchRestaurants(),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  children: [
                 // ── Top Bar: Delivery / Pick-up Switcher + Location ────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -323,7 +328,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Consumer<RestaurantProvider>(
                     builder: (context, provider, child) {
                       if (provider.isLoading) {
-                        return const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen));
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: 4,
+                          itemBuilder: (context, index) => const Padding(
+                            padding: EdgeInsets.only(right: 14.0),
+                            child: ShimmerFoodCard(isHorizontal: true),
+                          ),
+                        );
                       }
                       final restaurants = provider.restaurants;
                       if (restaurants.isEmpty) {
@@ -362,7 +374,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 Consumer<RestaurantProvider>(
                   builder: (context, provider, child) {
                     if (provider.isLoading) {
-                      return const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen));
+                      return ResponsiveCardGrid(
+                        minCardWidth: 320,
+                        spacing: 16,
+                        runSpacing: 16,
+                        children: List.generate(4, (_) => const ShimmerFoodCard(isHorizontal: false)),
+                      );
                     }
                     final restaurants = provider.restaurants;
                     if (restaurants.isEmpty) {
@@ -388,6 +405,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+      ),
 
           // ── Sticky Floating Mini-Cart Bar (Foodpanda Style) ────────
           const FloatingMiniCartBar(bottomOffset: 95.0),

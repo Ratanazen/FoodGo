@@ -84,6 +84,17 @@ class GlassTheme {
     spreadRadius: 0,
     offset: const Offset(0, 5),
   );
+
+  // Animation Durations
+  static const Duration animFast = Duration(milliseconds: 200);
+  static const Duration animMedium = Duration(milliseconds: 350);
+  static const Duration animSlow = Duration(milliseconds: 500);
+
+  // Shimmer Skeleton Colors
+  static const Color shimmerBaseDark = Color(0xFF1E2822);
+  static const Color shimmerHighlightDark = Color(0xFF2E3D34);
+  static const Color shimmerBaseLight = Color(0xFFE2E8E4);
+  static const Color shimmerHighlightLight = Color(0xFFF0F5F2);
 }
 
 class AppRadius {

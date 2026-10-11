@@ -36,6 +36,13 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
     final width = widget.isHorizontal ? 260.0 : double.infinity;
     final imageHeight = widget.isHorizontal ? 130.0 : 155.0;
 
+    final String fallbackBanner = res['id'] == 1
+        ? 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80'
+        : res['id'] == 2
+            ? 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80'
+            : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80';
+    final effectiveBanner = (banner != null && banner.isNotEmpty) ? banner : fallbackBanner;
+
     return InkWell(
       onTap: widget.onTap,
       borderRadius: BorderRadius.circular(18),
@@ -73,29 +80,28 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       height: imageHeight,
                       width: double.infinity,
                       color: Colors.white.withValues(alpha: 0.05),
-                      child: banner != null && banner.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: banner,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                child: const Center(
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
-                                  ),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                color: Colors.grey.withValues(alpha: 0.15),
-                                child: const Icon(Icons.store, color: GlassTheme.textMuted, size: 40),
-                              ),
-                            )
-                          : Container(
-                              color: Colors.grey.withValues(alpha: 0.15),
-                              child: const Icon(Icons.store, color: GlassTheme.textMuted, size: 40),
+                      child: CachedNetworkImage(
+                        imageUrl: effectiveBanner,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
                             ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => CachedNetworkImage(
+                          imageUrl: fallbackBanner,
+                          fit: BoxFit.cover,
+                          errorWidget: (c, u, e) => Container(
+                            color: Colors.grey.withValues(alpha: 0.15),
+                            child: const Icon(Icons.store, color: GlassTheme.textMuted, size: 40),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),

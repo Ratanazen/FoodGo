@@ -159,13 +159,17 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                         children: [
                           Hero(
                             tag: 'restaurant_banner_${widget.id}',
-                            child: restaurant['banner'] != null && restaurant['banner'].toString().isNotEmpty
-                                ? CachedNetworkImage(
-                                    imageUrl: restaurant['banner'].toString(),
-                                    fit: BoxFit.cover,
-                                    errorWidget: (context, url, error) => Container(color: Colors.grey.withValues(alpha: 0.2)),
-                                  )
-                                : Container(color: Colors.grey.withValues(alpha: 0.2)),
+                            child: CachedNetworkImage(
+                              imageUrl: (restaurant['banner'] != null && restaurant['banner'].toString().isNotEmpty)
+                                  ? restaurant['banner'].toString()
+                                  : (widget.id == '1'
+                                      ? 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80'
+                                      : widget.id == '2'
+                                          ? 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80'
+                                          : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80'),
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) => Container(color: Colors.grey.withValues(alpha: 0.2)),
+                            ),
                           ),
                           Container(
                             decoration: BoxDecoration(

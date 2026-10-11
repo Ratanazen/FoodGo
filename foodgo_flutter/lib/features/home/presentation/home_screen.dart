@@ -339,7 +339,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                       final restaurants = provider.restaurants;
                       if (restaurants.isEmpty) {
-                        return const Center(child: Text("No restaurants found."));
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("No featured spots found.", style: TextStyle(color: GlassTheme.textMuted)),
+                              const SizedBox(height: 4),
+                              TextButton.icon(
+                                onPressed: () => provider.fetchRestaurants(),
+                                icon: const Icon(Icons.refresh, size: 16, color: GlassTheme.primaryGreen),
+                                label: const Text('Retry', style: TextStyle(color: GlassTheme.primaryGreen)),
+                              ),
+                            ],
+                          ),
+                        );
                       }
 
                       return ListView.builder(
@@ -383,7 +396,40 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                     final restaurants = provider.restaurants;
                     if (restaurants.isEmpty) {
-                      return const Center(child: Text("No restaurants found."));
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.storefront_outlined, size: 48, color: Colors.white24),
+                              const SizedBox(height: 12),
+                              Text("Unable to load restaurants.", style: TextStyle(color: GlassTheme.textMuted, fontSize: 14)),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  GlassButton(
+                                    text: 'Retry',
+                                    icon: Icons.refresh,
+                                    onPressed: () => provider.fetchRestaurants(),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  OutlinedButton.icon(
+                                    onPressed: () => provider.loadDemoFallback(),
+                                    icon: const Icon(Icons.restaurant_menu, color: GlassTheme.primaryGreen, size: 16),
+                                    label: const Text('Load Menu', style: TextStyle(color: Colors.white, fontSize: 13)),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: GlassTheme.primaryGreen),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     }
 
                     return ResponsiveCardGrid(

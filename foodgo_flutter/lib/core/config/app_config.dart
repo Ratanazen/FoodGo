@@ -1,8 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfig {
-  /// Default hosted Render backend URL
-  static const String defaultLiveUrl = 'https://foodgo-53pl.onrender.com';
+  /// Default hosted Vercel backend URL (active & live)
+  static const String defaultLiveUrl = 'https://food-go-app.vercel.app';
 
   static String _customApiUrl = '';
   static String _customWsUrl = '';
@@ -25,7 +25,7 @@ class AppConfig {
     }
     return const String.fromEnvironment(
       'FOODGO_WS_URL',
-      defaultValue: 'wss://foodgo-53pl.onrender.com/ws/tracking/',
+      defaultValue: 'wss://food-go-app.vercel.app/ws/tracking/',
     );
   }
 
@@ -33,6 +33,12 @@ class AppConfig {
     final prefs = await SharedPreferences.getInstance();
     _customApiUrl = prefs.getString('custom_api_url') ?? '';
     _customWsUrl = prefs.getString('custom_ws_url') ?? '';
+
+    // Auto-migrate away from decommissioned Render or incorrect Vercel URLs
+    if (_customApiUrl.contains('onrender.com') || _customApiUrl.contains('food-go-backend.vercel.app')) {
+      _customApiUrl = '';
+      await prefs.remove('custom_api_url');
+    }
   }
 
   static Future<void> setCustomApiUrl(String url) async {

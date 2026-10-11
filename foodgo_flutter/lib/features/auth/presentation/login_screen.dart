@@ -141,12 +141,8 @@ class _LoginScreenState extends State<LoginScreen> {
               runSpacing: 6,
               children: [
                 ActionChip(
-                  label: const Text('Render', style: TextStyle(fontSize: 11)),
-                  onPressed: () => controller.text = 'https://foodgo-53pl.onrender.com/api/',
-                ),
-                ActionChip(
-                  label: const Text('Vercel', style: TextStyle(fontSize: 11)),
-                  onPressed: () => controller.text = 'https://food-go-backend.vercel.app/api/',
+                  label: const Text('Vercel (Live)', style: TextStyle(fontSize: 11)),
+                  onPressed: () => controller.text = 'https://food-go-app.vercel.app/api/',
                 ),
                 ActionChip(
                   label: const Text('Local (10.0.2.2)', style: TextStyle(fontSize: 11)),

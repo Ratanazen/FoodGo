@@ -195,17 +195,69 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     }
 
                     if (restaurants.isEmpty) {
+                      final hasFilter = _searchQuery.isNotEmpty || _activeFilterIndex != 0;
                       return Center(
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 60.0),
+                          padding: const EdgeInsets.only(top: 40.0, bottom: 120.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.storefront_outlined, size: 64, color: Colors.white24),
+                              Icon(
+                                hasFilter ? Icons.filter_list_off : Icons.storefront_outlined,
+                                size: 68,
+                                color: Colors.white30,
+                              ),
                               const SizedBox(height: 16),
-                              const Text('No restaurants match this filter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              const SizedBox(height: 6),
-                              Text('Try clearing search or selecting another category.', style: TextStyle(color: GlassTheme.textMuted, fontSize: 13)),
+                              Text(
+                                hasFilter ? 'No restaurants match this filter' : 'No restaurants available right now',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                child: Text(
+                                  hasFilter
+                                      ? 'Try clearing your search term or picking another category filter above.'
+                                      : 'Could not connect to the live restaurant server. Check your connection or load the demo menu.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              if (hasFilter)
+                                GlassButton(
+                                  text: 'Reset Filters',
+                                  icon: Icons.refresh,
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchQuery = '';
+                                      _activeFilterIndex = 0;
+                                    });
+                                  },
+                                )
+                              else
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    GlassButton(
+                                      text: 'Retry',
+                                      icon: Icons.refresh,
+                                      onPressed: () => provider.fetchRestaurants(),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    OutlinedButton.icon(
+                                      onPressed: () => provider.loadDemoFallback(),
+                                      icon: const Icon(Icons.restaurant_menu, color: GlassTheme.primaryGreen, size: 18),
+                                      label: const Text('Load Menu', style: TextStyle(color: Colors.white)),
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: GlassTheme.primaryGreen),
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                             ],
                           ),
                         ),

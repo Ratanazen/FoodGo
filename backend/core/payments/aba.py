@@ -32,7 +32,8 @@ class ABAKHQRProvider(PaymentProvider):
 
     def generate_khqr(self, merchant_ref: str, amount, currency: str = "USD") -> str:
         currency_code = "840" if currency.upper() == "USD" else "116"
-        return f"00020101021229380016abaakhppxxx@abaa0110{self.merchant_id}520458125303{currency_code}54{len(str(amount)):02d}{amount}5802KH5912FoodGo_Order6010Phnom_Penh62{len(merchant_ref):02d}{merchant_ref}6304ABCD"
+        formatted_amount = f"{int(float(amount))}" if currency.upper() == "KHR" else f"{float(amount):.2f}"
+        return f"00020101021229380016abaakhppxxx@abaa0110{self.merchant_id}520458125303{currency_code}54{len(formatted_amount):02d}{formatted_amount}5802KH5912FoodGo_Order6010Phnom_Penh62{len(merchant_ref):02d}{merchant_ref}6304ABCD"
 
     def create_payment(self, order, amount, currency: str = "USD", **kwargs):
         merchant_ref = f"FG-ABA-{order.id}-{int(time.time())}"

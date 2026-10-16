@@ -11,6 +11,7 @@ import '../../../widgets/svg_icon.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../widgets/shimmer_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../providers/address_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,26 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isDeliveryMode = true;
   int _selectedCategoryIndex = 0;
+  int _activePromoIndex = 0;
+  String _selectedSort = 'All';
+  late final ScrollController _promoScrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _promoScrollController.addListener(() {
+      final idx = (_promoScrollController.offset / 280).round().clamp(0, _promoBanners.length - 1);
+      if (idx != _activePromoIndex) {
+        setState(() => _activePromoIndex = idx);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _promoScrollController.dispose();
+    super.dispose();
+  }
 
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.restaurant},
@@ -127,24 +148,38 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 14),
 
                 // Deliver to Address selector bar
-                InkWell(
-                  onTap: () => context.push('/addresses'),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.location_on, color: GlassTheme.primaryGreen, size: 18),
-                      const SizedBox(width: 6),
-                      Text(
-                        _isDeliveryMode ? 'Deliver to: ' : 'Pick-up near: ',
-                        style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                Consumer<AddressProvider>(
+                  builder: (context, addrProv, child) {
+                    final activeAddr = addrProv.selectedAddress;
+                    final addrText = activeAddr != null
+                        ? '${activeAddr.street}, ${activeAddr.city}'
+                        : 'Phnom Penh, Cambodia';
+
+                    return InkWell(
+                      onTap: () => context.push('/addresses'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on, color: GlassTheme.primaryGreen, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            _isDeliveryMode ? 'Deliver to: ' : 'Pick-up near: ',
+                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                          ),
+                          Expanded(
+                            child: Text(
+                              addrText,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down, size: 18, color: GlassTheme.primaryGreen),
+                        ],
                       ),
-                      const Text(
-                        'Phnom Penh, Cambodia',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                      const Icon(Icons.keyboard_arrow_down, size: 18, color: GlassTheme.primaryGreen),
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 18),
 
@@ -159,6 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   height: 140,
                   child: ListView.builder(
+                    controller: _promoScrollController,
                     scrollDirection: Axis.horizontal,
                     itemCount: _promoBanners.length,
                     itemBuilder: (context, index) {
@@ -225,7 +261,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 10),
+
+                // Promo Carousel Indicator Dots
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_promoBanners.length, (i) {
+                    final isActive = _activePromoIndex == i;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: isActive ? 18 : 6,
+                      height: 6,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      decoration: BoxDecoration(
+                        color: isActive ? GlassTheme.primaryGreen : Colors.white24,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 18),
 
                 // ── Circular Category Badges ──────────────────────────────
                 Row(
@@ -383,6 +438,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     SvgAssetIcon(assetName: 'restaurant_pin', size: 20, color: GlassTheme.primaryGreen),
                   ],
                 ),
+                const SizedBox(height: 10),
+
+                // Sorting Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: ['All', '⭐ Top Rated', '⚡ Fastest', '🛵 Free Delivery'].map((sort) {
+                      final isSelected = _selectedSort == sort;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ChoiceChip(
+                          label: Text(sort),
+                          selected: isSelected,
+                          onSelected: (_) => setState(() => _selectedSort = sort),
+                          selectedColor: GlassTheme.primaryGreen,
+                          backgroundColor: Colors.white.withValues(alpha: 0.06),
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.white70,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontSize: 12,
+                          ),
+                          side: BorderSide(
+                            color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.1),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
                 const SizedBox(height: 14),
                 Consumer<RestaurantProvider>(
                   builder: (context, provider, child) {
@@ -394,7 +478,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: List.generate(4, (_) => const ShimmerFoodCard(isHorizontal: false)),
                       );
                     }
-                    final restaurants = provider.restaurants;
+                    var restaurants = List<Map<String, dynamic>>.from(provider.restaurants);
+                    if (_selectedSort == '⭐ Top Rated') {
+                      restaurants.sort((a, b) => (double.tryParse(b['rating']?.toString() ?? '0') ?? 0.0)
+                          .compareTo(double.tryParse(a['rating']?.toString() ?? '0') ?? 0.0));
+                    } else if (_selectedSort == '⚡ Fastest') {
+                      restaurants.sort((a, b) => (int.tryParse(a['delivery_time_min']?.toString() ?? '99') ?? 99)
+                          .compareTo(int.tryParse(b['delivery_time_min']?.toString() ?? '99') ?? 99));
+                    } else if (_selectedSort == '🛵 Free Delivery') {
+                      restaurants = restaurants.where((r) => (double.tryParse(r['delivery_fee']?.toString() ?? '1') ?? 1.0) == 0.0).toList();
+                    }
                     if (restaurants.isEmpty) {
                       return Center(
                         child: Padding(

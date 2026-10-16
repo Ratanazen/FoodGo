@@ -9,17 +9,36 @@ class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
+  final BorderRadius? borderRadius;
 
-  const GlassCard({super.key, required this.child, this.padding, this.onTap});
+  const GlassCard({
+    super.key, 
+    required this.child, 
+    this.padding, 
+    this.onTap,
+    this.borderRadius,
+  });
 
   @override
   Widget build(BuildContext context) {
-    Widget card = GlassContainer(
+    final effectiveRadius = borderRadius ?? GlassTheme.borderRadius;
+    final card = GlassContainer(
+      borderRadius: effectiveRadius,
       padding: padding ?? const EdgeInsets.all(16),
       child: child,
     );
     if (onTap != null) {
-      return GestureDetector(onTap: onTap, child: card);
+      return Material(
+        color: Colors.transparent,
+        borderRadius: effectiveRadius,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: effectiveRadius,
+          splashColor: Colors.white.withValues(alpha: 0.1),
+          highlightColor: Colors.white.withValues(alpha: 0.05),
+          child: card,
+        ),
+      );
     }
     return card;
   }
@@ -27,9 +46,10 @@ class GlassCard extends StatelessWidget {
 
 class GlassButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData? icon;
   final Color? color;
+  final bool isLoading;
 
   const GlassButton({
     super.key, 
@@ -37,31 +57,60 @@ class GlassButton extends StatelessWidget {
     required this.onPressed, 
     this.icon,
     this.color,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: GlassTheme.borderRadiusSmall,
-      child: GlassContainer(
+    final isEnabled = onPressed != null && !isLoading;
+    final baseColor = color ?? GlassTheme.primaryGreen.withValues(alpha: 0.8);
+    final effectiveColor = isEnabled ? baseColor : baseColor.withValues(alpha: 0.4);
+
+    return Semantics(
+      button: true,
+      enabled: isEnabled,
+      label: text,
+      child: Material(
+        color: Colors.transparent,
         borderRadius: GlassTheme.borderRadiusSmall,
-        customColor: color ?? GlassTheme.primaryGreen.withValues(alpha: 0.8),
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[Icon(icon, color: Colors.white), const SizedBox(width: 8)],
-            Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+        child: InkWell(
+          onTap: isEnabled ? onPressed : null,
+          borderRadius: GlassTheme.borderRadiusSmall,
+          splashColor: Colors.white.withValues(alpha: 0.15),
+          highlightColor: Colors.white.withValues(alpha: 0.08),
+          child: GlassContainer(
+            borderRadius: GlassTheme.borderRadiusSmall,
+            customColor: effectiveColor,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isLoading) ...[
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ] else if (icon != null) ...[
+                  Icon(icon, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  text,
+                  style: TextStyle(
+                    color: isEnabled ? Colors.white : Colors.white60,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

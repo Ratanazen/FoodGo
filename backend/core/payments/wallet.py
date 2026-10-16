@@ -7,28 +7,29 @@ from .base import PaymentProvider
 class WalletPaymentProvider(PaymentProvider):
     def create_payment(self, order, amount, currency: str = "USD", **kwargs):
         from core.models import Wallet, WalletTransaction
-        customer = order.customer
-        wallet, _ = Wallet.objects.get_or_create(user=customer)
-        order_amount = Decimal(str(amount))
+        from django.db import transaction
+        with transaction.atomic():
+            wallet, _ = Wallet.objects.select_for_update().get_or_create(user=order.customer)
+            order_amount = Decimal(str(amount))
 
-        current_balance = Decimal(str(wallet.balance))
-        if current_balance < order_amount:
-            raise ValueError(
-                f"Insufficient balance in FoodGo Wallet (${current_balance:.2f} available, ${order_amount:.2f} required). "
-                f"Please add money to your account or select KHQR / COD."
+            current_balance = Decimal(str(wallet.balance))
+            if current_balance < order_amount:
+                raise ValueError(
+                    f"Insufficient balance in FoodGo Wallet (${current_balance:.2f} available, ${order_amount:.2f} required). "
+                    f"Please add money to your account or select KHQR / COD."
+                )
+
+            # Deduct balance atomically
+            wallet.balance = current_balance - order_amount
+            wallet.save(update_fields=['balance'])
+
+            # Record transaction log
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=order_amount,
+                transaction_type='payment',
+                description=f"Payment for Order #{order.id}"
             )
-
-        # Deduct balance atomically
-        wallet.balance = current_balance - order_amount
-        wallet.save(update_fields=['balance'])
-
-        # Record transaction log
-        WalletTransaction.objects.create(
-            wallet=wallet,
-            amount=order_amount,
-            transaction_type='payment',
-            description=f"Payment for Order #{order.id}"
-        )
 
         merchant_ref = f"FG-WLT-{order.id}-{int(time.time())}"
         txn_id = f"WLT-TXN-{int(time.time())}"
@@ -73,14 +74,16 @@ class WalletPaymentProvider(PaymentProvider):
 
     def refund(self, payment, amount=None):
         from core.models import Wallet, WalletTransaction
-        refund_amount = Decimal(str(amount or payment.amount))
-        wallet, _ = Wallet.objects.get_or_create(user=payment.order.customer)
-        wallet.balance += refund_amount
-        wallet.save(update_fields=['balance'])
-        WalletTransaction.objects.create(
-            wallet=wallet,
-            amount=refund_amount,
-            transaction_type='refund',
-            description=f"Refund for Order #{payment.order.id}"
-        )
-        return {"status": "REFUNDED", "amount": str(refund_amount)}
+        from django.db import transaction
+        with transaction.atomic():
+            refund_amount = Decimal(str(amount or payment.amount))
+            wallet, _ = Wallet.objects.select_for_update().get_or_create(user=payment.order.customer)
+            wallet.balance = Decimal(str(wallet.balance)) + refund_amount
+            wallet.save(update_fields=['balance'])
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=refund_amount,
+                transaction_type='refund',
+                description=f"Refund for Order #{payment.order.id}"
+            )
+            return {"status": "REFUNDED", "amount": str(refund_amount)}

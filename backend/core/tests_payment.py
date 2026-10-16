@@ -1,4 +1,7 @@
+import os
+from unittest import mock
 from decimal import Decimal
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -191,16 +194,148 @@ class PaymentIntegrationTests(TestCase):
         payment = Payment.objects.get(id=payment_id)
         self.assertEqual(payment.status, 'CANCELLED')
 
-    def test_cancel_payment_already_paid_rejected(self):
+    def test_cancel_wallet_payment_issues_automatic_refund(self):
+        from core.models import Wallet
+        wallet, _ = Wallet.objects.get_or_create(user=self.user)
+        wallet.balance = Decimal('100.00')
+        wallet.save()
+
+        # 1. Pay via Wallet
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'WALLET', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+        wallet.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal('84.50'))
+
+        # 2. Cancel order payment -> triggers auto refund
+        cancel_url = reverse('payment_cancel', args=[payment_id])
+        res = self.client.post(cancel_url, {}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['payment']['status'], 'REFUNDED')
+
+        wallet.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal('100.00')) # Fully refunded!
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'cancelled')
+        self.assertEqual(self.order.payment_status, 'REFUNDED')
+
+    def test_admin_refund_endpoint(self):
+        # 1. ABA payment made
         create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
         payment_id = create_res.data['id']
-
         payment = Payment.objects.get(id=payment_id)
         payment.status = 'PAID'
         payment.save()
 
-        cancel_url = reverse('payment_cancel', args=[payment_id])
-        res = self.client.post(cancel_url, {}, format='json')
+        # 2. Regular user cannot call refund endpoint
+        refund_url = reverse('payment_refund', args=[payment_id])
+        res_user = self.client.post(refund_url, {}, format='json')
+        self.assertEqual(res_user.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 3. Staff user can call refund
+        admin_user = User.objects.create_superuser(username='staffadmin', email='staff@test.com', password='adminpass123')
+        self.client.force_authenticate(user=admin_user)
+        res_admin = self.client.post(refund_url, {}, format='json')
+        self.assertEqual(res_admin.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_admin.data['payment']['status'], 'REFUNDED')
+
+    def test_order_destroy_active_order_rejected(self):
+        self.order.status = 'preparing'
+        self.order.save()
+        res = self.client.delete(reverse('order-detail', args=[self.order.id]))
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('Cannot cancel payment in PAID status', res.data['detail'])
+        self.assertIn('Cannot cancel or delete', str(res.data))
+
+    def test_admin_dashboard_metrics(self):
+        from core.admin import custom_admin_index
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        admin_user = User.objects.create_superuser(username='superboss', email='boss@test.com', password='adminpass123')
+        req = factory.get('/admin/')
+        req.user = admin_user
+        extra_ctx = {}
+        # custom_admin_index updates extra_ctx
+        custom_admin_index(req, extra_context=extra_ctx)
+        self.assertIn('total_revenue_khr', extra_ctx)
+        self.assertIn('total_wallet_balance', extra_ctx)
+        self.assertIn('recent_wallet_txns', extra_ctx)
+
+    def test_server_side_coupon_discount_calculation(self):
+        from core.models import Coupon, FoodItem, FoodCategory
+        category = FoodCategory.objects.create(restaurant=self.restaurant, name='Fast Food')
+        food = FoodItem.objects.create(category=category, name='Classic Burger', price=Decimal('20.00'), is_available=True)
+        coupon = Coupon.objects.create(code='FOODGO20', discount_percent=20, is_active=True)
+
+        url = reverse('order-list')
+        order_data = {
+            'restaurant': self.restaurant.id,
+            'items': [{'food_item': food.id, 'quantity': 1}],
+            'coupon_code': 'FOODGO20',
+        }
+        res = self.client.post(url, order_data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        # subtotal: 20.00, discount 20% = 4.00, delivery_fee = 0.00 -> total = 16.00
+        expected_total = Decimal('16.00') + Decimal(str(self.restaurant.delivery_fee))
+        self.assertEqual(Decimal(str(res.data['total_amount'])), expected_total)
+
+    def test_create_payment_forbidden_for_other_user_order(self):
+        other_user = User.objects.create_user(username='intruder', email='intruder@test.com', password='password123', role='customer')
+        self.client.force_authenticate(user=other_user)
+
+        url = reverse('payment_create')
+        res = self.client.post(url, {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_payment_expiration_transition(self):
+        from datetime import timedelta
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+        payment = Payment.objects.get(id=payment_id)
+        payment.expires_at = timezone.now() - timedelta(minutes=10)
+        payment.save(update_fields=['expires_at'])
+
+        status_url = reverse('payment_status', args=[payment_id])
+        res = self.client.post(status_url, {}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['status'], 'EXPIRED')
+        payment.refresh_from_db()
+        self.assertEqual(payment.status, 'EXPIRED')
+
+    def test_webhook_unauthorized_with_wrong_secret(self):
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        merchant_ref = create_res.data['merchant_reference']
+
+        callback_url = reverse('payment_aba_callback')
+        callback_data = {
+            'merchant_reference': merchant_ref,
+            'amount': '15.50',
+            'currency': 'USD',
+            'transaction_id': 'ABA-TXN-FAKE-12345',
+            'status': 'PAID'
+        }
+        # Anonymous client with strict non-testing/non-debug settings
+        anon_client = APIClient()
+        with self.settings(IS_TESTING=False, DEBUG=False), mock.patch.dict(os.environ, {'PAYMENT_WEBHOOK_SECRET': 'expected_secret_key'}):
+            # Wrong secret header
+            res = anon_client.post(
+                callback_url,
+                callback_data,
+                format='json',
+                HTTP_X_WEBHOOK_SECRET='invalid_wrong_secret'
+            )
+            self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_webhook_missing_secret_in_production_raises_improperly_configured(self):
+        callback_url = reverse('payment_aba_callback')
+        callback_data = {
+            'merchant_reference': 'FG-TEST-REF',
+            'amount': '15.50',
+            'currency': 'USD',
+            'status': 'PAID'
+        }
+        anon_client = APIClient()
+        with self.settings(IS_TESTING=False, DEBUG=False), mock.patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(ImproperlyConfigured):
+                anon_client.post(callback_url, callback_data, format='json')
+
 

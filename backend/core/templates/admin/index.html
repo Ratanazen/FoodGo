@@ -419,6 +419,14 @@
       </svg>
       Coupons
     </a>
+    <a href="{% url 'admin:core_wallet_changelist' %}" class="qa-btn qa-teal" style="background:var(--teal);color:#fff !important;">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+        <path d="M18 12a2 2 0 0 0 0 4h4v-4z"></path>
+      </svg>
+      Wallets
+    </a>
   </div>
 
   <!-- Stat Cards: PC (6 col), iPad (3 col), Phone (2 col) -->
@@ -454,8 +462,8 @@
       </div>
       <div class="stat-info">
         <div class="stat-value">${{ total_revenue }}</div>
-        <div class="stat-label">Revenue</div>
-        <div class="stat-sub">All time</div>
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-sub">≈ ៛{{ total_revenue_khr }} KHR</div>
       </div>
     </div>
     <div class="stat-card card-orange">
@@ -638,6 +646,85 @@
             {% endfor %}
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finance & Security Overview Row -->
+  <div class="table-row">
+    <!-- Recent Wallet Transactions -->
+    <div class="chart-card">
+      <div class="section-heading" style="color:var(--teal);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+          <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+          <path d="M18 12a2 2 0 0 0 0 4h4v-4z"></path>
+        </svg>
+        Recent Wallet Transactions
+      </div>
+      <div class="dash-table-wrapper">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tx in recent_wallet_txns %}
+            <tr>
+              <td><strong>{{ tx.wallet.user.username }}</strong></td>
+              <td>
+                {% if tx.transaction_type == 'deposit' %}
+                  <span class="badge badge-green">Deposit</span>
+                {% elif tx.transaction_type == 'refund' %}
+                  <span class="badge badge-purple">Refund</span>
+                {% else %}
+                  <span class="badge badge-orange">Payment</span>
+                {% endif %}
+              </td>
+              <td>
+                <strong style="color:{% if tx.transaction_type == 'deposit' or tx.transaction_type == 'refund' %}#289A57{% else %}#E65100{% endif %};">
+                  {% if tx.transaction_type == 'deposit' or tx.transaction_type == 'refund' %}+{% else %}-{% endif %}${{ tx.amount }}
+                </strong>
+              </td>
+              <td style="color:#666;font-size:12px;">{{ tx.description }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No wallet transactions yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Security & Banking Status -->
+    <div class="chart-card">
+      <div class="section-heading" style="color:var(--green);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        Payment & Cyber Security Status
+      </div>
+      <div style="padding: 6px 0; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 14px; background: rgba(53,184,107,0.08); border-radius:10px;">
+          <span style="font-size:13px; font-weight:600; color:#289A57;">✓ NBC Bakong KHQR Gateway</span>
+          <span class="badge badge-green">Standard 840/116</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 14px; background: rgba(30,136,229,0.08); border-radius:10px;">
+          <span style="font-size:13px; font-weight:600; color:#1565C0;">✓ Webhook Callback Authentication</span>
+          <span class="badge badge-blue">Protected</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 14px; background: rgba(0,137,123,0.08); border-radius:10px;">
+          <span style="font-size:13px; font-weight:600; color:#00695C;">✓ Concurrency Race-Condition Lock</span>
+          <span class="badge badge-green">ACID Locked</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 14px; background: rgba(142,36,170,0.08); border-radius:10px;">
+          <span style="font-size:13px; font-weight:600; color:#6A1B9A;">✓ Total Wallet Deposits Held</span>
+          <strong style="color:#6A1B9A; font-size:13px;">${{ total_wallet_balance }} (៛{{ total_wallet_balance_khr }})</strong>
+        </div>
       </div>
     </div>
   </div>

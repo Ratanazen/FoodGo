@@ -1,7 +1,11 @@
 import random
+import requests
+import sys
+from django.conf import settings
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 
@@ -13,6 +17,9 @@ class RequestOTPView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        if not settings.DEBUG:
+            return Response({'detail': 'SMS OTP sending is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         phone = request.data.get('phone')
         if not phone:
             return Response({'detail': 'Phone number is required.'}, status=400)
@@ -28,6 +35,9 @@ class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        if not settings.DEBUG:
+            return Response({'detail': 'SMS OTP verification is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         phone = request.data.get('phone')
         otp = request.data.get('otp')
         
@@ -72,45 +82,46 @@ class GoogleLoginView(APIView):
 
     def post(self, request):
         id_token = request.data.get('id_token')
+        if not id_token or not str(id_token).strip():
+            return Response({'detail': 'id_token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         email = request.data.get('email')
         name = request.data.get('name')
         avatar_url = request.data.get('avatar_url')
 
-        if not id_token and not email:
-            return Response({'detail': 'id_token or email is required.'}, status=400)
-
-        user_email = email
+        user_email = None
         user_name = name or ''
         user_avatar = avatar_url or ''
 
         # 1. Verify with Google TokenInfo API if id_token provided
-        if id_token:
-            if id_token.startswith('mock-') or id_token == 'test-google-token':
+        if id_token.startswith('mock-') or id_token == 'test-google-token':
+            if settings.DEBUG or 'test' in sys.argv:
                 # Sandbox & unit test mode
                 user_email = email or 'test.google@gmail.com'
                 user_name = name or 'Google User'
             else:
-                try:
-                    import requests
-                    resp = requests.get(
-                        f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}",
-                        timeout=5
-                    )
-                    if resp.status_code == 200:
-                        payload = resp.json()
-                        user_email = payload.get('email')
-                        user_name = payload.get('name', '')
-                        if not user_avatar:
-                            user_avatar = payload.get('picture', '')
-                    else:
-                        if not user_email:
-                            return Response({'detail': 'Invalid Google ID token.'}, status=401)
-                except Exception as e:
+                return Response({'detail': 'Mock Google tokens are only allowed in debug mode.'}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            try:
+                resp = requests.get(
+                    f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}",
+                    timeout=5
+                )
+                if resp.status_code == 200:
+                    payload = resp.json()
+                    user_email = payload.get('email')
                     if not user_email:
-                        return Response({'detail': f'Error verifying with Google: {e}'}, status=500)
+                        return Response({'detail': 'Email could not be determined from Google account.'}, status=status.HTTP_400_BAD_REQUEST)
+                    user_name = payload.get('name', '') or user_name
+                    if not user_avatar:
+                        user_avatar = payload.get('picture', '')
+                else:
+                    return Response({'detail': 'Invalid Google ID token.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Exception:
+                return Response({'detail': 'Failed to verify Google ID token.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         if not user_email:
-            return Response({'detail': 'Email could not be determined from Google account.'}, status=400)
+            return Response({'detail': 'Email could not be determined from Google account.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 2. Get or create user by email
         user = User.objects.filter(email=user_email).first()
@@ -167,4 +178,48 @@ class GoogleLoginView(APIView):
                 'avatar_url': user_photo,
             }
         })
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        if not old_password or not new_password:
+            return Response({'detail': 'Both old_password and new_password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not user.check_password(old_password):
+            return Response({'detail': 'Incorrect current password.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(new_password) < 6:
+            return Response({'detail': 'New password must be at least 6 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password updated successfully.'})
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception:
+                pass
+        return Response({'message': 'Logged out successfully.'}, status=status.HTTP_200_OK)
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.is_active = False
+        user.username = f"deleted_{user.id}_{user.username}"
+        user.email = f"deleted_{user.id}_{user.email}"
+        user.save()
+        return Response({'message': 'Account deactivated successfully.'}, status=status.HTTP_200_OK)
 

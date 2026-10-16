@@ -48,4 +48,7 @@ class PaymentModel {
   bool get isExpired => status == 'EXPIRED';
   bool get isPending => status == 'PENDING';
   bool get isCancelled => status == 'CANCELLED';
+  bool get isFailed => status == 'FAILED';
+  bool get isProcessing => status == 'PROCESSING';
+  bool get isRefunded => status == 'REFUNDED';
 }

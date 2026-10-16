@@ -24,6 +24,8 @@ class Address(models.Model):
     is_default = models.BooleanField(default=False)
     lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    label = models.CharField(max_length=50, default='home', help_text="home, work, other")
+    delivery_instructions = models.TextField(blank=True, default='')
 
     class Meta:
         verbose_name_plural = 'Addresses'
@@ -57,6 +59,9 @@ class Restaurant(models.Model):
     is_active = models.BooleanField(default=True)
     lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    opening_time = models.TimeField(null=True, blank=True, default='08:00:00')
+    closing_time = models.TimeField(null=True, blank=True, default='22:00:00')
+    min_order_amount = models.DecimalField(max_digits=6, decimal_places=2, default=0.0)
 
     def __str__(self):
         return self.name
@@ -80,6 +85,11 @@ class FoodItem(models.Model):
     image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Paste direct web image URL (e.g. Unsplash) or upload file")
     is_available = models.BooleanField(default=True)
     ingredients = models.CharField(max_length=255, blank=True, help_text="Comma separated ingredients")
+    original_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    is_vegetarian = models.BooleanField(default=False)
+    is_halal = models.BooleanField(default=False)
+    is_spicy = models.BooleanField(default=False)
+    preparation_time_mins = models.IntegerField(default=15)
 
     def __str__(self):
         return f"{self.name} - ${self.price}"
@@ -89,11 +99,15 @@ class Order(models.Model):
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
         ('preparing', 'Preparing'),
-        ('ready', 'Ready for Pickup'),
+        ('ready_for_pickup', 'Ready for Pickup'),
         ('picked_up', 'Picked Up'),
         ('on_the_way', 'On the Way'),
+        ('driver_arrived', 'Driver Arrived'),
         ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled')
+        ('cancelled', 'Cancelled'),
+        # Backward-compatible choices
+        ('ready', 'Ready for Pickup (Legacy)'),
+        ('arrived', 'Driver Arrived (Legacy)'),
     )
     PAYMENT_STATUS_CHOICES = (
         ('UNPAID', 'Unpaid'),
@@ -102,23 +116,54 @@ class Order(models.Model):
         ('FAILED', 'Failed'),
         ('REFUNDED', 'Refunded'),
     )
+    order_reference = models.CharField(max_length=50, blank=True, null=True, unique=True, db_index=True)
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='orders')
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='UNPAID')
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    delivery_fee_charged = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    coupon_code = models.CharField(max_length=50, blank=True, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     special_instructions = models.TextField(blank=True)
+    delivery_address_snapshot = models.TextField(blank=True, default='')
+    estimated_delivery_time = models.DateTimeField(null=True, blank=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    ready_at = models.DateTimeField(null=True, blank=True)
+    picked_up_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    cancellation_reason = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.order_reference:
+            import secrets
+            from django.utils import timezone
+            date_str = timezone.now().strftime('%Y%m%d')
+            rand_hex = secrets.token_hex(3).upper()
+            self.order_reference = f"FG-{date_str}-{rand_hex}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Order #{self.id} - {self.customer.username} (${self.total_amount})"
+        ref = self.order_reference or f"#{self.id}"
+        return f"Order {ref} - {self.customer.username} (${self.total_amount})"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     food_item = models.ForeignKey(FoodItem, on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(default=1)
     price = models.DecimalField(max_digits=8, decimal_places=2)
+    food_name_snapshot = models.CharField(max_length=255, blank=True, default='')
+    special_instructions = models.TextField(blank=True, default='')
+
+    def save(self, *args, **kwargs):
+        if not self.food_name_snapshot and self.food_item:
+            self.food_name_snapshot = self.food_item.name
+        super().save(*args, **kwargs)
 
     def __str__(self):
         name = self.food_item.name if self.food_item else 'Item'
@@ -191,22 +236,66 @@ class Driver(models.Model):
     is_online = models.BooleanField(default=False)
     current_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     current_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    operational_status = models.CharField(max_length=30, default='available')
+    last_location_update = models.DateTimeField(null=True, blank=True)
+    total_deliveries = models.IntegerField(default=0)
 
     def __str__(self):
         return f"Driver: {self.user.username} ({self.vehicle_type})"
 
 class Delivery(models.Model):
+    STATUS_CHOICES = (
+        ('assigned', 'Assigned'),
+        ('accepted', 'Accepted'),
+        ('arrived_at_restaurant', 'Arrived at Restaurant'),
+        ('picked_up', 'Picked Up'),
+        ('on_the_way', 'On the Way'),
+        ('arrived', 'Arrived at Customer'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    )
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='delivery')
     driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='deliveries')
     pickup_time = models.DateTimeField(null=True, blank=True)
     delivery_time = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, default='assigned')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='assigned')
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = 'Deliveries'
 
     def __str__(self):
         return f"Delivery for Order #{self.order_id} ({self.status})"
+
+class DeliveryConfirmationToken(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='delivery_token')
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='delivery_tokens')
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    verification_pin = models.CharField(max_length=6, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True)
+    is_used = models.BooleanField(default=False, db_index=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    confirmed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='confirmed_deliveries')
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Delivery Confirmation Token'
+        verbose_name_plural = 'Delivery Confirmation Tokens'
+
+    def __str__(self):
+        status = 'USED' if self.is_used else ('EXPIRED' if self.is_expired() else 'ACTIVE')
+        return f"Delivery Token for Order #{self.order_id} ({status})"
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def is_valid(self):
+        return not self.is_used and not self.is_expired()
+
 
 class Review(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='review')
@@ -220,13 +309,19 @@ class Review(models.Model):
 class Favorite(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('customer', 'restaurant')
 
     def __str__(self):
         return f"{self.customer.username} - {self.restaurant.name}"
     
 class Coupon(models.Model):
     code = models.CharField(max_length=20, unique=True)
-    discount_percent = models.IntegerField()
+    discount_percent = models.IntegerField(default=10)
+    max_discount_amount = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    min_order_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -236,8 +331,13 @@ class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=100)
     message = models.TextField()
+    notification_type = models.CharField(max_length=50, default='system')
+    data = models.JSONField(default=dict, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.title} -> {self.user.username}"

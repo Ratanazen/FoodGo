@@ -13,7 +13,7 @@ def custom_get_app_list(request, app_label=None):
     new_app_list = []
     for app in app_list:
         if app['app_label'] == 'core':
-            users_models, restaurant_models, order_models, marketing_models = [], [], [], []
+            users_models, restaurant_models, order_models, finance_models, marketing_models = [], [], [], [], []
 
             for model in app['models']:
                 name = model['object_name']
@@ -21,8 +21,10 @@ def custom_get_app_list(request, app_label=None):
                     users_models.append(model)
                 elif name in ['Restaurant', 'RestaurantCategory', 'FoodCategory', 'FoodItem']:
                     restaurant_models.append(model)
-                elif name in ['Order', 'OrderItem', 'Cart', 'CartItem', 'Delivery', 'Payment', 'Review']:
+                elif name in ['Order', 'OrderItem', 'Cart', 'CartItem', 'Delivery', 'Review']:
                     order_models.append(model)
+                elif name in ['Payment', 'Wallet', 'WalletTransaction']:
+                    finance_models.append(model)
                 else:
                     marketing_models.append(model)
 
@@ -33,11 +35,13 @@ def custom_get_app_list(request, app_label=None):
                 new_app_list.append({**base, 'name': 'Restaurants & Food', 'app_label': 'core_restaurants', 'models': restaurant_models})
             if order_models:
                 new_app_list.append({**base, 'name': 'Orders & Deliveries', 'app_label': 'core_orders', 'models': order_models})
+            if finance_models:
+                new_app_list.append({**base, 'name': 'Finance & Wallets', 'app_label': 'core_finance', 'models': finance_models})
             if marketing_models:
                 new_app_list.append({**base, 'name': 'Marketing & Promotions', 'app_label': 'core_marketing', 'models': marketing_models})
             
             # Remove the original core app to avoid duplicates
-            if users_models or restaurant_models or order_models or marketing_models:
+            if users_models or restaurant_models or order_models or finance_models or marketing_models:
                 continue
         new_app_list.append(app)
     return new_app_list
@@ -52,7 +56,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
     User, Address, RestaurantCategory, Restaurant, FoodCategory,
     FoodItem, Order, OrderItem, Cart, CartItem, Payment, Driver,
-    Delivery, Review, Favorite, Coupon, Notification, LiveItem,
+    Delivery, DeliveryConfirmationToken, Review, Favorite, Coupon, Notification, LiveItem,
+    Wallet, WalletTransaction,
 )
 
 # ─────────────────────────────────────────────
@@ -76,6 +81,13 @@ def custom_admin_index(request, extra_context=None):
     pending_orders = Order.objects.filter(status='pending').count()
     total_revenue = Order.objects.filter(status='delivered').aggregate(
         total=Sum('total_amount'))['total'] or 0
+    total_revenue_khr = f"{int(float(total_revenue) * 4100):,}"
+
+    from .models import Wallet, WalletTransaction
+    total_wallet_balance = Wallet.objects.aggregate(total=Sum('balance'))['total'] or 0
+    total_wallet_balance_khr = f"{int(float(total_wallet_balance) * 4100):,}"
+    recent_wallet_txns = WalletTransaction.objects.select_related('wallet__user').order_by('-created_at')[:6]
+
     total_users = User.objects.count()
     customer_count = User.objects.filter(role='customer').count()
     total_restaurants = Restaurant.objects.count()
@@ -116,11 +128,15 @@ def custom_admin_index(request, extra_context=None):
             status_counts[row['status']] = row['c']
     status_data = list(status_counts.values())
 
-    extra_context = extra_context or {}
+    if extra_context is None:
+        extra_context = {}
     extra_context.update({
         'total_orders': total_orders,
         'pending_orders': pending_orders,
         'total_revenue': f'{total_revenue:,.2f}',
+        'total_revenue_khr': total_revenue_khr,
+        'total_wallet_balance': f'{total_wallet_balance:,.2f}',
+        'total_wallet_balance_khr': total_wallet_balance_khr,
         'total_users': total_users,
         'customer_count': customer_count,
         'total_restaurants': total_restaurants,
@@ -129,6 +145,7 @@ def custom_admin_index(request, extra_context=None):
         'total_drivers': total_drivers,
         'online_drivers': online_drivers,
         'recent_orders': recent_orders,
+        'recent_wallet_txns': recent_wallet_txns,
         'top_restaurants': top_restaurants,
         'chart_labels': json.dumps(chart_labels),
         'chart_data': json.dumps(chart_data),
@@ -724,4 +741,82 @@ class LiveItemAdmin(admin.ModelAdmin):
     list_filter = ['is_live', 'created_at']
     search_fields = ['name', 'description']
     list_editable = ['is_live']
+
+
+class WalletTransactionInline(admin.TabularInline):
+    model = WalletTransaction
+    extra = 0
+    readonly_fields = ['amount', 'transaction_type', 'description', 'created_at']
+    can_delete = False
+
+
+@admin.register(Wallet)
+class WalletAdmin(admin.ModelAdmin):
+    list_display = ['user', 'balance_display', 'transactions_count']
+    search_fields = ['user__username', 'user__email']
+    readonly_fields = ['transactions_count']
+    inlines = [WalletTransactionInline]
+
+    @admin.display(description='Balance (USD & KHR)')
+    def balance_display(self, obj):
+        khr = int(float(obj.balance) * 4100)
+        return format_html(
+            '<strong style="color:#27ae60;font-size:14px;">${:.2f}</strong> <span style="color:#888;font-size:11px;">(≈ ៛{:,} KHR)</span>',
+            obj.balance, khr
+        )
+
+    @admin.display(description='Transactions')
+    def transactions_count(self, obj):
+        count = obj.transactions.count()
+        return format_html('<span style="background:#34495e;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">{} txns</span>', count)
+
+
+@admin.register(WalletTransaction)
+class WalletTransactionAdmin(admin.ModelAdmin):
+    list_display = ['wallet_user', 'transaction_type_badge', 'amount_display', 'description', 'created_at']
+    list_filter = ['transaction_type', 'created_at']
+    search_fields = ['wallet__user__username', 'description']
+    readonly_fields = ['wallet', 'amount', 'transaction_type', 'description', 'created_at']
+
+    @admin.display(description='User')
+    def wallet_user(self, obj):
+        return obj.wallet.user.username
+
+    @admin.display(description='Type')
+    def transaction_type_badge(self, obj):
+        colors = {
+            'deposit': '#27ae60',
+            'withdrawal': '#e67e22',
+            'payment': '#2980b9',
+            'refund': '#8e44ad',
+        }
+        color = colors.get(obj.transaction_type, '#95a5a6')
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">{}</span>',
+            color, obj.get_transaction_type_display()
+        )
+
+    @admin.display(description='Amount')
+    def amount_display(self, obj):
+        is_pos = obj.transaction_type in ('deposit', 'refund')
+        sign = '+' if is_pos else '-'
+        color = '#27ae60' if is_pos else '#e74c3c'
+        return format_html('<strong style="color:{};">{}${:.2f}</strong>', color, sign, obj.amount)
+
+
+@admin.register(DeliveryConfirmationToken)
+class DeliveryConfirmationTokenAdmin(admin.ModelAdmin):
+    list_display = ('id', 'order_link', 'driver_name', 'verification_pin', 'is_used', 'created_at', 'expires_at')
+    list_filter = ('is_used', 'created_at')
+    search_fields = ('token', 'verification_pin', 'order__id', 'driver__user__username')
+    readonly_fields = ('created_at', 'used_at', 'token', 'verification_pin', 'confirmed_by', 'ip_address', 'user_agent')
+
+    @admin.display(description='Order')
+    def order_link(self, obj):
+        return f"Order #{obj.order_id}"
+
+    @admin.display(description='Driver')
+    def driver_name(self, obj):
+        return obj.driver.user.get_full_name() or obj.driver.user.username
+
 

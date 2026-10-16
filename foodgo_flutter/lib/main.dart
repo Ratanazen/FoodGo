@@ -4,6 +4,7 @@ import 'app/router/app_router.dart';
 import 'app/theme/app_theme.dart';
 import 'core/config/app_config.dart';
 import 'core/theme/glass_theme.dart';
+import 'providers/address_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/favorites_provider.dart';
@@ -12,8 +13,18 @@ import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'widgets/connectivity_banner.dart';
 
+import 'package:flutter/services.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('FoodGo Global Error: ${details.exception}');
+  };
   await AppConfig.init();
   runApp(
     MultiProvider(
@@ -24,6 +35,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()..fetchUser()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
+        ChangeNotifierProvider(create: (_) => AddressProvider()..fetchAddresses()),
       ],
       child: const FoodGoApp(),
     ),
@@ -45,8 +57,9 @@ class FoodGoApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           routerConfig: appRouter,
           builder: (context, child) {
+            final isDark = themeProvider.isDarkMode;
             return Container(
-              color: GlassTheme.backgroundDark,
+              color: isDark ? GlassTheme.backgroundDark : const Color(0xFFF8F9FA),
               child: ConnectivityBanner(child: child!),
             );
           },

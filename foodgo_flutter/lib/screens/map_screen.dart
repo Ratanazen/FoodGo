@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
@@ -12,7 +13,7 @@ import '../core/config/app_config.dart';
 import '../widgets/glass/glass_widgets.dart';
 import '../widgets/glass_container.dart';
 import '../services/api_service.dart';
-import '../widgets/delivery_qr_modal.dart';
+import '../widgets/delivery_scanner_modal.dart';
 import 'map_screen_location.dart';
 
 class MapScreen extends StatefulWidget {
@@ -884,13 +885,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(color: GlassTheme.primaryGreen.withValues(alpha: 0.6)),
                                   ),
-                                  child: const Icon(Icons.qr_code_2, color: GlassTheme.primaryGreen, size: 18),
+                                  child: const Icon(Icons.qr_code_scanner, color: GlassTheme.primaryGreen, size: 18),
                                 ),
-                                tooltip: 'Delivery Handover QR',
-                                onPressed: () => DeliveryQrModal.show(
+                                tooltip: 'Scan Driver QR to Confirm Delivery',
+                                onPressed: () => DeliveryScannerModal.show(
                                   context,
                                   orderId: widget.orderId.toString(),
-                                  status: _orderStatus,
+                                  onConfirmed: () => _fetchOrderTrackingData(),
                                 ),
                               ),
                               const SizedBox(width: 4),
@@ -906,9 +907,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                 tooltip: 'Call Driver',
                                 onPressed: () {
                                   final phone = _driverInfo!['phone'] ?? '+855 12 888 999';
+                                  Clipboard.setData(ClipboardData(text: phone));
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Calling Driver at $phone...'),
+                                      content: Text('Calling Driver at $phone (copied to clipboard)'),
                                       backgroundColor: GlassTheme.primaryGreen,
                                       behavior: SnackBarBehavior.floating,
                                     ),

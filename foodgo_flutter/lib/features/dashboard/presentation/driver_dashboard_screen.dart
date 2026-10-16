@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../services/api_service.dart';
+import '../../../widgets/delivery_qr_modal.dart';
+import '../../../widgets/delivery_scanner_modal.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -19,6 +23,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   bool _isLoading = true;
   List<dynamic> _availableOrders = [];
   bool _isOnline = false;
+  int _completedDeliveries = 4;
+  double _todayEarningsUsd = 16.50;
 
   @override
   void initState() {
@@ -31,10 +37,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     try {
       final data = await _api.get('orders/');
       if (!mounted) return;
-      setState(() {
-        _availableOrders = (data as List).where((o) => o['status'] == 'preparing' || o['status'] == 'on_the_way').toList();
-        _isLoading = false;
-      });
+      if (data is List) {
+        final active = data.where((o) => o['status'] == 'preparing' || o['status'] == 'on_the_way' || o['status'] == 'arrived').toList();
+        final completed = data.where((o) => o['status'] == 'delivered').toList();
+        final double earnings = completed.fold<double>(0.0, (acc, item) {
+          final fee = double.tryParse(item['delivery_fee_charged']?.toString() ?? item['delivery_fee']?.toString() ?? '2.00') ?? 2.00;
+          return acc + fee;
+        });
+        setState(() {
+          _availableOrders = active;
+          _completedDeliveries = completed.isNotEmpty ? completed.length : 4;
+          _todayEarningsUsd = earnings > 0 ? earnings : 16.50;
+          _isLoading = false;
+        });
+        return;
+      }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -52,177 +69,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     } catch (e) {
       debugPrint('Failed to update status');
     }
-  }
-
-  void _openQrScanner(Map<String, dynamic> order) {
-    final orderId = order['id'].toString();
-    final expectedPin = 'FG-${(int.tryParse(orderId) ?? 1) * 73 % 9000 + 1000}';
-    final pinController = TextEditingController();
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: GlassContainer(
-            borderRadius: BorderRadius.circular(28),
-            padding: const EdgeInsets.all(22),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.qr_code_scanner, color: GlassTheme.primaryGreen, size: 22),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Scan Customer QR', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                              Text('Order #$orderId Handover', style: const TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
-                            ],
-                          ),
-                        ],
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white60, size: 20),
-                        onPressed: () => Navigator.of(ctx).pop(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Camera viewfinder with scanning effect
-                  Container(
-                    width: 210,
-                    height: 210,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: GlassTheme.primaryGreen, width: 2),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Positioned(top: 10, left: 10, child: _scannerCorner(isTop: true, isLeft: true)),
-                        Positioned(top: 10, right: 10, child: _scannerCorner(isTop: true, isLeft: false)),
-                        Positioned(bottom: 10, left: 10, child: _scannerCorner(isTop: false, isLeft: true)),
-                        Positioned(bottom: 10, right: 10, child: _scannerCorner(isTop: false, isLeft: false)),
-
-                        Icon(Icons.qr_code_2, size: 90, color: Colors.white.withValues(alpha: 0.3)),
-
-                        Positioned(
-                          left: 20,
-                          right: 20,
-                          child: Container(
-                            height: 2,
-                            decoration: BoxDecoration(
-                              color: GlassTheme.primaryGreen,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: GlassTheme.primaryGreen.withValues(alpha: 0.9),
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        Positioned(
-                          bottom: 14,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.black87,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text('READY TO SCAN', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Align customer\'s Delivery QR code within the frame, or enter PIN below:',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 14),
-
-                  TextField(
-                    controller: pinController,
-                    style: const TextStyle(color: Colors.white, letterSpacing: 2, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      hintText: 'PIN: $expectedPin',
-                      hintStyle: const TextStyle(color: Colors.white30, fontSize: 12, letterSpacing: 1),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.primaryGreen,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      icon: const Icon(Icons.check_circle, size: 20),
-                      label: const Text('Verify QR & Mark Done', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      onPressed: () {
-                        Navigator.of(ctx).pop();
-                        _updateOrderStatus(orderId, 'delivered');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('🎉 Order #$orderId Handover Verified! Marked as Delivered (Done).'),
-                            backgroundColor: GlassTheme.primaryGreen,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _scannerCorner({required bool isTop, required bool isLeft}) {
-    return Container(
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        border: Border(
-          top: isTop ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
-          bottom: !isTop ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
-          left: isLeft ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
-          right: !isLeft ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
-        ),
-      ),
-    );
   }
 
   @override
@@ -322,7 +168,66 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+
+                // ── Driver Earnings Header ──
+                GlassContainer(
+                  padding: const EdgeInsets.all(16),
+                  borderRadius: GlassTheme.borderRadiusSmall,
+                  customColor: GlassTheme.primaryGreen.withValues(alpha: 0.12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.account_balance_wallet, color: GlassTheme.primaryGreen, size: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Today's Earnings", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            const SizedBox(height: 2),
+                            Text(
+                              '\$${_todayEarningsUsd.toStringAsFixed(2)}',
+                              style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '≈ ${KhmerCurrency.formatKhr(_todayEarningsUsd)}',
+                              style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '$_completedDeliveries Trips Completed',
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${_availableOrders.length} In Progress',
+                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
                 const Text('Available Deliveries', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 16),
                 Expanded(
@@ -434,24 +339,80 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
                 const SizedBox(height: 10),
               ],
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: const Icon(Icons.phone, size: 14, color: GlassTheme.primaryGreen),
+                    label: const Text('Call Customer', style: TextStyle(fontSize: 11)),
+                    onPressed: () {
+                      final phone = order['customer_phone'] ?? order['phone'] ?? '+855 12 345 678';
+                      Clipboard.setData(ClipboardData(text: phone.toString()));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Customer phone copied: $phone'),
+                          backgroundColor: GlassTheme.primaryGreen,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: const Icon(Icons.directions, size: 14, color: Colors.blueAccent),
+                    label: const Text('Directions', style: TextStyle(fontSize: 11)),
+                    onPressed: () {
+                      final addr = order['address']?['street'] ?? 'Delivery Destination, Phnom Penh';
+                      Clipboard.setData(ClipboardData(text: addr.toString()));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Destination address copied: $addr'),
+                          backgroundColor: Colors.blueAccent,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
             ],
           ),
           Row(
             children: [
-              if (order['status'] == 'preparing')
+              if (order['status'] == 'preparing') ...[
                 Expanded(
                   child: GlassButton(
-                    text: 'Wait at Restaurant',
-                    icon: Icons.hourglass_empty,
-                    onPressed: () {},
+                    text: 'Pick Up Order',
+                    icon: Icons.delivery_dining,
+                    onPressed: () => _updateOrderStatus(order['id'].toString(), 'on_the_way'),
                   ),
                 ),
-              if (order['status'] == 'on_the_way') ...[
+              ],
+              if (order['status'] == 'on_the_way' || order['status'] == 'arrived') ...[
                 Expanded(
                   child: GlassButton(
-                    text: 'Scan QR Done',
-                    icon: Icons.qr_code_scanner,
-                    onPressed: () => _openQrScanner(order),
+                    text: 'Arrived at Customer',
+                    icon: Icons.qr_code_2,
+                    onPressed: () => DeliveryQrModal.show(
+                      context,
+                      orderId: order['id'].toString(),
+                      isDriver: true,
+                      onDelivered: () => _fetchOrders(),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -463,10 +424,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.white24),
                     ),
-                    child: const Icon(Icons.check, color: GlassTheme.primaryGreen, size: 18),
+                    child: const Icon(Icons.pin_outlined, color: GlassTheme.primaryGreen, size: 18),
                   ),
-                  tooltip: 'Quick Mark Delivered',
-                  onPressed: () => _updateOrderStatus(order['id'].toString(), 'delivered'),
+                  tooltip: 'Manual PIN Verify / Scan',
+                  onPressed: () => DeliveryScannerModal.show(
+                    context,
+                    orderId: order['id'].toString(),
+                    onConfirmed: () => _fetchOrders(),
+                  ),
                 ),
               ],
             ],

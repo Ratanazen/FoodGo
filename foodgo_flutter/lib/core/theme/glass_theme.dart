@@ -70,6 +70,7 @@ class GlassTheme {
   static const Color borderDark = Color(0x66FFFFFF);
 
   static BorderRadius get borderRadius => BorderRadius.circular(radius);
+  static BorderRadius get borderRadiusMedium => BorderRadius.circular(AppRadius.medium);
   static BorderRadius get borderRadiusSmall => BorderRadius.circular(16.0);
 
   static const LinearGradient primaryGradient = LinearGradient(

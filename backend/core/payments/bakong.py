@@ -18,10 +18,7 @@ class BakongKHQRProvider(PaymentProvider):
 
     def __init__(self):
         self.enabled = os.environ.get("BAKONG_ENABLED", "True").lower() in ("true", "1", "yes")
-        self.api_token = os.environ.get(
-            "BAKONG_API_TOKEN",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiYzczYTkwNDgyZTRlNDc4NSJ9LCJpYXQiOjE3OTAwNDU2MjEsImV4cCI6MTc5NzgyMTYyMX0.nUhrFmVcRMwA5hM08FE8eY92BsxrKhkkJRK7ML2-dKQ"
-        )
+        self.api_token = os.environ.get("BAKONG_API_TOKEN", "")
         self.api_url = os.environ.get(
             "BAKONG_API_URL",
             "https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5"
@@ -51,7 +48,7 @@ class BakongKHQRProvider(PaymentProvider):
         Builds a compliant EMVCo Dynamic KHQR string and computes its 32-char MD5 tracking hash.
         """
         currency_code = "840" if currency.upper() == "USD" else "116"
-        formatted_amount = f"{float(amount):.2f}"
+        formatted_amount = f"{int(float(amount))}" if currency.upper() == "KHR" else f"{float(amount):.2f}"
 
         # Tag 29: Merchant Account Information
         tag_29_val = self._tlv("00", "bakong@khqr") + self._tlv("01", self.account_id)

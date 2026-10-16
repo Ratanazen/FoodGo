@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../providers/user_provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/svg_icon.dart';
+import '../../../widgets/my_qr_modal.dart';
 import '../../../services/api_service.dart';
+import '../../../core/utils/khmer_currency.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -22,6 +26,7 @@ class _WalletScreenState extends State<WalletScreen> {
   Map<String, dynamic>? _wallet;
   final TextEditingController _amountController = TextEditingController(text: '10.00');
   final List<double> _quickAmounts = [5.00, 10.00, 20.00, 50.00, 100.00];
+  String _txFilter = 'all';
 
   @override
   void initState() {
@@ -171,6 +176,11 @@ class _WalletScreenState extends State<WalletScreen> {
                   Text(
                     '\$${amount.toStringAsFixed(2)} USD',
                     style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 26, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '≈ ${KhmerCurrency.formatKhr(amount)} KHR',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text('Ref: $merchantRef', style: TextStyle(color: GlassTheme.textMuted, fontSize: 11)),
@@ -342,13 +352,60 @@ class _WalletScreenState extends State<WalletScreen> {
                               '\$$balance',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 40,
+                                fontSize: 38,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 0.5,
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text('USD Currency · Live Balance', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                            Text(
+                              '≈ ${KhmerCurrency.formatKhr(double.tryParse(balance.toString()) ?? 0.0)} KHR',
+                              style: const TextStyle(
+                                color: GlassTheme.primaryGreen,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text('Live Dual Balance · អត្រា ៤,១០០ ៛/USD', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                            const SizedBox(height: 14),
+                            InkWell(
+                              onTap: () {
+                                final user = context.read<UserProvider>().user;
+                                MyQrModal.show(
+                                  context,
+                                  user: user,
+                                  initialAmount: double.tryParse(_amountController.text.trim()) ?? 0.0,
+                                  onReceivePayment: (amt) async {
+                                    await _instantTopUp(amt);
+                                  },
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: GlassTheme.bakongRed.withValues(alpha: 0.16),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: GlassTheme.bakongRed.withValues(alpha: 0.45)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.qr_code_2, size: 20, color: Colors.redAccent),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'My QR (Pay Me / ទទួលប្រាក់)',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -368,7 +425,7 @@ class _WalletScreenState extends State<WalletScreen> {
                             onTap: () => setState(() => _amountController.text = amt.toStringAsFixed(2)),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? GlassTheme.primaryGreen.withValues(alpha: 0.3)
@@ -379,9 +436,10 @@ class _WalletScreenState extends State<WalletScreen> {
                                 ),
                               ),
                               child: Text(
-                                '+\$${amt.toStringAsFixed(0)}',
+                                '+\$${amt.toStringAsFixed(0)} (${KhmerCurrency.formatKhr(amt)})',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 12,
                                   color: isSelected ? GlassTheme.primaryGreen : Colors.white,
                                 ),
                               ),
@@ -454,73 +512,144 @@ class _WalletScreenState extends State<WalletScreen> {
                       const SizedBox(height: 28),
 
                       // Transactions Header
-                      const Text('Transaction History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Transaction History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text('${transactions.length} total', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                        ],
+                      ),
                       const SizedBox(height: 12),
 
-                      if (transactions.isEmpty)
-                        GlassCard(
-                          padding: const EdgeInsets.all(24),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Icon(Icons.receipt_long_outlined, size: 48, color: GlassTheme.textMuted),
-                                const SizedBox(height: 8),
-                                Text('No transactions yet', style: TextStyle(color: GlassTheme.textMuted)),
-                              ],
+                      // Filter Chips
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildTxFilterChip('All', 'all', transactions.length),
+                            const SizedBox(width: 8),
+                            _buildTxFilterChip(
+                              '+ Top-Ups', 
+                              'deposit', 
+                              transactions.where((t) => t['transaction_type'] == 'deposit').length,
                             ),
-                          ),
-                        )
-                      else
-                        ...transactions.reversed.map((tx) {
-                          final isDeposit = tx['transaction_type'] == 'deposit';
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10.0),
-                            child: GlassCard(
-                              padding: const EdgeInsets.all(14),
-                              child: Row(
+                            const SizedBox(width: 8),
+                            _buildTxFilterChip(
+                              '- Payments', 
+                              'payment', 
+                              transactions.where((t) => t['transaction_type'] != 'deposit').length,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      () {
+                        final filteredTxs = transactions.where((tx) {
+                          if (_txFilter == 'deposit') return tx['transaction_type'] == 'deposit';
+                          if (_txFilter == 'payment') return tx['transaction_type'] != 'deposit';
+                          return true;
+                        }).toList();
+
+                        if (filteredTxs.isEmpty) {
+                          return GlassCard(
+                            padding: const EdgeInsets.all(24),
+                            child: Center(
+                              child: Column(
                                 children: [
-                                  CircleAvatar(
-                                    backgroundColor: (isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent)
-                                        .withValues(alpha: 0.2),
-                                    child: Icon(
-                                      isDeposit ? Icons.arrow_downward : Icons.arrow_upward,
-                                      color: isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent,
-                                      size: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          tx['description'] ?? (isDeposit ? 'Deposit' : 'Payment'),
-                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                                        ),
-                                        Text(
-                                          tx['transaction_type'].toString().toUpperCase(),
-                                          style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  Icon(Icons.receipt_long_outlined, size: 48, color: GlassTheme.textMuted),
+                                  const SizedBox(height: 8),
                                   Text(
-                                    '${isDeposit ? '+' : '-'}\$${tx['amount']}',
-                                    style: TextStyle(
-                                      color: isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                                    _txFilter == 'all'
+                                        ? 'No transactions yet'
+                                        : 'No ${_txFilter == 'deposit' ? 'top-up' : 'payment'} transactions found',
+                                    style: TextStyle(color: GlassTheme.textMuted),
                                   ),
                                 ],
                               ),
                             ),
                           );
-                        }),
+                        }
+
+                        return Column(
+                          children: filteredTxs.reversed.map((tx) {
+                            final isDeposit = tx['transaction_type'] == 'deposit';
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10.0),
+                              child: GlassCard(
+                                padding: const EdgeInsets.all(14),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: (isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent)
+                                          .withValues(alpha: 0.2),
+                                      child: Icon(
+                                        isDeposit ? Icons.arrow_downward : Icons.arrow_upward,
+                                        color: isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            tx['description'] ?? (isDeposit ? 'Deposit (បញ្ចូលប្រាក់)' : 'Payment (ទូទាត់ប្រាក់)'),
+                                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                          ),
+                                          Text(
+                                            '${tx['transaction_type'].toString().toUpperCase()} • ${KhmerCurrency.formatKhr(double.tryParse(tx['amount']?.toString() ?? '0') ?? 0.0)}',
+                                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      '${isDeposit ? '+' : '-'}\$${tx['amount']}',
+                                      style: TextStyle(
+                                        color: isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      }(),
                       const SizedBox(height: 40),
                     ],
                   ),
                 ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTxFilterChip(String label, String value, int count) {
+    final isSelected = _txFilter == value;
+    return InkWell(
+      onTap: () => setState(() => _txFilter = value),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? GlassTheme.primaryGreen.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? GlassTheme.primaryGreen : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Text(
+          '$label ($count)',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? GlassTheme.primaryGreen : Colors.white70,
+          ),
         ),
       ),
     );

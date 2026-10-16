@@ -5,9 +5,11 @@ import '../core/network/api_client.dart';
 import '../core/storage/secure_storage.dart';
 
 class ApiService {
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
   final ApiClient _apiClient;
 
-  ApiService() : _apiClient = ApiClient(SecureStorage());
+  ApiService._internal() : _apiClient = ApiClient(SecureStorage());
 
   Future<dynamic> get(String endpoint) async {
     try {
@@ -30,12 +32,32 @@ class ApiService {
     }
   }
 
+  Future<dynamic> put(String endpoint, dynamic data) async {
+    try {
+      final response = await _apiClient.dio.put(endpoint, data: data);
+      return response.data;
+    } on DioException catch (e) {
+      debugPrint('PUT error: ${e.message}');
+      rethrow;
+    }
+  }
+
   Future<dynamic> post(String endpoint, dynamic data) async {
     try {
       final response = await _apiClient.dio.post(endpoint, data: data);
       return response.data;
     } on DioException catch (e) {
       debugPrint('POST error: ${e.message}');
+      rethrow;
+    }
+  }
+
+  Future<dynamic> delete(String endpoint) async {
+    try {
+      final response = await _apiClient.dio.delete(endpoint);
+      return response.data;
+    } on DioException catch (e) {
+      debugPrint('DELETE error: ${e.message}');
       rethrow;
     }
   }

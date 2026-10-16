@@ -20,15 +20,24 @@ class RestaurantProvider with ChangeNotifier {
     _loadFromCache();
   }
 
+  static const Duration _cacheTtl = Duration(minutes: 15);
+
   Future<void> _loadFromCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final cachedTime = prefs.getInt('cached_restaurants_timestamp');
       final cached = prefs.getString('cached_restaurants_v2');
       if (cached != null && cached.isNotEmpty && _restaurants.isEmpty) {
         final List<dynamic> decoded = jsonDecode(cached);
         if (decoded.isNotEmpty) {
           _restaurants = decoded;
           notifyListeners();
+        }
+      }
+      if (cachedTime != null) {
+        final cachedDate = DateTime.fromMillisecondsSinceEpoch(cachedTime);
+        if (DateTime.now().difference(cachedDate) > _cacheTtl) {
+          fetchRestaurants();
         }
       }
     } catch (_) {}
@@ -38,6 +47,7 @@ class RestaurantProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('cached_restaurants_v2', jsonEncode(data));
+      await prefs.setInt('cached_restaurants_timestamp', DateTime.now().millisecondsSinceEpoch);
     } catch (_) {}
   }
 

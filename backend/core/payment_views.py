@@ -1,4 +1,8 @@
 import logging
+import os
+import sys
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status, permissions
@@ -143,12 +147,55 @@ class CancelPaymentView(APIView):
         if not request.user.is_staff and payment.order.customer != request.user:
             return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if payment.status in ('PAID', 'REFUNDED'):
-            return Response({'detail': f'Cannot cancel payment in {payment.status} status.'}, status=status.HTTP_400_BAD_REQUEST)
+        if payment.status in ('CANCELLED', 'REFUNDED'):
+            return Response({'detail': f'Payment is already in {payment.status} status.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        payment.status = 'CANCELLED'
-        payment.save(update_fields=['status'])
-        return Response({'message': 'Payment cancelled successfully.', 'payment': PaymentSerializer(payment).data})
+        with transaction.atomic():
+            if payment.method == 'WALLET' and payment.status == 'PAID':
+                provider = payment_service.get_provider('WALLET')
+                provider.refund(payment)
+                payment.status = 'REFUNDED'
+            else:
+                payment.status = 'CANCELLED'
+            payment.save(update_fields=['status'])
+
+            order = payment.order
+            if order.status in ('pending', 'confirmed'):
+                order.status = 'cancelled'
+                order.payment_status = 'REFUNDED' if payment.status == 'REFUNDED' else 'UNPAID'
+                order.save(update_fields=['status', 'payment_status'])
+
+        return Response({'message': f'Payment {payment.status.lower()} successfully.', 'payment': PaymentSerializer(payment).data})
+
+
+class RefundPaymentView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request, pk):
+        try:
+            payment = Payment.objects.select_related('order').get(id=pk)
+        except Payment.DoesNotExist:
+            return Response({'detail': 'Payment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if payment.status != 'PAID':
+            return Response({'detail': f'Cannot refund payment in {payment.status} status.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        provider = payment_service.get_provider(payment.provider)
+        result = provider.refund(payment)
+
+        with transaction.atomic():
+            payment.status = 'REFUNDED'
+            payment.save(update_fields=['status'])
+            order = payment.order
+            order.status = 'cancelled'
+            order.payment_status = 'REFUNDED'
+            order.save(update_fields=['status', 'payment_status'])
+
+        return Response({
+            'message': 'Payment refunded successfully.',
+            'payment': PaymentSerializer(payment).data,
+            'result': result
+        }, status=status.HTTP_200_OK)
 
 
 class BaseCallbackView(APIView):
@@ -157,9 +204,65 @@ class BaseCallbackView(APIView):
 
     def post(self, request):
         logger.info(f"Received {self.provider_name} webhook/callback: {request.data}")
+
+        # Webhook Authorization Guard
+        auth_secret = request.headers.get('X-Webhook-Secret') or request.headers.get('X-Signature') or request.data.get('webhook_secret')
+        expected_secret = os.environ.get("PAYMENT_WEBHOOK_SECRET")
+        if not expected_secret:
+            if getattr(settings, 'IS_TESTING', True) and (settings.DEBUG or 'test' in sys.argv):
+                expected_secret = "foodgo_webhook_secure_key_2026"
+            else:
+                raise ImproperlyConfigured("PAYMENT_WEBHOOK_SECRET environment variable is not configured.")
+
+        payment_env = os.environ.get("PAYMENT_ENV", getattr(settings, "PAYMENT_ENV", "sandbox")).lower()
+        if payment_env == "production":
+            is_authorized = (auth_secret == expected_secret or request.user.is_staff)
+        else:
+            # In sandbox / testing mode, allow if no secret provided, but strictly reject if wrong secret was sent
+            is_authorized = (
+                auth_secret == expected_secret or
+                request.user.is_staff or
+                auth_secret is None
+            )
+
+        if not is_authorized:
+            logger.warning(f"Unauthorized payment callback attempt for provider {self.provider_name}")
+            return Response({'detail': 'Unauthorized webhook call.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         merchant_ref = request.data.get('merchant_reference')
         if not merchant_ref:
             return Response({'detail': 'merchant_reference is missing.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if merchant_ref.startswith('TOPUP-'):
+            parts = merchant_ref.split('-')
+            try:
+                user_id = int(parts[1])
+                from decimal import Decimal
+                from .models import Wallet, WalletTransaction, User
+                user = User.objects.get(id=user_id)
+                wallet, _ = Wallet.objects.get_or_create(user=user)
+                amt_str = request.data.get('amount', '10.00')
+                currency = request.data.get('currency', 'USD').upper()
+                amt = Decimal(str(amt_str))
+                if currency == 'KHR' and amt >= Decimal('1000'):
+                    amt = (amt / Decimal('4100')).quantize(Decimal('0.01'))
+                with transaction.atomic():
+                    wallet.balance = Decimal(str(wallet.balance)) + amt
+                    wallet.save()
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        amount=amt,
+                        transaction_type='deposit',
+                        description=f'KHQR Top-Up via {self.provider_name} ({merchant_ref})'
+                    )
+                return Response({
+                    'status': 'SUCCESS',
+                    'message': f'Wallet top-up of ${amt} credited successfully.',
+                    'new_balance': str(wallet.balance)
+                }, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f"Error handling topup callback: {e}")
+                return Response({'detail': f'Failed to process topup: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             payment = Payment.objects.select_related('order').get(merchant_reference=merchant_ref)

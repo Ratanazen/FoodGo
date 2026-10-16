@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +12,8 @@ import '../../../widgets/lottie_assets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
-import '../../../widgets/delivery_qr_modal.dart';
+import '../../../widgets/delivery_scanner_modal.dart';
+import '../../../core/utils/khmer_currency.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -25,6 +27,34 @@ class _OrdersScreenState extends State<OrdersScreen> {
   bool _isLoading = true;
   String? _error;
   String _selectedFilter = 'All';
+  Timer? _pollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) _fetchOrdersSilently();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchOrdersSilently() async {
+    try {
+      final data = await ApiService().get('orders/');
+      final List<dynamic> orders =
+          data is List ? data : (data['results'] as List<dynamic>? ?? []);
+      if (!mounted) return;
+      setState(() {
+        _orders = orders;
+      });
+    } catch (_) {}
+  }
 
   List<dynamic> get _filteredOrders {
     if (_selectedFilter == 'All') return _orders;
@@ -84,11 +114,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
     context.push('/cart');
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchOrders();
-  }
 
   Future<void> _fetchOrders() async {
     setState(() {
@@ -377,7 +402,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '$itemCount items • \$${order['total_amount']}',
+                        '$itemCount items • \$${order['total_amount']} (${KhmerCurrency.formatKhr(double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0)})',
                         style: TextStyle(color: GlassTheme.textMuted),
                       ),
                       const SizedBox(height: 4),
@@ -411,7 +436,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     onPressed: () => _showOrderBillDialog(order),
                   ),
                 ),
-                if (_isInProgress(status) || status == 'on_delivery' || status == 'picked_up') ...[
+                if (_isInProgress(status) || status == 'on_delivery' || status == 'picked_up' || status == 'arrived') ...[
+                  if (status == 'pending') ...[
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.redAccent,
+                        side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.6)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      ),
+                      onPressed: () => _confirmCancelOrder(order),
+                      child: const Text('Cancel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                   const SizedBox(width: 8),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
@@ -420,12 +458,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                     ),
-                    icon: const Icon(Icons.qr_code_2, size: 16),
-                    label: const Text('QR', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    onPressed: () => DeliveryQrModal.show(
+                    icon: const Icon(Icons.qr_code_scanner, size: 16),
+                    label: const Text('Confirm', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    onPressed: () => DeliveryScannerModal.show(
                       context,
                       orderId: order['id'].toString(),
-                      status: status,
+                      onConfirmed: () => _fetchOrders(),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -438,7 +476,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ),
                   ),
                 ] else ...[
-                  const SizedBox(width: 10),
+                  if (status == 'delivered') ...[
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.amber,
+                        side: BorderSide(color: Colors.amber.withValues(alpha: 0.6)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      ),
+                      icon: const Icon(Icons.star, size: 16, color: Colors.amber),
+                      label: const Text('Rate', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      onPressed: () => _showRatingDialog(order),
+                    ),
+                  ],
+                  const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -462,13 +514,140 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
+  void _confirmCancelOrder(Map<String, dynamic> order) {
+    final orderId = order['id'];
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: GlassTheme.dialogDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text('Cancel Order #$orderId?'),
+        content: const Text(
+          'Are you sure you want to cancel this order? This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Keep Order', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await ApiService().post('orders/$orderId/cancel/', {
+                  'cancellation_reason': 'Cancelled by customer',
+                });
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Order #$orderId cancelled successfully.'),
+                    backgroundColor: GlassTheme.dialogDark,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                _fetchOrders();
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to cancel order: $e'),
+                    backgroundColor: Colors.redAccent,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: const Text('Cancel Order', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRatingDialog(Map<String, dynamic> order) {
+    int selectedRating = 5;
+    final commentController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: GlassTheme.dialogDark,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('Rate Order #${order['id']}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'How was your meal from ${order['restaurant_name'] ?? 'the restaurant'}?',
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  final starIndex = index + 1;
+                  return IconButton(
+                    icon: Icon(
+                      starIndex <= selectedRating ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 32,
+                    ),
+                    onPressed: () => setDialogState(() => selectedRating = starIndex),
+                  );
+                }),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: commentController,
+                maxLines: 2,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Share your feedback (optional)...',
+                  hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                  filled: true,
+                  fillColor: Colors.white.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Later', style: TextStyle(color: Colors.white60)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: GlassTheme.primaryGreen),
+              onPressed: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Thank you for your rating! ⭐'),
+                    backgroundColor: GlassTheme.primaryGreen,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: const Text('Submit Rating', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showOrderBillDialog(Map<String, dynamic> order) {
     final items = (order['items'] as List<dynamic>?) ?? [];
     final status = (order['status'] as String?) ?? 'pending';
     final paymentStatus = (order['payment_status'] as String?) ?? 'UNPAID';
     final restaurantName = order['restaurant_name'] ?? 'Restaurant #${order['restaurant']}';
     final totalAmount = double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0;
-    final totalKhr = (totalAmount * 4100).toInt();
 
     showModalBottomSheet(
       context: context,
@@ -615,7 +794,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 20),
                       ),
                       Text(
-                        '≈ ៛$totalKhr KHR',
+                        '≈ ${KhmerCurrency.formatKhr(totalAmount)} KHR (អត្រា ៤,១០០)',
                         style: const TextStyle(color: Colors.white54, fontSize: 11),
                       ),
                     ],

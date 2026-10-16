@@ -12,6 +12,7 @@ import '../../../../widgets/svg_icon.dart';
 import '../models/payment_model.dart';
 import '../services/payment_service.dart';
 import '../../../../services/api_service.dart';
+import '../../../../core/utils/khmer_currency.dart';
 
 class QRPaymentScreen extends StatefulWidget {
   final PaymentModel payment;
@@ -85,7 +86,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           context.read<CartProvider>().clear();
           context.go('/order-success', extra: _currentPayment.orderId);
         }
-      } else if (updated.isExpired || updated.isCancelled) {
+      } else if (updated.isExpired || updated.isCancelled || updated.isFailed) {
         _pollingTimer?.cancel();
         _countdownTimer?.cancel();
       } else if (!isBackground) {
@@ -186,7 +187,16 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           color: GlassTheme.primaryGreen,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 4),
+                      Text(
+                        '≈ ${KhmerCurrency.formatKhr(_currentPayment.amount)} KHR (អត្រា ៤,១០០)',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
@@ -217,7 +227,45 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   borderRadius: GlassTheme.borderRadiusSmall,
                   child: Column(
                     children: [
-                      if (_currentPayment.isExpired || _secondsRemaining <= 0) ...[
+                      if (_currentPayment.isFailed) ...[
+                        const Icon(Icons.error_outline, size: 80, color: Colors.redAccent),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Payment Failed',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'The transaction could not be completed. Please check your bank balance or try another payment method.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: GlassTheme.textMuted),
+                        ),
+                        const SizedBox(height: 20),
+                        GlassButton(
+                          text: 'Back to Checkout',
+                          icon: Icons.refresh,
+                          onPressed: () => context.pop(),
+                        ),
+                      ] else if (_currentPayment.isCancelled) ...[
+                        const Icon(Icons.cancel_outlined, size: 80, color: Colors.orangeAccent),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Payment Cancelled',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'This payment has been cancelled.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: GlassTheme.textMuted),
+                        ),
+                        const SizedBox(height: 20),
+                        GlassButton(
+                          text: 'Return to Orders',
+                          icon: Icons.receipt_long,
+                          onPressed: () => context.go('/orders'),
+                        ),
+                      ] else if (_currentPayment.isExpired || _secondsRemaining <= 0) ...[
                         const Icon(Icons.timer_off_outlined, size: 80, color: Colors.redAccent),
                         const SizedBox(height: 16),
                         const Text(
@@ -284,11 +332,20 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                '${_currentPayment.currency} ${_currentPayment.amount.toStringAsFixed(2)}',
+                                '${_currentPayment.currency} ${_currentPayment.amount.toStringAsFixed(2)} • ${KhmerCurrency.formatKhr(_currentPayment.amount)}',
                                 style: const TextStyle(
                                   color: GlassTheme.textDark,
                                   fontWeight: FontWeight.w900,
-                                  fontSize: 18,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'FoodGo Restaurant · Phnom Penh',
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
@@ -423,7 +480,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                 const SizedBox(height: 24),
 
                 // Action Buttons
-                if (!_currentPayment.isExpired && _secondsRemaining > 0) ...[
+                if (!_currentPayment.isExpired && !_currentPayment.isFailed && !_currentPayment.isCancelled && _secondsRemaining > 0) ...[
                   SizedBox(
                     height: 54,
                     child: GlassButton(

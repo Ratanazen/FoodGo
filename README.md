@@ -128,12 +128,13 @@ This script pushes live moving GPS coordinates for Order #1 directly to the WebS
 
 ---
 
-## 💳 KHQR & Payment Gateways
+## 💳 Cambodian Bank KHQR & Payment Gateways
 
-FoodGo provides realistic Cambodian fintech integrations:
-* **Bakong KHQR (NBC Open API):** Real KHQR-compliant strings with amount, merchant name, and currency tagging.
-* **ABA KHQR (Dynamic QR):** 5-minute auto-expiring QR code with live countdown timer and webhook polling.
-* **ACLEDA KHQR:** Partner API integration with real-time callbacks.
+FoodGo provides realistic, modular Cambodian fintech integrations:
+* **Bakong KHQR (NBC Open API):** Real EMVCo-compliant KHQR payload strings with merchant account tagging, dual currency, and CRC16-CCITT checksums.
+* **ABA PayWay (Dynamic KHQR):** 5-minute auto-expiring QR code with live countdown timer, HMAC-SHA512 payload signatures, and webhook polling.
+* **ACLEDA Bank x-Pay:** Partner API integration with real-time callbacks and signature verification.
+* **FoodGo Digital Wallet:** Instant in-app top-ups via KHQR with atomic ACID ledger deduction.
 * **Cash on Delivery (COD):** Direct driver cash settlement upon arrival.
 
 ### Simulating an Instant Payment Webhook
@@ -146,22 +147,46 @@ curl -X POST http://127.0.0.1:8000/api/payments/aba/callback/ \
 
 ---
 
+## 📦 Secure QR Code Delivery Confirmation
+
+FoodGo enforces cryptographic doorstep handover confirmation between courier and customer:
+* **Driver Arrival:** Courier taps "Arrived at Customer" to generate a short-lived, cryptographically secure delivery token and 6-digit backup PIN (`POST /api/orders/<id>/delivery_qr/`).
+* **High-Contrast Modal:** Driver displays `DeliveryQrModal` with high-contrast QR code, 6-digit PIN, and 15-minute countdown timer.
+* **Customer Verification:** Customer scans driver QR or enters PIN in `DeliveryScannerModal` (`POST /api/orders/<id>/confirm_delivery/`).
+* **Atomic State Transition:** Backend validates expiration, single-use anti-replay, and driver binding with `select_for_update()`, atomically updating order and delivery to `delivered`.
+* **Payment Preservation:** Handover confirmation strictly preserves payment status (`UNPAID` remains `UNPAID` until settled).
+* **Dual Flow & Fallback:** Supports reverse scanning (driver scanning customer QR) and authorized admin clearance override.
+
+---
+
 ## 🧪 Automated Testing & Verification
 
 Run the full automated test suites:
 
 ```bash
-# 1. Flutter Unit Tests (18 tests)
-cd foodgo_flutter
-flutter test
+# 1. Django Backend Test Suite (51 tests — 100% Passing)
+cd backend
+python manage.py test
 
-# 2. Flutter Static Code Analysis
+# 2. Flutter Static Code Analysis (0 issues)
+cd ../foodgo_flutter
 flutter analyze
 
-# 3. Django Backend Test Suite (24 tests)
-cd ../backend
-python manage.py test
+# 3. Flutter Unit & Widget Tests (42 tests — 100% Passing)
+flutter test
 ```
+
+---
+
+## 📚 Complete Technical Documentation
+
+Comprehensive documentation is provided in the `docs/` directory:
+- [**Project Audit Report**](docs/PROJECT_AUDIT.md) — Exhaustive codebase audit, security assessment, and gap resolutions.
+- [**Implementation Plan**](docs/IMPLEMENTATION_PLAN.md) — 11-phase architecture roadmap and state machine design.
+- [**API Documentation**](docs/API_DOCUMENTATION.md) — Full REST API reference with JSON request/response payloads.
+- [**Payment Setup Guide**](docs/PAYMENT_SETUP.md) — Merchant onboarding for Bakong, ABA PayWay, and ACLEDA.
+- [**Delivery Confirmation Guide**](docs/DELIVERY_QR.md) — Cryptographic delivery confirmation and security guarantees.
+- [**Testing Guide**](docs/TESTING.md) — Step-by-step instructions for running test suites in dev and CI.
 
 ---
 
@@ -171,7 +196,7 @@ To spin up the entire production stack (PostgreSQL, Redis, Daphne, Flutter Nginx
 
 ```bash
 # Copy sample environment configuration
-cp .env.example .env
+cp backend/.env.example backend/.env
 
 # Build and start all containers
 docker-compose up -d --build
@@ -180,9 +205,10 @@ docker-compose up -d --build
 ---
 
 ## 🛡️ Security & Architecture Best Practices
-* **No Hardcoded Secrets:** Production environments use `.env` configs; CI runs an automated secret leak audit.
-* **JWT Token Rotation:** Access and refresh tokens stored safely in secure client storage.
-* **Centralized Design Tokens:** 100% of custom colors and glassmorphic styles are governed by `GlassTheme`.
-* **Dual Branch Synchronization:** `main` and `master` branches are kept synchronized with green GitHub Actions CI builds.
+* **Zero PII in QR Payloads:** Delivery and payment QR codes never include customer names, phones, addresses, or credentials.
+* **Server-Authoritative Pricing:** Subtotals, discounts, delivery fees, and totals are computed strictly on the server.
+* **CSPRNG Tokens:** Generated using `secrets.token_urlsafe(32)` (256 bits entropy).
+* **Decimal Precision:** All monetary amounts in Django use `DecimalField` to prevent floating-point loss.
+* **Atomic Transactions:** Critical operations utilize `transaction.atomic` and `select_for_update()`.
 
 

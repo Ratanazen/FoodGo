@@ -4,19 +4,23 @@ from .models import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'phone', 'first_name', 'last_name']
+        fields = ['id', 'username', 'email', 'role', 'phone', 'first_name', 'last_name', 'avatar', 'avatar_url']
         read_only_fields = ['id']
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ['id', 'street', 'city', 'state', 'zip_code', 'is_default', 'lat', 'lng']
+        fields = ['id', 'street', 'city', 'state', 'zip_code', 'is_default', 'lat', 'lng', 'label', 'delivery_instructions']
         read_only_fields = ['id']
 
 class FoodItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodItem
-        fields = ['id', 'category', 'name', 'description', 'price', 'image', 'image_url', 'is_available', 'ingredients']
+        fields = [
+            'id', 'category', 'name', 'description', 'price', 'original_price',
+            'image', 'image_url', 'is_available', 'ingredients',
+            'is_vegetarian', 'is_halal', 'is_spicy', 'preparation_time_mins',
+        ]
         read_only_fields = ['id']
 
     def to_representation(self, instance):
@@ -45,16 +49,29 @@ class RestaurantSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'category', 'description', 'address', 'phone', 'logo',
             'banner', 'rating', 'delivery_time_min', 'delivery_time_max',
-            'delivery_fee', 'is_active', 'food_categories',
+            'delivery_fee', 'is_active', 'lat', 'lng',
+            'opening_time', 'closing_time', 'min_order_amount',
+            'food_categories',
         ]
         read_only_fields = ['id', 'rating', 'food_categories']
+
+class RestaurantListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Restaurant
+        fields = [
+            'id', 'name', 'category', 'description', 'address', 'phone', 'logo',
+            'banner', 'rating', 'delivery_time_min', 'delivery_time_max',
+            'delivery_fee', 'is_active', 'lat', 'lng',
+            'opening_time', 'closing_time', 'min_order_amount',
+        ]
+        read_only_fields = ['id', 'rating']
 
 class OrderItemSerializer(serializers.ModelSerializer):
     food_name = serializers.CharField(source='food_item.name', read_only=True)
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'food_item', 'food_name', 'quantity', 'price']
+        fields = ['id', 'food_item', 'food_name', 'food_name_snapshot', 'quantity', 'price', 'special_instructions']
         read_only_fields = ['id', 'price', 'food_name']
 
 class DriverSerializer(serializers.ModelSerializer):
@@ -81,6 +98,15 @@ class DriverSerializer(serializers.ModelSerializer):
     def get_phone(self, obj):
         return obj.user.phone or '+855 12 888 999'
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        is_staff = bool(request and request.user and request.user.is_authenticated and request.user.is_staff)
+        if not is_staff:
+            data.pop('phone', None)
+            data.pop('license_plate', None)
+        return data
+
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
@@ -88,14 +114,25 @@ class OrderSerializer(serializers.ModelSerializer):
     restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)
     restaurant_image = serializers.SerializerMethodField()
     assigned_driver = serializers.SerializerMethodField()
+    payment_info = serializers.SerializerMethodField()
+    delivery_token_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
-            'id', 'restaurant', 'restaurant_name', 'restaurant_image', 'address', 'status', 'payment_status', 'total_amount',
-            'special_instructions', 'created_at', 'items', 'assigned_driver',
+            'id', 'order_reference', 'restaurant', 'restaurant_name', 'restaurant_image', 'address', 'status', 'payment_status',
+            'subtotal', 'delivery_fee_charged', 'discount_amount', 'coupon_code', 'total_amount',
+            'special_instructions', 'delivery_address_snapshot', 'estimated_delivery_time',
+            'confirmed_at', 'ready_at', 'picked_up_at', 'delivered_at', 'cancelled_at', 'cancellation_reason',
+            'created_at', 'updated_at', 'items', 'assigned_driver', 'payment_info', 'delivery_token_info',
         ]
-        read_only_fields = ['id', 'restaurant_name', 'restaurant_image', 'status', 'payment_status', 'total_amount', 'created_at', 'items', 'assigned_driver']
+        read_only_fields = [
+            'id', 'order_reference', 'restaurant_name', 'restaurant_image', 'status', 'payment_status',
+            'subtotal', 'delivery_fee_charged', 'discount_amount', 'total_amount',
+            'delivery_address_snapshot', 'estimated_delivery_time',
+            'confirmed_at', 'ready_at', 'picked_up_at', 'delivered_at', 'cancelled_at', 'cancellation_reason',
+            'created_at', 'updated_at', 'items', 'assigned_driver', 'payment_info', 'delivery_token_info'
+        ]
 
     def get_restaurant_image(self, obj):
         if obj.restaurant:
@@ -123,6 +160,45 @@ class OrderSerializer(serializers.ModelSerializer):
                 'current_lng': float(driver.current_lng) if driver.current_lng else None,
             }
         return None
+
+    def get_payment_info(self, obj):
+        payment = getattr(obj, 'payment', None)
+        if payment:
+            return {
+                'id': payment.id,
+                'provider': payment.provider,
+                'method': payment.method,
+                'status': payment.status,
+                'amount': str(payment.amount),
+                'currency': payment.currency,
+                'qr_payload': payment.qr_payload,
+                'merchant_reference': payment.merchant_reference,
+            }
+        return None
+
+    def get_delivery_token_info(self, obj):
+        token = getattr(obj, 'delivery_token', None)
+        if not token:
+            return None
+        request = self.context.get('request')
+        user = request.user if request and hasattr(request, 'user') else None
+        delivery = getattr(obj, 'delivery', None)
+        is_assigned_driver = (user and delivery and delivery.driver and delivery.driver.user_id == user.id)
+        is_staff = (user and getattr(user, 'is_staff', False))
+
+        info = {
+            'has_active_token': not token.is_used and not token.is_expired(),
+            'is_used': token.is_used,
+            'is_expired': token.is_expired(),
+            'expires_at': token.expires_at.isoformat() if token.expires_at else None,
+            'driver_arrived': delivery.status == 'arrived' if delivery else False,
+            'delivery_status': delivery.status if delivery else None,
+        }
+        if is_assigned_driver or is_staff:
+            info['token'] = token.token
+            info['verification_pin'] = token.verification_pin
+            info['qr_payload'] = f"FOODGO:DELIVERY:CONFIRM:v1?order_id={obj.id}&token={token.token}"
+        return info
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -205,4 +281,41 @@ class PaymentSerializer(serializers.ModelSerializer):
             'qr_image', 'status', 'provider_response', 'created_at',
             'updated_at', 'paid_at', 'expires_at'
         ]
+
+class RestaurantCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RestaurantCategory
+        fields = ['id', 'name', 'image']
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'user', 'title', 'message', 'notification_type', 'data', 'is_read', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at']
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)
+    restaurant_image = serializers.SerializerMethodField()
+    rating = serializers.DecimalField(source='restaurant.rating', max_digits=3, decimal_places=2, read_only=True)
+    delivery_fee = serializers.DecimalField(source='restaurant.delivery_fee', max_digits=6, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Favorite
+        fields = ['id', 'customer', 'restaurant', 'restaurant_name', 'restaurant_image', 'rating', 'delivery_fee', 'created_at']
+        read_only_fields = ['id', 'customer', 'restaurant_name', 'restaurant_image', 'rating', 'delivery_fee', 'created_at']
+
+    def get_restaurant_image(self, obj):
+        img = obj.restaurant.logo or obj.restaurant.banner
+        if img:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(img.url)
+            return img.url
+        return None
+
+class CouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = ['id', 'code', 'discount_percent', 'max_discount_amount', 'min_order_amount', 'is_active']
+        read_only_fields = ['id']
 

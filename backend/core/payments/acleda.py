@@ -22,7 +22,8 @@ class ACLEDAKHQRProvider(PaymentProvider):
         expires_at = timezone.now() + timedelta(minutes=5)
 
         currency_code = "840" if currency.upper() == "USD" else "116"
-        qr_string = f"00020101021229380016acledakhppxxx@acleda0110{self.merchant_id}520458125303{currency_code}54{len(str(amount)):02d}{amount}5802KH5912FoodGo_Order6010Phnom_Penh62{len(merchant_ref):02d}{merchant_ref}63045678"
+        formatted_amount = f"{int(float(amount))}" if currency.upper() == "KHR" else f"{float(amount):.2f}"
+        qr_string = f"00020101021229380016acledakhppxxx@acleda0110{self.merchant_id}520458125303{currency_code}54{len(formatted_amount):02d}{formatted_amount}5802KH5912FoodGo_Order6010Phnom_Penh62{len(merchant_ref):02d}{merchant_ref}63045678"
 
         provider_response = {
             "merchant_id": self.merchant_id,

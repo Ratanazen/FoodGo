@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -10,87 +11,300 @@ import '../../../widgets/lottie_assets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  final TextEditingController _voucherController = TextEditingController();
+
+  @override
+  void dispose() {
+    _voucherController.dispose();
+    super.dispose();
+  }
+
+  void _applyVoucher(CartProvider cart) {
+    final code = _voucherController.text.trim();
+    if (code.isEmpty) return;
+
+    final success = cart.applyPromoCode(code);
+    if (!mounted) return;
+
+    if (success) {
+      _voucherController.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Voucher "$code" applied successfully!'),
+          backgroundColor: GlassTheme.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid promo code. Try FOODGO30, FOODGOFREE, or FOODGO20.'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Widget _buildFreeDeliveryBar(CartProvider cart) {
+    const threshold = 20.0;
+    final isFree = cart.deliveryFee <= 0 || cart.totalAmount >= threshold;
+    final remaining = (threshold - cart.totalAmount).clamp(0.0, threshold);
+    final progress = isFree ? 1.0 : (cart.totalAmount / threshold).clamp(0.0, 1.0);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isFree
+            ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
+            : Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isFree
+              ? GlassTheme.primaryGreen.withValues(alpha: 0.4)
+              : Colors.white.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isFree ? Icons.check_circle : Icons.delivery_dining,
+                color: isFree ? GlassTheme.primaryGreen : Colors.amberAccent,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isFree
+                      ? 'You unlocked FREE delivery! 🎉'
+                      : 'Add \$${remaining.toStringAsFixed(2)} more for FREE delivery',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isFree ? GlassTheme.primaryGreen : Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isFree ? GlassTheme.primaryGreen : Colors.amberAccent,
+              ),
+              minHeight: 6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildCartItemCard(CartProvider cart, CartItem item, int index) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
-      child: GlassCard(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.2),
-                borderRadius: GlassTheme.borderRadiusSmall,
-                image: item.image != null
-                    ? DecorationImage(
-                        image: CachedNetworkImageProvider(item.image!),
-                        fit: BoxFit.cover,
-                      )
+      child: Dismissible(
+        key: ValueKey('cart_item_${item.id}'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          decoration: BoxDecoration(
+            color: Colors.redAccent.withValues(alpha: 0.85),
+            borderRadius: GlassTheme.borderRadiusMedium,
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Icon(Icons.delete_outline, color: Colors.white, size: 24),
+              SizedBox(width: 8),
+              Text(
+                'Delete',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+        onDismissed: (_) {
+          HapticFeedback.mediumImpact();
+          final removedItem = item;
+          final qty = item.quantity;
+          cart.removeItem(item.id);
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${removedItem.name} removed from cart'),
+              backgroundColor: GlassTheme.dialogDark,
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'UNDO',
+                textColor: GlassTheme.primaryGreen,
+                onPressed: () {
+                  for (int i = 0; i < qty; i++) {
+                    cart.addItem(
+                      removedItem.id,
+                      removedItem.name,
+                      removedItem.price,
+                      removedItem.image,
+                      restaurantId: removedItem.restaurantId,
+                      restaurantName: removedItem.restaurantName,
+                    );
+                  }
+                },
+              ),
+            ),
+          );
+        },
+        child: GlassCard(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.2),
+                  borderRadius: GlassTheme.borderRadiusSmall,
+                  image: item.image != null && item.image!.isNotEmpty
+                      ? DecorationImage(
+                          image: CachedNetworkImageProvider(item.image!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: item.image == null || item.image!.isEmpty
+                    ? const Icon(Icons.fastfood, size: 36, color: GlassTheme.primaryGreen)
                     : null,
               ),
-              child: item.image == null
-                  ? const Icon(Icons.fastfood, size: 40, color: GlassTheme.primaryGreen)
-                  : null,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 8),
-                  Text('\$${item.price.toStringAsFixed(2)}',
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${item.price.toStringAsFixed(2)}',
                       style: const TextStyle(
-                          color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 16)),
-                ],
+                        color: GlassTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            GlassContainer(
-              borderRadius: GlassTheme.borderRadiusSmall,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      cart.decrementItem(item.id);
-                    },
-                    icon: const Icon(Icons.remove, size: 20),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                  const SizedBox(width: 8),
-                  Text('${item.quantity}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () {
-                      cart.addItem(
-                        item.id,
-                        item.name,
-                        item.price,
-                        item.image,
-                        restaurantId: item.restaurantId,
-                        restaurantName: item.restaurantName,
-                      );
-                    },
-                    icon: const Icon(Icons.add, size: 20, color: GlassTheme.primaryGreen),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
+              GlassContainer(
+                borderRadius: GlassTheme.borderRadiusSmall,
+                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        cart.decrementItem(item.id);
+                      },
+                      icon: const Icon(Icons.remove, size: 18),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                      tooltip: 'Decrease quantity',
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Text(
+                        '${item.quantity}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        cart.addItem(
+                          item.id,
+                          item.name,
+                          item.price,
+                          item.image,
+                          restaurantId: item.restaurantId,
+                          restaurantName: item.restaurantName,
+                        );
+                      },
+                      icon: const Icon(Icons.add, size: 18, color: GlassTheme.primaryGreen),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                      tooltip: 'Increase quantity',
+                    ),
+                  ],
+                ),
               ),
-            )
-          ],
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20, color: Colors.white38),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  final removedItem = item;
+                  final qty = item.quantity;
+                  cart.removeItem(item.id);
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${removedItem.name} removed from cart'),
+                      backgroundColor: GlassTheme.dialogDark,
+                      behavior: SnackBarBehavior.floating,
+                      action: SnackBarAction(
+                        label: 'UNDO',
+                        textColor: GlassTheme.primaryGreen,
+                        onPressed: () {
+                          for (int i = 0; i < qty; i++) {
+                            cart.addItem(
+                              removedItem.id,
+                              removedItem.name,
+                              removedItem.price,
+                              removedItem.image,
+                              restaurantId: removedItem.restaurantId,
+                              restaurantName: removedItem.restaurantName,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                tooltip: 'Remove item',
+              ),
+            ],
+          ),
         ),
       ).animate().fade(delay: (100 * index).ms).slideX(),
     );
   }
 
   Widget _buildSummaryCard(BuildContext context, CartProvider cart, {bool isDesktop = false}) {
+    final hasDiscount = cart.discountAmount > 0;
+    final promoCode = cart.appliedPromoCode;
+
     return GlassContainer(
       borderRadius: isDesktop ? BorderRadius.circular(24) : const BorderRadius.vertical(top: Radius.circular(32)),
       padding: const EdgeInsets.all(24.0),
@@ -105,44 +319,149 @@ class CartScreen extends StatelessWidget {
               const Text('Order Summary', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
             ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Subtotal', style: TextStyle(fontSize: 16)),
-                Text('\$${cart.totalAmount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Delivery Fee', style: TextStyle(fontSize: 16)),
-                Text('\$${cart.deliveryFee.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Discount', style: TextStyle(fontSize: 16)),
-                Text('-\$0.00', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen)),
-              ],
+
+            // ── Voucher / Promo Code Input Section ─────────────────
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (promoCode != null) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: GlassTheme.primaryGreen, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Code "$promoCode" Applied',
+                              style: const TextStyle(
+                                color: GlassTheme.primaryGreen,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        InkWell(
+                          onTap: () => cart.removePromoCode(),
+                          child: const Padding(
+                            padding: EdgeInsets.all(4.0),
+                            child: Icon(Icons.close, color: Colors.white60, size: 18),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        const Icon(Icons.local_offer_outlined, color: GlassTheme.primaryGreen, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _voucherController,
+                            textCapitalization: TextCapitalization.characters,
+                            style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
+                            decoration: InputDecoration(
+                              hintText: 'Enter Voucher or Promo Code',
+                              hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                              isDense: true,
+                              border: InputBorder.none,
+                            ),
+                            onSubmitted: (_) => _applyVoucher(cart),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => _applyVoucher(cart),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text('Apply', style: TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Quick apply chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildPromoChip('FOODGO30 (30% OFF)', 'FOODGO30', cart),
+                          const SizedBox(width: 6),
+                          _buildPromoChip('FOODGOFREE (Free Delivery)', 'FOODGOFREE', cart),
+                          const SizedBox(width: 6),
+                          _buildPromoChip('FOODGO20 (20% OFF)', 'FOODGO20', cart),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
             const SizedBox(height: 16),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Subtotal', style: TextStyle(fontSize: 15)),
+                Text('\$${cart.totalAmount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Delivery Fee', style: TextStyle(fontSize: 15)),
+                Text(
+                  cart.deliveryFee <= 0 ? 'FREE' : '\$${cart.deliveryFee.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: cart.deliveryFee <= 0 ? GlassTheme.primaryGreen : null,
+                  ),
+                ),
+              ],
+            ),
+            if (hasDiscount) ...[
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Discount ($promoCode)', style: const TextStyle(fontSize: 15, color: GlassTheme.primaryGreen)),
+                  Text(
+                    '-\$${cart.discountAmount.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 14),
             Container(height: 1, color: GlassTheme.borderLight),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                Text('\$${cart.grandTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen)),
+                const Text('Total', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  '\$${cart.grandTotal.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: GlassTheme.primaryGreen),
+                ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: GlassButton(
                 text: 'Proceed to Checkout',
+                icon: Icons.arrow_forward,
                 onPressed: () => context.push('/checkout'),
               ),
             ),
@@ -152,86 +471,137 @@ class CartScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildPromoChip(String label, String code, CartProvider cart) {
+    return InkWell(
+      onTap: () {
+        _voucherController.text = code;
+        _applyVoucher(cart);
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const GlassAppBar(
-        title: 'Your Cart',
-      ),
-      body: Consumer<CartProvider>(
-        builder: (context, cart, child) {
-          if (cart.items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  LottieAsset.emptyBox(size: 150),
-                  const SizedBox(height: 16),
-                  const Text('Your cart is empty', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('Discover delicious food and add items to your cart', style: TextStyle(color: GlassTheme.textMuted)),
-                  const SizedBox(height: 32),
-                  GlassButton(
-                    text: 'Explore Food',
-                    icon: Icons.explore,
-                    onPressed: () => context.go('/explore'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final cartItems = cart.items.values.toList();
-          final isWide = ResponsiveBreakpoints.isWide(context);
-
-          if (isWide) {
-            return ResponsiveWebContainer(
-              maxWidth: 1050,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: ListView.builder(
-                        itemCount: cartItems.length,
-                        itemBuilder: (context, index) =>
-                            _buildCartItemCard(cart, cartItems[index], index),
+    return Consumer<CartProvider>(
+      builder: (context, cart, child) {
+        return Scaffold(
+          appBar: GlassAppBar(
+            title: 'Your Cart',
+            actions: [
+              if (cart.items.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.delete_sweep_outlined, color: Colors.white70),
+                  tooltip: 'Clear Cart',
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        backgroundColor: GlassTheme.dialogDark,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        title: const Text('Clear Cart?'),
+                        content: const Text('Are you sure you want to remove all items from your cart?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                            onPressed: () {
+                              cart.clear();
+                              Navigator.pop(ctx);
+                            },
+                            child: const Text('Clear', style: TextStyle(color: Colors.white)),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      flex: 2,
-                      child: _buildSummaryCard(context, cart, isDesktop: true)
-                          .animate()
-                          .fade(delay: 200.ms)
-                          .slideX(begin: 0.1),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ),
-            );
-          }
-
-          return Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: cartItems.length,
-                  itemBuilder: (context, index) =>
-                      _buildCartItemCard(cart, cartItems[index], index),
-                ),
-              ),
-              _buildSummaryCard(context, cart, isDesktop: false)
-                  .animate()
-                  .fade(delay: 200.ms)
-                  .slideY(begin: 1.0),
             ],
-          );
-        },
-      ),
+          ),
+          body: cart.items.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      LottieAsset.emptyBox(size: 150),
+                      const SizedBox(height: 16),
+                      const Text('Your cart is empty', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text('Discover delicious food and add items to your cart', style: TextStyle(color: GlassTheme.textMuted)),
+                      const SizedBox(height: 32),
+                      GlassButton(
+                        text: 'Explore Food',
+                        icon: Icons.explore,
+                        onPressed: () => context.go('/explore'),
+                      ),
+                    ],
+                  ),
+                )
+              : ResponsiveWebContainer(
+                  maxWidth: 1050,
+                  child: ResponsiveBreakpoints.isWide(context)
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: ListView(
+                                  children: [
+                                    _buildFreeDeliveryBar(cart),
+                                    ...cart.items.values.toList().asMap().entries.map(
+                                          (entry) => _buildCartItemCard(cart, entry.value, entry.key),
+                                        ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                flex: 2,
+                                child: _buildSummaryCard(context, cart, isDesktop: true)
+                                    .animate()
+                                    .fade(delay: 200.ms)
+                                    .slideX(begin: 0.1),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                              child: _buildFreeDeliveryBar(cart),
+                            ),
+                            Expanded(
+                              child: ListView.builder(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                itemCount: cart.items.length,
+                                itemBuilder: (context, index) =>
+                                    _buildCartItemCard(cart, cart.items.values.toList()[index], index),
+                              ),
+                            ),
+                            _buildSummaryCard(context, cart, isDesktop: false)
+                                .animate()
+                                .fade(delay: 200.ms)
+                                .slideY(begin: 1.0),
+                          ],
+                        ),
+                ),
+        );
+      },
     );
   }
 }

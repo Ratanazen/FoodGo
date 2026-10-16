@@ -8,9 +8,43 @@ import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../widgets/my_qr_modal.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: GlassTheme.dialogDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text(
+          'Are you sure you want to log out of your FoodGo account?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              context.read<AuthProvider>().logout();
+              context.go('/login');
+            },
+            child: const Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,16 +169,117 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 24),
           const Text('Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
           const SizedBox(height: 12),
+          _ProfileOption(
+            icon: Icons.account_balance_wallet_outlined,
+            title: 'Digital Wallet & KHQR Top-Up',
+            onTap: () => context.push('/wallet'),
+          ),
+          _ProfileOption(
+            icon: Icons.qr_code_2,
+            title: 'My KHQR (Pay Me / ទទួលប្រាក់)',
+            iconColor: Colors.redAccent,
+            onTap: () {
+              final user = context.read<UserProvider>().user;
+              MyQrModal.show(context, user: user);
+            },
+          ),
           _ProfileOption(icon: Icons.person_outline, title: 'Edit Profile', onTap: () => context.push('/edit-profile')),
           _ProfileOption(icon: Icons.notifications_outlined, title: 'Notifications', onTap: () => context.push('/notifications')),
           _ProfileOption(icon: Icons.location_on_outlined, title: 'Saved Addresses', onTap: () => context.push('/addresses')),
           _ProfileOption(icon: Icons.favorite_outline, title: 'Favorites', onTap: () => context.push('/favorites')),
           const SizedBox(height: 24),
-          const Text('Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('Settings & Preferences', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           _ProfileOption(icon: Icons.settings_outlined, title: 'General Settings', onTap: () => context.push('/settings')),
-          _ProfileOption(icon: Icons.language, title: 'Language', onTap: () {}),
-          _ProfileOption(icon: Icons.help_outline, title: 'Help & Support', onTap: () {}),
+          _ProfileOption(
+            icon: Icons.language,
+            title: 'Language',
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (ctx) => Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: GlassTheme.dialogDark,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text('Select Language / ជ្រើសរើសភាសា', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      ListTile(
+                        title: const Text('English (US)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.check, color: GlassTheme.primaryGreen),
+                        onTap: () => Navigator.pop(ctx),
+                      ),
+                      ListTile(
+                        title: const Text('ភាសាខ្មែរ (Khmer)', style: TextStyle(color: Colors.white)),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('ភាសាខ្មែរ ត្រូវបានជ្រើសរើស'), backgroundColor: GlassTheme.primaryGreen),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        title: const Text('Français (French)', style: TextStyle(color: Colors.white)),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Langue française sélectionnée'), backgroundColor: GlassTheme.primaryGreen),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          _ProfileOption(
+            icon: Icons.help_outline,
+            title: 'Help & Support',
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (ctx) => Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: GlassTheme.dialogDark,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text('FoodGo 24/7 Support', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text('Get fast help with delivery, payments, or orders.', style: TextStyle(color: GlassTheme.textMuted, fontSize: 13)),
+                      const SizedBox(height: 16),
+                      ListTile(
+                        leading: const Icon(Icons.chat_bubble_outline, color: GlassTheme.primaryGreen),
+                        title: const Text('Chat with Support', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: Text('Average reply time: 2 mins', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                        onTap: () => Navigator.pop(ctx),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.phone_outlined, color: Colors.amber),
+                        title: const Text('Hotline: +855 23 999 888', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: Text('Toll-free customer care', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                        onTap: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
           Consumer<AuthProvider>(
             builder: (context, auth, child) {
               if (auth.isAuthenticated) {
@@ -153,10 +288,7 @@ class ProfileScreen extends StatelessWidget {
                   title: 'Logout', 
                   textColor: Colors.red,
                   iconColor: Colors.red,
-                  onTap: () {
-                    context.read<AuthProvider>().logout();
-                    context.go('/login');
-                  },
+                  onTap: () => _showLogoutDialog(context),
                 );
               } else {
                 return _ProfileOption(
@@ -168,6 +300,16 @@ class ProfileScreen extends StatelessWidget {
                 );
               }
             },
+          ),
+          const SizedBox(height: 24),
+          Center(
+            child: Column(
+              children: [
+                Text('FoodGo Enterprise Delivery v1.0.0', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                const SizedBox(height: 4),
+                Text('Made with ❤️ in Phnom Penh, Cambodia', style: TextStyle(color: GlassTheme.textMuted.withValues(alpha: 0.6), fontSize: 11)),
+              ],
+            ),
           ),
           const SizedBox(height: 100), // spacing for bottom nav
         ],

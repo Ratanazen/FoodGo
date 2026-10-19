@@ -226,12 +226,12 @@ class UserAdmin(BaseUserAdmin):
                 }
             )
 
-    @admin.action(description='👑 Promote Selected Users to Admin (Staff + Superuser)')
+    @admin.action(description='Promote Selected Users to Admin (Staff + Superuser)')
     def promote_to_admin(self, request, queryset):
         count = queryset.update(role='admin', is_staff=True, is_superuser=True)
         self.message_user(request, f'Successfully promoted {count} user(s) to Admin.')
 
-    @admin.action(description='🚴 Convert Selected Users to Delivery Driver')
+    @admin.action(description='Convert Selected Users to Delivery Driver')
     def convert_to_driver(self, request, queryset):
         from decimal import Decimal
         count = 0
@@ -251,7 +251,7 @@ class UserAdmin(BaseUserAdmin):
             count += 1
         self.message_user(request, f'Converted {count} user(s) to Delivery Driver.')
 
-    @admin.action(description='👤 Convert Selected Users to Customer')
+    @admin.action(description='Convert Selected Users to Customer')
     def convert_to_customer(self, request, queryset):
         count = queryset.update(role='customer')
         self.message_user(request, f'Converted {count} user(s) to Customer.')
@@ -379,7 +379,7 @@ class FoodItemAdmin(admin.ModelAdmin):
     autocomplete_fields = ['category']
     actions = ['duplicate_items', 'make_available', 'make_unavailable']
 
-    @admin.action(description='📋 Duplicate Selected Food Items')
+    @admin.action(description='Duplicate Selected Food Items')
     def duplicate_items(self, request, queryset):
         count = 0
         for item in queryset:
@@ -396,12 +396,12 @@ class FoodItemAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f'Successfully duplicated {count} item(s).')
 
-    @admin.action(description='✅ Mark Selected Items Available')
+    @admin.action(description='Mark Selected Items Available')
     def make_available(self, request, queryset):
         count = queryset.update(is_available=True)
         self.message_user(request, f'Marked {count} items as available.')
 
-    @admin.action(description='❌ Mark Selected Items Unavailable')
+    @admin.action(description='Mark Selected Items Unavailable')
     def make_unavailable(self, request, queryset):
         count = queryset.update(is_available=False)
         self.message_user(request, f'Marked {count} items as unavailable.')
@@ -474,15 +474,15 @@ class OrderAdmin(admin.ModelAdmin):
         delivery = getattr(obj, 'delivery', None)
         if delivery and delivery.driver:
             driver = delivery.driver
-            online_dot = '🟢' if driver.is_online else '⚪'
+            online_dot = format_html('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;"></span>') if driver.is_online else format_html('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;"></span>')
             return format_html(
-                '<span style="background:#1e293b;color:#f8fafc;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;">'
+                '<span style="background:#1e293b;color:#f8fafc;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:6px;">'
                 '{} <strong>{}</strong> <span style="opacity:0.75;">({})</span></span>',
                 online_dot, driver.user.username, driver.vehicle_type or 'Bike'
             )
         return format_html('<span style="color:#94a3b8;font-size:11px;font-style:italic;">— Unassigned —</span>')
 
-    @admin.action(description='🚴 Auto-Assign Available Online Driver')
+    @admin.action(description='Auto-Assign Available Online Driver')
     def auto_assign_driver(self, request, queryset):
         driver = Driver.objects.filter(is_online=True).first() or Driver.objects.first()
         if not driver:
@@ -497,17 +497,17 @@ class OrderAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f'Assigned driver {driver.user.username} to {count} order(s).')
 
-    @admin.action(description='👨‍🍳 Mark Selected Orders as Preparing')
+    @admin.action(description='Mark Selected Orders as Preparing')
     def mark_preparing(self, request, queryset):
         count = queryset.update(status='preparing')
         self.message_user(request, f'Updated {count} order(s) to Preparing.')
 
-    @admin.action(description='🛵 Mark Selected Orders as On the Way')
+    @admin.action(description='Mark Selected Orders as On the Way')
     def mark_on_the_way(self, request, queryset):
         count = queryset.update(status='on_the_way')
         self.message_user(request, f'Updated {count} order(s) to On the Way.')
 
-    @admin.action(description='✅ Mark Selected Orders as Delivered')
+    @admin.action(description='Mark Selected Orders as Delivered')
     def mark_delivered(self, request, queryset):
         count = queryset.update(status='delivered')
         self.message_user(request, f'Updated {count} order(s) to Delivered.')
@@ -666,12 +666,12 @@ class DriverAdmin(admin.ModelAdmin):
         count = obj.deliveries.count()
         return format_html('<span style="background:#34495e;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">{}</span>', count)
 
-    @admin.action(description='🟢 Set Selected Drivers Online')
+    @admin.action(description='Set Selected Drivers Online')
     def make_online(self, request, queryset):
         count = queryset.update(is_online=True)
         self.message_user(request, f'Set {count} driver(s) online.')
 
-    @admin.action(description='🔴 Set Selected Drivers Offline')
+    @admin.action(description='Set Selected Drivers Offline')
     def make_offline(self, request, queryset):
         count = queryset.update(is_online=False)
         self.message_user(request, f'Set {count} driver(s) offline.')

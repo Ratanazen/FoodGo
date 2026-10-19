@@ -34,7 +34,7 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
     super.dispose();
   }
 
-  Widget _buildDietaryBadge(String label, Color color) {
+  Widget _buildDietaryBadge(String label, Color color, [IconData? icon]) {
     return Container(
       margin: const EdgeInsets.only(right: 4),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -43,13 +43,22 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 11, color: color),
+            const SizedBox(width: 3),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -157,14 +166,20 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                 Row(
                   children: [
                     if (isVeg)
-                      _buildDietaryBadge('🌿 Vegetarian', Colors.green),
-                    if (isHalal) _buildDietaryBadge('حلال Halal', Colors.teal),
+                      _buildDietaryBadge('Vegetarian', Colors.green, Icons.eco),
+                    if (isHalal)
+                      _buildDietaryBadge('Halal', Colors.teal, Icons.verified),
                     if (isSpicy)
-                      _buildDietaryBadge('🔥 Spicy', Colors.deepOrange),
+                      _buildDietaryBadge(
+                        'Spicy',
+                        Colors.deepOrange,
+                        Icons.local_fire_department,
+                      ),
                     if (item['preparation_time_mins'] != null)
                       _buildDietaryBadge(
-                        '⏱️ ${item['preparation_time_mins']} mins',
+                        '${item['preparation_time_mins']} mins',
                         Colors.blueAccent,
+                        Icons.schedule,
                       ),
                   ],
                 ),
@@ -961,18 +976,22 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                   children: [
                                                     if (isVeg)
                                                       _buildDietaryBadge(
-                                                        '🌿 Veg',
+                                                        'Veg',
                                                         Colors.green,
+                                                        Icons.eco,
                                                       ),
                                                     if (isHalal)
                                                       _buildDietaryBadge(
-                                                        'حلال',
+                                                        'Halal',
                                                         Colors.teal,
+                                                        Icons.verified,
                                                       ),
                                                     if (isSpicy)
                                                       _buildDietaryBadge(
-                                                        '🔥 Spicy',
+                                                        'Spicy',
                                                         Colors.deepOrange,
+                                                        Icons
+                                                            .local_fire_department,
                                                       ),
                                                   ],
                                                 ),

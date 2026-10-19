@@ -484,7 +484,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Thank you! $rating★ review submitted.'),
+                        content: Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text('Thank you! $rating-star review submitted.'),
+                          ],
+                        ),
                         backgroundColor: GlassTheme.primaryGreen,
                         behavior: SnackBarBehavior.floating,
                       ),

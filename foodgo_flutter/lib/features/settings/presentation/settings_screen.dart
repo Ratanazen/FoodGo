@@ -567,7 +567,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 8),
               Text(
                 rating == 5
-                    ? '⭐️⭐️⭐️⭐️⭐️ Outstanding!'
+                    ? 'Outstanding! Highly Recommended'
                     : rating >= 4
                     ? 'Great food & fast delivery'
                     : 'Thanks for your feedback!',
@@ -595,7 +595,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Thank you for rating FoodGo! ❤️'),
+                    content: Row(
+                      children: [
+                        Icon(Icons.favorite, color: Colors.redAccent, size: 18),
+                        SizedBox(width: 8),
+                        Text('Thank you for rating FoodGo!'),
+                      ],
+                    ),
                     backgroundColor: GlassTheme.primaryGreen,
                   ),
                 );

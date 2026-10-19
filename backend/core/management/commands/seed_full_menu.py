@@ -269,7 +269,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f'Successfully seeded {FoodItem.objects.count()} food items with high-res photos across {FoodCategory.objects.count()} categories and {Restaurant.objects.count()} restaurants!'))
         self.stdout.write('\n' + '='*60)
-        self.stdout.write('🍔 FOODGO DEMO ACCOUNTS READY:')
+        self.stdout.write('FOODGO DEMO ACCOUNTS READY:')
         self.stdout.write('='*60)
         self.stdout.write('  Role             Username      Password     Details')
         self.stdout.write('  ------------------------------------------------------------')

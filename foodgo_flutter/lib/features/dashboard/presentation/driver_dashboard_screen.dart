@@ -144,15 +144,45 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                             fontWeight: FontWeight.bold,
                                           ),
                                     ),
-                                    Text(
-                                      _isOnline
-                                          ? '🟢 Online & Ready for Orders'
-                                          : '⚪ Offline',
-                                      style: TextStyle(
-                                        color: _isOnline
-                                            ? GlassTheme.primaryGreen
-                                            : Colors.redAccent,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: _isOnline
+                                                ? GlassTheme.primaryGreen
+                                                : Colors.redAccent,
+                                            shape: BoxShape.circle,
+                                            boxShadow: _isOnline
+                                                ? [
+                                                    BoxShadow(
+                                                      color: GlassTheme
+                                                          .primaryGreen
+                                                          .withValues(
+                                                            alpha: 0.6,
+                                                          ),
+                                                      blurRadius: 6,
+                                                      spreadRadius: 1,
+                                                    ),
+                                                  ]
+                                                : null,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          _isOnline
+                                              ? 'Online & Ready for Orders'
+                                              : 'Offline',
+                                          style: TextStyle(
+                                            color: _isOnline
+                                                ? GlassTheme.primaryGreen
+                                                : Colors.redAccent,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),

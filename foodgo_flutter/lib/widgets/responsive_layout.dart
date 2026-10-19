@@ -177,7 +177,11 @@ class WebHeaderNavBar extends StatelessWidget {
                         color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text('🍔', style: TextStyle(fontSize: 22)),
+                      child: const Icon(
+                        Icons.lunch_dining_rounded,
+                        color: GlassTheme.primaryGreen,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Column(

@@ -30,10 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Reference Mockup (Naperville) 4 Quick Categories & Recommended Dishes
   final List<Map<String, dynamic>> _quickCategories = [
-    {'name': 'Burger', 'emoji': '🍔', 'icon': Icons.lunch_dining},
-    {'name': 'Chicken', 'emoji': '🍗', 'icon': Icons.egg_alt},
-    {'name': 'Fries', 'emoji': '🍟', 'icon': Icons.fastfood},
-    {'name': 'Drink', 'emoji': '🥤', 'icon': Icons.local_drink},
+    {'name': 'Burger', 'icon': Icons.lunch_dining_rounded},
+    {'name': 'Chicken', 'icon': Icons.kebab_dining_rounded},
+    {'name': 'Fries', 'icon': Icons.fastfood_rounded},
+    {'name': 'Drink', 'icon': Icons.local_drink_rounded},
   ];
   int? _selectedQuickCategoryIndex;
 
@@ -122,13 +122,13 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<Map<String, dynamic>> _categories = [
-    {'name': 'All', 'emoji': '🍽️', 'icon': Icons.restaurant},
-    {'name': 'Burger', 'emoji': '🍔', 'icon': Icons.lunch_dining},
-    {'name': 'Pizza', 'emoji': '🍕', 'icon': Icons.local_pizza},
-    {'name': 'Sushi', 'emoji': '🍣', 'icon': Icons.set_meal},
-    {'name': 'Chicken', 'emoji': '🍗', 'icon': Icons.egg_alt},
-    {'name': 'Drinks', 'emoji': '🧋', 'icon': Icons.local_drink},
-    {'name': 'Dessert', 'emoji': '🍰', 'icon': Icons.cake},
+    {'name': 'All', 'icon': Icons.restaurant_rounded},
+    {'name': 'Burger', 'icon': Icons.lunch_dining_rounded},
+    {'name': 'Pizza', 'icon': Icons.local_pizza_rounded},
+    {'name': 'Sushi', 'icon': Icons.set_meal_rounded},
+    {'name': 'Chicken', 'icon': Icons.kebab_dining_rounded},
+    {'name': 'Drinks', 'icon': Icons.local_drink_rounded},
+    {'name': 'Dessert', 'icon': Icons.cake_rounded},
   ];
 
   final List<Map<String, dynamic>> _deals = [
@@ -690,9 +690,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      cat['emoji'] as String,
-                      style: const TextStyle(fontSize: 26),
+                    Icon(
+                      cat['icon'] as IconData,
+                      size: 28,
+                      color: isSelected
+                          ? (isDark
+                                ? GlassTheme.limeAccent
+                                : const Color(0xFF4D7C0F))
+                          : (isDark ? Colors.white70 : const Color(0xFF444444)),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -1200,16 +1205,32 @@ class _HomeScreenState extends State<HomeScreen> {
   // Sorting Filter Chips
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildSortingChips(bool isDark) {
-    const sorts = ['All', '⭐ Top Rated', '⚡ Fastest', '🛵 Free Delivery'];
+    const sorts = [
+      {'name': 'All', 'icon': null},
+      {'name': 'Top Rated', 'icon': Icons.star_rounded},
+      {'name': 'Fastest', 'icon': Icons.bolt_rounded},
+      {'name': 'Free Delivery', 'icon': Icons.delivery_dining_rounded},
+    ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: sorts.map((sort) {
+        children: sorts.map((item) {
+          final sort = item['name'] as String;
+          final icon = item['icon'] as IconData?;
           final isSelected = _selectedSort == sort;
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: ChoiceChip(
+              avatar: icon != null
+                  ? Icon(
+                      icon,
+                      size: 16,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                    )
+                  : null,
               label: Text(sort),
               selected: isSelected,
               onSelected: (_) => setState(() => _selectedSort = sort),
@@ -1272,14 +1293,14 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         // Apply sorting
-        if (_selectedSort == '⭐ Top Rated') {
+        if (_selectedSort == 'Top Rated') {
           restaurants.sort(
             (a, b) => (double.tryParse(b['rating']?.toString() ?? '0') ?? 0.0)
                 .compareTo(
                   double.tryParse(a['rating']?.toString() ?? '0') ?? 0.0,
                 ),
           );
-        } else if (_selectedSort == '⚡ Fastest') {
+        } else if (_selectedSort == 'Fastest') {
           restaurants.sort(
             (a, b) =>
                 (int.tryParse(a['delivery_time_min']?.toString() ?? '99') ?? 99)
@@ -1290,7 +1311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           99,
                     ),
           );
-        } else if (_selectedSort == '🛵 Free Delivery') {
+        } else if (_selectedSort == 'Free Delivery') {
           restaurants = restaurants
               .where(
                 (r) =>

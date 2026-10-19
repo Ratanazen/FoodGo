@@ -769,7 +769,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Thank you for your rating! ⭐'),
+                    content: Row(
+                      children: [
+                        Icon(Icons.star, color: Colors.amber, size: 18),
+                        SizedBox(width: 8),
+                        Text('Thank you for your rating!'),
+                      ],
+                    ),
                     backgroundColor: GlassTheme.primaryGreen,
                     behavior: SnackBarBehavior.floating,
                   ),

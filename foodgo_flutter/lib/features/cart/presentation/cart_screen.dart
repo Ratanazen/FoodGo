@@ -94,7 +94,7 @@ class _CartScreenState extends State<CartScreen> {
               Expanded(
                 child: Text(
                   isFree
-                      ? 'You unlocked FREE delivery! 🎉'
+                      ? 'You unlocked FREE delivery!'
                       : 'Add \$${remaining.toStringAsFixed(2)} more for FREE delivery',
                   style: TextStyle(
                     fontSize: 13,

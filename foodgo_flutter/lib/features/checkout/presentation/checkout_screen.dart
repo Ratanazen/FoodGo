@@ -665,22 +665,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Text(
+                                const Text(
                                   'Fastest Available Driver',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                   ),
                                 ),
-                                SizedBox(width: 6),
-                                Text(
-                                  '⚡ Auto-Assign',
-                                  style: TextStyle(
-                                    color: GlassTheme.primaryGreen,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: GlassTheme.primaryGreen.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.bolt_rounded,
+                                        size: 13,
+                                        color: GlassTheme.primaryGreen,
+                                      ),
+                                      SizedBox(width: 2),
+                                      Text(
+                                        'Auto-Assign',
+                                        style: TextStyle(
+                                          color: GlassTheme.primaryGreen,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],

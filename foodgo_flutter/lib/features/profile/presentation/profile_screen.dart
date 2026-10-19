@@ -656,12 +656,29 @@ class ProfileScreen extends StatelessWidget {
                     style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Made with ❤️ in Phnom Penh, Cambodia',
-                    style: TextStyle(
-                      color: GlassTheme.textMuted.withValues(alpha: 0.6),
-                      fontSize: 11,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Made with ',
+                        style: TextStyle(
+                          color: GlassTheme.textMuted.withValues(alpha: 0.6),
+                          fontSize: 11,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.favorite,
+                        color: Colors.redAccent,
+                        size: 12,
+                      ),
+                      Text(
+                        ' in Phnom Penh, Cambodia',
+                        style: TextStyle(
+                          color: GlassTheme.textMuted.withValues(alpha: 0.6),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

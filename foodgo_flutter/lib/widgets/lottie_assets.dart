@@ -20,7 +20,7 @@ class LottieAsset extends StatelessWidget {
     this.fallbackColor,
   });
 
-  /// 🏍️ Animated delivery motorcycle for map & tracking
+  /// Animated delivery motorcycle for map & tracking
   factory LottieAsset.deliveryBike({double size = 140.0, bool repeat = true}) {
     return LottieAsset(
       url: 'https://assets5.lottiefiles.com/packages/lf20_j1adxtyb.json',
@@ -31,7 +31,7 @@ class LottieAsset extends StatelessWidget {
     );
   }
 
-  /// 🍳 Cooking / food preparation animation
+  /// Cooking / food preparation animation
   factory LottieAsset.cooking({double size = 120.0, bool repeat = true}) {
     return LottieAsset(
       url: 'https://assets4.lottiefiles.com/packages/lf20_x2wv18tb.json',
@@ -42,7 +42,7 @@ class LottieAsset extends StatelessWidget {
     );
   }
 
-  /// ✅ Verified order success checkmark
+  /// Verified order success checkmark
   factory LottieAsset.success({double size = 130.0, bool repeat = false}) {
     return LottieAsset(
       url: 'https://assets9.lottiefiles.com/packages/lf20_jbrw3hcz.json',
@@ -53,7 +53,7 @@ class LottieAsset extends StatelessWidget {
     );
   }
 
-  /// 📦 Empty box animation for empty carts and no orders
+  /// Empty box animation for empty carts and no orders
   factory LottieAsset.emptyBox({double size = 160.0, bool repeat = true}) {
     return LottieAsset(
       url: 'https://assets10.lottiefiles.com/packages/lf20_mz991f8p.json',

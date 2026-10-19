@@ -230,7 +230,7 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
         ),
         const SizedBox(height: 20),
         const Text(
-          'Delivery Confirmed! 🎉',
+          'Delivery Confirmed!',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.white,

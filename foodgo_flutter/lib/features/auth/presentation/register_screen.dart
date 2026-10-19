@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../../widgets/glass_container.dart';
-import '../../../widgets/glass/glass_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../services/google_auth_service.dart';
+import 'widgets/auth_illustration.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,11 +18,19 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   void _register() async {
     if (!_formKey.currentState!.validate()) return;
@@ -32,7 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     final success = await context.read<AuthProvider>().register(
-      username: _usernameController.text.trim(),
+      username: _fullNameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
@@ -44,11 +50,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Registration failed. Username or email may already be taken.'),
+          const SnackBar(
+            content: Text('Registration failed. Username or email may already be taken.'),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
           ),
         );
       }
@@ -78,243 +83,382 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context.go('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Google Sign-Up failed. Please try again.'),
+        const SnackBar(
+          content: Text('Google Sign-Up failed. Please try again.'),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
         ),
       );
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          color: GlassTheme.backgroundDark,
-          image: DecorationImage(
-            image: CachedNetworkImageProvider('https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
-            fit: BoxFit.cover,
-            opacity: 0.2,
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: GlassContainer(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Create Account',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 20.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top Illustration matching Reference Screen 2
+                    const AuthIllustration(
+                      type: AuthIllustrationType.signUp,
+                      size: 135,
+                    ).animate().fade(duration: 400.ms).scale(),
+
+                    const SizedBox(height: 20),
+
+                    // Title: Sign Up
+                    Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : GlassTheme.authTitleDark,
+                      ),
+                      textAlign: TextAlign.center,
+                    ).animate().fade(delay: 150.ms),
+
+                    const SizedBox(height: 6),
+
+                    // Subtitle
+                    Text(
+                      'Give proper information for continue',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: isDark ? Colors.grey[400] : GlassTheme.authSubtitle,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlign: TextAlign.center,
+                    ).animate().fade(delay: 200.ms),
+
+                    const SizedBox(height: 24),
+
+                    // Input 1: Full name
+                    TextFormField(
+                      controller: _fullNameController,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Full name',
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          fontSize: 14,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.person_outline_rounded,
+                          color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                          size: 20,
+                        ),
+                        filled: true,
+                        fillColor: isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white12 : GlassTheme.authInputBorder,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: GlassTheme.authBlue,
+                            width: 1.5,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.redAccent),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                        ),
+                      ),
+                      validator: (val) =>
+                          val == null || val.trim().isEmpty ? 'Enter your full name' : null,
+                    ).animate().fade(delay: 250.ms),
+
+                    const SizedBox(height: 14),
+
+                    // Input 2: Email address
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Email address',
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          fontSize: 14,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.mail_outline_rounded,
+                          color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                          size: 20,
+                        ),
+                        filled: true,
+                        fillColor: isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white12 : GlassTheme.authInputBorder,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: GlassTheme.authBlue,
+                            width: 1.5,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.redAccent),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                        ),
+                      ),
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) return 'Enter an email address';
+                        if (!val.contains('@')) return 'Enter a valid email';
+                        return null;
+                      },
+                    ).animate().fade(delay: 300.ms),
+
+                    const SizedBox(height: 14),
+
+                    // Input 3: Password
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          fontSize: 14,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.lock_outline_rounded,
+                          color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                          size: 20,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                            color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                            size: 20,
+                          ),
+                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        ),
+                        filled: true,
+                        fillColor: isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white12 : GlassTheme.authInputBorder,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: GlassTheme.authBlue,
+                            width: 1.5,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.redAccent),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                        ),
+                      ),
+                      validator: (val) {
+                        if (val == null || val.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ).animate().fade(delay: 350.ms),
+
+                    const SizedBox(height: 16),
+
+                    // Terms & Conditions Disclaimer
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: RichText(
                         textAlign: TextAlign.center,
-                      ).animate().fade().slideY(),
-                      const SizedBox(height: 32),
-                      TextFormField(
-                        controller: _usernameController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Username',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
-                          prefixIcon: const Icon(Icons.person, color: GlassTheme.primaryGreen),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                            borderRadius: BorderRadius.circular(12),
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.grey[400] : GlassTheme.authSubtitle,
+                            height: 1.4,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: GlassTheme.primaryGreen),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.redAccent),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.redAccent),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                        ),
-                        validator: (val) => val == null || val.isEmpty ? 'Enter a username' : null,
-                      ).animate().fade(delay: 200.ms).slideX(),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _emailController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Email Address',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
-                          prefixIcon: const Icon(Icons.email, color: GlassTheme.primaryGreen),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: GlassTheme.primaryGreen),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.redAccent),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.redAccent),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (val) {
-                          if (val == null || val.isEmpty) return 'Enter an email address';
-                          if (!val.contains('@')) return 'Enter a valid email';
-                          return null;
-                        },
-                      ).animate().fade(delay: 300.ms).slideX(),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _passwordController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
-                          prefixIcon: const Icon(Icons.lock, color: GlassTheme.primaryGreen),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                              color: GlassTheme.textMuted,
-                            ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: GlassTheme.primaryGreen),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.redAccent),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.redAccent),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                        ),
-                        obscureText: _obscurePassword,
-                        validator: (val) {
-                          if (val == null || val.length < 6) return 'Password must be at least 6 characters';
-                          return null;
-                        },
-                      ).animate().fade(delay: 400.ms).slideX(),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        height: 56,
-                        child: GlassButton(
-                          onPressed: _isLoading ? () {} : _register,
-                          text: _isLoading ? 'Creating...' : 'Sign Up',
-                          icon: _isLoading ? Icons.hourglass_empty : Icons.person_add,
-                        ),
-                      ).animate().fade(delay: 500.ms).scale(),
-                      const SizedBox(height: 16),
-                      // Sign Up with Google Button
-                      SizedBox(
-                        height: 56,
-                        child: OutlinedButton(
-                          onPressed: _isLoading ? null : _loginWithGoogle,
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
-                            backgroundColor: Colors.white.withValues(alpha: 0.08),
-                            shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadiusSmall),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 26,
-                                height: 26,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  'G',
-                                  style: TextStyle(
-                                    color: GlassTheme.googleBlue,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                'Sign Up with Google',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ).animate().fade(delay: 550.ms).scale(),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Already have an account?',
-                            style: TextStyle(color: GlassTheme.textMuted),
-                          ),
-                          TextButton(
-                            onPressed: () => context.go('/login'),
-                            child: const Text(
-                              'Log In',
+                          children: const [
+                            TextSpan(text: 'By signing up you are agree to our '),
+                            TextSpan(
+                              text: 'Terms & Conditions',
                               style: TextStyle(
-                                color: GlassTheme.primaryGreen,
+                                color: GlassTheme.authBlue,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                            TextSpan(text: ' and '),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: TextStyle(
+                                color: GlassTheme.authBlue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ).animate().fade(delay: 400.ms),
+
+                    const SizedBox(height: 20),
+
+                    // Primary Button: Create Account
+                    SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _register,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlassTheme.authBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                        ],
-                      ).animate().fade(delay: 600.ms),
-                    ],
-                  ),
+                          shadowColor: GlassTheme.authBlue.withValues(alpha: 0.4),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.2,
+                                ),
+                              )
+                            : const Text(
+                                'Create Account',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                      ),
+                    ).animate().fade(delay: 450.ms).scale(),
+
+                    const SizedBox(height: 16),
+
+                    // Google Sign Up Option
+                    SizedBox(
+                      height: 44,
+                      child: OutlinedButton(
+                        onPressed: _isLoading ? null : _loginWithGoogle,
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          side: BorderSide(
+                            color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 20,
+                              height: 20,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'G',
+                                style: TextStyle(
+                                  color: Color(0xFF4285F4),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Sign up with Google',
+                              style: TextStyle(
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ).animate().fade(delay: 500.ms),
+
+                    const SizedBox(height: 20),
+
+                    // Bottom Link: Already have an Account? Sign in
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Already have an Account? ',
+                          style: TextStyle(
+                            color: isDark ? Colors.grey[400] : GlassTheme.authSubtitle,
+                            fontSize: 13,
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => context.go('/login'),
+                          child: const Text(
+                            'Sign in',
+                            style: TextStyle(
+                              color: GlassTheme.authBlue,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ).animate().fade(delay: 550.ms),
+                  ],
                 ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
   }
 }

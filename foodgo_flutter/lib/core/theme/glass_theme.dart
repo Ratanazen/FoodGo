@@ -32,6 +32,15 @@ class GlassTheme {
   static const Color limeSurface = Color(0xFFF9FBE7);
   static const Color heroDarkCard = Color(0xFF1E1E20);
 
+  // Modern Auth Blue Design Tokens (Reference Mockup media_1792405659354.png)
+  static const Color authBlue = Color(0xFF1B64F2);
+  static const Color authBlueDark = Color(0xFF1351CA);
+  static const Color authBlueLight = Color(0xFFEFF4FF);
+  static const Color authTitleDark = Color(0xFF1E293B);
+  static const Color authSubtitle = Color(0xFF64748B);
+  static const Color authInputFill = Color(0xFFF8FAFC);
+  static const Color authInputBorder = Color(0xFFE2E8F0);
+
   // Modern Food Delivery (Foodpanda & Grab) Accents
   static const Color foodpandaPink = Color(0xFFD70F64);
   static const Color accentOrange = Color(0xFFFF6A00);

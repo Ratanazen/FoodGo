@@ -138,5 +138,15 @@ void main() {
       expect(itemData['fats'], '13.8');
       expect(itemData['carbo'], '23.7');
     });
+
+    test('GlassTheme defines modern Auth Blue design tokens matching reference mockup', () {
+      expect(GlassTheme.authBlue, const Color(0xFF1B64F2));
+      expect(GlassTheme.authBlueDark, const Color(0xFF1351CA));
+      expect(GlassTheme.authBlueLight, const Color(0xFFEFF4FF));
+      expect(GlassTheme.authTitleDark, const Color(0xFF1E293B));
+      expect(GlassTheme.authSubtitle, const Color(0xFF64748B));
+      expect(GlassTheme.authInputFill, const Color(0xFFF8FAFC));
+      expect(GlassTheme.authInputBorder, const Color(0xFFE2E8F0));
+    });
   });
 }

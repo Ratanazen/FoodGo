@@ -1,6 +1,16 @@
 class KhmerCurrency {
   /// Standard Cambodian retail exchange rate (NBC / Market customary average)
-  static const double khrPerUsd = 4100.0;
+  static double khrPerUsd = 4100.0;
+  static String rateSource = 'National Bank of Cambodia (NBC)';
+
+  static void updateRate(double newRate, [String? source]) {
+    if (newRate > 0) {
+      khrPerUsd = newRate;
+    }
+    if (source != null && source.isNotEmpty) {
+      rateSource = source;
+    }
+  }
 
   /// Formats USD amount with 2 decimal places: e.g. "$12.50"
   static String formatUsd(double amount) {

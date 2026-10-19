@@ -47,6 +47,26 @@ python scripts/build_app_icons.py
 
 ---
 
+## `backup_db.sh`
+
+Automated database backup, retention rotation, and disaster recovery script for PostgreSQL (production) and SQLite (development).
+
+```bash
+# Create a timestamped, gzip-compressed backup
+bash scripts/backup_db.sh --backup
+
+# List existing backup archives
+bash scripts/backup_db.sh --list
+
+# Restore from a backup archive
+bash scripts/backup_db.sh --restore backups/foodgo_pg_YYYYMMDD_HHMMSS.dump.gz
+
+# Set custom retention window (default: 7 days)
+bash scripts/backup_db.sh --backup --retention 14
+```
+
+---
+
 ## Root-level: `run_all.sh`
 
 Starts the entire dev ecosystem (Django + Flutter Web) in one command.

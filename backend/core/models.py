@@ -399,3 +399,17 @@ class AuditLog(models.Model):
     def __str__(self):
         actor = self.admin_user.username if self.admin_user else 'System'
         return f"[{self.timestamp:%Y-%m-%d %H:%M}] {actor} -> {self.action} on {self.target_type} #{self.target_id}"
+
+class ExchangeRate(models.Model):
+    base_currency = models.CharField(max_length=3, default='USD')
+    target_currency = models.CharField(max_length=3, default='KHR')
+    rate = models.DecimalField(max_digits=12, decimal_places=4, default=Decimal('4100.0000'))
+    source = models.CharField(max_length=100, default='National Bank of Cambodia (NBC)')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('base_currency', 'target_currency')
+
+    def __str__(self):
+        return f"1 {self.base_currency} = {self.rate} {self.target_currency} ({self.source})"
+

@@ -9,9 +9,10 @@
 ## 1. Overview of Test Coverage
 
 FoodGo maintains comprehensive automated test coverage across both backend services and the mobile client application:
-- **Django REST Framework Tests:** **64 / 64 Tests Passing** (100% Pass Rate).
+- **Django REST Framework Tests:** **73 / 73 Tests Passing** (100% Pass Rate).
 - **Flutter Static Analysis:** **0 Issues Found** (`flutter analyze --no-pub`).
-- **Flutter Unit & Widget Tests:** **61 / 61 Tests Passing** (`flutter test --no-pub`).
+- **Flutter Unit & Widget Tests:** **81 / 81 Tests Passing** (`flutter test --no-pub`).
+- **Total Automated Tests:** **154 / 154 Tests Passing** (100% Pass Rate).
 
 ---
 
@@ -89,14 +90,16 @@ flutter analyze --no-pub
 cd foodgo_flutter
 flutter test --no-pub
 ```
-- **Total Tests:** 61 Tests Passing (`00:01 +61: All tests passed!`).
+- **Total Tests:** 81 Tests Passing (`00:04 +81: All tests passed!`).
 - **Covered Areas:**
   - `AdminProvider`: State defaults, filter mutations, data retrieval.
   - `AdminDashboardScreen`: Full 5-tab UI layout verification (Overview, Orders, Users, Restaurants, Audit Logs) and period filter chips.
   - `CartProvider`: Quantity increments, item removals, grand total recalculation, discount computation, and special cooking instructions.
-  - `KhmerCurrency`: USD/KHR dual-currency conversion, formatting with official NBC exchange rate ($1.00 = 4,100 KHR).
+  - `KhmerCurrency` & `CurrencyProvider`: Dynamic National Bank of Cambodia (NBC) rate engine, USD/KHR dual-currency conversion, SharedPreferences persistence, and `SettingsScreen` currency switcher modal.
+  - `NotificationProvider` & `NotificationsScreen`: Real-time unread notification count badge in `HomeScreen` header, milestone notifications, category filters (`All`, `Orders`, `Promos`), swipe-to-delete, and order details bottom sheet modal.
+  - `SearchScreen`: Dual search engine (Dishes & Restaurants), persistent search history with chip removal, quick craving suggestion chips with vector icons, and advanced filter bottom sheet modal.
   - `PaymentModel`: Deserialization, state getters (`isPending`, `isPaid`, `isExpired`, `isFailed`, `isProcessing`, `isRefunded`).
-  - `MapConfig`: Map tile URL validation and Haversine distance / ETA estimation.
+  - `MapConfig` & `MapScreen`: Route polyline verification, Haversine distance / ETA estimation, bearing calculation, and rotating motorcycle courier marker.
   - `AddressProvider`: Default address selection and local persistence fallbacks.
   - `Delivery Confirmation QR & PIN Tests`: URI query parameter parsing, 6-digit regex format validation, and payment preservation checks.
   - `ResponsiveLayout`: Mobile, tablet, and desktop layout constraints.

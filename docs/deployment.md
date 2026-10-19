@@ -84,21 +84,52 @@ Always run non-destructive database migrations against production:
 python manage.py migrate --noinput
 ```
 
-### 4.2 Automated Database Backups
-Before executing any major schema migration:
+### 4.2 Automated Database Backup Script (`scripts/backup_db.sh`)
+FoodGo includes an enterprise backup utility supporting PostgreSQL (production) and SQLite (development) with automated gzip compression, retention pruning, and restore verification:
+
 ```bash
-pg_dump "$DATABASE_URL" --format=c --file="backup_$(date +%Y%m%d_%H%M%S).dump"
+# 1. Run automated backup (respects DATABASE_URL or falls back to SQLite)
+bash scripts/backup_db.sh --backup
+
+# 2. List all existing backup archives with size and modification timestamp
+bash scripts/backup_db.sh --list
+
+# 3. Configure automated cron job for daily midnight backups with 7-day retention
+0 0 * * * /bin/bash /home/reny/FoodGo/scripts/backup_db.sh --backup --retention 7 >> /var/log/foodgo_backup.log 2>&1
 ```
 
-### 4.3 Rollback Procedure
-If a deployment fails:
-1. **Vercel Rollback**: Navigate to `Deployments` in Vercel dashboard and click `Instant Rollback` on the previous known healthy deployment.
-2. **Database Rollback**:
+### 4.3 Disaster Recovery & Rollback Procedure
+If a production deployment or schema migration fails:
+1. **Database Restore**:
    ```bash
-   pg_restore --clean --if-exists -d "$DATABASE_URL" backup_YYYYMMDD_HHMMSS.dump
+   # Restore PostgreSQL from gzip-compressed dump
+   bash scripts/backup_db.sh --restore backups/foodgo_pg_YYYYMMDD_HHMMSS.dump.gz
+
+   # Or restore SQLite fallback
+   bash scripts/backup_db.sh --restore backups/foodgo_sqlite_YYYYMMDD_HHMMSS.sqlite3.gz
    ```
-3. **Git Revert**: Revert the commit and push to `main` and `master`:
+2. **Vercel Instant Rollback**:
+   - Navigate to `Deployments` in the Vercel Dashboard.
+   - Locate the last known green production deployment.
+   - Click `...` -> `Instant Rollback`.
+3. **Render ASGI Container Rollback**:
+   - Navigate to the Render Dashboard -> `foodgo-backend` -> `Deploys`.
+   - Select the target commit and trigger a rollback deploy.
+4. **Git Branch Alignment**:
    ```bash
    git revert HEAD
    git push origin main && git checkout master && git merge main && git push origin master && git checkout main
    ```
+
+---
+
+## 5. Production Health Checks & Monitoring
+
+The following endpoints are monitored for uptime and telemetry:
+
+| Endpoint | Method | Expected Status | Purpose |
+| :--- | :--- | :--- | :--- |
+| `/api/restaurants/` | `GET` | `HTTP 200` | Core API & database connectivity |
+| `/api/currency/rates/` | `GET` | `HTTP 200` | NBC multi-currency exchange rate engine |
+| `/api/admin/analytics/` | `GET` | `HTTP 200 / 401` | Operations & KPI aggregation |
+| `/ws/tracking/<order_id>/` | `WSS` | `101 Switching Protocols` | Daphne ASGI live telemetry WebSocket |

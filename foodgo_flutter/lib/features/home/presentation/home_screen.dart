@@ -10,6 +10,7 @@ import '../../../providers/restaurant_provider.dart';
 import '../../../providers/address_provider.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../providers/notification_provider.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/shimmer_widgets.dart';
@@ -460,60 +461,76 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Right: Notification Bell with Red Badge "1"
-          InkWell(
-            onTap: () => context.push('/notifications'),
-            borderRadius: BorderRadius.circular(24),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? Colors.white12 : const Color(0xFFEEEEEE),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(
-                    Icons.notifications_none_rounded,
-                    color: isDark ? Colors.white70 : const Color(0xFF555555),
-                    size: 22,
-                  ),
-                  Positioned(
-                    top: 9,
-                    right: 9,
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFF4842),
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        '1',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          height: 1.0,
-                        ),
-                      ),
+          // Right: Notification Bell with Dynamic Unread Badge
+          Consumer<NotificationProvider>(
+            builder: (context, notifProvider, child) {
+              final unread = notifProvider.unreadCount;
+              return InkWell(
+                onTap: () => context.push('/notifications'),
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark ? Colors.white12 : const Color(0xFFEEEEEE),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.2 : 0.04,
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        Icons.notifications_none_rounded,
+                        color: isDark
+                            ? Colors.white70
+                            : const Color(0xFF555555),
+                        size: 22,
+                      ),
+                      if (unread > 0)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFF4842),
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              unread > 9 ? '9+' : '$unread',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                height: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -1720,12 +1737,20 @@ class _HomeScreenState extends State<HomeScreen> {
   // Floating Persistent Active Order Floater (Docked above bottom nav)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildFloatingActiveOrder(BuildContext context, bool isDark) {
+    final notifs = context.watch<NotificationProvider>().orderNotifications;
+    final activeNotif = notifs.isNotEmpty ? notifs.first : null;
+    final activeOrderId = activeNotif?.orderId?.toString() ?? '1024';
+    final courierTitle = activeNotif != null ? activeNotif.title : 'Ahmad is on the way';
+    final courierSub = activeNotif != null
+        ? '${activeNotif.data['restaurant_name'] ?? 'FoodGo'} • Arriving in ${_activeOrderEta}m'
+        : 'To Home • Arriving 11:15 PM';
+
     return Positioned(
       bottom: 96,
       left: 16,
       right: 16,
       child: InkWell(
-        onTap: () => context.push('/map/1904'),
+        onTap: () => context.push('/map/$activeOrderId'),
         borderRadius: BorderRadius.circular(20),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1787,16 +1812,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Ahmad is on the way',
-                      style: TextStyle(
+                    Text(
+                      courierTitle,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'To Home • Arriving 11:15 PM',
+                      courierSub,
                       style: TextStyle(
                         fontSize: 12,
                         color: GlassTheme.textMuted,

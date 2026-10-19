@@ -9,7 +9,9 @@ import 'providers/address_provider.dart';
 import 'providers/admin_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
+import 'providers/currency_provider.dart';
 import 'providers/favorites_provider.dart';
+import 'providers/notification_provider.dart';
 import 'providers/restaurant_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
@@ -42,6 +44,10 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => AddressProvider()..fetchAddresses(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider()..fetchNotifications(),
+        ),
+        ChangeNotifierProvider(create: (_) => CurrencyProvider()),
         ChangeNotifierProvider(create: (_) => AdminProvider()),
       ],
       child: const FoodGoApp(),

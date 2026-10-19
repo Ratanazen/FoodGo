@@ -27,6 +27,9 @@ private/
 *.swp
 *.bak
 *.tmp
+backups/
+*.dump
+*.dump.gz
 
 # Flutter & Dart
 foodgo_flutter/build/

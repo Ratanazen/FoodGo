@@ -302,10 +302,17 @@ class RestaurantCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'image']
 
 class NotificationSerializer(serializers.ModelSerializer):
+    order_id = serializers.SerializerMethodField()
+
     class Meta:
         model = Notification
-        fields = ['id', 'user', 'title', 'message', 'notification_type', 'data', 'is_read', 'created_at']
-        read_only_fields = ['id', 'user', 'created_at']
+        fields = ['id', 'user', 'title', 'message', 'notification_type', 'data', 'is_read', 'created_at', 'order_id']
+        read_only_fields = ['id', 'user', 'created_at', 'order_id']
+
+    def get_order_id(self, obj):
+        if isinstance(obj.data, dict):
+            return obj.data.get('order_id')
+        return None
 
 class FavoriteSerializer(serializers.ModelSerializer):
     restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)

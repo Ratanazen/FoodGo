@@ -4,11 +4,13 @@ from decimal import Decimal
 
 from django.db import transaction
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
 from .models import *
 from .serializers import *
+from .notifications import dispatch_order_notification
 
 class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
@@ -236,6 +238,8 @@ class OrderViewSet(viewsets.ModelViewSet):
 
             order.status = new_status_norm
             order.save(update_fields=['status'])
+            if new_status_norm != current_status:
+                dispatch_order_notification(order, status_key=new_status_norm)
             delivery = getattr(order, 'delivery', None)
 
             # Auto-bind driver if a driver claims or moves the order
@@ -272,6 +276,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         instance.cancelled_at = timezone.now()
         instance.cancellation_reason = 'Cancelled by user'
         instance.save(update_fields=['status', 'cancelled_at', 'cancellation_reason'])
+        dispatch_order_notification(instance, status_key='cancelled', custom_message=f"Order #{instance.id} has been cancelled.")
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def cancel(self, request, pk=None):
@@ -289,6 +294,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         order.cancelled_at = timezone.now()
         order.cancellation_reason = reason
         order.save(update_fields=['status', 'cancelled_at', 'cancellation_reason'])
+        dispatch_order_notification(order, status_key='cancelled', custom_message=f"Order #{order.id} has been cancelled. Reason: {reason}")
         return Response({
             'status': 'cancelled',
             'message': 'Order successfully cancelled.',
@@ -412,6 +418,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 cart.items.all().delete()
                 cart.restaurant = None
                 cart.save(update_fields=['restaurant'])
+            dispatch_order_notification(order, status_key='pending')
             return
 
         # Fallback to server-side cart
@@ -487,6 +494,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         cart.items.all().delete()
         cart.restaurant = None
         cart.save(update_fields=['restaurant'])
+        dispatch_order_notification(order, status_key='pending')
 
     @action(detail=True, methods=['get'])
     def track(self, request, pk=None):
@@ -751,6 +759,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             delivery.delivery_time = now
             delivery.save(update_fields=['status', 'delivery_time'])
 
+            dispatch_order_notification(order, status_key='delivered')
+
         return Response({
             'status': 'SUCCESS',
             'message': 'Delivery confirmed successfully!',
@@ -786,6 +796,12 @@ class OrderViewSet(viewsets.ModelViewSet):
                 token_obj.confirmed_by = request.user
                 token_obj.user_agent = f"SUPPORT_OVERRIDE: {reason}"
                 token_obj.save(update_fields=['is_used', 'used_at', 'confirmed_by', 'user_agent'])
+
+            dispatch_order_notification(
+                order,
+                status_key='delivered',
+                custom_message=f"Order #{order.id} delivery verified and confirmed by support concierge."
+            )
 
         return Response({
             'status': 'SUCCESS',
@@ -1218,4 +1234,30 @@ def csrf_failure_view(request, reason=""):
     response = render(request, '403_csrf.html', context, status=403)
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
     return response
+
+
+class CurrencyRateView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        rate_obj, _ = ExchangeRate.objects.get_or_create(
+            base_currency='USD',
+            target_currency='KHR',
+            defaults={
+                'rate': Decimal('4100.0000'),
+                'source': 'National Bank of Cambodia (NBC)'
+            }
+        )
+        return Response({
+            'base_currency': rate_obj.base_currency,
+            'target_currency': rate_obj.target_currency,
+            'rate': float(rate_obj.rate),
+            'source': rate_obj.source,
+            'updated_at': rate_obj.updated_at.isoformat(),
+            'rates': {
+                'USD': 1.0,
+                'KHR': float(rate_obj.rate),
+            }
+        })
+
 

@@ -14,6 +14,7 @@ from .serializers import (
     AuditLogSerializer
 )
 from .permissions import IsAdminOrStaff
+from .notifications import dispatch_order_notification
 
 def _get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -182,6 +183,14 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
             ip_address=_get_client_ip(request)
         )
 
+        driver_name = driver.user.get_full_name() or driver.user.username
+        dispatch_order_notification(
+            order,
+            status_key='preparing',
+            custom_title='Driver Assigned',
+            custom_message=f"Courier {driver_name} has been assigned to your order #{order.id}."
+        )
+
         return Response(OrderSerializer(order, context={'request': request}).data)
 
     @action(detail=True, methods=['post'])
@@ -203,6 +212,13 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
             target_id=str(order.id),
             details={'reason': reason, 'order_reference': order.order_reference},
             ip_address=_get_client_ip(request)
+        )
+
+        dispatch_order_notification(
+            order,
+            status_key='cancelled',
+            custom_title='Order Cancelled by Support',
+            custom_message=f"Order #{order.id} was cancelled by administrator. Reason: {reason}"
         )
 
         return Response(OrderSerializer(order, context={'request': request}).data)

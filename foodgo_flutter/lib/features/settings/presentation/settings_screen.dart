@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/currency_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -87,29 +88,145 @@ class _SettingsScreenState extends State<SettingsScreen> {
               {'label': 'Français (French)', 'name': 'French'},
             ].map((lang) {
               final isSel = _selectedLanguage == lang['name'];
-              return ListTile(
-                title: Text(
-                  lang['label']!,
+              return Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  title: Text(
+                    lang['label']!,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  trailing: isSel
+                      ? const Icon(Icons.check, color: GlassTheme.primaryGreen)
+                      : null,
+                  onTap: () {
+                    setState(() => _selectedLanguage = lang['name']!);
+                    _saveSetting('settings_language', lang['name']!);
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Language switched to ${lang['label']}'),
+                        duration: const Duration(seconds: 1),
+                        backgroundColor: GlassTheme.primaryGreen,
+                      ),
+                    );
+                  },
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCurrencyDialog(BuildContext context) {
+    final currencyProvider = context.read<CurrencyProvider>();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: GlassTheme.dialogDark,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Display Currency',
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                trailing: isSel
-                    ? const Icon(Icons.check, color: GlassTheme.primaryGreen)
-                    : null,
-                onTap: () {
-                  setState(() => _selectedLanguage = lang['name']!);
-                  _saveSetting('settings_language', lang['name']!);
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Language switched to ${lang['label']}'),
-                      duration: const Duration(seconds: 1),
-                      backgroundColor: GlassTheme.primaryGreen,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '1 USD = ${currencyProvider.khrPerUsd.toInt()} KHR',
+                    style: const TextStyle(
+                      color: GlassTheme.primaryGreen,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...[
+              {
+                'mode': DisplayCurrency.usd,
+                'title': r'USD ($)',
+                'subtitle': 'US Dollar (Default international standard)',
+              },
+              {
+                'mode': DisplayCurrency.khr,
+                'title': 'KHR (៛)',
+                'subtitle': 'Cambodian Riel (NBC customary retail rate)',
+              },
+              {
+                'mode': DisplayCurrency.dual,
+                'title': r'Dual Currency ($ / ៛)',
+                'subtitle': 'Shows both USD and estimated Riel simultaneously',
+              },
+            ].map((opt) {
+              final mode = opt['mode'] as DisplayCurrency;
+              final isSel = currencyProvider.currency == mode;
+              return Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  title: Text(
+                    opt['title'] as String,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  subtitle: Text(
+                    opt['subtitle'] as String,
+                    style: const TextStyle(
+                      color: GlassTheme.textMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                  trailing: isSel
+                      ? const Icon(
+                          Icons.check_circle,
+                          color: GlassTheme.primaryGreen,
+                        )
+                      : null,
+                  onTap: () {
+                    currencyProvider.setCurrency(mode);
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Display currency set to ${opt['title']}',
+                        ),
+                        duration: const Duration(seconds: 1),
+                        backgroundColor: GlassTheme.primaryGreen,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
               );
             }),
           ],
@@ -787,6 +904,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _showFontSizeDialog,
                 ),
+                _Divider(),
+                _SettingsTile(
+                  icon: Icons.currency_exchange,
+                  iconColor: Colors.amberAccent,
+                  title: 'Display Currency',
+                  subtitle:
+                      '${context.watch<CurrencyProvider>().currencySymbol} (${context.watch<CurrencyProvider>().currency.name.toUpperCase()}) • 1 USD = ${context.watch<CurrencyProvider>().khrPerUsd.toInt()} KHR',
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showCurrencyDialog(context),
+                ),
               ],
             ),
           ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0),
@@ -1019,37 +1146,40 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: iconColor.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: iconColor, size: 20),
         ),
-        child: Icon(icon, color: iconColor, size: 20),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+        ),
+        subtitle: subtitle != null
+            ? Text(
+                subtitle!,
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+              )
+            : null,
+        trailing: trailing != null
+            ? DefaultTextStyle(
+                style: TextStyle(color: GlassTheme.textMuted),
+                child: IconTheme(
+                  data: IconThemeData(color: GlassTheme.textMuted, size: 20),
+                  child: trailing!,
+                ),
+              )
+            : null,
+        onTap: onTap,
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-      ),
-      subtitle: subtitle != null
-          ? Text(
-              subtitle!,
-              style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-            )
-          : null,
-      trailing: trailing != null
-          ? DefaultTextStyle(
-              style: TextStyle(color: GlassTheme.textMuted),
-              child: IconTheme(
-                data: IconThemeData(color: GlassTheme.textMuted, size: 20),
-                child: trailing!,
-              ),
-            )
-          : null,
-      onTap: onTap,
     );
   }
 }

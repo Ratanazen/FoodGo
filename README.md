@@ -6,8 +6,9 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-132%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-154%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
+![Zero Emoji](https://img.shields.io/badge/Zero--Emoji-100%25%20Vector-success)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ---
@@ -53,6 +54,17 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 * **In-App Digital Wallet:** Instant top-ups via KHQR with atomic ACID ledger deduction.
 * **Cryptographic Doorstep QR Delivery Confirmation:** Cryptographically secure 15-minute expiring token and 6-digit backup PIN preventing fraudulent delivery handovers.
 * **Real-Time WebSockets:** Powered by Django Channels & Redis for live driver GPS simulation and status updates.
+
+### 6. In-App Notifications & Live Driver GPS Telemetry
+* **Automated Milestone Notifications:** Real-time push notification dispatch across all order lifecycle states (`pending`, `confirmed`, `preparing`, `ready`, `on_the_way`, `driver_arrived`, `delivered`, `cancelled`).
+* **Notification Center:** Dynamic badge counter on `HomeScreen`, category filters (`All`, `Orders`, `Promos`), swipe-to-delete dismissible tiles, mark-all-as-read, and deep-link modal sheets.
+* **Live Driver Route WebSockets:** Daphne ASGI `OrderTrackingConsumer` with coordinate validation, 200ms throttling, and bearing telemetry forwarding.
+* **Turn-by-Turn Courier Animation:** `MapScreen` with continuous polyline progress, rotating motorcycle courier marker (`Transform.rotate`) driven by heading calculations, and live speed/ETA readout.
+
+### 7. National Bank of Cambodia (NBC) Multi-Currency & Disaster Recovery
+* **Dynamic NBC Rate Engine:** REST endpoint `/api/currency/rates/` exposing the National Bank of Cambodia customary rate (`4,100 KHR / USD`) with database persistence (`ExchangeRate` model) and timestamped caching.
+* **App-Wide Currency Switcher:** User preference toggle (`$ USD`, `៛ KHR`, `Dual ($ / ៛)`) persisted in `SharedPreferences`, dynamically re-rendering all menus, cart totals, and receipts.
+* **Automated Disaster Recovery Script (`scripts/backup_db.sh`):** Enterprise utility supporting PostgreSQL and SQLite backups, gzip compression, 7-day retention rotation, and restore verification.
 
 ---
 
@@ -241,11 +253,14 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test`)** | **67** | **67 Passed (100%)** | ~59.8s |
-| **Flutter Frontend (`foodgo_flutter/test/`)** | **65** | **65 Passed (100%)** | ~3.8s |
-| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **70+ Files** | **0 Errors, 0 Warnings** | ~2.1s |
+| **Django Backend (`backend/manage.py test core`)** | **73** | **73 Passed (100%)** | ~64s |
+| **Flutter Frontend (`foodgo_flutter/test/`)** | **81** | **81 Passed (100%)** | ~4.1s |
+| **Total Automated Tests** | **154** | **154 Passed (100%)** | ~68s |
+| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **70+ Files** | **0 Errors, 0 Warnings** | ~2.7s |
+| **Zero-Emoji Policy Verification** | **All Repo Files** | **100% Vector Icon Compliant** | ~1.1s |
 | **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |
 | **Django Static Collection (`collectstatic`)** | **249 Files** | **Success** | ~1.2s |
+| **Database Backup & DR (`backup_db.sh`)** | **Automated Script** | **Verified (PostgreSQL & SQLite)** | <1s |
 
 ---
 

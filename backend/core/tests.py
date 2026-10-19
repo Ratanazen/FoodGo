@@ -5,8 +5,9 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from core.models import (
     User, Restaurant, FoodCategory, FoodItem, Order, OrderItem,
-    Cart, CartItem, Wallet, Review, Driver, Delivery
+    Cart, CartItem, Wallet, Review, Driver, Delivery, Notification
 )
+from core.tests_admin import AdminFeatureTestCase
 
 class FoodGoCoreAPITests(TestCase):
     def setUp(self):
@@ -289,5 +290,111 @@ class FoodGoCoreAPITests(TestCase):
         self.assertEqual(res_tier.status_code, status.HTTP_200_OK)
         results_tier = res_tier.data if isinstance(res_tier.data, list) else res_tier.data.get('results', [])
         self.assertTrue(any(r['name'] == 'Angkor Delights' for r in results_tier))
+
+    def test_order_creation_triggers_notification(self):
+        self.client.force_authenticate(user=self.customer)
+        data = {
+            'restaurant': self.restaurant.id,
+            'items': [{'food_item': self.food_item.id, 'quantity': 2}],
+            'payment_method': 'COD'
+        }
+        res = self.client.post('/api/orders/', data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        order_id = res.data['id']
+
+        notif = Notification.objects.filter(user=self.customer, data__order_id=order_id).first()
+        self.assertIsNotNone(notif)
+        self.assertEqual(notif.notification_type, 'order')
+        self.assertIn('Placed', notif.title)
+        self.assertFalse(notif.is_read)
+
+    def test_order_status_update_triggers_notification(self):
+        order = Order.objects.create(
+            customer=self.customer,
+            restaurant=self.restaurant,
+            total_amount=Decimal('15.00'),
+            status='pending'
+        )
+        staff_user = User.objects.create_superuser('admin_tester', 'admin@foodgo.kh', 'Admin123!')
+        self.client.force_authenticate(user=staff_user)
+        res = self.client.patch(f'/api/orders/{order.id}/', {'status': 'confirmed'}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        notif = Notification.objects.filter(user=self.customer, data__order_id=order.id, data__status='confirmed').first()
+        self.assertIsNotNone(notif)
+        self.assertIn('Confirmed', notif.title)
+
+    def test_notification_apis_and_unread_count(self):
+        Notification.objects.create(
+            user=self.customer,
+            title='Promo Voucher',
+            message='Enjoy 20% discount!',
+            notification_type='promo',
+            is_read=False
+        )
+        Notification.objects.create(
+            user=self.customer,
+            title='Order Update',
+            message='Order on the way',
+            notification_type='order',
+            is_read=False
+        )
+        self.client.force_authenticate(user=self.customer)
+
+        res_count = self.client.get('/api/notifications/unread-count/')
+        self.assertEqual(res_count.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_count.data['unread_count'], 2)
+
+        res_mark = self.client.post('/api/notifications/mark-all-read/')
+        self.assertEqual(res_mark.status_code, status.HTTP_200_OK)
+
+        res_count_after = self.client.get('/api/notifications/unread-count/')
+        self.assertEqual(res_count_after.data['unread_count'], 0)
+
+    def test_order_tracking_api_endpoint(self):
+        order = Order.objects.create(
+            customer=self.customer,
+            restaurant=self.restaurant,
+            total_amount=Decimal('20.00'),
+            status='on_the_way'
+        )
+        self.client.force_authenticate(user=self.customer)
+        res = self.client.get(f'/api/orders/{order.id}/track/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('restaurant_location', res.data)
+        self.assertIn('status', res.data)
+        self.assertEqual(res.data['status'], 'on_the_way')
+
+    def test_websocket_check_order_access(self):
+        from asgiref.sync import async_to_sync
+        from core.consumers import check_order_access
+
+        order = Order.objects.create(
+            customer=self.customer,
+            restaurant=self.restaurant,
+            total_amount=Decimal('20.00'),
+            status='on_the_way'
+        )
+        other_user = User.objects.create_user('other_person', 'other@foodgo.kh', 'Pass123!')
+
+        can_connect_customer, _ = async_to_sync(check_order_access)(order.id, self.customer)
+        self.assertTrue(can_connect_customer)
+
+        can_connect_other, _ = async_to_sync(check_order_access)(order.id, other_user)
+        self.assertFalse(can_connect_other)
+
+        staff_user = User.objects.create_superuser('boss', 'boss@foodgo.kh', 'Admin123!')
+        can_connect_staff, _ = async_to_sync(check_order_access)(order.id, staff_user)
+        self.assertTrue(can_connect_staff)
+
+    def test_currency_rates_api(self):
+        res = self.client.get('/api/currency/rates/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['base_currency'], 'USD')
+        self.assertEqual(res.data['target_currency'], 'KHR')
+        self.assertAlmostEqual(res.data['rate'], 4100.0)
+        self.assertIn('rates', res.data)
+        self.assertEqual(res.data['rates']['KHR'], 4100.0)
+
 
 

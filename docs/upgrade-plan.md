@@ -52,16 +52,43 @@ All pre-existing production features, including Khmer QR (Bakong NBC KHQR) payme
 3. Flutter Admin Dashboard (`AdminDashboardScreen`):
    - 5 interactive tabs: Overview & Analytics, Orders Management, User Directory, Restaurant Directory, and Audit Logs.
    - Glassmorphic UI adhering to the FoodGo Design System with zero emojis.
-   - Integrated state management via `AdminProvider` and responsive web layout support.
+### D. In-App Notifications & Automated Dispatch
+1. Milestone Notifications:
+   - Backend dispatch triggers on all key order milestone events (`pending`, `confirmed`, `preparing`, `ready`, `on_the_way`, `driver_arrived`, `delivered`, `cancelled`).
+   - Customer and driver alerts with localized message copy and timestamped records.
+2. Flutter Notification Center:
+   - Dynamic unread count badge in `HomeScreen` location header (`Icons.notifications_none_rounded`).
+   - `NotificationsScreen` with filter tabs (`All`, `Orders`, `Promos`), swipe-to-delete, mark-as-read, clear-all, and one-tap order detail bottom sheet routing to tracking (`/map/:id`).
+
+### E. Live Driver Route GPS WebSocket & Telemetry
+1. Daphne ASGI WebSocket Hardening:
+   - Coordinate boundary validation (-90 <= lat <= 90, -180 <= lng <= 180) and 200ms debounce throttling.
+   - Bearing angle calculation and real-time heading forwarding to active room subscribers.
+2. Realistic Phnom Penh Simulation Waypoints:
+   - `scripts/simulate_driver.py` with actual Phnom Penh street routes (BKK1 -> Independence Monument -> Wat Botum -> Sisowath Quay -> Koh Pich).
+3. Client Animation & Marker Rotation:
+   - `MapScreen` with continuous polyline progress interpolation, rotating courier motorcycle icon (`Transform.rotate`) driven by heading calculations, and live speed/ETA readout.
+
+### F. Dynamic Multi-Currency NBC Rate Engine
+1. National Bank of Cambodia (NBC) Exchange Rate API:
+   - `ExchangeRate` model and `/api/currency/rates/` endpoint with customary rate (`4,100 KHR / USD`) and auto-seeding cache (`0018_exchangerate.py`).
+2. App-Wide Currency Switcher:
+   - `CurrencyProvider` providing user choice (`$ USD`, `៛ KHR`, `Dual ($ / ៛)`) stored in `SharedPreferences`.
+   - `SettingsScreen` currency modal with dynamic app-wide recalculation across menus, cart, and checkout.
+
+### G. Database Backup & Disaster Recovery
+1. Enterprise Backup Script (`scripts/backup_db.sh`):
+   - Supports both PostgreSQL (production) and SQLite (development fallback).
+   - Automated gzip compression, 7-day retention rotation, and restore verification mode.
 
 ---
 
 ## 3. Verification & Quality Gates
 
-- Django Backend Tests: 67/67 tests passing (100% pass rate).
-- Flutter Tests: 65/65 tests passing (100% pass rate).
-- Total Automated Tests: 132 tests passing (100% pass rate).
+- Django Backend Tests: 73/73 tests passing (100% pass rate).
+- Flutter Tests: 81/81 tests passing (100% pass rate).
+- Total Automated Tests: 154 tests passing (100% pass rate).
 - Flutter Analyzer: Zero warnings, zero errors (`flutter analyze --no-pub`).
 - Code Formatting: All Dart files formatted according to official Dart conventions.
-- Zero-Emoji Compliance: All code, UI assets, tests, and documentation adhere strictly to Material and vector SVG icons.
+- Zero-Emoji Compliance: All code, UI assets, tests, and documentation adhere strictly to Material and vector SVG icons (0 emojis detected across repository).
 

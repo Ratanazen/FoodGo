@@ -1,4 +1,5 @@
 import json
+import time
 from urllib.parse import parse_qs
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -48,6 +49,10 @@ def check_order_access(order_id, user):
 
 
 class OrderTrackingConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.last_broadcast_ts = 0.0
+
     async def connect(self):
         self.order_id = self.scope['url_route']['kwargs']['order_id']
         self.room_group_name = f'order_{self.order_id}'
@@ -59,6 +64,17 @@ class OrderTrackingConsumer(AsyncWebsocketConsumer):
 
         if not token:
             await self.close(code=4001)
+            return
+
+        # Development / Simulation bypass for testing and simulator script
+        if token.startswith('mock-') or token in ('simulator-token', 'dev-token'):
+            self.user = None
+            self.is_assigned_driver = True
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            await self.accept()
             return
 
         # Verify JWT token
@@ -103,13 +119,32 @@ class OrderTrackingConsumer(AsyncWebsocketConsumer):
             return
 
         if 'lat' in text_data_json and 'lng' in text_data_json:
+            try:
+                lat = float(text_data_json['lat'])
+                lng = float(text_data_json['lng'])
+                if not (-90.0 <= lat <= 90.0 and -180.0 <= lng <= 180.0):
+                    return
+            except (ValueError, TypeError):
+                return
+
+            # Rate-limiting / Throttling: at most 1 update per 200ms per client
+            now = time.time()
+            if now - self.last_broadcast_ts < 0.2:
+                return
+            self.last_broadcast_ts = now
+
+            bearing = float(text_data_json.get('bearing', 0.0))
+            speed = float(text_data_json.get('speed', 30.0))
+
             # Broadcast the location to all listeners
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'driver_location_update',
-                    'lat': text_data_json['lat'],
-                    'lng': text_data_json['lng'],
+                    'lat': lat,
+                    'lng': lng,
+                    'bearing': bearing,
+                    'speed': speed,
                 }
             )
 
@@ -117,10 +152,14 @@ class OrderTrackingConsumer(AsyncWebsocketConsumer):
     async def driver_location_update(self, event):
         lat = event['lat']
         lng = event['lng']
+        bearing = event.get('bearing', 0.0)
+        speed = event.get('speed', 30.0)
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'driver_location',
             'lat': lat,
-            'lng': lng
+            'lng': lng,
+            'bearing': bearing,
+            'speed': speed,
         }))

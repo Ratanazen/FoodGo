@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../core/theme/glass_theme.dart';
 import '../core/config/map_config.dart';
 import '../core/config/app_config.dart';
+import '../core/storage/secure_storage.dart';
 import '../widgets/glass/glass_widgets.dart';
 import '../widgets/glass_container.dart';
 import '../services/api_service.dart';
@@ -49,6 +51,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   Timer? _liveMovementTimer;
   double _routeProgress = 0.45;
   double _currentSpeedKmH = 34.0;
+  double _driverBearing = 0.0;
 
   // Nearby restaurants list when in explore mode (orderId is empty)
   List<Map<String, dynamic>> _nearbyRestaurants = [];
@@ -96,6 +99,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         final newLng = startLng + (endLng - startLng) * _routeProgress;
         _driverLocation = LatLng(newLat, newLng);
 
+        final dLat = endLat - startLat;
+        final dLng = endLng - startLng;
+        _driverBearing =
+            (math.atan2(dLng, dLat) * 180.0 / math.pi + 360.0) % 360.0;
+
         _currentSpeedKmH = 28.0 + (timer.tick % 5) * 2.5;
       });
     });
@@ -112,13 +120,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   bool get _isTrackingMode =>
       widget.orderId.isNotEmpty && widget.orderId != '0';
 
-  void _connectWebSocket() {
+  Future<void> _connectWebSocket() async {
     try {
+      final token = await SecureStorage().getAccessToken() ?? '';
       final defaultWsBase = AppConfig.wsBaseUrl;
       final normalizedWsBase = defaultWsBase.endsWith('/')
           ? defaultWsBase
           : '$defaultWsBase/';
-      final wsUrl = Uri.parse('$normalizedWsBase${widget.orderId}/');
+      final tokenParam = token.isNotEmpty
+          ? '?token=$token'
+          : '?token=simulator-token';
+      final wsUrl = Uri.parse('$normalizedWsBase${widget.orderId}/$tokenParam');
       _channel = WebSocketChannel.connect(wsUrl);
       _channel?.stream.listen(
         (message) {
@@ -126,11 +138,19 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           try {
             final data = jsonDecode(message);
             if (data['type'] == 'driver_location') {
+              final newLat = double.parse(data['lat'].toString());
+              final newLng = double.parse(data['lng'].toString());
+              final bearing =
+                  double.tryParse(data['bearing']?.toString() ?? '') ??
+                  _driverBearing;
+              final speed =
+                  double.tryParse(data['speed']?.toString() ?? '') ??
+                  _currentSpeedKmH;
+
               setState(() {
-                _driverLocation = LatLng(
-                  double.parse(data['lat'].toString()),
-                  double.parse(data['lng'].toString()),
-                );
+                _driverLocation = LatLng(newLat, newLng);
+                _driverBearing = bearing;
+                _currentSpeedKmH = speed;
               });
               _animatedMapMove(_driverLocation!, 15.0);
             }
@@ -716,29 +736,32 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                     )
                                     .fadeOut(duration: 1200.ms),
 
-                                Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: BoxDecoration(
-                                    color: GlassTheme.primaryGreen,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 2.5,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: GlassTheme.primaryGreen
-                                            .withValues(alpha: 0.6),
-                                        blurRadius: 10,
-                                        spreadRadius: 2,
+                                Transform.rotate(
+                                  angle: _driverBearing * (math.pi / 180.0),
+                                  child: Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: GlassTheme.primaryGreen,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2.5,
                                       ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.two_wheeler,
-                                    color: Colors.white,
-                                    size: 24,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: GlassTheme.primaryGreen
+                                              .withValues(alpha: 0.6),
+                                          blurRadius: 10,
+                                          spreadRadius: 2,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.two_wheeler,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
                                   ),
                                 ),
                               ],

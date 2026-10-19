@@ -6,7 +6,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-125%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-132%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -21,6 +21,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 * **Recommended For You 2-Column Grid:** Dynamic dish cards featuring `Golden Spicy Chicken` ($5.00), `Cheese Burger Nagi` ($4.50), `Double Beef Cheese Burger` ($6.50), and `Crispy French Fries` ($3.00) with interactive favorite hearts, price tier filtering (`$`, `$$`, `$$$`), and circular neon-lime `+` add-to-cart buttons with live cart pulse feedback.
 * **Food Item Details Screen:** Clean floating circular top buttons, hero dish image with realistic soft drop shadow, **4 macro-nutrients nutrition card** (`198 kcal`, `25.2 proteins`, `13.8 fats`, `23.7 carbo`), expandable `"Show more"` description, **special cooking instructions input** with cart state synchronization, and sticky bottom bar with animated bag button & large neon-lime `"Buy Now"` pill button.
 * **Live Order Tracking Sheet (TikTok Reference):** Interactive route polyline on Google Maps, live pulsing status dot, 5-stage milestone stepper (`Confirmed` -> `Preparing` -> `Picked up` -> `On the way` -> `Delivered`), driver info card (`Ahmad Faizal`), route breakdown card, and itemized order receipt.
+* **Dual-Engine Search & Smart Filters:** Instant debounced search for both dishes and restaurants with scope tabs (`All`, `Dishes`, `Restaurants`), persistent search history with individual delete/clear all, quick craving chips with vector icons, advanced filter modal with price tiers (`$`, `$$`, `$$$`), vegetarian toggle, minimum rating filter, and dual USD/KHR price calculations.
 
 ### 2. Modern Illustrated Authentication Flow
 * **Offline Vector Character Illustrations:** Pure canvas-drawn vector illustrations rendered via custom painters (`AuthIllustration`):
@@ -240,8 +241,8 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test`)** | **64** | **64 Passed (100%)** | ~58.4s |
-| **Flutter Frontend (`foodgo_flutter/test/`)** | **61** | **61 Passed (100%)** | ~5.8s |
+| **Django Backend (`backend/manage.py test`)** | **67** | **67 Passed (100%)** | ~59.8s |
+| **Flutter Frontend (`foodgo_flutter/test/`)** | **65** | **65 Passed (100%)** | ~3.8s |
 | **Flutter Static Analysis (`flutter analyze --no-pub`)** | **70+ Files** | **0 Errors, 0 Warnings** | ~2.1s |
 | **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |
 | **Django Static Collection (`collectstatic`)** | **249 Files** | **Success** | ~1.2s |

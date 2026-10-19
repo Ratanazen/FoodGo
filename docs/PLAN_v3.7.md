@@ -25,12 +25,13 @@ This plan documents the completed v2.0 - v3.7 milestones and the remaining targe
 | **v3.8** | Zero-Leak, Zero-Emoji & Form Fixes | [Passed] Completed | 12 form audits, CSPRNG doorstep QR, 114 automated tests |
 | **v3.9** | Customer Convenience & UI Animations | [Passed] Completed | Price tier chips, special cooking instructions, pulse feedback, reorder |
 | **v4.0** | Administrator Console & Audit Logging | [Passed] Completed | 5-tab Flutter Admin Dashboard, AuditLog model, 125 automated tests |
+| **v4.1** | Dual-Engine Search & Smart Filter System | [Passed] Completed | Dual dish & restaurant scope, persistent history, filter modal, 132 tests |
 
 ---
 
-## Future Roadmap: v4.1+ Advanced Features
+## Future Roadmap: v4.2+ Advanced Features
 
-### Phase 4.1: Production Push Notifications & Device Token Management
+### Phase 4.2: Production Push Notifications & Device Token Management
 - [ ] Implement `DeviceToken` model linked to `User`.
 - [ ] Integrate Firebase Cloud Messaging (FCM) / APNs dispatch service.
 - [ ] Real-time push alerts on:
@@ -38,12 +39,12 @@ This plan documents the completed v2.0 - v3.7 milestones and the remaining targe
   - Driver assigned and en route
   - Order delivered
 
-### Phase 4.2: Real-Time Driver Route WebSocket Simulator
+### Phase 4.3: Real-Time Driver Route WebSocket Simulator
 - [ ] WebSocket consumer `DriverTrackingConsumer` in `backend/core/consumers.py`.
 - [ ] Channel layer routing live driver GPS coordinates to subscribed customer maps.
 - [ ] Turn-by-turn route polyline interpolation in Flutter map canvas.
 
-### Phase 4.3: Dynamic Multi-Currency Exchange Rate Engine
+### Phase 4.4: Dynamic Multi-Currency Exchange Rate Engine
 - [ ] National Bank of Cambodia (NBC) open API synchronization service.
 - [ ] Hourly rate caching with automatic dual-currency settlement reporting.
 

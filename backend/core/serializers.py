@@ -27,6 +27,9 @@ class FoodItemSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if not data.get('image') and instance.image_url:
             data['image'] = instance.image_url
+        if instance.category and instance.category.restaurant:
+            data['restaurant'] = instance.category.restaurant.id
+            data['restaurant_name'] = instance.category.restaurant.name
         return data
         
     def validate_price(self, value):

@@ -24,6 +24,12 @@ All pre-existing production features, including Khmer QR (Bakong NBC KHQR) payme
 4. Orders Reorder & Support Concierge:
    - One-tap "Order Again" button on all completed deliveries in `orders_screen.dart`, repopulating the user's cart with selected order items.
    - Integrated FoodGo Customer Support Concierge bottom sheet with options for 24/7 hotline calling, live chat agent routing, missing item/damage issue reporting dialog, and delivery FAQ policies.
+5. Dual-Engine Search & Smart Filter System:
+   - Segmented scope tabs (`All`, `Dishes`, `Restaurants`) enabling simultaneous cross-catalog querying.
+   - Persistent search history backed by `SharedPreferences` (`foodgo_recent_searches`) with individual chip removal and "Clear All".
+   - Quick craving recommendation chips with Material vector icons (Burgers, Khmer Food, Coffee & Drinks, Pizza, Healthy Bowls, Desserts, Fried Chicken, Noodles).
+   - Advanced Filter Bottom Sheet modal with Sort By (Recommended, Price Low/High, Rating), Price Tiers (`$`, `$$`, `$$$`), Vegetarian Friendly toggle, and Minimum Rating thresholds.
+   - Backend search filter expansion in `FoodItemViewSet` and `RestaurantViewSet` with multi-field matching (`category__restaurant__name`, `category__name`), price boundaries, and ordering.
 
 ### B. Driver Portal Enhancements
 1. Special Instructions Display:
@@ -52,8 +58,9 @@ All pre-existing production features, including Khmer QR (Bakong NBC KHQR) payme
 
 ## 3. Verification & Quality Gates
 
-- Django Backend Tests: 64/64 tests passing (100% pass rate).
-- Flutter Tests: 61/61 tests passing (100% pass rate).
+- Django Backend Tests: 67/67 tests passing (100% pass rate).
+- Flutter Tests: 65/65 tests passing (100% pass rate).
+- Total Automated Tests: 132 tests passing (100% pass rate).
 - Flutter Analyzer: Zero warnings, zero errors (`flutter analyze --no-pub`).
 - Code Formatting: All Dart files formatted according to official Dart conventions.
 - Zero-Emoji Compliance: All code, UI assets, tests, and documentation adhere strictly to Material and vector SVG icons.

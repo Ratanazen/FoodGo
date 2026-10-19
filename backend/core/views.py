@@ -40,7 +40,13 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
         search = self.request.query_params.get('search') or self.request.query_params.get('q')
         if search:
-            queryset = queryset.filter(models.Q(name__icontains=search) | models.Q(description__icontains=search) | models.Q(address__icontains=search))
+            queryset = queryset.filter(
+                models.Q(name__icontains=search) |
+                models.Q(description__icontains=search) |
+                models.Q(address__icontains=search) |
+                models.Q(category__name__icontains=search) |
+                models.Q(food_categories__items__name__icontains=search)
+            ).distinct()
 
         category_id = self.request.query_params.get('category')
         if category_id:
@@ -52,6 +58,14 @@ class RestaurantViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(rating__gte=float(min_rating))
             except ValueError:
                 pass
+
+        price_tier = self.request.query_params.get('price_tier')
+        if price_tier == '$':
+            queryset = queryset.filter(delivery_fee__lte=1.50)
+        elif price_tier == '$$':
+            queryset = queryset.filter(delivery_fee__gt=1.50, delivery_fee__lte=3.00)
+        elif price_tier == '$$$':
+            queryset = queryset.filter(delivery_fee__gt=3.00)
 
         return queryset
 
@@ -93,8 +107,10 @@ class FoodItemViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(
                 models.Q(name__icontains=search) |
                 models.Q(description__icontains=search) |
-                models.Q(ingredients__icontains=search)
-            )
+                models.Q(ingredients__icontains=search) |
+                models.Q(category__name__icontains=search) |
+                models.Q(category__restaurant__name__icontains=search)
+            ).distinct()
 
         category_id = self.request.query_params.get('category')
         if category_id:
@@ -107,6 +123,30 @@ class FoodItemViewSet(viewsets.ModelViewSet):
         is_vegetarian = self.request.query_params.get('vegetarian')
         if is_vegetarian == 'true':
             queryset = queryset.filter(is_vegetarian=True)
+
+        min_price = self.request.query_params.get('min_price')
+        if min_price:
+            try:
+                queryset = queryset.filter(price__gte=float(min_price))
+            except ValueError:
+                pass
+
+        max_price = self.request.query_params.get('max_price')
+        if max_price:
+            try:
+                queryset = queryset.filter(price__lte=float(max_price))
+            except ValueError:
+                pass
+
+        ordering = self.request.query_params.get('ordering')
+        if ordering == 'price_asc':
+            return queryset.order_by('price')
+        elif ordering == 'price_desc':
+            return queryset.order_by('-price')
+        elif ordering == 'rating':
+            return queryset.order_by('-id')
+        elif ordering == 'name':
+            return queryset.order_by('name')
 
         return queryset.order_by('name')
 

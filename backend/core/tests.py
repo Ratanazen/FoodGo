@@ -221,3 +221,73 @@ class FoodGoCoreAPITests(TestCase):
         self.assertEqual(track_res.data['driver']['id'], driver.id)
         self.assertEqual(track_res.data['driver']['vehicle_type'], 'Yamaha Fazzio')
 
+    def test_food_item_search_by_restaurant_and_category(self):
+        # Create additional dish with specific price
+        FoodItem.objects.create(
+            category=self.category,
+            name='Beef Lok Lak',
+            description='Stir fried marinated beef cubes with Kampot pepper sauce',
+            price=Decimal('12.00'),
+            is_available=True
+        )
+
+        # Search by restaurant name 'Angkor' should find items
+        res = self.client.get('/api/food-items/?search=Angkor')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        results = res.data if isinstance(res.data, list) else res.data.get('results', [])
+        self.assertTrue(any(item['name'] == 'Fish Amok' for item in results))
+
+        # Search by category 'Specials' should find items
+        res_cat = self.client.get('/api/food-items/?search=Specials')
+        self.assertEqual(res_cat.status_code, status.HTTP_200_OK)
+        results_cat = res_cat.data if isinstance(res_cat.data, list) else res_cat.data.get('results', [])
+        self.assertTrue(any(item['name'] == 'Beef Lok Lak' for item in results_cat))
+
+    def test_food_item_price_filters_and_ordering(self):
+        FoodItem.objects.create(
+            category=self.category,
+            name='Kuy Teav Soup',
+            description='Pork noodle soup',
+            price=Decimal('3.50'),
+            is_available=True
+        )
+        FoodItem.objects.create(
+            category=self.category,
+            name='Kampot Crab Feast',
+            description='Fresh seafood with black pepper',
+            price=Decimal('25.00'),
+            is_available=True
+        )
+
+        # Filter price <= 5.00
+        res_low = self.client.get('/api/food-items/?max_price=5.00')
+        self.assertEqual(res_low.status_code, status.HTTP_200_OK)
+        results_low = res_low.data if isinstance(res_low.data, list) else res_low.data.get('results', [])
+        self.assertTrue(all(float(item['price']) <= 5.00 for item in results_low))
+
+        # Filter price >= 20.00
+        res_high = self.client.get('/api/food-items/?min_price=20.00')
+        self.assertEqual(res_high.status_code, status.HTTP_200_OK)
+        results_high = res_high.data if isinstance(res_high.data, list) else res_high.data.get('results', [])
+        self.assertTrue(all(float(item['price']) >= 20.00 for item in results_high))
+
+        # Ordering price_asc
+        res_asc = self.client.get('/api/food-items/?ordering=price_asc')
+        self.assertEqual(res_asc.status_code, status.HTTP_200_OK)
+        results_asc = res_asc.data if isinstance(res_asc.data, list) else res_asc.data.get('results', [])
+        prices = [float(item['price']) for item in results_asc]
+        self.assertEqual(prices, sorted(prices))
+
+    def test_restaurant_search_and_price_tier(self):
+        res = self.client.get('/api/restaurants/?search=Angkor')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        results = res.data if isinstance(res.data, list) else res.data.get('results', [])
+        self.assertTrue(any(r['name'] == 'Angkor Delights' for r in results))
+
+        # Price tier filter '$' (delivery_fee <= 1.50)
+        res_tier = self.client.get('/api/restaurants/?price_tier=$')
+        self.assertEqual(res_tier.status_code, status.HTTP_200_OK)
+        results_tier = res_tier.data if isinstance(res_tier.data, list) else res_tier.data.get('results', [])
+        self.assertTrue(any(r['name'] == 'Angkor Delights' for r in results_tier))
+
+

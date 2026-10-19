@@ -8,6 +8,7 @@ class AddressItem {
   final String state;
   final String zipCode;
   final bool isDefault;
+  final String label;
   final double? lat;
   final double? lng;
 
@@ -18,6 +19,7 @@ class AddressItem {
     this.state = 'Phnom Penh',
     this.zipCode = '12000',
     this.isDefault = false,
+    this.label = 'Home',
     this.lat,
     this.lng,
   });
@@ -30,6 +32,7 @@ class AddressItem {
       state: json['state']?.toString() ?? 'Phnom Penh',
       zipCode: json['zip_code']?.toString() ?? '12000',
       isDefault: json['is_default'] == true,
+      label: json['label']?.toString() ?? 'Home',
       lat: json['lat'] != null ? double.tryParse(json['lat'].toString()) : null,
       lng: json['lng'] != null ? double.tryParse(json['lng'].toString()) : null,
     );
@@ -43,6 +46,7 @@ class AddressItem {
       'state': state,
       'zip_code': zipCode,
       'is_default': isDefault,
+      'label': label,
       if (lat != null) 'lat': lat,
       if (lng != null) 'lng': lng,
     };

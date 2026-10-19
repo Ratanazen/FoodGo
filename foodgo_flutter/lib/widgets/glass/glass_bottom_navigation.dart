@@ -46,9 +46,9 @@ class GlassBottomNavigation extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _NavItem(icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home', isSelected: selectedIndex == 0, onTap: () => onDestinationSelected(0)),
-                  _NavItem(icon: Icons.explore_outlined, selectedIcon: Icons.explore, label: 'Explore', isSelected: selectedIndex == 1, onTap: () => onDestinationSelected(1)),
-                  _NavItem(icon: Icons.shopping_cart_outlined, selectedIcon: Icons.shopping_cart, label: 'Cart', badgeCount: cartCount, isSelected: selectedIndex == 2, onTap: () => onDestinationSelected(2)),
-                  _NavItem(icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long, label: 'Orders', isSelected: selectedIndex == 3, onTap: () => onDestinationSelected(3)),
+                  _NavItem(icon: Icons.favorite_outline, selectedIcon: Icons.favorite, label: 'Saved', isSelected: selectedIndex == 1, onTap: () => onDestinationSelected(1)),
+                  _NavItem(icon: Icons.shopping_bag_outlined, selectedIcon: Icons.shopping_bag, label: 'Cart', badgeCount: cartCount, isSelected: selectedIndex == 2, onTap: () => onDestinationSelected(2)),
+                  _NavItem(icon: Icons.local_offer_outlined, selectedIcon: Icons.local_offer, label: 'Offers', isSelected: selectedIndex == 3, onTap: () => onDestinationSelected(3)),
                   _NavItem(icon: Icons.person_outline, selectedIcon: Icons.person, label: 'Profile', isSelected: selectedIndex == 4, onTap: () => onDestinationSelected(4)),
                 ],
               ),

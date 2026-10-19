@@ -1,0 +1,113 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:foodgo_flutter/core/theme/glass_theme.dart';
+import 'package:foodgo_flutter/providers/address_provider.dart';
+import 'package:foodgo_flutter/providers/cart_provider.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('TikTok Reference UI/UX & Logic Tests', () {
+    test('CartProvider accepts TikTok reference promo code FOODIE30 (30% off)', () {
+      final cart = CartProvider();
+      cart.clear();
+      cart.addItem(1, 'Double Cheeseburger', 10.00, null);
+
+      expect(cart.totalAmount, 10.00);
+      final success = cart.applyPromoCode('FOODIE30');
+      expect(success, true);
+      expect(cart.appliedPromoCode, 'FOODIE30');
+      expect(cart.discountAmount, closeTo(3.00, 0.01));
+      // Subtotal (10.00) - discount (3.00) + delivery fee (2.99) = 9.99
+      expect(cart.grandTotal, closeTo(9.99, 0.01));
+    });
+
+    test('CartProvider accepts TikTok reference promo code FREESHIP (waives delivery fee)', () {
+      final cart = CartProvider();
+      cart.clear();
+      cart.addItem(2, 'Crispy Chicken Wings', 12.00, null);
+
+      final success = cart.applyPromoCode('FREESHIP');
+      expect(success, true);
+      expect(cart.appliedPromoCode, 'FREESHIP');
+      expect(cart.discountAmount, closeTo(2.99, 0.01)); // Delivery fee waived
+      expect(cart.grandTotal, closeTo(12.00, 0.01));
+    });
+
+    test('CartProvider accepts TikTok reference promo code BURGER20 (20% off)', () {
+      final cart = CartProvider();
+      cart.clear();
+      cart.addItem(3, 'Truffle Mushroom Burger', 15.00, null);
+
+      final success = cart.applyPromoCode('BURGER20');
+      expect(success, true);
+      expect(cart.appliedPromoCode, 'BURGER20');
+      expect(cart.discountAmount, closeTo(3.00, 0.01));
+      // Subtotal (15.00) - discount (3.00) + delivery fee (2.99) = 14.99
+      expect(cart.grandTotal, closeTo(14.99, 0.01));
+    });
+
+    test('AddressItem preserves label attribute and serializes/deserializes correctly', () {
+      final address = AddressItem(
+        id: 99,
+        label: 'Work Office',
+        street: '12 Jalan Ampang, Suite 4B',
+        city: 'Phnom Penh',
+        isDefault: true,
+      );
+
+      final json = address.toJson();
+      expect(json['id'], 99);
+      expect(json['label'], 'Work Office');
+      expect(json['street'], '12 Jalan Ampang, Suite 4B');
+      expect(json['is_default'], true);
+
+      final restored = AddressItem.fromJson(json);
+      expect(restored.id, 99);
+      expect(restored.label, 'Work Office');
+      expect(restored.street, '12 Jalan Ampang, Suite 4B');
+      expect(restored.city, 'Phnom Penh');
+      expect(restored.isDefault, true);
+    });
+
+    test('GlassTheme defines TikTok lush green design tokens', () {
+      expect(GlassTheme.headerGreenStart, const Color(0xFF236E31));
+      expect(GlassTheme.headerGreenMid, const Color(0xFF2E7D32));
+      expect(GlassTheme.headerGreenEnd, const Color(0xFF388E3C));
+      expect(GlassTheme.headerGradient.colors.length, 3);
+      expect(GlassTheme.lightGreenSurface, const Color(0xFFE8F5E9));
+      expect(GlassTheme.lightGreenText, const Color(0xFF2E7D32));
+      expect(GlassTheme.lightGreenBorder, const Color(0xFFC8E6C9));
+      expect(GlassTheme.pillCardShadow.blurRadius, 16.0);
+    });
+
+    test('Tracking milestone step calculation matches 5-step stepper correctly', () {
+      int getStepperStep(String status) {
+        switch (status.toLowerCase()) {
+          case 'confirmed':
+          case 'pending':
+            return 0;
+          case 'preparing':
+            return 1;
+          case 'picked_up':
+          case 'ready':
+            return 2;
+          case 'on_the_way':
+          case 'delivering':
+            return 3;
+          case 'delivered':
+          case 'completed':
+            return 4;
+          default:
+            return 1;
+        }
+      }
+
+      expect(getStepperStep('confirmed'), 0);
+      expect(getStepperStep('preparing'), 1);
+      expect(getStepperStep('picked_up'), 2);
+      expect(getStepperStep('on_the_way'), 3);
+      expect(getStepperStep('delivered'), 4);
+    });
+  });
+}

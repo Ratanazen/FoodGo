@@ -170,10 +170,6 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => _buildPage(state: state, child: const EditProfileScreen(), type: PageTransitionType.slideUp),
     ),
     GoRoute(
-      path: '/favorites',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const FavoritesScreen(), type: PageTransitionType.slideUp),
-    ),
-    GoRoute(
       path: '/addresses',
       pageBuilder: (context, state) => _buildPage(state: state, child: const AddressesScreen(), type: PageTransitionType.slideUp),
     ),
@@ -205,12 +201,16 @@ final GoRouter appRouter = GoRouter(
           pageBuilder: (context, state) => _buildPage(state: state, child: const HomeScreen(), type: PageTransitionType.fade),
         ),
         GoRoute(
-          path: '/explore',
-          pageBuilder: (context, state) => _buildPage(state: state, child: const ExploreScreen(), type: PageTransitionType.fade),
+          path: '/favorites',
+          pageBuilder: (context, state) => _buildPage(state: state, child: const FavoritesScreen(), type: PageTransitionType.fade),
         ),
         GoRoute(
           path: '/cart',
           pageBuilder: (context, state) => _buildPage(state: state, child: const CartScreen(), type: PageTransitionType.fade),
+        ),
+        GoRoute(
+          path: '/explore',
+          pageBuilder: (context, state) => _buildPage(state: state, child: const ExploreScreen(), type: PageTransitionType.fade),
         ),
         GoRoute(
           path: '/orders',
@@ -262,19 +262,19 @@ class MainScreenShell extends StatelessWidget {
   static int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/home')) return 0;
-    if (location.startsWith('/explore')) return 1;
+    if (location.startsWith('/favorites')) return 1;
     if (location.startsWith('/cart')) return 2;
-    if (location.startsWith('/orders')) return 3;
-    if (location.startsWith('/profile')) return 4;
+    if (location.startsWith('/explore')) return 3;
+    if (location.startsWith('/profile') || location.startsWith('/orders')) return 4;
     return 0;
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0: context.go('/home'); break;
-      case 1: context.go('/explore'); break;
+      case 1: context.go('/favorites'); break;
       case 2: context.go('/cart'); break;
-      case 3: context.go('/orders'); break;
+      case 3: context.go('/explore'); break;
       case 4: context.go('/profile'); break;
     }
   }

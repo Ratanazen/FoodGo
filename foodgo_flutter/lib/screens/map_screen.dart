@@ -14,6 +14,7 @@ import '../widgets/glass/glass_widgets.dart';
 import '../widgets/glass_container.dart';
 import '../services/api_service.dart';
 import '../widgets/delivery_scanner_modal.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'map_screen_location.dart';
 
 class MapScreen extends StatefulWidget {
@@ -159,11 +160,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         } else {
           _driverInfo ??= {
             'id': 1,
-            'name': 'Bob Rider',
+            'name': 'Ahmad Faizal',
             'phone': '+855 12 888 999',
-            'vehicle_type': 'Motorcycle (Honda Wave 125i)',
-            'license_plate': 'PP-1AB-2026',
+            'vehicle_type': 'Honda EX5 • Red',
+            'license_plate': 'WXY 4821',
             'rating': 4.9,
+            'trips': 2384,
+            'avatar': 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
           };
         }
 
@@ -392,21 +395,23 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        title: _isTrackingMode ? 'Live Order Tracking' : 'Explore on Map',
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.layers_outlined, color: Colors.white),
-            tooltip: 'Switch Map Layer',
-            onPressed: _showLayerSelector,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            tooltip: 'Refresh',
-            onPressed: _isTrackingMode ? _fetchOrderTrackingData : _fetchNearbyRestaurants,
-          ),
-        ],
-      ),
+      appBar: _isTrackingMode
+          ? null
+          : GlassAppBar(
+              title: 'Explore on Map',
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.layers_outlined, color: Colors.white),
+                  tooltip: 'Switch Map Layer',
+                  onPressed: _showLayerSelector,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  tooltip: 'Refresh',
+                  onPressed: _fetchNearbyRestaurants,
+                ),
+              ],
+            ),
       body: Stack(
         children: [
           // ── Map View ──────────────────────────────────────────
@@ -652,47 +657,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // ── Top ETA & Distance Floating Pill (Tracking Mode) ─────
-          if (_isTrackingMode && distanceKm != null && etaMinutes != null)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 64,
-              left: 16,
-              right: 16,
-              child: GlassContainer(
-                borderRadius: BorderRadius.circular(16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                customColor: Colors.black.withValues(alpha: 0.75),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        color: GlassTheme.primaryGreen,
-                        shape: BoxShape.circle,
-                      ),
-                    ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(0.8, 0.8), end: const Offset(1.3, 1.3)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Estimated Arrival: ~$etaMinutes mins',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
-                          ),
-                          Text(
-                            '${distanceKm.toStringAsFixed(1)} km to your drop-off • Driver moving',
-                            style: TextStyle(fontSize: 12, color: GlassTheme.textMuted),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.two_wheeler, color: GlassTheme.primaryGreen, size: 28),
-                  ],
-                ),
-              ).animate().fade().slideY(begin: -0.3, end: 0),
-            ),
+          // ── Top Navigation Bar (TikTok Tracking Mode Floating Pill & Buttons) ──
+          if (_isTrackingMode)
+            _buildTrackingTopBar(context),
 
           // ── Floating Action Controls (Right Side) ────────────────
           Positioned(
@@ -756,204 +723,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // ── Bottom Sheet (Tracking Mode) ─────────────────────────
+          // ── Draggable Bottom Sheet (TikTok Reference Live Order Tracking Sheet) ──
           if (_isTrackingMode)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: GlassContainer(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                padding: const EdgeInsets.all(20),
-                child: SafeArea(
-                  top: false,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Header & Order Status
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Order #${widget.orderId}',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              _orderStatus.toUpperCase().replaceAll('_', ' '),
-                              style: const TextStyle(
-                                color: GlassTheme.primaryGreen,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Status Step Timeline
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildStatusIcon(Icons.receipt, true),
-                          _buildLine(true),
-                          _buildStatusIcon(Icons.soup_kitchen, _orderStatus != 'pending'),
-                          _buildLine(_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery' || _orderStatus == 'delivered'),
-                          _buildStatusIcon(Icons.directions_bike, _orderStatus == 'on_the_way' || _orderStatus == 'on_delivery' || _orderStatus == 'delivered')
-                              .animate(onPlay: (controller) => controller.repeat())
-                              .shimmer(duration: const Duration(seconds: 2), color: Colors.white30),
-                          _buildLine(_orderStatus == 'delivered'),
-                          _buildStatusIcon(Icons.home, _orderStatus == 'delivered'),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Confirmed', style: TextStyle(fontSize: 10, color: GlassTheme.primaryGreen)),
-                          Text('Preparing', style: TextStyle(fontSize: 10, color: _orderStatus != 'pending' ? GlassTheme.primaryGreen : GlassTheme.textMuted)),
-                          Text('On Delivery', style: TextStyle(fontSize: 10, color: (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery' || _orderStatus == 'delivered') ? GlassTheme.primaryGreen : GlassTheme.textMuted)),
-                          Text('Delivered', style: TextStyle(fontSize: 10, color: _orderStatus == 'delivered' ? GlassTheme.primaryGreen : GlassTheme.textMuted)),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Driver Profile Card (Live in Transit)
-                      if (_driverInfo != null) ...[
-                        GlassCard(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: GlassTheme.primaryGreen, width: 2),
-                                ),
-                                child: const Icon(Icons.two_wheeler, color: GlassTheme.primaryGreen, size: 24),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          _driverInfo!['name'] ?? 'Bob Rider',
-                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.amber.withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.star, color: Colors.amber, size: 10),
-                                              SizedBox(width: 2),
-                                              Text('4.9', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${_driverInfo!['vehicle_type'] ?? 'Motorcycle'} • ${_driverInfo!['license_plate'] ?? 'PP-1AB-2026'}',
-                                      style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                icon: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: GlassTheme.primaryGreen.withValues(alpha: 0.6)),
-                                  ),
-                                  child: const Icon(Icons.qr_code_scanner, color: GlassTheme.primaryGreen, size: 18),
-                                ),
-                                tooltip: 'Scan Driver QR to Confirm Delivery',
-                                onPressed: () => DeliveryScannerModal.show(
-                                  context,
-                                  orderId: widget.orderId.toString(),
-                                  onConfirmed: () => _fetchOrderTrackingData(),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              IconButton(
-                                icon: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: const BoxDecoration(
-                                    color: GlassTheme.primaryGreen,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.phone, color: Colors.white, size: 16),
-                                ),
-                                tooltip: 'Call Driver',
-                                onPressed: () {
-                                  final phone = _driverInfo!['phone'] ?? '+855 12 888 999';
-                                  Clipboard.setData(ClipboardData(text: phone));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Calling Driver at $phone (copied to clipboard)'),
-                                      backgroundColor: GlassTheme.primaryGreen,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Buttons Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                              ),
-                              icon: const Icon(Icons.arrow_back, size: 18),
-                              label: const Text('Back to Home'),
-                              onPressed: () => context.go('/home'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: GlassButton(
-                              text: 'Order Details',
-                              icon: Icons.receipt_long,
-                              onPressed: () => context.go('/orders'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            _buildDraggableTrackingSheet(context, distanceKm, etaMinutes),
 
           // ── Bottom Sheet (Explore Mode: Selected Restaurant) ─────
           if (!_isTrackingMode && _selectedRestaurant != null)
@@ -1033,25 +805,728 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildStatusIcon(IconData icon, bool active) {
-    return GlassContainer(
-      padding: const EdgeInsets.all(8),
-      borderRadius: BorderRadius.circular(20),
-      customColor: active ? GlassTheme.primaryGreen.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
-      child: Icon(
-        icon,
-        color: active ? GlassTheme.primaryGreen : GlassTheme.textMuted,
-        size: 20,
+  // ──────────────────────────────────────────────────────────────────────────
+  // Top Floating Navigation Bar (TikTok Reference Mode)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildTrackingTopBar(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final orderNum = widget.orderId.isNotEmpty && widget.orderId != '0' ? widget.orderId : '1904';
+
+    return Positioned(
+      top: topPadding + 10,
+      left: 16,
+      right: 16,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Circular Back Button
+          InkWell(
+            onTap: () => context.go('/home'),
+            borderRadius: BorderRadius.circular(22),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
+              ),
+              child: const Icon(Icons.arrow_back, color: Colors.black87, size: 22),
+            ),
+          ),
+
+          // Order # Pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 2)),
+              ],
+            ),
+            child: Text(
+              'Order #$orderNum',
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.black87),
+            ),
+          ),
+
+          // Circular Target / Recenter Button
+          InkWell(
+            onTap: () {
+              final target = _driverLocation ?? _restaurantLocation ?? _customerLocation;
+              if (target != null) _animatedMapMove(target, 15.0);
+            },
+            borderRadius: BorderRadius.circular(22),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
+              ),
+              child: const Icon(Icons.near_me, color: GlassTheme.primaryGreen, size: 22),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildLine(bool active) {
-    return Expanded(
-      child: Container(
-        height: 2,
-        color: active ? GlassTheme.primaryGreen : GlassTheme.textMuted.withValues(alpha: 0.3),
+  // ──────────────────────────────────────────────────────────────────────────
+  // Draggable Bottom Sheet (TikTok Reference Live Tracking Layout)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildDraggableTrackingSheet(BuildContext context, double? distanceKm, int? etaMinutes) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final driver = _driverInfo ?? {
+      'name': 'Ahmad Faizal',
+      'rating': 4.9,
+      'trips': 2384,
+      'vehicle_type': 'Honda EX5 • Red',
+      'license_plate': 'WXY 4821',
+      'phone': '+855 12 888 999',
+      'avatar': 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
+    };
+
+    final etaMin = etaMinutes ?? 15;
+    final distance = distanceKm != null ? distanceKm.toStringAsFixed(1) : '3.4';
+
+    String headline = 'Preparing your food';
+    String subtitle = "${_restaurantName ?? "McDonald's"} is cooking it fresh";
+    if (_orderStatus == 'delivered') {
+      headline = 'Order Delivered!';
+      subtitle = 'Enjoy your delicious meal!';
+    } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
+      headline = 'On the way to you';
+      subtitle = '${driver['name']} is $distance km away';
+    } else if (_orderStatus == 'picked_up') {
+      headline = 'Rider Picked Up';
+      subtitle = '${driver['name']} picked up your order';
+    }
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.44,
+      minChildSize: 0.28,
+      maxChildSize: 0.88,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
+                blurRadius: 18,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            children: [
+              // Top Drag Handle
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4.5,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : const Color(0xFFD6D6D6),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Header Status Row: Live Dot + Headline + Subtitle | ETA Card
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: GlassTheme.primaryGreen,
+                                shape: BoxShape.circle,
+                              ),
+                            ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
+                                  begin: const Offset(0.8, 0.8),
+                                  end: const Offset(1.3, 1.3),
+                                ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              'Live • 0:16',
+                              style: TextStyle(
+                                color: GlassTheme.primaryGreen,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          headline,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: isDark ? Colors.white : const Color(0xFF222222),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: GlassTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // ETA Card Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
+                          : const Color(0xFFF1F8E9),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark
+                            ? GlassTheme.primaryGreen.withValues(alpha: 0.4)
+                            : const Color(0xFFC8E6C9),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$etaMin min',
+                          style: const TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Arriving 11:15 PM',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: GlassTheme.textMuted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // 5-Stage Stepper: Confirmed -> Preparing -> Picked up -> On the way -> Delivered
+              _buildFiveStepProgress(),
+              const SizedBox(height: 20),
+
+              // Courier / Driver Contact Card
+              _buildDriverCard(context, driver, isDark),
+              const SizedBox(height: 20),
+
+              // Order Status Timeline
+              _buildOrderTimeline(isDark),
+              const SizedBox(height: 18),
+
+              // Route Summary Card
+              _buildRouteSummaryCard(isDark, distance),
+              const SizedBox(height: 18),
+
+              // Your Order Itemized Dishes
+              _buildItemizedOrderSection(isDark),
+              const SizedBox(height: 24),
+
+              // Action Buttons: Scan Driver QR / Confirm Delivery
+              ElevatedButton.icon(
+                onPressed: () => DeliveryScannerModal.show(
+                  context,
+                  orderId: widget.orderId.toString(),
+                  onConfirmed: () => _fetchOrderTrackingData(),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GlassTheme.primaryGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.qr_code_scanner, size: 20),
+                label: const Text(
+                  'Scan Driver QR to Confirm Delivery',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              OutlinedButton.icon(
+                onPressed: () => context.go('/home'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: isDark ? Colors.white : Colors.black87,
+                  side: BorderSide(color: isDark ? Colors.white24 : const Color(0xFFDDDDDD)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                icon: const Icon(Icons.home_outlined, size: 18),
+                label: const Text('Back to Home', style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 5-Step Visual Stepper (TikTok Reference Style)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildFiveStepProgress() {
+    final steps = ['Confirmed', 'Preparing', 'Picked up', 'On the way', 'Delivered'];
+    int currentStep = 1; // Default to 'Preparing'
+    if (_orderStatus == 'delivered') {
+      currentStep = 4;
+    } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
+      currentStep = 3;
+    } else if (_orderStatus == 'picked_up') {
+      currentStep = 2;
+    } else if (_orderStatus == 'preparing') {
+      currentStep = 1;
+    } else {
+      currentStep = 0;
+    }
+
+    return Column(
+      children: [
+        Row(
+          children: List.generate(steps.length * 2 - 1, (i) {
+            if (i.isEven) {
+              final stepIdx = i ~/ 2;
+              final isDone = stepIdx <= currentStep;
+              return Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: isDone ? GlassTheme.primaryGreen : Colors.grey.shade400,
+                  shape: BoxShape.circle,
+                ),
+                child: isDone
+                    ? const Icon(Icons.check, size: 9, color: Colors.white)
+                    : null,
+              );
+            } else {
+              final leftStepIdx = i ~/ 2;
+              final isPassed = leftStepIdx < currentStep;
+              return Expanded(
+                child: Container(
+                  height: 3,
+                  color: isPassed ? GlassTheme.primaryGreen : Colors.grey.shade300,
+                ),
+              );
+            }
+          }),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: steps.map((s) {
+            final isHighlight = s == steps[currentStep];
+            return Text(
+              s,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
+                color: isHighlight ? GlassTheme.primaryGreen : GlassTheme.textMuted,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Driver Contact Card
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildDriverCard(BuildContext context, Map<String, dynamic> driver, bool isDark) {
+    final phone = driver['phone']?.toString() ?? '+855 12 888 999';
+    final name = driver['name']?.toString() ?? 'Ahmad Faizal';
+    final rating = driver['rating']?.toString() ?? '4.9';
+    final trips = driver['trips']?.toString() ?? '2384';
+    final vehicle = driver['vehicle_type']?.toString() ?? 'Honda EX5 • Red';
+    final plate = driver['license_plate']?.toString() ?? 'WXY 4821';
+    final avatar = driver['avatar']?.toString() ??
+        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFFF9FBF9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+        ),
       ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: CachedNetworkImage(
+                  imageUrl: avatar,
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: isDark ? Colors.white : const Color(0xFF222222),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 13),
+                        const SizedBox(width: 3),
+                        Text(
+                          '$rating • $trips trips',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: GlassTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Chat Button (Light Green Container)
+              InkWell(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Chat with driver $name opened.'),
+                      backgroundColor: GlassTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white12 : const Color(0xFFE8F5E9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.chat_bubble_outline, color: GlassTheme.primaryGreen, size: 18),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Call Button (Vibrant Green Container)
+              InkWell(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: phone));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Calling driver at $phone (copied to clipboard)'),
+                      backgroundColor: GlassTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: const BoxDecoration(
+                    color: GlassTheme.primaryGreen,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.phone, color: Colors.white, size: 18),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Vehicle & License Plate Row
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFEEEEEE)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.two_wheeler, size: 16, color: GlassTheme.primaryGreen),
+                    const SizedBox(width: 6),
+                    Text(
+                      vehicle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : const Color(0xFF444444),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF263238),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    plate,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Order Status Milestone Timeline
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildOrderTimeline(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Order status',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+        ),
+        const SizedBox(height: 10),
+        _buildTimelineTile('Order confirmed', '10:55 PM', isDone: true, isLast: false, isDark: isDark),
+        _buildTimelineTile('Preparing your food', '10:55 PM', isDone: true, isLast: false, isDark: isDark),
+        _buildTimelineTile('Rider picked up', '0:01', isDone: _orderStatus == 'on_the_way' || _orderStatus == 'delivered', isLast: false, isDark: isDark),
+        _buildTimelineTile('On the way', '', isDone: _orderStatus == 'on_the_way' || _orderStatus == 'delivered', isLast: false, isDark: isDark),
+        _buildTimelineTile('Delivered', '', isDone: _orderStatus == 'delivered', isLast: true, isDark: isDark),
+      ],
+    );
+  }
+
+  Widget _buildTimelineTile(String title, String time, {required bool isDone, required bool isLast, required bool isDark}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: isDone ? GlassTheme.primaryGreen : Colors.grey.shade400,
+                shape: BoxShape.circle,
+              ),
+            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 24,
+                color: isDone ? GlassTheme.primaryGreen : Colors.grey.shade300,
+              ),
+          ],
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isDone ? FontWeight.bold : FontWeight.w500,
+              color: isDone
+                  ? (isDark ? Colors.white : const Color(0xFF222222))
+                  : GlassTheme.textMuted,
+            ),
+          ),
+        ),
+        if (time.isNotEmpty)
+          Text(
+            time,
+            style: TextStyle(fontSize: 11, color: GlassTheme.textMuted),
+          ),
+      ],
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Route Summary Card: Origin -> Destination with Dotted Line & Distance Pill
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildRouteSummaryCard(bool isDark, String distance) {
+    final fromName = _restaurantName ?? "McDonald's - Bukit Bintang";
+    final toName = _deliveryAddress ?? "Home • 12 Jalan Ampang, Kuala Lumpur";
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFFF9FBF9),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFEEEEEE)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFC72C),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text('M', style: TextStyle(color: Color(0xFFDA291C), fontWeight: FontWeight.w900, fontSize: 16)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('From', style: TextStyle(fontSize: 10, color: GlassTheme.textMuted)),
+                    Text(fromName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 15.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(width: 2, height: 16, color: Colors.grey.shade400),
+            ),
+          ),
+          Row(
+            children: [
+              const Icon(Icons.location_on, color: Color(0xFFE53935), size: 28),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('To', style: TextStyle(fontSize: 10, color: GlassTheme.textMuted)),
+                    Text(toName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white10 : const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.route, size: 14, color: GlassTheme.primaryGreen),
+                const SizedBox(width: 5),
+                Text(
+                  '$distance km • 6 min ride',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: GlassTheme.primaryGreen,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Itemized Order Section ("Your order")
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildItemizedOrderSection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Your order', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+        const SizedBox(height: 10),
+        _buildReceiptItem('2x', 'Big Mac', '\$10.98', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&q=80', isDark),
+        const SizedBox(height: 8),
+        _buildReceiptItem('1x', 'French Fries', '\$2.90', 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=200&q=80', isDark),
+        const SizedBox(height: 8),
+        _buildReceiptItem('1x', 'McFlurry Oreo', '\$3.00', 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=200&q=80', isDark),
+      ],
+    );
+  }
+
+  Widget _buildReceiptItem(String qty, String name, String price, String imageUrl, bool isDark) {
+    return Row(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            width: 38,
+            height: 38,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(qty, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: GlassTheme.primaryGreen)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+        ),
+        Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+      ],
     );
   }
 

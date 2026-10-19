@@ -138,12 +138,15 @@ class CartProvider with ChangeNotifier {
 
     switch (_appliedPromoCode) {
       case 'FOODGOFREE':
+      case 'FREESHIP':
         _discountAmount = _deliveryFee;
         break;
       case 'FOODGO30':
+      case 'FOODIE30':
         _discountAmount = double.parse((totalAmount * 0.30).toStringAsFixed(2));
         break;
       case 'FOODGO20':
+      case 'BURGER20':
         _discountAmount = double.parse((totalAmount * 0.20).toStringAsFixed(2));
         break;
       case 'FOODGO50':
@@ -159,7 +162,16 @@ class CartProvider with ChangeNotifier {
 
   bool applyPromoCode(String rawCode) {
     final code = rawCode.trim().toUpperCase();
-    const validCodes = ['FOODGOFREE', 'FOODGO30', 'FOODGO20', 'FOODGO50', 'EXPRESS'];
+    const validCodes = [
+      'FOODGOFREE',
+      'FREESHIP',
+      'FOODGO30',
+      'FOODIE30',
+      'FOODGO20',
+      'BURGER20',
+      'FOODGO50',
+      'EXPRESS',
+    ];
 
     if (validCodes.contains(code)) {
       _appliedPromoCode = code;

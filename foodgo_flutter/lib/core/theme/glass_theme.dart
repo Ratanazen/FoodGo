@@ -11,6 +11,20 @@ class GlassTheme {
   static const Color primaryGreenDark = Color(0xFF289A57);
   static const Color primaryGreenAccent = Color(0xFF7FFFB3);
 
+  // TikTok Reference Modern Delivery Green Tokens
+  static const Color headerGreenStart = Color(0xFF236E31);
+  static const Color headerGreenMid = Color(0xFF2E7D32);
+  static const Color headerGreenEnd = Color(0xFF388E3C);
+  static const Color lightGreenSurface = Color(0xFFE8F5E9);
+  static const Color lightGreenText = Color(0xFF2E7D32);
+  static const Color lightGreenBorder = Color(0xFFC8E6C9);
+
+  static const LinearGradient headerGradient = LinearGradient(
+    colors: [headerGreenStart, headerGreenMid, headerGreenEnd],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   // Modern Food Delivery (Foodpanda & Grab) Accents
   static const Color foodpandaPink = Color(0xFFD70F64);
   static const Color accentOrange = Color(0xFFFF6A00);
@@ -84,6 +98,13 @@ class GlassTheme {
     blurRadius: 15,
     spreadRadius: 0,
     offset: const Offset(0, 5),
+  );
+
+  static BoxShadow get pillCardShadow => BoxShadow(
+    color: Colors.black.withValues(alpha: 0.08),
+    blurRadius: 16,
+    spreadRadius: 1,
+    offset: const Offset(0, 4),
   );
 
   // Animation Durations

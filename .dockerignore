@@ -2,9 +2,14 @@
 .github
 frontend
 backend/venv
+.venv
 backend/staticfiles
 backend/media
 backend/db.sqlite3
+backups
+*.dump
+*.dump.gz
+*.log
 foodgo_flutter/.dart_tool
 foodgo_flutter/build
 foodgo_flutter/.flutter-plugins

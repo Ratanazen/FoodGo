@@ -18,14 +18,14 @@ class AppConfig {
     );
   }
 
-  /// WebSocket URL for live driver & order delivery tracking
+  /// WebSocket URL for live driver & order delivery tracking (Render ASGI container)
   static String get wsBaseUrl {
     if (_customWsUrl.isNotEmpty) {
       return _customWsUrl;
     }
     return const String.fromEnvironment(
       'FOODGO_WS_URL',
-      defaultValue: 'wss://food-go-app.vercel.app/ws/tracking/',
+      defaultValue: 'wss://foodgo-53pl.onrender.com/ws/tracking/',
     );
   }
 

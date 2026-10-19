@@ -13,8 +13,12 @@ def profile_redirect(request):
         return redirect('/admin/')
     return redirect('/')
 
+from core.views import HealthCheckView
+
 urlpatterns = [
     path('', api_root, name='api-root'),
+    path('health/', HealthCheckView.as_view(), name='root-health'),
+    path('healthz/', HealthCheckView.as_view(), name='root-healthz'),
     path('accounts/profile/', profile_redirect, name='profile-redirect'),
     path('accounts/login/', lambda request: redirect('/admin/login/'), name='accounts-login-redirect'),
     path('admin/', admin.site.urls),

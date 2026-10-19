@@ -1740,7 +1740,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final notifs = context.watch<NotificationProvider>().orderNotifications;
     final activeNotif = notifs.isNotEmpty ? notifs.first : null;
     final activeOrderId = activeNotif?.orderId?.toString() ?? '1024';
-    final courierTitle = activeNotif != null ? activeNotif.title : 'Ahmad is on the way';
+    final courierTitle = activeNotif != null
+        ? activeNotif.title
+        : 'Ahmad is on the way';
     final courierSub = activeNotif != null
         ? '${activeNotif.data['restaurant_name'] ?? 'FoodGo'} • Arriving in ${_activeOrderEta}m'
         : 'To Home • Arriving 11:15 PM';

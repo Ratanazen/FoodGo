@@ -6,7 +6,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-154%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-155%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
 ![Zero Emoji](https://img.shields.io/badge/Zero--Emoji-100%25%20Vector-success)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -253,11 +253,12 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test core`)** | **73** | **73 Passed (100%)** | ~64s |
+| **Django Backend (`backend/manage.py test core`)** | **74** | **74 Passed (100%)** | ~64s |
 | **Flutter Frontend (`foodgo_flutter/test/`)** | **81** | **81 Passed (100%)** | ~4.1s |
-| **Total Automated Tests** | **154** | **154 Passed (100%)** | ~68s |
+| **Total Automated Tests** | **155** | **155 Passed (100%)** | ~68s |
 | **Flutter Static Analysis (`flutter analyze --no-pub`)** | **70+ Files** | **0 Errors, 0 Warnings** | ~2.7s |
 | **Zero-Emoji Policy Verification** | **All Repo Files** | **100% Vector Icon Compliant** | ~1.1s |
+| **Multi-Cloud Health Checks (`/api/health/`)** | **Endpoints** | **Operational (Vercel, Render, Docker)** | <10ms |
 | **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |
 | **Django Static Collection (`collectstatic`)** | **249 Files** | **Success** | ~1.2s |
 | **Database Backup & DR (`backup_db.sh`)** | **Automated Script** | **Verified (PostgreSQL & SQLite)** | <1s |

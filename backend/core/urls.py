@@ -66,4 +66,6 @@ urlpatterns = [
     path('orders/<int:pk>/delivery/confirm/', OrderViewSet.as_view({'post': 'confirm_delivery'}), name='order_delivery_confirm_alias'),
     # Multi-Currency NBC Exchange Rate Endpoint
     path('currency/rates/', CurrencyRateView.as_view(), name='currency_rates'),
+    # Multi-Cloud Uptime & Telemetry Health Check
+    path('health/', HealthCheckView.as_view(), name='api_health_check'),
 ]

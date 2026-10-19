@@ -13,7 +13,12 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "config/wsgi.py"
+      "dest": "config/wsgi.py",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin"
+      }
     }
   ]
 }

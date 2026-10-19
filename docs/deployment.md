@@ -125,11 +125,14 @@ If a production deployment or schema migration fails:
 
 ## 5. Production Health Checks & Monitoring
 
-The following endpoints are monitored for uptime and telemetry:
+The following endpoints are monitored for uptime, load balancer telemetry, and container probes:
 
 | Endpoint | Method | Expected Status | Purpose |
 | :--- | :--- | :--- | :--- |
-| `/api/restaurants/` | `GET` | `HTTP 200` | Core API & database connectivity |
+| `/api/health/` | `GET` | `HTTP 200` | Multi-cloud health check (database & channel layer telemetry) |
+| `/healthz` | `GET` | `HTTP 200` | Kubernetes / Docker root container liveness probe |
+| `/health/` | `GET` | `HTTP 200` | Load balancer uptime probe |
+| `/api/restaurants/` | `GET` | `HTTP 200` | Core API & catalog database connectivity |
 | `/api/currency/rates/` | `GET` | `HTTP 200` | NBC multi-currency exchange rate engine |
 | `/api/admin/analytics/` | `GET` | `HTTP 200 / 401` | Operations & KPI aggregation |
 | `/ws/tracking/<order_id>/` | `WSS` | `101 Switching Protocols` | Daphne ASGI live telemetry WebSocket |

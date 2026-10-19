@@ -19,7 +19,9 @@ if _env_path.exists():
         pass
 
 SECRET_KEY = os.environ.get('SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY', 'foodgo-django-insecure-secret-key-prod-ready-minimum-50-characters-xyz'))
-DEBUG = os.environ.get('DJANGO_DEBUG', os.environ.get('DEBUG', 'True')).lower() in ('true', '1', 'yes')
+_is_cloud_prod = 'VERCEL' in os.environ or 'RENDER' in os.environ or os.environ.get('ENVIRONMENT') == 'production'
+_default_debug = 'False' if _is_cloud_prod else 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', os.environ.get('DEBUG', _default_debug)).lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0,*')).split(',') if host.strip()]
 GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', 'AIzaSyC3asDbdqC77DpPZt8DSttWJ2r9hLGT2PA')
 
@@ -143,6 +145,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+# Fast password hasher for automated test execution
+if 'test' in sys.argv:
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+    ]
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'

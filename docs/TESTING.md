@@ -9,10 +9,10 @@
 ## 1. Overview of Test Coverage
 
 FoodGo maintains comprehensive automated test coverage across both backend services and the mobile client application:
-- **Django REST Framework Tests:** **73 / 73 Tests Passing** (100% Pass Rate).
+- **Django REST Framework Tests:** **74 / 74 Tests Passing** (100% Pass Rate).
 - **Flutter Static Analysis:** **0 Issues Found** (`flutter analyze --no-pub`).
 - **Flutter Unit & Widget Tests:** **81 / 81 Tests Passing** (`flutter test --no-pub`).
-- **Total Automated Tests:** **154 / 154 Tests Passing** (100% Pass Rate).
+- **Total Automated Tests:** **155 / 155 Tests Passing** (100% Pass Rate).
 
 ---
 

@@ -396,5 +396,24 @@ class FoodGoCoreAPITests(TestCase):
         self.assertIn('rates', res.data)
         self.assertEqual(res.data['rates']['KHR'], 4100.0)
 
+    def test_health_check_endpoints(self):
+        # 1. Test /api/health/
+        res = self.client.get('/api/health/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['status'], 'healthy')
+        self.assertEqual(res.data['service'], 'foodgo-backend')
+        self.assertEqual(res.data['database'], 'connected')
+        self.assertIn('timestamp', res.data)
+
+        # 2. Test root /healthz/
+        res_z = self.client.get('/healthz/')
+        self.assertEqual(res_z.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_z.data['status'], 'healthy')
+
+        # 3. Test root /health/
+        res_h = self.client.get('/health/')
+        self.assertEqual(res_h.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_h.data['status'], 'healthy')
+
 
 

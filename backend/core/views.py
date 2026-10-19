@@ -1261,3 +1261,42 @@ class CurrencyRateView(APIView):
         })
 
 
+class HealthCheckView(APIView):
+    """
+    Production health check and telemetry probe for load balancers and orchestrators
+    (Docker, Render, Vercel, Kubernetes).
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        now = timezone.now()
+        status_data = {
+            'status': 'healthy',
+            'service': 'foodgo-backend',
+            'version': '4.5.0',
+            'database': 'unknown',
+            'timestamp': now.isoformat(),
+        }
+
+        # Validate database connectivity
+        try:
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT 1')
+            status_data['database'] = 'connected'
+        except Exception as e:
+            status_data['database'] = f'error: {str(e)}'
+            status_data['status'] = 'degraded'
+
+        # Inspect channel layer status
+        try:
+            from channels.layers import get_channel_layer
+            layer = get_channel_layer()
+            status_data['channel_layer'] = type(layer).__name__ if layer else 'none'
+        except Exception:
+            status_data['channel_layer'] = 'unavailable'
+
+        http_status = status.HTTP_200_OK if status_data['status'] == 'healthy' else status.HTTP_503_SERVICE_UNAVAILABLE
+        return Response(status_data, status=http_status)
+
+

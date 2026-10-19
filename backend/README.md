@@ -4,7 +4,7 @@ Production-ready Django REST Framework and Daphne ASGI backend for **FoodGo**, p
 
 [![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)](https://djangoproject.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)](https://postgresql.org)
-[![Tests](https://img.shields.io/badge/Backend%20Tests-57%20Passing-brightgreen)](https://djangoproject.com)
+[![Tests](https://img.shields.io/badge/Backend%20Tests-74%20Passing-brightgreen)](https://djangoproject.com)
 
 ---
 

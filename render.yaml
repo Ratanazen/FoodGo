@@ -5,6 +5,7 @@ services:
     plan: free
     region: singapore
     dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health/
     envVars:
       - key: DJANGO_DEBUG
         value: "False"
@@ -13,16 +14,17 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DJANGO_ALLOWED_HOSTS
-        value: "127.0.0.1,localhost,0.0.0.0,.onrender.com"
+        value: "127.0.0.1,localhost,0.0.0.0,.onrender.com,.vercel.app,food-go-app.vercel.app"
       - key: ALLOWED_HOSTS
-        value: "127.0.0.1,localhost,0.0.0.0,.onrender.com"
+        value: "127.0.0.1,localhost,0.0.0.0,.onrender.com,.vercel.app,food-go-app.vercel.app"
       - key: CORS_ALLOW_ALL_ORIGINS
         value: "True"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://*.onrender.com"
+        value: "https://*.onrender.com,https://*.vercel.app,https://food-go-app.vercel.app"
   - type: web
     name: foodgo-frontend
     runtime: docker
     plan: free
     region: singapore
     dockerfilePath: ./Dockerfile.frontend
+    healthCheckPath: /healthz

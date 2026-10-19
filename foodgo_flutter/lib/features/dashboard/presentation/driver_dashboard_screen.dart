@@ -124,143 +124,128 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   GlassContainer(
-                        padding: const EdgeInsets.all(20),
-                        borderRadius: GlassTheme.borderRadiusSmall,
-                        child: Column(
+                    padding: const EdgeInsets.all(20),
+                    borderRadius: GlassTheme.borderRadiusSmall,
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                Text(
+                                  'Driver Status',
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                Row(
                                   children: [
-                                    Text(
-                                      'Driver Status',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: _isOnline
+                                            ? GlassTheme.primaryGreen
+                                            : Colors.redAccent,
+                                        shape: BoxShape.circle,
+                                        boxShadow: _isOnline
+                                            ? [
+                                                BoxShadow(
+                                                  color: GlassTheme.primaryGreen
+                                                      .withValues(alpha: 0.6),
+                                                  blurRadius: 6,
+                                                  spreadRadius: 1,
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
                                     ),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: BoxDecoration(
-                                            color: _isOnline
-                                                ? GlassTheme.primaryGreen
-                                                : Colors.redAccent,
-                                            shape: BoxShape.circle,
-                                            boxShadow: _isOnline
-                                                ? [
-                                                    BoxShadow(
-                                                      color: GlassTheme
-                                                          .primaryGreen
-                                                          .withValues(
-                                                            alpha: 0.6,
-                                                          ),
-                                                      blurRadius: 6,
-                                                      spreadRadius: 1,
-                                                    ),
-                                                  ]
-                                                : null,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          _isOnline
-                                              ? 'Online & Ready for Orders'
-                                              : 'Offline',
-                                          style: TextStyle(
-                                            color: _isOnline
-                                                ? GlassTheme.primaryGreen
-                                                : Colors.redAccent,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _isOnline
+                                          ? 'Online & Ready for Orders'
+                                          : 'Offline',
+                                      style: TextStyle(
+                                        color: _isOnline
+                                            ? GlassTheme.primaryGreen
+                                            : Colors.redAccent,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                      ),
                                     ),
                                   ],
                                 ),
-                                Switch(
-                                  value: _isOnline,
-                                  activeTrackColor: GlassTheme.primaryGreen,
-                                  onChanged: (val) async {
-                                    setState(() => _isOnline = val);
-                                    try {
-                                      await _api.post(
-                                        'drivers/toggle-online/',
-                                        {'is_online': val},
-                                      );
-                                    } catch (_) {}
-                                  },
-                                ),
                               ],
                             ),
-                            if (_isOnline) ...[
-                              const Divider(color: Colors.white12, height: 20),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Live GPS Broadcaster',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  TextButton.icon(
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: GlassTheme.primaryGreen,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                    ),
-                                    icon: const Icon(
-                                      Icons.my_location,
-                                      size: 16,
-                                    ),
-                                    label: const Text(
-                                      'Broadcast Location',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    onPressed: () async {
-                                      try {
-                                        await _api.post('drivers/location/', {
-                                          'lat': 11.5580,
-                                          'lng': 104.9210,
-                                        });
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'GPS coordinates broadcast to active orders!',
-                                            ),
-                                            backgroundColor:
-                                                GlassTheme.primaryGreen,
-                                            behavior: SnackBarBehavior.floating,
-                                          ),
-                                        );
-                                      } catch (_) {}
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
+                            Switch(
+                              value: _isOnline,
+                              activeTrackColor: GlassTheme.primaryGreen,
+                              onChanged: (val) async {
+                                setState(() => _isOnline = val);
+                                try {
+                                  await _api.post('drivers/toggle-online/', {
+                                    'is_online': val,
+                                  });
+                                } catch (_) {}
+                              },
+                            ),
                           ],
                         ),
-                      )
-                      .animate()
-                      .fadeIn(duration: 400.ms)
-                      .slideY(begin: 0.1, end: 0),
+                        if (_isOnline) ...[
+                          const Divider(color: Colors.white12, height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Live GPS Broadcaster',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              TextButton.icon(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: GlassTheme.primaryGreen,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                ),
+                                icon: const Icon(Icons.my_location, size: 16),
+                                label: const Text(
+                                  'Broadcast Location',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                onPressed: () async {
+                                  try {
+                                    await _api.post('drivers/location/', {
+                                      'lat': 11.5580,
+                                      'lng': 104.9210,
+                                    });
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'GPS coordinates broadcast to active orders!',
+                                        ),
+                                        backgroundColor:
+                                            GlassTheme.primaryGreen,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  } catch (_) {}
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
                   const SizedBox(height: 16),
 
                   // ── Driver Earnings Header ──

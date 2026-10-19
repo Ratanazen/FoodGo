@@ -170,21 +170,24 @@ void main() {
   });
 
   group('MapConfig Tests', () {
-    test('OpenStreetMap and OpenMap tile URLs return valid templates without API keys', () {
-      final osmUrl = MapConfig.getTileUrl(MapLayerType.openStreetMap);
-      expect(osmUrl.contains('tile.openstreetmap.org'), true);
+    test(
+      'OpenStreetMap and OpenMap tile URLs return valid templates without API keys',
+      () {
+        final osmUrl = MapConfig.getTileUrl(MapLayerType.openStreetMap);
+        expect(osmUrl.contains('tile.openstreetmap.org'), true);
 
-      final darkUrl = MapConfig.getTileUrl(MapLayerType.cartoDark);
-      expect(darkUrl.contains('basemaps.cartocdn.com'), true);
-      expect(darkUrl.contains('dark_all'), true);
+        final darkUrl = MapConfig.getTileUrl(MapLayerType.cartoDark);
+        expect(darkUrl.contains('basemaps.cartocdn.com'), true);
+        expect(darkUrl.contains('dark_all'), true);
 
-      final voyagerUrl = MapConfig.getTileUrl(MapLayerType.cartoVoyager);
-      expect(voyagerUrl.contains('basemaps.cartocdn.com'), true);
-      expect(voyagerUrl.contains('voyager'), true);
+        final voyagerUrl = MapConfig.getTileUrl(MapLayerType.cartoVoyager);
+        expect(voyagerUrl.contains('basemaps.cartocdn.com'), true);
+        expect(voyagerUrl.contains('voyager'), true);
 
-      final subdomains = MapConfig.getSubdomains(MapLayerType.openStreetMap);
-      expect(subdomains.contains('a') && subdomains.contains('b'), true);
-    });
+        final subdomains = MapConfig.getSubdomains(MapLayerType.openStreetMap);
+        expect(subdomains.contains('a') && subdomains.contains('b'), true);
+      },
+    );
 
     test('Distance and ETA calculations return positive reasonable values', () {
       const start = LatLng(11.5564, 104.9282);
@@ -466,19 +469,22 @@ void main() {
   });
 
   group('ResponsiveLayout Tests', () {
-    test('ResponsiveBreakpoints defined accurately for desktop, tablet, and mobile', () {
-      expect(ResponsiveBreakpoints.mobileMax, 650.0);
-      expect(ResponsiveBreakpoints.tabletMax, 1050.0);
-      expect(ResponsiveBreakpoints.wideThreshold, 800.0);
-      expect(
-        ResponsiveBreakpoints.mobileMax < ResponsiveBreakpoints.wideThreshold,
-        true,
-      );
-      expect(
-        ResponsiveBreakpoints.wideThreshold < ResponsiveBreakpoints.tabletMax,
-        true,
-      );
-    });
+    test(
+      'ResponsiveBreakpoints defined accurately for desktop, tablet, and mobile',
+      () {
+        expect(ResponsiveBreakpoints.mobileMax, 650.0);
+        expect(ResponsiveBreakpoints.tabletMax, 1050.0);
+        expect(ResponsiveBreakpoints.wideThreshold, 800.0);
+        expect(
+          ResponsiveBreakpoints.mobileMax < ResponsiveBreakpoints.wideThreshold,
+          true,
+        );
+        expect(
+          ResponsiveBreakpoints.wideThreshold < ResponsiveBreakpoints.tabletMax,
+          true,
+        );
+      },
+    );
 
     testWidgets('ResponsiveWebContainer constrains width on wide screens', (
       WidgetTester tester,
@@ -547,44 +553,47 @@ void main() {
   });
 
   group('PaymentModel Status State Tests', () {
-    test('PaymentModel correctly identifies FAILED, PROCESSING, and REFUNDED states', () {
-      final failedPayment = PaymentModel(
-        id: 101,
-        orderId: 1,
-        provider: 'ABA',
-        method: 'KHQR',
-        amount: 15.50,
-        currency: 'USD',
-        status: 'FAILED',
-      );
-      expect(failedPayment.isFailed, true);
-      expect(failedPayment.isPaid, false);
-      expect(failedPayment.isExpired, false);
+    test(
+      'PaymentModel correctly identifies FAILED, PROCESSING, and REFUNDED states',
+      () {
+        final failedPayment = PaymentModel(
+          id: 101,
+          orderId: 1,
+          provider: 'ABA',
+          method: 'KHQR',
+          amount: 15.50,
+          currency: 'USD',
+          status: 'FAILED',
+        );
+        expect(failedPayment.isFailed, true);
+        expect(failedPayment.isPaid, false);
+        expect(failedPayment.isExpired, false);
 
-      final processingPayment = PaymentModel(
-        id: 102,
-        orderId: 1,
-        provider: 'BAKONG',
-        method: 'KHQR',
-        amount: 20.00,
-        currency: 'USD',
-        status: 'PROCESSING',
-      );
-      expect(processingPayment.isProcessing, true);
-      expect(processingPayment.isPaid, false);
+        final processingPayment = PaymentModel(
+          id: 102,
+          orderId: 1,
+          provider: 'BAKONG',
+          method: 'KHQR',
+          amount: 20.00,
+          currency: 'USD',
+          status: 'PROCESSING',
+        );
+        expect(processingPayment.isProcessing, true);
+        expect(processingPayment.isPaid, false);
 
-      final refundedPayment = PaymentModel(
-        id: 103,
-        orderId: 1,
-        provider: 'WALLET',
-        method: 'WALLET',
-        amount: 10.00,
-        currency: 'USD',
-        status: 'REFUNDED',
-      );
-      expect(refundedPayment.isRefunded, true);
-      expect(refundedPayment.isPaid, false);
-    });
+        final refundedPayment = PaymentModel(
+          id: 103,
+          orderId: 1,
+          provider: 'WALLET',
+          method: 'WALLET',
+          amount: 10.00,
+          currency: 'USD',
+          status: 'REFUNDED',
+        );
+        expect(refundedPayment.isRefunded, true);
+        expect(refundedPayment.isPaid, false);
+      },
+    );
   });
 
   group('Delivery Confirmation QR & PIN Tests', () {

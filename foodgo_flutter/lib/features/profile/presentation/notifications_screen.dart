@@ -58,7 +58,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         icon: Icons.delivery_dining,
         color: GlassTheme.primaryGreen,
         title: 'Order Delivered!',
-        body: 'Your order #1024 has been delivered. Tap to view your order details.',
+        body:
+            'Your order #1024 has been delivered. Tap to view your order details.',
         time: '2 min ago',
         isRead: false,
         actionType: 'order',
@@ -69,7 +70,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         icon: Icons.local_offer,
         color: Colors.orange,
         title: '50% OFF Today Only!',
-        body: 'Use code FOODGO50 for 50% off your next order. Tap to copy code and use in cart.',
+        body:
+            'Use code FOODGO50 for 50% off your next order. Tap to copy code and use in cart.',
         time: '1 hr ago',
         isRead: false,
         actionType: 'promo',
@@ -80,7 +82,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         icon: Icons.receipt_long,
         color: Colors.blue,
         title: 'Order Confirmed',
-        body: 'Your order from Burger Palace has been confirmed and is being prepared.',
+        body:
+            'Your order from Burger Palace has been confirmed and is being prepared.',
         time: '3 hr ago',
         isRead: true,
         actionType: 'order',
@@ -91,7 +94,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         icon: Icons.star,
         color: Colors.amber,
         title: 'Rate Your Experience',
-        body: 'How was your recent meal from Pizza World? Tap here to leave a rating.',
+        body:
+            'How was your recent meal from Pizza World? Tap here to leave a rating.',
         time: 'Yesterday',
         isRead: true,
         actionType: 'rate',
@@ -102,7 +106,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         icon: Icons.storefront,
         color: Colors.purple,
         title: 'New Restaurant Near You',
-        body: 'Sushi Garden just opened in your area with free delivery! Tap to explore menu.',
+        body:
+            'Sushi Garden just opened in your area with free delivery! Tap to explore menu.',
         time: '2 days ago',
         isRead: true,
         actionType: 'explore',

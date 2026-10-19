@@ -183,7 +183,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             'license_plate': 'WXY 4821',
             'rating': 4.9,
             'trips': 2384,
-            'avatar': 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
+            'avatar':
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
           };
         }
 
@@ -1133,7 +1134,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           'vehicle_type': 'Honda EX5 • Red',
           'license_plate': 'WXY 4821',
           'phone': '+855 12 888 999',
-          'avatar': 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
+          'avatar':
+              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
         };
 
     final etaMin = etaMinutes ?? 15;

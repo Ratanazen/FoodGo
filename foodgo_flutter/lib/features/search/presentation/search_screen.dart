@@ -667,8 +667,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                         restaurantId: restId,
                                         restaurantName: restName,
                                       );
-                                      ScaffoldMessenger.of(context)
-                                          .hideCurrentSnackBar();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).hideCurrentSnackBar();
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(

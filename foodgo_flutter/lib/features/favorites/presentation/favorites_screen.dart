@@ -79,7 +79,8 @@ class FavoritesScreen extends StatelessWidget {
                 ? _buildEmptyState(
                     context,
                     title: 'No Favorite Restaurants Yet',
-                    subtitle: 'Tap the heart icon on any restaurant card to save your favorite spots here for fast ordering.',
+                    subtitle:
+                        'Tap the heart icon on any restaurant card to save your favorite spots here for fast ordering.',
                     buttonText: 'Explore Restaurants',
                     onAction: () => context.go('/explore'),
                   )
@@ -109,7 +110,8 @@ class FavoritesScreen extends StatelessWidget {
                 ? _buildEmptyState(
                     context,
                     title: 'No Favorite Foods Yet',
-                    subtitle: 'Save specific dishes and treats you love so you can re-order them in seconds.',
+                    subtitle:
+                        'Save specific dishes and treats you love so you can re-order them in seconds.',
                     buttonText: 'Discover Food',
                     onAction: () => context.go('/home'),
                   )
@@ -239,8 +241,9 @@ class FavoritesScreen extends StatelessWidget {
                                       ) ??
                                       0;
                                   cart.addItem(id, name, price, imgUrl);
-                                  ScaffoldMessenger.of(context)
-                                      .hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).hideCurrentSnackBar();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('Added $name to cart!'),

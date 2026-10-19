@@ -38,8 +38,10 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
           'proteins': '25.2',
           'fats': '13.8',
           'carbo': '23.7',
-          'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
-          'description': 'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft black sesame burger bun with patty filled with melted cheddar cheese and crispy garden greens.',
+          'image':
+              'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+          'description':
+              'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft black sesame burger bun with patty filled with melted cheddar cheese and crispy garden greens.',
           'restaurantId': 1,
           'restaurantName': 'Naperville Gourmet Burgers',
         };

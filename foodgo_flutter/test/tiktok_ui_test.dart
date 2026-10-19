@@ -25,17 +25,20 @@ void main() {
       },
     );
 
-    test('CartProvider accepts TikTok reference promo code FREESHIP (waives delivery fee)', () {
-      final cart = CartProvider();
-      cart.clear();
-      cart.addItem(2, 'Crispy Chicken Wings', 12.00, null);
+    test(
+      'CartProvider accepts TikTok reference promo code FREESHIP (waives delivery fee)',
+      () {
+        final cart = CartProvider();
+        cart.clear();
+        cart.addItem(2, 'Crispy Chicken Wings', 12.00, null);
 
-      final success = cart.applyPromoCode('FREESHIP');
-      expect(success, true);
-      expect(cart.appliedPromoCode, 'FREESHIP');
-      expect(cart.discountAmount, closeTo(2.99, 0.01)); // Delivery fee waived
-      expect(cart.grandTotal, closeTo(12.00, 0.01));
-    });
+        final success = cart.applyPromoCode('FREESHIP');
+        expect(success, true);
+        expect(cart.appliedPromoCode, 'FREESHIP');
+        expect(cart.discountAmount, closeTo(2.99, 0.01)); // Delivery fee waived
+        expect(cart.grandTotal, closeTo(12.00, 0.01));
+      },
+    );
 
     test(
       'CartProvider accepts TikTok reference promo code BURGER20 (20% off)',
@@ -53,28 +56,31 @@ void main() {
       },
     );
 
-    test('AddressItem preserves label attribute and serializes/deserializes correctly', () {
-      final address = AddressItem(
-        id: 99,
-        label: 'Work Office',
-        street: '12 Jalan Ampang, Suite 4B',
-        city: 'Phnom Penh',
-        isDefault: true,
-      );
+    test(
+      'AddressItem preserves label attribute and serializes/deserializes correctly',
+      () {
+        final address = AddressItem(
+          id: 99,
+          label: 'Work Office',
+          street: '12 Jalan Ampang, Suite 4B',
+          city: 'Phnom Penh',
+          isDefault: true,
+        );
 
-      final json = address.toJson();
-      expect(json['id'], 99);
-      expect(json['label'], 'Work Office');
-      expect(json['street'], '12 Jalan Ampang, Suite 4B');
-      expect(json['is_default'], true);
+        final json = address.toJson();
+        expect(json['id'], 99);
+        expect(json['label'], 'Work Office');
+        expect(json['street'], '12 Jalan Ampang, Suite 4B');
+        expect(json['is_default'], true);
 
-      final restored = AddressItem.fromJson(json);
-      expect(restored.id, 99);
-      expect(restored.label, 'Work Office');
-      expect(restored.street, '12 Jalan Ampang, Suite 4B');
-      expect(restored.city, 'Phnom Penh');
-      expect(restored.isDefault, true);
-    });
+        final restored = AddressItem.fromJson(json);
+        expect(restored.id, 99);
+        expect(restored.label, 'Work Office');
+        expect(restored.street, '12 Jalan Ampang, Suite 4B');
+        expect(restored.city, 'Phnom Penh');
+        expect(restored.isDefault, true);
+      },
+    );
 
     test('GlassTheme defines TikTok lush green design tokens', () {
       expect(GlassTheme.headerGreenStart, const Color(0xFF236E31));
@@ -129,36 +135,42 @@ void main() {
       },
     );
 
-    test('Food item details data model contains valid nutrients and restaurant linking', () {
-      final itemData = {
-        'id': 103,
-        'name': 'Double Beef Cheese Burger',
-        'location': 'Naperville, Illinois',
-        'price': 6.50,
-        'calories': '198',
-        'proteins': '25.2',
-        'fats': '13.8',
-        'carbo': '23.7',
-        'category': 'Burger',
-      };
+    test(
+      'Food item details data model contains valid nutrients and restaurant linking',
+      () {
+        final itemData = {
+          'id': 103,
+          'name': 'Double Beef Cheese Burger',
+          'location': 'Naperville, Illinois',
+          'price': 6.50,
+          'calories': '198',
+          'proteins': '25.2',
+          'fats': '13.8',
+          'carbo': '23.7',
+          'category': 'Burger',
+        };
 
-      expect(itemData['name'], 'Double Beef Cheese Burger');
-      expect(itemData['location'], 'Naperville, Illinois');
-      expect(itemData['price'], 6.50);
-      expect(itemData['calories'], '198');
-      expect(itemData['proteins'], '25.2');
-      expect(itemData['fats'], '13.8');
-      expect(itemData['carbo'], '23.7');
-    });
+        expect(itemData['name'], 'Double Beef Cheese Burger');
+        expect(itemData['location'], 'Naperville, Illinois');
+        expect(itemData['price'], 6.50);
+        expect(itemData['calories'], '198');
+        expect(itemData['proteins'], '25.2');
+        expect(itemData['fats'], '13.8');
+        expect(itemData['carbo'], '23.7');
+      },
+    );
 
-    test('GlassTheme defines modern Auth Blue design tokens matching reference mockup', () {
-      expect(GlassTheme.authBlue, const Color(0xFF1B64F2));
-      expect(GlassTheme.authBlueDark, const Color(0xFF1351CA));
-      expect(GlassTheme.authBlueLight, const Color(0xFFEFF4FF));
-      expect(GlassTheme.authTitleDark, const Color(0xFF1E293B));
-      expect(GlassTheme.authSubtitle, const Color(0xFF64748B));
-      expect(GlassTheme.authInputFill, const Color(0xFFF8FAFC));
-      expect(GlassTheme.authInputBorder, const Color(0xFFE2E8F0));
-    });
+    test(
+      'GlassTheme defines modern Auth Blue design tokens matching reference mockup',
+      () {
+        expect(GlassTheme.authBlue, const Color(0xFF1B64F2));
+        expect(GlassTheme.authBlueDark, const Color(0xFF1351CA));
+        expect(GlassTheme.authBlueLight, const Color(0xFFEFF4FF));
+        expect(GlassTheme.authTitleDark, const Color(0xFF1E293B));
+        expect(GlassTheme.authSubtitle, const Color(0xFF64748B));
+        expect(GlassTheme.authInputFill, const Color(0xFFF8FAFC));
+        expect(GlassTheme.authInputBorder, const Color(0xFFE2E8F0));
+      },
+    );
   });
 }

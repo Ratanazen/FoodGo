@@ -42,14 +42,16 @@ class _HomeScreenState extends State<HomeScreen> {
     'name': 'Free Delivery Spaghetti',
     'subtitle': 'Classic Italian Spaghetti Bolognese',
     'price': 8.50,
-    'image': 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=600&q=80',
+    'image':
+        'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=600&q=80',
     'category': 'Pasta',
     'calories': '240',
     'proteins': '18.5',
     'fats': '11.2',
     'carbo': '38.0',
     'location': 'Naperville, Illinois',
-    'description': 'Slow-simmered artisanal spaghetti tossed with savory bolognese sauce, vine-ripened San Marzano tomatoes, fresh Italian basil, and generous shavings of aged Parmigiano-Reggiano.',
+    'description':
+        'Slow-simmered artisanal spaghetti tossed with savory bolognese sauce, vine-ripened San Marzano tomatoes, fresh Italian basil, and generous shavings of aged Parmigiano-Reggiano.',
     'restaurantId': 105,
     'restaurantName': 'Naperville Pasta Co.',
   };
@@ -60,14 +62,16 @@ class _HomeScreenState extends State<HomeScreen> {
       'name': 'Golden Spicy Chicken',
       'subtitle': 'Indulge in our succulent G...',
       'price': 5.00,
-      'image': 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&q=80',
       'category': 'Chicken',
       'calories': '220',
       'proteins': '28.0',
       'fats': '14.0',
       'carbo': '18.0',
       'location': 'Naperville, Illinois',
-      'description': 'Indulge in our succulent Golden Spicy Chicken, marinated in chef-special aromatic spices, battered to a crisp golden crunch, and served piping hot with garlic dip.',
+      'description':
+          'Indulge in our succulent Golden Spicy Chicken, marinated in chef-special aromatic spices, battered to a crisp golden crunch, and served piping hot with garlic dip.',
       'restaurantId': 101,
       'restaurantName': 'Naperville Crispy Chicken',
     },
@@ -76,14 +80,16 @@ class _HomeScreenState extends State<HomeScreen> {
       'name': 'Cheese Burger Nagi',
       'subtitle': 'Burger with Patty filled wit...',
       'price': 4.50,
-      'image': 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=500&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=500&q=80',
       'category': 'Burger',
       'calories': '210',
       'proteins': '22.0',
       'fats': '15.0',
       'carbo': '26.0',
       'location': 'Naperville, Illinois',
-      'description': 'Signature black charcoal sesame bun burger with juicy prime beef patty filled with melted Wisconsin cheddar, caramelized red onions, and house sauce.',
+      'description':
+          'Signature black charcoal sesame bun burger with juicy prime beef patty filled with melted Wisconsin cheddar, caramelized red onions, and house sauce.',
       'restaurantId': 102,
       'restaurantName': 'Nagi Burger House',
     },
@@ -92,14 +98,16 @@ class _HomeScreenState extends State<HomeScreen> {
       'name': 'Double Beef Cheese Burger',
       'subtitle': 'Burger with patty filled with...',
       'price': 6.50,
-      'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
       'category': 'Burger',
       'calories': '198',
       'proteins': '25.2',
       'fats': '13.8',
       'carbo': '23.7',
       'location': 'Naperville, Illinois',
-      'description': 'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft sesame burger bun with melted cheddar cheese and crispy garden greens.',
+      'description':
+          'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft sesame burger bun with melted cheddar cheese and crispy garden greens.',
       'restaurantId': 103,
       'restaurantName': 'Naperville Gourmet Burgers',
     },
@@ -108,14 +116,16 @@ class _HomeScreenState extends State<HomeScreen> {
       'name': 'Crispy French Fries',
       'subtitle': 'Freshly cut french fries with...',
       'price': 3.00,
-      'image': 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500&q=80',
       'category': 'Fries',
       'calories': '145',
       'proteins': '3.4',
       'fats': '8.2',
       'carbo': '29.1',
       'location': 'Naperville, Illinois',
-      'description': 'Hand-cut russet potatoes fried to golden perfection, tossed with mineral sea salt and rosemary, served with tangy dipping sauces.',
+      'description':
+          'Hand-cut russet potatoes fried to golden perfection, tossed with mineral sea salt and rosemary, served with tangy dipping sauces.',
       'restaurantId': 104,
       'restaurantName': 'Golden Fry Shack',
     },
@@ -136,19 +146,22 @@ class _HomeScreenState extends State<HomeScreen> {
       'label': 'YOUR WHOLE ORDER',
       'discount': '30% OFF',
       'code': 'FOODIE30',
-      'imageUrl': 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
     },
     {
       'label': 'DELIVERY FEE',
       'discount': 'FREE',
       'code': 'FREESHIP',
-      'imageUrl': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
     },
     {
       'label': 'BURGER SPECIAL',
       'discount': '20% OFF',
       'code': 'BURGER20',
-      'imageUrl': 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&q=80',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&q=80',
     },
   ];
 
@@ -160,7 +173,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'rating': 4.6,
       'timeMin': 10,
       'distanceKm': 0.6,
-      'imageUrl': 'https://images.unsplash.com/photo-1558857563-b371033873b8?w=400&q=80',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1558857563-b371033873b8?w=400&q=80',
     },
     {
       'id': 102,
@@ -169,7 +183,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'rating': 4.5,
       'timeMin': 15,
       'distanceKm': 0.9,
-      'imageUrl': 'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=400&q=80',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=400&q=80',
     },
   ];
 
@@ -620,7 +635,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: ClipOval(
                 child: CachedNetworkImage(
-                  imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=400&q=80',
+                  imageUrl:
+                      'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=400&q=80',
                   fit: BoxFit.cover,
                   errorWidget: (context, url, error) => const Icon(
                     Icons.restaurant,

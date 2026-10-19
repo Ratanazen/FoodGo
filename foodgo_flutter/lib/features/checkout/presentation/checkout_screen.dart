@@ -346,8 +346,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _handlePlaceOrder(CartProvider cart, double total) async {
     if (cart.items.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Your cart is empty.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Your cart is empty.')));
       return;
     }
 
@@ -604,7 +605,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       color: GlassTheme.primaryGreen,
                       size: 20,
                     ),
-                    hintText: 'Delivery instructions (e.g., Gate code, ring bell, leave at door)...',
+                    hintText:
+                        'Delivery instructions (e.g., Gate code, ring bell, leave at door)...',
                     hintStyle: TextStyle(
                       color: GlassTheme.textMuted,
                       fontSize: 12,

@@ -2,7 +2,7 @@
 FROM ghcr.io/cirruslabs/flutter:stable AS build
 
 WORKDIR /app
-COPY foodgo_flutter/pubspec.yaml foodgo_flutter/pubspec.lock ./
+COPY foodgo_flutter/pubspec.yaml ./
 RUN flutter pub get
 
 COPY foodgo_flutter/ .

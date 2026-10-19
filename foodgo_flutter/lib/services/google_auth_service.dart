@@ -165,14 +165,16 @@ class GoogleAuthService {
                     ctx: ctx,
                     name: 'Alex Johnson',
                     email: 'alex.johnson@gmail.com',
-                    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+                    avatarUrl:
+                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
                   ),
                   const SizedBox(height: 8),
                   _buildAccountTile(
                     ctx: ctx,
                     name: 'Sarah Connor',
                     email: 'sarah.connor@gmail.com',
-                    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+                    avatarUrl:
+                        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
                   ),
                   const SizedBox(height: 16),
 
@@ -273,7 +275,8 @@ class GoogleAuthService {
                           displayName: name.isNotEmpty
                               ? name
                               : email.split('@').first,
-                          photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+                          photoUrl:
+                              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
                         ),
                       );
                     },

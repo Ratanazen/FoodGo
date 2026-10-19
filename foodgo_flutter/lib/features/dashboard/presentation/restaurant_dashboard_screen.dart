@@ -317,13 +317,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                                   // Create category if new
                                   if (isCreatingNewCat &&
                                       newCatController.text.trim().isNotEmpty) {
-                                    final catRes = await _api.post(
-                                      'food-categories/',
-                                      {
-                                        'restaurant': _restaurant!['id'],
-                                        'name': newCatController.text.trim(),
-                                      },
-                                    );
+                                    final catRes = await _api
+                                        .post('food-categories/', {
+                                          'restaurant': _restaurant!['id'],
+                                          'name': newCatController.text.trim(),
+                                        });
                                     catId = catRes['id'];
                                   }
 

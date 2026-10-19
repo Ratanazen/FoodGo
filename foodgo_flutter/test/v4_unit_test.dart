@@ -66,18 +66,21 @@ void main() {
       expect(cart.isDifferentRestaurant(null), false);
     });
 
-    test('NBC EMVCo standard CRC-16 CCITT computation returns valid 4-character hex checksum', () {
-      const rawPayload =
-          '00020101021229370016bakong@bkrt0109customer@bkrt53038405802KH5911FoodGo_Member6010Phnom_Penh6304';
-      final crc = calculateCrc16(rawPayload);
+    test(
+      'NBC EMVCo standard CRC-16 CCITT computation returns valid 4-character hex checksum',
+      () {
+        const rawPayload =
+            '00020101021229370016bakong@bkrt0109customer@bkrt53038405802KH5911FoodGo_Member6010Phnom_Penh6304';
+        final crc = calculateCrc16(rawPayload);
 
-      expect(crc.length, 4);
-      expect(RegExp(r'^[0-9A-F]{4}$').hasMatch(crc), true);
-      expect(
-        crc != 'ABCD',
-        true,
-      ); // Verifies real calculation over hardcoded ABCD placeholder
-    });
+        expect(crc.length, 4);
+        expect(RegExp(r'^[0-9A-F]{4}$').hasMatch(crc), true);
+        expect(
+          crc != 'ABCD',
+          true,
+        ); // Verifies real calculation over hardcoded ABCD placeholder
+      },
+    );
 
     test('ApiService singleton pattern returns identical instance', () {
       final s1 = ApiService();

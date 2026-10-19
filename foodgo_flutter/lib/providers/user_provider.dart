@@ -28,7 +28,8 @@ class UserProvider with ChangeNotifier {
         'last_name': 'Smith',
         'role': 'customer',
         'phone': '+855 12 345 678',
-        'avatar_url': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80',
+        'avatar_url':
+            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80',
       };
     } finally {
       _isLoading = false;

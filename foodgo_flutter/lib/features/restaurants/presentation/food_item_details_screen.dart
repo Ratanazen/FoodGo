@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -102,43 +103,54 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                           bottom: 20,
                         ),
                         child: Center(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(
-                                    alpha: isDark ? 0.4 : 0.18,
-                                  ),
-                                  blurRadius: 36,
-                                  offset: const Offset(0, 18),
-                                ),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: CachedNetworkImage(
-                                imageUrl: imageUrl,
-                                width: 230,
-                                height: 230,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => Container(
-                                  width: 230,
-                                  height: 230,
-                                  color: Colors.grey.shade200,
-                                ),
-                                errorWidget: (context, url, error) => Container(
-                                  width: 230,
-                                  height: 230,
-                                  color: Colors.grey.shade200,
-                                  child: const Icon(
-                                    Icons.fastfood,
-                                    size: 64,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                          child:
+                              Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: isDark ? 0.4 : 0.18,
+                                          ),
+                                          blurRadius: 36,
+                                          offset: const Offset(0, 18),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child: CachedNetworkImage(
+                                        imageUrl: imageUrl,
+                                        width: 230,
+                                        height: 230,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) =>
+                                            Container(
+                                              width: 230,
+                                              height: 230,
+                                              color: Colors.grey.shade200,
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            Container(
+                                              width: 230,
+                                              height: 230,
+                                              color: Colors.grey.shade200,
+                                              child: const Icon(
+                                                Icons.fastfood,
+                                                size: 64,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                      ),
+                                    ),
+                                  )
+                                  .animate()
+                                  .scale(
+                                    duration: 500.ms,
+                                    begin: const Offset(0.85, 0.85),
+                                    end: const Offset(1, 1),
+                                    curve: Curves.easeOutBack,
+                                  )
+                                  .fadeIn(duration: 400.ms),
                         ),
                       ),
                     ),
@@ -153,16 +165,19 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                     children: [
                       // Dish Title
                       Text(
-                        name,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF1B1B1B),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
+                            name,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF1B1B1B),
+                              letterSpacing: -0.5,
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(duration: 400.ms, delay: 150.ms)
+                          .slideY(begin: 0.15, end: 0),
                       const SizedBox(height: 6),
 
                       // Location Row (e.g., Naperville, Illinois)
@@ -183,38 +198,41 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                             ),
                           ),
                         ],
-                      ),
+                      ).animate().fadeIn(duration: 400.ms, delay: 180.ms),
                       const SizedBox(height: 20),
 
                       // 4 Macro-Nutrient Metrics (kcal, proteins, fats, carbo)
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? GlassTheme.surfaceCardDark
-                              : const Color(0xFFF7F8F9),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white12
-                                : const Color(0xFFEDEDED),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            _buildMacroMetric(calories, 'kcal', isDark),
-                            _buildVerticalDivider(isDark),
-                            _buildMacroMetric(proteins, 'proteins', isDark),
-                            _buildVerticalDivider(isDark),
-                            _buildMacroMetric(fats, 'fats', isDark),
-                            _buildVerticalDivider(isDark),
-                            _buildMacroMetric(carbo, 'carbo', isDark),
-                          ],
-                        ),
-                      ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? GlassTheme.surfaceCardDark
+                                  : const Color(0xFFF7F8F9),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white12
+                                    : const Color(0xFFEDEDED),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                _buildMacroMetric(calories, 'kcal', isDark),
+                                _buildVerticalDivider(isDark),
+                                _buildMacroMetric(proteins, 'proteins', isDark),
+                                _buildVerticalDivider(isDark),
+                                _buildMacroMetric(fats, 'fats', isDark),
+                                _buildVerticalDivider(isDark),
+                                _buildMacroMetric(carbo, 'carbo', isDark),
+                              ],
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(duration: 450.ms, delay: 220.ms)
+                          .slideY(begin: 0.15, end: 0),
                       const SizedBox(height: 24),
 
                       // Description Section
@@ -350,7 +368,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                   },
                 ),
               ],
-            ),
+            ).animate().fadeIn(duration: 350.ms).slideY(begin: -0.15, end: 0),
           ),
 
           // ── Bottom Sticky Action Bar (Shopping Bag + "Buy Now") ─────
@@ -358,118 +376,121 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: Container(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 14,
-                bottom: bottomPadding + 14,
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? GlassTheme.surfaceDark : Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // Shopping Bag Icon Button
-                  InkWell(
-                    onTap: () {
-                      final cart = context.read<CartProvider>();
-                      cart.addItem(
-                        itemId,
-                        name,
-                        price,
-                        imageUrl,
-                        restaurantId: data['restaurantId'],
-                        restaurantName: data['restaurantName'],
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('$name added to cart!'),
-                          backgroundColor: Colors.black87,
-                          behavior: SnackBarBehavior.floating,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      width: 54,
-                      height: 54,
+            child:
+                Container(
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        top: 14,
+                        bottom: bottomPadding + 14,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white10
-                            : const Color(0xFFF5F6F7),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white12
-                              : const Color(0xFFE2E4E6),
-                        ),
+                        color: isDark ? GlassTheme.surfaceDark : Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 16,
+                            offset: const Offset(0, -4),
+                          ),
+                        ],
                       ),
-                      child: Icon(
-                        Icons.shopping_bag_outlined,
-                        color: isDark ? Colors.white : Colors.black87,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-
-                  // Large Lime-Green "Buy Now" Pill Button
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        final cart = context.read<CartProvider>();
-                        cart.addItem(
-                          itemId,
-                          name,
-                          price,
-                          imageUrl,
-                          restaurantId: data['restaurantId'],
-                          restaurantName: data['restaurantName'],
-                        );
-                        context.push('/checkout');
-                      },
-                      borderRadius: BorderRadius.circular(28),
-                      child: Container(
-                        height: 54,
-                        decoration: BoxDecoration(
-                          color: GlassTheme.limeAccentBright,
-                          borderRadius: BorderRadius.circular(28),
-                          boxShadow: [
-                            BoxShadow(
-                              color: GlassTheme.limeAccentBright.withValues(
-                                alpha: 0.4,
+                      child: Row(
+                        children: [
+                          // Shopping Bag Icon Button
+                          InkWell(
+                            onTap: () {
+                              final cart = context.read<CartProvider>();
+                              cart.addItem(
+                                itemId,
+                                name,
+                                price,
+                                imageUrl,
+                                restaurantId: data['restaurantId'],
+                                restaurantName: data['restaurantName'],
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('$name added to cart!'),
+                                  backgroundColor: Colors.black87,
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              width: 54,
+                              height: 54,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white10
+                                    : const Color(0xFFF5F6F7),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : const Color(0xFFE2E4E6),
+                                ),
                               ),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Buy Now',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.2,
+                              child: Icon(
+                                Icons.shopping_bag_outlined,
+                                color: isDark ? Colors.white : Colors.black87,
+                                size: 24,
+                              ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 14),
+
+                          // Large Lime-Green "Buy Now" Pill Button
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                final cart = context.read<CartProvider>();
+                                cart.addItem(
+                                  itemId,
+                                  name,
+                                  price,
+                                  imageUrl,
+                                  restaurantId: data['restaurantId'],
+                                  restaurantName: data['restaurantName'],
+                                );
+                                context.push('/checkout');
+                              },
+                              borderRadius: BorderRadius.circular(28),
+                              child: Container(
+                                height: 54,
+                                decoration: BoxDecoration(
+                                  color: GlassTheme.limeAccentBright,
+                                  borderRadius: BorderRadius.circular(28),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: GlassTheme.limeAccentBright
+                                          .withValues(alpha: 0.4),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'Buy Now',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms, delay: 350.ms)
+                    .slideY(begin: 0.2, end: 0),
           ),
         ],
       ),

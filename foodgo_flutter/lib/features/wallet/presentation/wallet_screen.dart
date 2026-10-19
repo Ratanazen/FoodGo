@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -416,116 +417,126 @@ class _WalletScreenState extends State<WalletScreen> {
                     children: [
                       // Balance Card
                       GlassContainer(
-                        padding: const EdgeInsets.all(24),
-                        borderRadius: BorderRadius.circular(24),
-                        customColor: GlassTheme.primaryGreen.withValues(
-                          alpha: 0.12,
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            padding: const EdgeInsets.all(24),
+                            borderRadius: BorderRadius.circular(24),
+                            customColor: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.12,
+                            ),
+                            child: Column(
                               children: [
-                                const Icon(
-                                  Icons.account_balance_wallet_outlined,
-                                  color: GlassTheme.primaryGreen,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Total Available Balance',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              '\$$balance',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 38,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '≈ ${KhmerCurrency.formatKhr(double.tryParse(balance.toString()) ?? 0.0)} KHR',
-                              style: const TextStyle(
-                                color: GlassTheme.primaryGreen,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Live Dual Balance · អត្រា ៤,១០០ ៛/USD',
-                              style: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            InkWell(
-                              onTap: () {
-                                final user = context.read<UserProvider>().user;
-                                MyQrModal.show(
-                                  context,
-                                  user: user,
-                                  initialAmount:
-                                      double.tryParse(
-                                        _amountController.text.trim(),
-                                      ) ??
-                                      0.0,
-                                  onReceivePayment: (amt) async {
-                                    await _instantTopUp(amt);
-                                  },
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(14),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: GlassTheme.bakongRed.withValues(
-                                    alpha: 0.16,
-                                  ),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: GlassTheme.bakongRed.withValues(
-                                      alpha: 0.45,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: const [
-                                    Icon(
-                                      Icons.qr_code_2,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.account_balance_wallet_outlined,
+                                      color: GlassTheme.primaryGreen,
                                       size: 20,
-                                      color: Colors.redAccent,
                                     ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'My QR (Pay Me / ទទួលប្រាក់)',
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Total Available Balance',
                                       style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                                        color: Colors.white70,
+                                        fontSize: 14,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  '\$$balance',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 38,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '≈ ${KhmerCurrency.formatKhr(double.tryParse(balance.toString()) ?? 0.0)} KHR',
+                                  style: const TextStyle(
+                                    color: GlassTheme.primaryGreen,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Live Dual Balance · អត្រា ៤,១០០ ៛/USD',
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                InkWell(
+                                  onTap: () {
+                                    final user = context
+                                        .read<UserProvider>()
+                                        .user;
+                                    MyQrModal.show(
+                                      context,
+                                      user: user,
+                                      initialAmount:
+                                          double.tryParse(
+                                            _amountController.text.trim(),
+                                          ) ??
+                                          0.0,
+                                      onReceivePayment: (amt) async {
+                                        await _instantTopUp(amt);
+                                      },
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 18,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: GlassTheme.bakongRed.withValues(
+                                        alpha: 0.16,
+                                      ),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: GlassTheme.bakongRed.withValues(
+                                          alpha: 0.45,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(
+                                          Icons.qr_code_2,
+                                          size: 20,
+                                          color: Colors.redAccent,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'My QR (Pay Me / ទទួលប្រាក់)',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
+                          )
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideY(begin: -0.08, end: 0)
+                          .scale(
+                            begin: const Offset(0.96, 0.96),
+                            end: const Offset(1, 1),
+                            curve: Curves.easeOutBack,
+                          ),
                       const SizedBox(height: 24),
 
                       // Quick Top Up Section
@@ -833,7 +844,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                   ],
                                 ),
                               ),
-                            );
+                            ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0);
                           }).toList(),
                         );
                       }(),

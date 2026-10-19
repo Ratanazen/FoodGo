@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -235,7 +236,10 @@ class _HomeScreenState extends State<HomeScreen> {
               slivers: [
                 // ── 1. Top Modern Location Header (Search | Location | Notification) ──
                 SliverToBoxAdapter(
-                  child: _buildModernLocationHeader(context, isDark),
+                  child: _buildModernLocationHeader(context, isDark)
+                      .animate()
+                      .fadeIn(duration: 400.ms)
+                      .slideY(begin: -0.08, end: 0, curve: Curves.easeOutCubic),
                 ),
 
                 // ── 2. Content Body with Hero & Categories ─────────────
@@ -246,15 +250,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 12),
 
                       // ── Hero Promo: "Free Delivery For Spaghetti" ───
-                      _buildSpaghettiHeroPromo(context, isDark),
+                      _buildSpaghettiHeroPromo(context, isDark)
+                          .animate()
+                          .fadeIn(duration: 450.ms, delay: 100.ms)
+                          .slideY(
+                            begin: 0.08,
+                            end: 0,
+                            curve: Curves.easeOutCubic,
+                          ),
                       const SizedBox(height: 20),
 
                       // ── 4 Modern Quick Categories: Burger, Chicken, Fries, Drink ──
-                      _buildModernFourCategories(isDark),
+                      _buildModernFourCategories(isDark)
+                          .animate()
+                          .fadeIn(duration: 450.ms, delay: 180.ms)
+                          .slideX(
+                            begin: 0.05,
+                            end: 0,
+                            curve: Curves.easeOutCubic,
+                          ),
                       const SizedBox(height: 24),
 
                       // ── "Recommended for you" Section Header ─────────
-                      _buildRecommendedHeader(context, isDark),
+                      _buildRecommendedHeader(
+                        context,
+                        isDark,
+                      ).animate().fadeIn(duration: 400.ms, delay: 240.ms),
                       const SizedBox(height: 14),
                     ]),
                   ),
@@ -310,7 +331,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // ── Sticky Floating Active Order Floater ──
           if (_showActiveOrderFloater)
-            _buildFloatingActiveOrder(context, isDark),
+            _buildFloatingActiveOrder(context, isDark)
+                .animate()
+                .fadeIn(duration: 450.ms, delay: 350.ms)
+                .slideY(begin: 0.1, end: 0, curve: Curves.easeOutBack),
         ],
       ),
     );
@@ -758,164 +782,171 @@ class _HomeScreenState extends State<HomeScreen> {
         final isFav = favoritesProvider.isFoodFavorite(item['id']);
 
         return InkWell(
-          onTap: () => context.push('/food-details', extra: item),
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+              onTap: () => context.push('/food-details', extra: item),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Favorite Heart Button in top right
-                Align(
-                  alignment: Alignment.topRight,
-                  child: InkWell(
-                    onTap: () => favoritesProvider.toggleFoodItem(item),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Icon(
-                        isFav ? Icons.favorite : Icons.favorite_border,
-                        size: 20,
-                        color: isFav
-                            ? const Color(0xFFFF4842)
-                            : const Color(0xFFD0D0D0),
-                      ),
-                    ),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
                   ),
-                ),
-
-                // Dish Centered Image
-                Expanded(
-                  child: Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: CachedNetworkImage(
-                        imageUrl: item['image'],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey.withValues(alpha: 0.1),
-                          child: const Icon(
-                            Icons.fastfood,
-                            size: 36,
-                            color: Colors.grey,
-                          ),
-                        ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.25 : 0.05,
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Item Name
-                Text(
-                  item['name'] as String,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 3),
-
-                // Subtitle
-                Text(
-                  item['subtitle'] as String,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-
-                // Price & Lime '+' Button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '\$${(item['price'] as double).toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        context.read<CartProvider>().addItem(
-                          item['id'] as int,
-                          item['name'] as String,
-                          item['price'] as double,
-                          item['image'] as String,
-                        );
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text('${item['name']} added to cart!'),
-                              ],
-                            ),
-                            backgroundColor: const Color(0xFF2E7D32),
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: GlassTheme.limeAccent,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: GlassTheme.limeAccent.withValues(
-                                alpha: 0.4,
-                              ),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.black,
-                          size: 20,
-                        ),
-                      ),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-        );
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Favorite Heart Button in top right
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: InkWell(
+                        onTap: () => favoritesProvider.toggleFoodItem(item),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          child: Icon(
+                            isFav ? Icons.favorite : Icons.favorite_border,
+                            size: 20,
+                            color: isFav
+                                ? const Color(0xFFFF4842)
+                                : const Color(0xFFD0D0D0),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Dish Centered Image
+                    Expanded(
+                      child: Center(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: CachedNetworkImage(
+                            imageUrl: item['image'],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                              child: const Icon(
+                                Icons.fastfood,
+                                size: 36,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Item Name
+                    Text(
+                      item['name'] as String,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+
+                    // Subtitle
+                    Text(
+                      item['subtitle'] as String,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark
+                            ? Colors.grey[400]
+                            : const Color(0xFF8E8E93),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Price & Lime '+' Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '\$${(item['price'] as double).toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            context.read<CartProvider>().addItem(
+                              item['id'] as int,
+                              item['name'] as String,
+                              item['price'] as double,
+                              item['image'] as String,
+                            );
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text('${item['name']} added to cart!'),
+                                  ],
+                                ),
+                                backgroundColor: const Color(0xFF2E7D32),
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: GlassTheme.limeAccent,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: GlassTheme.limeAccent.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.add,
+                              color: Colors.black,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .animate()
+            .fadeIn(duration: 350.ms, delay: (index * 50).ms)
+            .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic);
       }, childCount: list.length),
     );
   }

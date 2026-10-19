@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
@@ -123,192 +124,207 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   GlassContainer(
-                    padding: const EdgeInsets.all(20),
-                    borderRadius: GlassTheme.borderRadiusSmall,
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        padding: const EdgeInsets.all(20),
+                        borderRadius: GlassTheme.borderRadiusSmall,
+                        child: Column(
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  'Driver Status',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Driver Status',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    Text(
+                                      _isOnline
+                                          ? '🟢 Online & Ready for Orders'
+                                          : '⚪ Offline',
+                                      style: TextStyle(
+                                        color: _isOnline
+                                            ? GlassTheme.primaryGreen
+                                            : Colors.redAccent,
                                       ),
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  _isOnline
-                                      ? '🟢 Online & Ready for Orders'
-                                      : '⚪ Offline',
-                                  style: TextStyle(
-                                    color: _isOnline
-                                        ? GlassTheme.primaryGreen
-                                        : Colors.redAccent,
-                                  ),
+                                Switch(
+                                  value: _isOnline,
+                                  activeTrackColor: GlassTheme.primaryGreen,
+                                  onChanged: (val) async {
+                                    setState(() => _isOnline = val);
+                                    try {
+                                      await _api.post(
+                                        'drivers/toggle-online/',
+                                        {'is_online': val},
+                                      );
+                                    } catch (_) {}
+                                  },
                                 ),
                               ],
                             ),
-                            Switch(
-                              value: _isOnline,
-                              activeTrackColor: GlassTheme.primaryGreen,
-                              onChanged: (val) async {
-                                setState(() => _isOnline = val);
-                                try {
-                                  await _api.post('drivers/toggle-online/', {
-                                    'is_online': val,
-                                  });
-                                } catch (_) {}
-                              },
-                            ),
-                          ],
-                        ),
-                        if (_isOnline) ...[
-                          const Divider(color: Colors.white12, height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Live GPS Broadcaster',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              TextButton.icon(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: GlassTheme.primaryGreen,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
+                            if (_isOnline) ...[
+                              const Divider(color: Colors.white12, height: 20),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Live GPS Broadcaster',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 13,
+                                    ),
                                   ),
-                                ),
-                                icon: const Icon(Icons.my_location, size: 16),
-                                label: const Text(
-                                  'Broadcast Location',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                onPressed: () async {
-                                  try {
-                                    await _api.post('drivers/location/', {
-                                      'lat': 11.5580,
-                                      'lng': 104.9210,
-                                    });
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'GPS coordinates broadcast to active orders!',
-                                        ),
-                                        backgroundColor:
-                                            GlassTheme.primaryGreen,
-                                        behavior: SnackBarBehavior.floating,
+                                  TextButton.icon(
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: GlassTheme.primaryGreen,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
                                       ),
-                                    );
-                                  } catch (_) {}
-                                },
+                                    ),
+                                    icon: const Icon(
+                                      Icons.my_location,
+                                      size: 16,
+                                    ),
+                                    label: const Text(
+                                      'Broadcast Location',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    onPressed: () async {
+                                      try {
+                                        await _api.post('drivers/location/', {
+                                          'lat': 11.5580,
+                                          'lng': 104.9210,
+                                        });
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'GPS coordinates broadcast to active orders!',
+                                            ),
+                                            backgroundColor:
+                                                GlassTheme.primaryGreen,
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      } catch (_) {}
+                                    },
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                          ],
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms)
+                      .slideY(begin: 0.1, end: 0),
                   const SizedBox(height: 16),
 
                   // ── Driver Earnings Header ──
                   GlassContainer(
-                    padding: const EdgeInsets.all(16),
-                    borderRadius: GlassTheme.borderRadiusSmall,
-                    customColor: GlassTheme.primaryGreen.withValues(
-                      alpha: 0.12,
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.2,
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.account_balance_wallet,
-                            color: GlassTheme.primaryGreen,
-                            size: 28,
-                          ),
+                        padding: const EdgeInsets.all(16),
+                        borderRadius: GlassTheme.borderRadiusSmall,
+                        customColor: GlassTheme.primaryGreen.withValues(
+                          alpha: 0.12,
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Today's Earnings",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '\$${_todayEarningsUsd.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '≈ ${KhmerCurrency.formatKhr(_todayEarningsUsd)}',
-                                style: const TextStyle(
-                                  color: GlassTheme.primaryGreen,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                        child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '$_completedDeliveries Trips Completed',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                                color: GlassTheme.primaryGreen.withValues(
+                                  alpha: 0.2,
                                 ),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.account_balance_wallet,
+                                color: GlassTheme.primaryGreen,
+                                size: 28,
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '${_availableOrders.length} In Progress',
-                              style: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 11,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Today's Earnings",
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '\$${_todayEarningsUsd.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '≈ ${KhmerCurrency.formatKhr(_todayEarningsUsd)}',
+                                    style: const TextStyle(
+                                      color: GlassTheme.primaryGreen,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '$_completedDeliveries Trips Completed',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${_availableOrders.length} In Progress',
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
+                      )
+                      .animate()
+                      .fadeIn(delay: 100.ms, duration: 400.ms)
+                      .slideY(begin: 0.1, end: 0),
                   const SizedBox(height: 20),
                   const Text(
                     'Available Deliveries',
@@ -603,6 +619,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0);
   }
 }

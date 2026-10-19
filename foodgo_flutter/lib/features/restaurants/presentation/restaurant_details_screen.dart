@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -531,177 +532,189 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                           children: [
                             // Restaurant Metadata Card
                             GlassContainer(
-                              padding: const EdgeInsets.all(16),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Column(
-                                children: [
-                                  Row(
+                                  padding: const EdgeInsets.all(16),
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Column(
                                     children: [
-                                      const Icon(
-                                        Icons.star,
-                                        color: GlassTheme.ratingAmber,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        rating,
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '(350+ reviews)',
-                                        style: TextStyle(
-                                          color: GlassTheme.textMuted,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              (restaurant['is_active'] != false
-                                                      ? GlassTheme.primaryGreen
-                                                      : Colors.redAccent)
-                                                  .withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.star,
+                                            color: GlassTheme.ratingAmber,
+                                            size: 20,
                                           ),
-                                        ),
-                                        child: Text(
-                                          restaurant['is_active'] != false
-                                              ? 'Open Now'
-                                              : 'Closed',
-                                          style: TextStyle(
-                                            color:
-                                                restaurant['is_active'] != false
-                                                ? GlassTheme.primaryGreen
-                                                : Colors.redAccent,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 3,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: GlassTheme.primaryGreen
-                                              .withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.access_time,
-                                              size: 14,
-                                              color: GlassTheme.primaryGreen,
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            rating,
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '$minTime-$maxTime min',
-                                              style: const TextStyle(
-                                                color: GlassTheme.primaryGreen,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '(350+ reviews)',
+                                            style: TextStyle(
+                                              color: GlassTheme.textMuted,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  (restaurant['is_active'] !=
+                                                              false
+                                                          ? GlassTheme
+                                                                .primaryGreen
+                                                          : Colors.redAccent)
+                                                      .withValues(alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              restaurant['is_active'] != false
+                                                  ? 'Open Now'
+                                                  : 'Closed',
+                                              style: TextStyle(
+                                                color:
+                                                    restaurant['is_active'] !=
+                                                        false
+                                                    ? GlassTheme.primaryGreen
+                                                    : Colors.redAccent,
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 12,
+                                                fontSize: 10,
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                          const Spacer(),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 3,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: GlassTheme.primaryGreen
+                                                  .withValues(alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.access_time,
+                                                  size: 14,
+                                                  color:
+                                                      GlassTheme.primaryGreen,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '$minTime-$maxTime min',
+                                                  style: const TextStyle(
+                                                    color:
+                                                        GlassTheme.primaryGreen,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const Divider(
+                                        height: 20,
+                                        color: Colors.white12,
+                                      ),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.moped,
+                                            color: GlassTheme.primaryGreen,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            deliveryFee <= 0
+                                                ? 'Free Delivery'
+                                                : 'Delivery: \$${deliveryFee.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          const Icon(
+                                            Icons.location_on,
+                                            color: Colors.blueAccent,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            '1.2 km away',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                  const Divider(
-                                    height: 20,
-                                    color: Colors.white12,
-                                  ),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.moped,
-                                        color: GlassTheme.primaryGreen,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        deliveryFee <= 0
-                                            ? 'Free Delivery'
-                                            : 'Delivery: \$${deliveryFee.toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      const Icon(
-                                        Icons.location_on,
-                                        color: Colors.blueAccent,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      const Text(
-                                        '1.2 km away',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.white70,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
+                                )
+                                .animate()
+                                .fadeIn(duration: 400.ms)
+                                .slideY(
+                                  begin: 0.1,
+                                  end: 0,
+                                  curve: Curves.easeOutQuad,
+                                ),
                             const SizedBox(height: 12),
 
                             // Foodpanda Deals Pill Banner
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: GlassTheme.foodpandaPink.withValues(
-                                  alpha: 0.15,
-                                ),
-                                border: Border.all(
-                                  color: GlassTheme.foodpandaPink.withValues(
-                                    alpha: 0.3,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 10,
                                   ),
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.local_offer,
-                                    color: GlassTheme.foodpandaPink,
-                                    size: 18,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      '20% OFF orders over \$10 • Code: FOODGO20',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  decoration: BoxDecoration(
+                                    color: GlassTheme.foodpandaPink.withValues(
+                                      alpha: 0.15,
                                     ),
+                                    border: Border.all(
+                                      color: GlassTheme.foodpandaPink
+                                          .withValues(alpha: 0.3),
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                ],
-                              ),
-                            ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(
+                                        Icons.local_offer,
+                                        color: GlassTheme.foodpandaPink,
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          '20% OFF orders over \$10 • Code: FOODGO20',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                .animate()
+                                .fadeIn(delay: 100.ms, duration: 400.ms)
+                                .slideY(begin: 0.1, end: 0),
                             const SizedBox(height: 12),
 
                             // In-Restaurant Menu Search Bar
@@ -753,70 +766,77 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                 onChanged: (val) =>
                                     setState(() => _searchQuery = val),
                               ),
-                            ),
+                            ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
                             const SizedBox(height: 14),
 
                             // ── Sticky Category Tab Bar (Foodpanda Style) ────
                             SizedBox(
-                              height: 38,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: categoryNames.length,
-                                itemBuilder: (context, index) {
-                                  final isSelected =
-                                      _selectedCategoryIndex == index;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: InkWell(
-                                      onTap: () => setState(
-                                        () => _selectedCategoryIndex = index,
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(
-                                          milliseconds: 200,
+                                  height: 38,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: categoryNames.length,
+                                    itemBuilder: (context, index) {
+                                      final isSelected =
+                                          _selectedCategoryIndex == index;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 8.0,
                                         ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? GlassTheme.primaryGreen
-                                              : Colors.white.withValues(
-                                                  alpha: 0.06,
-                                                ),
+                                        child: InkWell(
+                                          onTap: () => setState(
+                                            () =>
+                                                _selectedCategoryIndex = index,
+                                          ),
                                           borderRadius: BorderRadius.circular(
                                             20,
                                           ),
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? Colors.transparent
-                                                : Colors.white.withValues(
-                                                    alpha: 0.12,
-                                                  ),
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            categoryNames[index],
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: isSelected
-                                                  ? FontWeight.bold
-                                                  : FontWeight.w500,
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                              milliseconds: 200,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 8,
+                                            ),
+                                            decoration: BoxDecoration(
                                               color: isSelected
-                                                  ? Colors.white
-                                                  : Colors.white70,
+                                                  ? GlassTheme.primaryGreen
+                                                  : Colors.white.withValues(
+                                                      alpha: 0.06,
+                                                    ),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? Colors.transparent
+                                                    : Colors.white.withValues(
+                                                        alpha: 0.12,
+                                                      ),
+                                              ),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                categoryNames[index],
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.bold
+                                                      : FontWeight.w500,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : Colors.white70,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
+                                      );
+                                    },
+                                  ),
+                                )
+                                .animate()
+                                .fadeIn(delay: 200.ms, duration: 400.ms)
+                                .slideX(begin: 0.05, end: 0),
                             const SizedBox(height: 16),
 
                             Text(
@@ -857,177 +877,192 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                           final int inCartQty = cartItem?.quantity ?? 0;
 
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: InkWell(
-                              onTap: () =>
-                                  _showDishDetailSheet(item, restaurant),
-                              borderRadius: BorderRadius.circular(16),
-                              child: GlassCard(
-                                padding: const EdgeInsets.all(12),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Left side: Item title, description, badges, price
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: InkWell(
+                                  onTap: () =>
+                                      _showDishDetailSheet(item, restaurant),
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: GlassCard(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Left side: Item title, description, badges, price
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              Expanded(
-                                                child: Text(
-                                                  item['name'] ?? 'Dish',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              if (!isAvailable)
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                    left: 6,
-                                                  ),
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 6,
-                                                        vertical: 2,
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      item['name'] ?? 'Dish',
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16,
                                                       ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.redAccent
-                                                        .withValues(alpha: 0.2),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          6,
-                                                        ),
-                                                  ),
-                                                  child: const Text(
-                                                    'Sold Out',
-                                                    style: TextStyle(
-                                                      color: Colors.redAccent,
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.bold,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                   ),
-                                                ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            item['description'] ?? 'Delicious freshly prepared recipe.',
-                                            style: TextStyle(
-                                              color: GlassTheme.textMuted,
-                                              fontSize: 12,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          if (isVeg || isSpicy || isHalal) ...[
-                                            const SizedBox(height: 6),
-                                            Row(
-                                              children: [
-                                                if (isVeg)
-                                                  _buildDietaryBadge(
-                                                    '🌿 Veg',
-                                                    Colors.green,
-                                                  ),
-                                                if (isHalal)
-                                                  _buildDietaryBadge(
-                                                    'حلال',
-                                                    Colors.teal,
-                                                  ),
-                                                if (isSpicy)
-                                                  _buildDietaryBadge(
-                                                    '🔥 Spicy',
-                                                    Colors.deepOrange,
-                                                  ),
-                                              ],
-                                            ),
-                                          ],
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                '\$${price.toStringAsFixed(2)}',
-                                                style: const TextStyle(
-                                                  color:
-                                                      GlassTheme.primaryGreen,
-                                                  fontWeight: FontWeight.w900,
-                                                  fontSize: 16,
-                                                ),
+                                                  if (!isAvailable)
+                                                    Container(
+                                                      margin:
+                                                          const EdgeInsets.only(
+                                                            left: 6,
+                                                          ),
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 6,
+                                                            vertical: 2,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.redAccent
+                                                            .withValues(
+                                                              alpha: 0.2,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              6,
+                                                            ),
+                                                      ),
+                                                      child: const Text(
+                                                        'Sold Out',
+                                                        style: TextStyle(
+                                                          color:
+                                                              Colors.redAccent,
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
                                               ),
-                                              if (originalPrice != null &&
-                                                  originalPrice > price) ...[
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  '\$${originalPrice.toStringAsFixed(2)}',
-                                                  style: const TextStyle(
-                                                    decoration: TextDecoration
-                                                        .lineThrough,
-                                                    color: Colors.white38,
-                                                    fontSize: 12,
-                                                  ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                item['description'] ?? 'Delicious freshly prepared recipe.',
+                                                style: TextStyle(
+                                                  color: GlassTheme.textMuted,
+                                                  fontSize: 12,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              if (isVeg ||
+                                                  isSpicy ||
+                                                  isHalal) ...[
+                                                const SizedBox(height: 6),
+                                                Row(
+                                                  children: [
+                                                    if (isVeg)
+                                                      _buildDietaryBadge(
+                                                        '🌿 Veg',
+                                                        Colors.green,
+                                                      ),
+                                                    if (isHalal)
+                                                      _buildDietaryBadge(
+                                                        'حلال',
+                                                        Colors.teal,
+                                                      ),
+                                                    if (isSpicy)
+                                                      _buildDietaryBadge(
+                                                        '🔥 Spicy',
+                                                        Colors.deepOrange,
+                                                      ),
+                                                  ],
                                                 ),
                                               ],
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    '\$${price.toStringAsFixed(2)}',
+                                                    style: const TextStyle(
+                                                      color: GlassTheme
+                                                          .primaryGreen,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                  if (originalPrice != null &&
+                                                      originalPrice >
+                                                          price) ...[
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      '\$${originalPrice.toStringAsFixed(2)}',
+                                                      style: const TextStyle(
+                                                        decoration:
+                                                            TextDecoration
+                                                                .lineThrough,
+                                                        color: Colors.white38,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
                                             ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 14),
+                                        ),
+                                        const SizedBox(width: 14),
 
-                                    // Right side: Dish Image + Plus Add Button
-                                    Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          child: Container(
-                                            width: 90,
-                                            height: 90,
-                                            color: Colors.white.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            child:
-                                                item['image'] != null &&
-                                                    item['image']
-                                                        .toString()
-                                                        .isNotEmpty
-                                                ? CachedNetworkImage(
-                                                    imageUrl: item['image']
-                                                        .toString(),
-                                                    fit: BoxFit.cover,
-                                                    placeholder:
-                                                        (
-                                                          context,
-                                                          url,
-                                                        ) => Container(
-                                                          color: Colors.white
-                                                              .withValues(
-                                                                alpha: 0.05,
-                                                              ),
-                                                          child: const Center(
-                                                            child: SizedBox(
-                                                              width: 18,
-                                                              height: 18,
-                                                              child: CircularProgressIndicator(
-                                                                strokeWidth: 2,
-                                                                color: GlassTheme
-                                                                    .primaryGreen,
+                                        // Right side: Dish Image + Plus Add Button
+                                        Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                              child: Container(
+                                                width: 90,
+                                                height: 90,
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.05,
+                                                ),
+                                                child:
+                                                    item['image'] != null &&
+                                                        item['image']
+                                                            .toString()
+                                                            .isNotEmpty
+                                                    ? CachedNetworkImage(
+                                                        imageUrl: item['image']
+                                                            .toString(),
+                                                        fit: BoxFit.cover,
+                                                        placeholder:
+                                                            (
+                                                              context,
+                                                              url,
+                                                            ) => Container(
+                                                              color: Colors
+                                                                  .white
+                                                                  .withValues(
+                                                                    alpha: 0.05,
+                                                                  ),
+                                                              child: const Center(
+                                                                child: SizedBox(
+                                                                  width: 18,
+                                                                  height: 18,
+                                                                  child: CircularProgressIndicator(
+                                                                    strokeWidth:
+                                                                        2,
+                                                                    color: GlassTheme
+                                                                        .primaryGreen,
+                                                                  ),
+                                                                ),
                                                               ),
                                                             ),
-                                                          ),
-                                                        ),
-                                                    errorWidget:
-                                                        (context, url, error) =>
-                                                            Container(
+                                                        errorWidget:
+                                                            (
+                                                              context,
+                                                              url,
+                                                              error,
+                                                            ) => Container(
                                                               color: Colors.grey
                                                                   .withValues(
                                                                     alpha: 0.2,
@@ -1038,149 +1073,158 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                                     .white38,
                                                               ),
                                                             ),
-                                                  )
-                                                : Container(
-                                                    color: Colors.grey
-                                                        .withValues(alpha: 0.2),
-                                                    child: const Icon(
-                                                      Icons.fastfood,
-                                                      color: Colors.white38,
-                                                    ),
-                                                  ),
-                                          ),
-                                        ),
-
-                                        // Favorite Dish Heart Icon overlay
-                                        Positioned(
-                                          top: 4,
-                                          left: 4,
-                                          child: Consumer<FavoritesProvider>(
-                                            builder: (context, favs, child) {
-                                              final isFav = favs.isFoodFavorite(
-                                                itemId,
-                                              );
-                                              return Material(
-                                                color: Colors.black.withValues(
-                                                  alpha: 0.5,
-                                                ),
-                                                shape: const CircleBorder(),
-                                                child: InkWell(
-                                                  customBorder:
-                                                      const CircleBorder(),
-                                                  onTap: () async {
-                                                    final added = await favs
-                                                        .toggleFoodItem(item);
-                                                    if (!context.mounted) {
-                                                      return;
-                                                    }
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).hideCurrentSnackBar();
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          added
-                                                              ? 'Saved "${item['name']}" to Favorites'
-                                                              : 'Removed "${item['name']}" from Favorites',
-                                                        ),
-                                                        duration:
-                                                            const Duration(
-                                                              seconds: 1,
+                                                      )
+                                                    : Container(
+                                                        color: Colors.grey
+                                                            .withValues(
+                                                              alpha: 0.2,
                                                             ),
-                                                        behavior:
-                                                            SnackBarBehavior
-                                                                .floating,
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          5.0,
+                                                        child: const Icon(
+                                                          Icons.fastfood,
+                                                          color: Colors.white38,
                                                         ),
-                                                    child: Icon(
-                                                      isFav
-                                                          ? Icons.favorite
-                                                          : Icons
-                                                                .favorite_border,
-                                                      size: 14,
-                                                      color: isFav
-                                                          ? GlassTheme
-                                                                .foodpandaPink
-                                                          : Colors.white,
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
+                                                      ),
+                                              ),
+                                            ),
 
-                                        // Foodpanda style Add / Plus Button overlay
-                                        if (isAvailable)
-                                          Positioned(
-                                            bottom: -6,
-                                            right: -6,
-                                            child: Material(
-                                              color: inCartQty > 0
-                                                  ? GlassTheme.primaryGreen
-                                                  : Colors.white,
-                                              shape: const CircleBorder(),
-                                              elevation: 4,
-                                              child: InkWell(
-                                                customBorder:
-                                                    const CircleBorder(),
-                                                onTap: () {
-                                                  context
-                                                      .read<CartProvider>()
-                                                      .addItem(
-                                                        itemId,
-                                                        item['name'] ?? 'Dish',
-                                                        price,
-                                                        item['image']
-                                                            ?.toString(),
-                                                        restaurantId:
-                                                            int.tryParse(
-                                                              widget.id ?? '1',
+                                            // Favorite Dish Heart Icon overlay
+                                            Positioned(
+                                              top: 4,
+                                              left: 4,
+                                              child: Consumer<FavoritesProvider>(
+                                                builder: (context, favs, child) {
+                                                  final isFav = favs
+                                                      .isFoodFavorite(itemId);
+                                                  return Material(
+                                                    color: Colors.black
+                                                        .withValues(alpha: 0.5),
+                                                    shape: const CircleBorder(),
+                                                    child: InkWell(
+                                                      customBorder:
+                                                          const CircleBorder(),
+                                                      onTap: () async {
+                                                        final added = await favs
+                                                            .toggleFoodItem(
+                                                              item,
+                                                            );
+                                                        if (!context.mounted) {
+                                                          return;
+                                                        }
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).hideCurrentSnackBar();
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                              added
+                                                                  ? 'Saved "${item['name']}" to Favorites'
+                                                                  : 'Removed "${item['name']}" from Favorites',
                                                             ),
-                                                        restaurantName:
-                                                            restaurant['name'],
-                                                      );
-                                                  ScaffoldMessenger.of(context)
-                                                      .hideCurrentSnackBar();
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        'Added "${item['name']}" to cart!',
-                                                      ),
-                                                      duration: const Duration(
-                                                        seconds: 1,
-                                                      ),
-                                                      behavior: SnackBarBehavior
-                                                          .floating,
-                                                      action: SnackBarAction(
-                                                        label: 'View Cart',
-                                                        textColor: GlassTheme
-                                                            .primaryGreen,
-                                                        onPressed: () => context
-                                                            .push('/cart'),
+                                                            duration:
+                                                                const Duration(
+                                                                  seconds: 1,
+                                                                ),
+                                                            behavior:
+                                                                SnackBarBehavior
+                                                                    .floating,
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              5.0,
+                                                            ),
+                                                        child: Icon(
+                                                          isFav
+                                                              ? Icons.favorite
+                                                              : Icons
+                                                                    .favorite_border,
+                                                          size: 14,
+                                                          color: isFav
+                                                              ? GlassTheme
+                                                                    .foodpandaPink
+                                                              : Colors.white,
+                                                        ),
                                                       ),
                                                     ),
                                                   );
                                                 },
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    6.0,
-                                                  ),
-                                                  child: inCartQty > 0
-                                                      ? Text(
-                                                          '$inCartQty',
-                                                          style:
-                                                              const TextStyle(
+                                              ),
+                                            ),
+
+                                            // Foodpanda style Add / Plus Button overlay
+                                            if (isAvailable)
+                                              Positioned(
+                                                bottom: -6,
+                                                right: -6,
+                                                child: Material(
+                                                  color: inCartQty > 0
+                                                      ? GlassTheme.primaryGreen
+                                                      : Colors.white,
+                                                  shape: const CircleBorder(),
+                                                  elevation: 4,
+                                                  child: InkWell(
+                                                    customBorder:
+                                                        const CircleBorder(),
+                                                    onTap: () {
+                                                      context
+                                                          .read<CartProvider>()
+                                                          .addItem(
+                                                            itemId,
+                                                            item['name'] ??
+                                                                'Dish',
+                                                            price,
+                                                            item['image']
+                                                                ?.toString(),
+                                                            restaurantId:
+                                                                int.tryParse(
+                                                                  widget.id ??
+                                                                      '1',
+                                                                ),
+                                                            restaurantName:
+                                                                restaurant['name'],
+                                                          );
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).hideCurrentSnackBar();
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            'Added "${item['name']}" to cart!',
+                                                          ),
+                                                          duration:
+                                                              const Duration(
+                                                                seconds: 1,
+                                                              ),
+                                                          behavior:
+                                                              SnackBarBehavior
+                                                                  .floating,
+                                                          action: SnackBarAction(
+                                                            label: 'View Cart',
+                                                            textColor: GlassTheme
+                                                                .primaryGreen,
+                                                            onPressed: () =>
+                                                                context.push(
+                                                                  '/cart',
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            6.0,
+                                                          ),
+                                                      child: inCartQty > 0
+                                                          ? Text(
+                                                              '$inCartQty',
+                                                              style: const TextStyle(
                                                                 color: Colors
                                                                     .white,
                                                                 fontWeight:
@@ -1188,23 +1232,34 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                                         .bold,
                                                                 fontSize: 12,
                                                               ),
-                                                        )
-                                                      : const Icon(
-                                                          Icons.add,
-                                                          color: Colors.black87,
-                                                          size: 18,
-                                                        ),
+                                                            )
+                                                          : const Icon(
+                                                              Icons.add,
+                                                              color: Colors
+                                                                  .black87,
+                                                              size: 18,
+                                                            ),
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ),
+                                          ],
+                                        ),
                                       ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                          );
+                              )
+                              .animate()
+                              .fadeIn(
+                                duration: 350.ms,
+                                delay: ((index % 8) * 40).ms,
+                              )
+                              .slideY(
+                                begin: 0.08,
+                                end: 0,
+                                curve: Curves.easeOutQuad,
+                              );
                         }, childCount: displayedItems.length),
                       ),
                     ),

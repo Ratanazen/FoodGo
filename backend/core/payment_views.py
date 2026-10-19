@@ -98,6 +98,9 @@ class PaymentDetailView(RetrieveAPIView):
 class PaymentStatusView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    def get(self, request, pk):
+        return self.post(request, pk)
+
     def post(self, request, pk):
         try:
             payment = Payment.objects.select_related('order').get(id=pk)
@@ -137,6 +140,12 @@ class PaymentStatusView(APIView):
 
 class CancelPaymentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        return self.post(request, pk)
+
+    def delete(self, request, pk):
+        return self.post(request, pk)
 
     def post(self, request, pk):
         try:

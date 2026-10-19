@@ -272,13 +272,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_THROTTLE_CLASSES': [
+    'DEFAULT_THROTTLE_CLASSES': [] if IS_TESTING else [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '20/minute',
-        'user': '60/minute',
+        'anon': '120/minute',
+        'user': '600/minute',
     },
 }
 

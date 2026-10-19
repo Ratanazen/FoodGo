@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/theme_provider.dart';
@@ -782,171 +783,183 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-          ),
+          ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0),
           const SizedBox(height: 20),
 
           // ── Notifications ───────────────────
           _SectionHeader(title: 'Notifications'),
           GlassContainer(
-            borderRadius: GlassTheme.borderRadius,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.notifications_active,
-                  iconColor: Colors.orange,
-                  title: 'Push Notifications',
-                  subtitle: 'Receive all app notifications',
-                  trailing: Switch.adaptive(
-                    value: _notificationsEnabled,
-                    activeTrackColor: GlassTheme.primaryGreen,
-                    onChanged: (v) {
-                      setState(() => _notificationsEnabled = v);
-                      _saveSetting('settings_notifications', v);
-                    },
-                  ),
+                borderRadius: GlassTheme.borderRadius,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.notifications_active,
+                      iconColor: Colors.orange,
+                      title: 'Push Notifications',
+                      subtitle: 'Receive all app notifications',
+                      trailing: Switch.adaptive(
+                        value: _notificationsEnabled,
+                        activeTrackColor: GlassTheme.primaryGreen,
+                        onChanged: (v) {
+                          setState(() => _notificationsEnabled = v);
+                          _saveSetting('settings_notifications', v);
+                        },
+                      ),
+                    ),
+                    _Divider(),
+                    _SettingsTile(
+                      icon: Icons.delivery_dining,
+                      iconColor: GlassTheme.primaryGreen,
+                      title: 'Order Updates',
+                      subtitle: 'Status changes for your orders',
+                      trailing: Switch.adaptive(
+                        value: _orderUpdates,
+                        activeTrackColor: GlassTheme.primaryGreen,
+                        onChanged: (v) {
+                          setState(() => _orderUpdates = v);
+                          _saveSetting('settings_order_updates', v);
+                        },
+                      ),
+                    ),
+                    _Divider(),
+                    _SettingsTile(
+                      icon: Icons.local_offer,
+                      iconColor: Colors.redAccent,
+                      title: 'Promotions & Offers',
+                      subtitle: 'Deals, discounts & coupons',
+                      trailing: Switch.adaptive(
+                        value: _promoAlerts,
+                        activeTrackColor: GlassTheme.primaryGreen,
+                        onChanged: (v) {
+                          setState(() => _promoAlerts = v);
+                          _saveSetting('settings_promo_alerts', v);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.delivery_dining,
-                  iconColor: GlassTheme.primaryGreen,
-                  title: 'Order Updates',
-                  subtitle: 'Status changes for your orders',
-                  trailing: Switch.adaptive(
-                    value: _orderUpdates,
-                    activeTrackColor: GlassTheme.primaryGreen,
-                    onChanged: (v) {
-                      setState(() => _orderUpdates = v);
-                      _saveSetting('settings_order_updates', v);
-                    },
-                  ),
-                ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.local_offer,
-                  iconColor: Colors.redAccent,
-                  title: 'Promotions & Offers',
-                  subtitle: 'Deals, discounts & coupons',
-                  trailing: Switch.adaptive(
-                    value: _promoAlerts,
-                    activeTrackColor: GlassTheme.primaryGreen,
-                    onChanged: (v) {
-                      setState(() => _promoAlerts = v);
-                      _saveSetting('settings_promo_alerts', v);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+              )
+              .animate()
+              .fadeIn(delay: 80.ms, duration: 350.ms)
+              .slideY(begin: 0.08, end: 0),
           const SizedBox(height: 20),
 
           // ── Privacy & Security ──────────────
           _SectionHeader(title: 'Privacy & Security'),
           GlassContainer(
-            borderRadius: GlassTheme.borderRadius,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.lock_outline,
-                  iconColor: Colors.purple,
-                  title: 'Change Password',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _showChangePasswordDialog,
+                borderRadius: GlassTheme.borderRadius,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.lock_outline,
+                      iconColor: Colors.purple,
+                      title: 'Change Password',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: _showChangePasswordDialog,
+                    ),
+                    _Divider(),
+                    _SettingsTile(
+                      icon: Icons.privacy_tip_outlined,
+                      iconColor: Colors.teal,
+                      title: 'Privacy Policy',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showPolicySheet(
+                        'Privacy Policy',
+                        'At FoodGo, your privacy is our core priority.\n\n'
+                            '1. Data Collection: We collect only essential contact, location, and payment details necessary for order dispatch.\n\n'
+                            '2. Payment Security: Banking credentials, KHQR payload tokens, and wallet secrets are encrypted via end-to-end HTTPS/TLS protocols and never stored in plain text.\n\n'
+                            '3. Location Privacy: Driver and customer coordinates are used strictly for in-transit live order routing.\n\n'
+                            'For inquiries, reach out to security@foodgo.com.',
+                      ),
+                    ),
+                    _Divider(),
+                    _SettingsTile(
+                      icon: Icons.description_outlined,
+                      iconColor: Colors.blue,
+                      title: 'Terms of Service',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showPolicySheet(
+                        'Terms of Service',
+                        'Welcome to FoodGo Platform Terms.\n\n'
+                            '1. Acceptance: By placing an order, you agree to comply with FoodGo policies.\n\n'
+                            '2. Orders & Cancellations: Once preparation starts, cancellation requests may incur restaurant processing fees.\n\n'
+                            '3. Payments: All digital KHQR and Wallet payments are debited in real-time.\n\n'
+                            '4. Conduct: Respectful communication between drivers, customers, and restaurant staff is mandatory.',
+                      ),
+                    ),
+                  ],
                 ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.privacy_tip_outlined,
-                  iconColor: Colors.teal,
-                  title: 'Privacy Policy',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showPolicySheet(
-                    'Privacy Policy',
-                    'At FoodGo, your privacy is our core priority.\n\n'
-                        '1. Data Collection: We collect only essential contact, location, and payment details necessary for order dispatch.\n\n'
-                        '2. Payment Security: Banking credentials, KHQR payload tokens, and wallet secrets are encrypted via end-to-end HTTPS/TLS protocols and never stored in plain text.\n\n'
-                        '3. Location Privacy: Driver and customer coordinates are used strictly for in-transit live order routing.\n\n'
-                        'For inquiries, reach out to security@foodgo.com.',
-                  ),
-                ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.description_outlined,
-                  iconColor: Colors.blue,
-                  title: 'Terms of Service',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showPolicySheet(
-                    'Terms of Service',
-                    'Welcome to FoodGo Platform Terms.\n\n'
-                        '1. Acceptance: By placing an order, you agree to comply with FoodGo policies.\n\n'
-                        '2. Orders & Cancellations: Once preparation starts, cancellation requests may incur restaurant processing fees.\n\n'
-                        '3. Payments: All digital KHQR and Wallet payments are debited in real-time.\n\n'
-                        '4. Conduct: Respectful communication between drivers, customers, and restaurant staff is mandatory.',
-                  ),
-                ),
-              ],
-            ),
-          ),
+              )
+              .animate()
+              .fadeIn(delay: 140.ms, duration: 350.ms)
+              .slideY(begin: 0.08, end: 0),
           const SizedBox(height: 20),
 
           // ── About ───────────────────────────
           _SectionHeader(title: 'About'),
           GlassContainer(
-            borderRadius: GlassTheme.borderRadius,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.info_outline,
-                  iconColor: GlassTheme.primaryGreen,
-                  title: 'App Version',
-                  subtitle: '1.0.0 (Build 12) • Production Ready',
-                  trailing: const SizedBox.shrink(),
+                borderRadius: GlassTheme.borderRadius,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.info_outline,
+                      iconColor: GlassTheme.primaryGreen,
+                      title: 'App Version',
+                      subtitle: '1.0.0 (Build 12) • Production Ready',
+                      trailing: const SizedBox.shrink(),
+                    ),
+                    _Divider(),
+                    _SettingsTile(
+                      icon: Icons.star_outline,
+                      iconColor: Colors.amber,
+                      title: 'Rate Us',
+                      subtitle: 'Enjoying FoodGo? Let us know!',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: _showRateUsDialog,
+                    ),
+                    _Divider(),
+                    _SettingsTile(
+                      icon: Icons.support_agent,
+                      iconColor: Colors.cyan,
+                      title: 'Help & Support',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: _showSupportSheet,
+                    ),
+                  ],
                 ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.star_outline,
-                  iconColor: Colors.amber,
-                  title: 'Rate Us',
-                  subtitle: 'Enjoying FoodGo? Let us know!',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _showRateUsDialog,
-                ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.support_agent,
-                  iconColor: Colors.cyan,
-                  title: 'Help & Support',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _showSupportSheet,
-                ),
-              ],
-            ),
-          ),
+              )
+              .animate()
+              .fadeIn(delay: 200.ms, duration: 350.ms)
+              .slideY(begin: 0.08, end: 0),
           const SizedBox(height: 20),
 
           // ── Danger Zone ─────────────────────
           _SectionHeader(title: 'Danger Zone'),
           GlassContainer(
-            borderRadius: GlassTheme.borderRadius,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.delete_forever,
-                  iconColor: Colors.redAccent,
-                  title: 'Delete Account',
-                  subtitle: 'Permanently remove account & all order data',
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: Colors.redAccent,
-                  ),
-                  onTap: _showDeleteAccountDialog,
+                borderRadius: GlassTheme.borderRadius,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.delete_forever,
+                      iconColor: Colors.redAccent,
+                      title: 'Delete Account',
+                      subtitle: 'Permanently remove account & all order data',
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: Colors.redAccent,
+                      ),
+                      onTap: _showDeleteAccountDialog,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              )
+              .animate()
+              .fadeIn(delay: 260.ms, duration: 350.ms)
+              .slideY(begin: 0.08, end: 0),
           const SizedBox(height: 100),
         ],
       ),

@@ -16,9 +16,9 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def my_restaurant(self, request):
-        if request.user.role != 'restaurant_owner':
+        if not hasattr(request.user, 'role') or request.user.role != 'restaurant_owner':
             return Response({'detail': 'Not a restaurant owner'}, status=403)
         restaurant = Restaurant.objects.filter(owner=request.user).first()
         if not restaurant:
@@ -132,12 +132,16 @@ class OrderViewSet(viewsets.ModelViewSet):
             pass
         elif user.is_staff or user.is_superuser:
             pass
-        elif user.role == 'customer':
+        elif getattr(user, 'role', '') == 'customer':
             qs = qs.filter(customer=user)
-        elif user.role == 'restaurant_owner':
+        elif getattr(user, 'role', '') == 'restaurant_owner':
             qs = qs.filter(restaurant__owner=user)
-        elif hasattr(user, 'driver_profile') or user.role == 'driver':
-            qs = qs.filter(delivery__driver__user=user)
+        elif hasattr(user, 'driver_profile') or getattr(user, 'role', '') == 'driver':
+            qs = qs.filter(
+                models.Q(delivery__driver__user=user) |
+                models.Q(delivery__isnull=True) |
+                models.Q(delivery__driver__isnull=True)
+            )
         else:
             qs = qs.filter(customer=user)
 
@@ -193,7 +197,25 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.status = new_status_norm
             order.save(update_fields=['status'])
             delivery = getattr(order, 'delivery', None)
-            if delivery and new_status_norm in ('on_the_way', 'arrived', 'driver_arrived', 'picked_up'):
+
+            # Auto-bind driver if a driver claims or moves the order
+            user = request.user
+            driver_profile = getattr(user, 'driver_profile', None)
+            if not driver_profile and (getattr(user, 'role', '') == 'driver' or user.is_staff):
+                driver_profile = Driver.objects.filter(user=user).first()
+                if not driver_profile and user.is_authenticated:
+                    driver_profile, _ = Driver.objects.get_or_create(
+                        user=user,
+                        defaults={'vehicle_type': 'Motorcycle (Honda Wave)', 'license_plate': 'PP-2026', 'is_online': True}
+                    )
+
+            if driver_profile and not delivery:
+                delivery = Delivery.objects.create(order=order, driver=driver_profile, status=new_status_norm)
+            elif driver_profile and delivery and not delivery.driver:
+                delivery.driver = driver_profile
+                delivery.status = new_status_norm
+                delivery.save(update_fields=['driver', 'status'])
+            elif delivery and new_status_norm in ('on_the_way', 'arrived', 'driver_arrived', 'picked_up'):
                 delivery.status = new_status_norm
                 delivery.save(update_fields=['status'])
 
@@ -860,6 +882,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 
 from .serializers_user import UserSerializer
@@ -867,6 +890,7 @@ from .serializers_user import UserSerializer
 class UserMeView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_object(self):
         return self.request.user

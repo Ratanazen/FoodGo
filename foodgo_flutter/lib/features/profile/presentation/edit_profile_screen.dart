@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
@@ -611,48 +612,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               children: [
                 // Avatar Stack with Camera Trigger
                 Center(
-                  child: GestureDetector(
-                    onTap: _showImageSourceSheet,
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: GlassTheme.primaryGreen,
-                              width: 2.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: GlassTheme.primaryGreen.withValues(
-                                  alpha: 0.3,
+                      child: GestureDetector(
+                        onTap: _showImageSourceSheet,
+                        child: Stack(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: GlassTheme.primaryGreen,
+                                  width: 2.5,
                                 ),
-                                blurRadius: 16,
-                                spreadRadius: 2,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: GlassTheme.primaryGreen.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    blurRadius: 16,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: _buildAvatarWidget(username),
-                        ),
-                        Positioned(
-                          bottom: 4,
-                          right: 4,
-                          child: GlassContainer(
-                            padding: const EdgeInsets.all(8),
-                            borderRadius: BorderRadius.circular(20),
-                            customColor: GlassTheme.primaryGreen,
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.black87,
-                              size: 18,
+                              child: _buildAvatarWidget(username),
                             ),
-                          ),
+                            Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: GlassContainer(
+                                padding: const EdgeInsets.all(8),
+                                borderRadius: BorderRadius.circular(20),
+                                customColor: GlassTheme.primaryGreen,
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.black87,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms)
+                    .scale(
+                      begin: const Offset(0.9, 0.9),
+                      end: const Offset(1, 1),
                     ),
-                  ),
-                ),
                 const SizedBox(height: 10),
                 Center(
                   child: TextButton.icon(
@@ -671,7 +678,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
-                ),
+                ).animate().fadeIn(delay: 50.ms, duration: 350.ms),
                 Center(
                   child: Text(
                     '@$username',
@@ -685,62 +692,79 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                 // First Name Field
                 _buildField(
-                  controller: _firstNameController,
-                  label: 'First Name',
-                  icon: Icons.person_outline,
-                ),
+                      controller: _firstNameController,
+                      label: 'First Name',
+                      icon: Icons.person_outline,
+                    )
+                    .animate()
+                    .fadeIn(delay: 100.ms, duration: 350.ms)
+                    .slideY(begin: 0.08, end: 0),
                 const SizedBox(height: 16),
 
                 // Last Name Field
                 _buildField(
-                  controller: _lastNameController,
-                  label: 'Last Name',
-                  icon: Icons.badge_outlined,
-                ),
+                      controller: _lastNameController,
+                      label: 'Last Name',
+                      icon: Icons.badge_outlined,
+                    )
+                    .animate()
+                    .fadeIn(delay: 100.ms, duration: 350.ms)
+                    .slideY(begin: 0.08, end: 0),
                 const SizedBox(height: 16),
 
                 // Email Field
                 _buildField(
-                  controller: _emailController,
-                  label: 'Email Address',
-                  icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (val) {
-                    if (val != null && val.isNotEmpty && !val.contains('@')) {
-                      return 'Please enter a valid email address';
-                    }
-                    return null;
-                  },
-                ),
+                      controller: _emailController,
+                      label: 'Email Address',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (val) {
+                        if (val != null &&
+                            val.isNotEmpty &&
+                            !val.contains('@')) {
+                          return 'Please enter a valid email address';
+                        }
+                        return null;
+                      },
+                    )
+                    .animate()
+                    .fadeIn(delay: 150.ms, duration: 350.ms)
+                    .slideY(begin: 0.08, end: 0),
                 const SizedBox(height: 16),
 
                 // Phone Field with Country Prefix Helper
                 _buildField(
-                  controller: _phoneController,
-                  label: 'Phone Number',
-                  icon: Icons.phone_outlined,
-                  keyboardType: TextInputType.phone,
-                  helperText: 'e.g. +855 12 345 678 or 012 345 678',
-                  validator: (val) {
-                    if (val != null && val.isNotEmpty && val.length < 6) {
-                      return 'Please enter a valid phone number';
-                    }
-                    return null;
-                  },
-                ),
+                      controller: _phoneController,
+                      label: 'Phone Number',
+                      icon: Icons.phone_outlined,
+                      keyboardType: TextInputType.phone,
+                      helperText: 'e.g. +855 12 345 678 or 012 345 678',
+                      validator: (val) {
+                        if (val != null && val.isNotEmpty && val.length < 6) {
+                          return 'Please enter a valid phone number';
+                        }
+                        return null;
+                      },
+                    )
+                    .animate()
+                    .fadeIn(delay: 150.ms, duration: 350.ms)
+                    .slideY(begin: 0.08, end: 0),
                 const SizedBox(height: 32),
 
                 // Save Button
                 SizedBox(
-                  height: 52,
-                  child: GlassButton(
-                    text: _isSaving ? 'Saving Changes...' : 'Save Profile',
-                    icon: _isSaving
-                        ? Icons.hourglass_top
-                        : Icons.check_circle_outline,
-                    onPressed: _isSaving ? () {} : _handleSave,
-                  ),
-                ),
+                      height: 52,
+                      child: GlassButton(
+                        text: _isSaving ? 'Saving Changes...' : 'Save Profile',
+                        icon: _isSaving
+                            ? Icons.hourglass_top
+                            : Icons.check_circle_outline,
+                        onPressed: _isSaving ? () {} : _handleSave,
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(delay: 200.ms, duration: 350.ms)
+                    .slideY(begin: 0.08, end: 0),
               ],
             ),
           ),

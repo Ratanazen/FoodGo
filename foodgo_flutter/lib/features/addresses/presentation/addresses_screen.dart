@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
@@ -314,154 +315,166 @@ class _AddressesScreenState extends State<AddressesScreen> {
                 children: [
                   ...addresses.map((addr) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 14.0),
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: addr.isDefault
-                                    ? GlassTheme.primaryGreen.withValues(
-                                        alpha: 0.2,
-                                      )
-                                    : Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                addr.isDefault
-                                    ? Icons.home
-                                    : Icons.location_on_outlined,
-                                color: addr.isDefault
-                                    ? GlassTheme.primaryGreen
-                                    : Colors.white70,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                          padding: const EdgeInsets.only(bottom: 14.0),
+                          child: GlassCard(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: addr.isDefault
+                                        ? GlassTheme.primaryGreen.withValues(
+                                            alpha: 0.2,
+                                          )
+                                        : Colors.white.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    addr.isDefault
+                                        ? Icons.home
+                                        : Icons.location_on_outlined,
+                                    color: addr.isDefault
+                                        ? GlassTheme.primaryGreen
+                                        : Colors.white70,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Text(
-                                          addr.street,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              addr.street,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                                          if (addr.isDefault)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: GlassTheme.primaryGreen
+                                                    .withValues(alpha: 0.2),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: const Text(
+                                                'Default',
+                                                style: TextStyle(
+                                                  color:
+                                                      GlassTheme.primaryGreen,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${addr.city}, Cambodia',
+                                        style: TextStyle(
+                                          color: GlassTheme.textMuted,
+                                          fontSize: 13,
                                         ),
                                       ),
-                                      if (addr.isDefault)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: GlassTheme.primaryGreen
-                                                .withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        children: [
+                                          if (!addr.isDefault)
+                                            TextButton.icon(
+                                              style: TextButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 4,
+                                                    ),
+                                                tapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                              ),
+                                              onPressed: () => addressProvider
+                                                  .setDefaultAddress(addr.id),
+                                              icon: const Icon(
+                                                Icons.check,
+                                                size: 14,
+                                                color: GlassTheme.primaryGreen,
+                                              ),
+                                              label: const Text(
+                                                'Set as Default',
+                                                style: TextStyle(
+                                                  color:
+                                                      GlassTheme.primaryGreen,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                          child: const Text(
-                                            'Default',
-                                            style: TextStyle(
-                                              color: GlassTheme.primaryGreen,
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
+                                          const Spacer(),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete_outline,
+                                              size: 18,
+                                              color: Colors.white38,
                                             ),
+                                            tooltip: 'Delete',
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                            onPressed: () {
+                                              addressProvider.deleteAddress(
+                                                addr.id,
+                                              );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Address deleted',
+                                                  ),
+                                                  duration: Duration(
+                                                    seconds: 1,
+                                                  ),
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                ),
+                                              );
+                                            },
                                           ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${addr.city}, Cambodia',
-                                    style: TextStyle(
-                                      color: GlassTheme.textMuted,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      if (!addr.isDefault)
-                                        TextButton.icon(
-                                          style: TextButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 4,
-                                            ),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
-                                          ),
-                                          onPressed: () => addressProvider
-                                              .setDefaultAddress(addr.id),
-                                          icon: const Icon(
-                                            Icons.check,
-                                            size: 14,
-                                            color: GlassTheme.primaryGreen,
-                                          ),
-                                          label: const Text(
-                                            'Set as Default',
-                                            style: TextStyle(
-                                              color: GlassTheme.primaryGreen,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                      const Spacer(),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          size: 18,
-                                          color: Colors.white38,
-                                        ),
-                                        tooltip: 'Delete',
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () {
-                                          addressProvider.deleteAddress(
-                                            addr.id,
-                                          );
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Address deleted'),
-                                              duration: Duration(seconds: 1),
-                                              behavior:
-                                                  SnackBarBehavior.floating,
-                                            ),
-                                          );
-                                        },
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 350.ms)
+                        .slideY(begin: 0.08, end: 0);
                   }),
                   const SizedBox(height: 16),
                   GlassButton(
                     text: 'Add New Address',
                     icon: Icons.add,
                     onPressed: () => _showAddAddressSheet(context),
-                  ),
+                  ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
                 ],
               ),
       ),

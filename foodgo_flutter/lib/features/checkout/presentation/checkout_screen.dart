@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -550,7 +551,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ],
                 ),
-              ),
+              ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08, end: 0),
               const SizedBox(height: 10),
 
               // Estimated Delivery Time Banner
@@ -584,7 +585,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ],
                 ),
-              ),
+              ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
               const SizedBox(height: 12),
 
               // Delivery Instructions
@@ -1077,77 +1078,82 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               }
 
               return GlassContainer(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(32),
-                ),
-                padding: const EdgeInsets.all(24.0),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(32),
+                    ),
+                    padding: const EdgeInsets.all(24.0),
+                    child: SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'Total Amount',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                              if (cart.discountAmount > 0)
-                                Text(
-                                  'Saved \$${cart.discountAmount.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: GlassTheme.primaryGreen,
-                                    fontWeight: FontWeight.bold,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Total Amount',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white70,
+                                    ),
                                   ),
-                                ),
+                                  if (cart.discountAmount > 0)
+                                    Text(
+                                      'Saved \$${cart.discountAmount.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: GlassTheme.primaryGreen,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '\$${total.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w900,
+                                      color: GlassTheme.primaryGreen,
+                                    ),
+                                  ),
+                                  Text(
+                                    '≈ ${KhmerCurrency.formatKhr(total)} KHR',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '\$${total.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900,
-                                  color: GlassTheme.primaryGreen,
-                                ),
-                              ),
-                              Text(
-                                '≈ ${KhmerCurrency.formatKhr(total)} KHR',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: GlassButton(
+                              text: buttonText,
+                              icon: buttonIcon,
+                              onPressed: _isProcessing
+                                  ? () {}
+                                  : () => _handlePlaceOrder(cart, total),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: GlassButton(
-                          text: buttonText,
-                          icon: buttonIcon,
-                          onPressed: _isProcessing
-                              ? () {}
-                              : () => _handlePlaceOrder(cart, total),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(duration: 400.ms, delay: 200.ms)
+                  .slideY(begin: 0.15, end: 0);
             },
           ),
         ),
@@ -1266,6 +1272,6 @@ class _PaymentOptionTile extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 350.ms).slideX(begin: 0.05, end: 0);
   }
 }

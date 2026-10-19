@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/glass_theme.dart';
+
+import 'package:flutter_animate/flutter_animate.dart';
+
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
 
@@ -87,16 +90,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 size: 100,
                                 color: GlassTheme.primaryGreen,
                               ),
+                            ).animate().scale(
+                              duration: 500.ms,
+                              curve: Curves.easeOutBack,
                             ),
                             const SizedBox(height: 48),
                             Text(
-                              _pages[index]['title']!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                                  _pages[index]['title']!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                                .animate()
+                                .fadeIn(duration: 400.ms)
+                                .slideY(begin: 0.1, end: 0),
                             const SizedBox(height: 16),
                             Text(
                               _pages[index]['description']!,
@@ -105,7 +114,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 fontSize: 16,
                                 color: GlassTheme.textMuted,
                               ),
-                            ),
+                            ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
                           ],
                         ),
                       );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
@@ -446,56 +447,61 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                       children: [
                         // Restaurant Header Card
                         GlassContainer(
-                          padding: const EdgeInsets.all(20),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 28,
-                                backgroundColor: GlassTheme.primaryGreen
-                                    .withValues(alpha: 0.2),
-                                backgroundImage: _restaurant!['banner'] != null
-                                    ? CachedNetworkImageProvider(
-                                        _restaurant!['banner'],
-                                      )
-                                    : null,
-                                child: _restaurant!['banner'] == null
-                                    ? const Icon(
-                                        Icons.store,
-                                        size: 28,
-                                        color: GlassTheme.primaryGreen,
-                                      )
-                                    : null,
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _restaurant!['name'] ?? 'Restaurant',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                              padding: const EdgeInsets.all(20),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 28,
+                                    backgroundColor: GlassTheme.primaryGreen
+                                        .withValues(alpha: 0.2),
+                                    backgroundImage:
+                                        _restaurant!['banner'] != null
+                                        ? CachedNetworkImageProvider(
+                                            _restaurant!['banner'],
+                                          )
+                                        : null,
+                                    child: _restaurant!['banner'] == null
+                                        ? const Icon(
+                                            Icons.store,
+                                            size: 28,
+                                            color: GlassTheme.primaryGreen,
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _restaurant!['name'] ?? 'Restaurant',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '${_foodItems.length} items on menu · ${_orders.length} orders',
+                                          style: TextStyle(
+                                            color: GlassTheme.textMuted,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${_foodItems.length} items on menu · ${_orders.length} orders',
-                                      style: TextStyle(
-                                        color: GlassTheme.textMuted,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
+                            )
+                            .animate()
+                            .fadeIn(duration: 400.ms)
+                            .slideY(begin: 0.1, end: 0),
                         const SizedBox(height: 16),
 
                         // Tab Selector (Live Orders vs Menu Items)
@@ -540,7 +546,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                               ),
                             ],
                           ),
-                        ),
+                        ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
                         const SizedBox(height: 16),
 
                         // Tab Views
@@ -708,7 +714,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0);
   }
 
   void _showRestaurantOrderBill(Map<String, dynamic> order) {
@@ -1077,6 +1083,6 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0);
   }
 }

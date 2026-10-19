@@ -29,30 +29,33 @@ This plan documents the completed v2.0 - v3.7 milestones and the remaining targe
 
 ---
 
-## Future Roadmap: v4.2+ Advanced Features
+## Remaining Milestones to Final Release (v4.2 - v4.5)
 
-### Phase 4.2: Production Push Notifications & Device Token Management
-- [ ] Implement `DeviceToken` model linked to `User`.
-- [ ] Integrate Firebase Cloud Messaging (FCM) / APNs dispatch service.
-- [ ] Real-time push alerts on:
-  - Restaurant accepts order
-  - Driver assigned and en route
-  - Order delivered
+### Phase 4.2: In-App Notifications & Automated Milestone Dispatch
+- [ ] Connect `Order.save` status transitions to automated `Notification.objects.create`.
+- [ ] In-App Notification Center with live unread badge on `HomeScreen`.
+- [ ] Filter notifications by category (`All`, `Orders`, `Promos`).
 
 ### Phase 4.3: Real-Time Driver Route WebSocket Simulator
-- [ ] WebSocket consumer `DriverTrackingConsumer` in `backend/core/consumers.py`.
-- [ ] Channel layer routing live driver GPS coordinates to subscribed customer maps.
-- [ ] Turn-by-turn route polyline interpolation in Flutter map canvas.
+- [ ] WebSocket consumer `OrderTrackingConsumer` coordinate broadcasting.
+- [ ] Update `scripts/simulate_driver.py` with real Phnom Penh delivery route.
+- [ ] Real-time polyline translation with rotating courier marker on `LiveTrackingScreen`.
 
-### Phase 4.4: Dynamic Multi-Currency Exchange Rate Engine
-- [ ] National Bank of Cambodia (NBC) open API synchronization service.
-- [ ] Hourly rate caching with automatic dual-currency settlement reporting.
+### Phase 4.4: Dynamic Multi-Currency NBC Rate Engine & App Switcher
+- [ ] National Bank of Cambodia (NBC) customary rate caching engine (`4,100 KHR / USD`).
+- [ ] App-wide currency toggle in settings updating all prices across menu, cart, checkout, and admin.
+
+### Phase 4.5: Final Production Hardening & Release Sign-Off
+- [ ] Database backup and disaster recovery automation (`scripts/backup_db.sh`).
+- [ ] Production readiness checklist and security headers audit.
+- [ ] Final Zero-Emoji and zero-warning verification across 100% of files.
+- [ ] Release tag: `v4.5-production`.
 
 ---
 
 ## Architecture & Verification Standards
 - **Linter Rule:** Strict requirement of zero warnings or errors in `flutter analyze`.
-- **Automated Tests:** 125 tests passing (64 Django + 61 Flutter) at 100% pass rate.
+- **Automated Tests:** 132 tests passing (67 Django + 65 Flutter) at 100% pass rate.
 - **Backend Standard:** Strict zero-warning requirement in `python manage.py check`.
 - **Zero-Emoji Policy:** Vector Material and SVG icons only; zero emojis across all code and documentation.
 - **Secret Safety:** All credentials strictly isolated to `.env.example` and omitted from version control.

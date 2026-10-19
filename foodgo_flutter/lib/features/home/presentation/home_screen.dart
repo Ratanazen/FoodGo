@@ -790,6 +790,26 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    if (_selectedSort == r'$') {
+      final priceFiltered = list
+          .where((d) => (d['price'] as double) <= 4.00)
+          .toList();
+      if (priceFiltered.isNotEmpty) list = priceFiltered;
+    } else if (_selectedSort == r'$$') {
+      final priceFiltered = list
+          .where(
+            (d) =>
+                (d['price'] as double) > 4.00 && (d['price'] as double) <= 5.50,
+          )
+          .toList();
+      if (priceFiltered.isNotEmpty) list = priceFiltered;
+    } else if (_selectedSort == r'$$$') {
+      final priceFiltered = list
+          .where((d) => (d['price'] as double) > 5.50)
+          .toList();
+      if (priceFiltered.isNotEmpty) list = priceFiltered;
+    }
+
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -926,12 +946,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
-                                    Text('${item['name']} added to cart!'),
+                                    Expanded(
+                                      child: Text(
+                                        '${item['name']} added to cart!',
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 backgroundColor: const Color(0xFF2E7D32),
                                 behavior: SnackBarBehavior.floating,
                                 duration: const Duration(seconds: 2),
+                                action: SnackBarAction(
+                                  label: 'View Cart',
+                                  textColor: Colors.white,
+                                  onPressed: () => context.push('/cart'),
+                                ),
                               ),
                             );
                           },
@@ -1226,6 +1255,9 @@ class _HomeScreenState extends State<HomeScreen> {
       {'name': 'Top Rated', 'icon': Icons.star_rounded},
       {'name': 'Fastest', 'icon': Icons.bolt_rounded},
       {'name': 'Free Delivery', 'icon': Icons.delivery_dining_rounded},
+      {'name': r'$', 'icon': Icons.attach_money_rounded},
+      {'name': r'$$', 'icon': Icons.payments_outlined},
+      {'name': r'$$$', 'icon': Icons.workspace_premium_rounded},
     ];
 
     return SingleChildScrollView(
@@ -1308,7 +1340,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }).toList();
         }
 
-        // Apply sorting
+        // Apply sorting & price tier filtering
         if (_selectedSort == 'Top Rated') {
           restaurants.sort(
             (a, b) => (double.tryParse(b['rating']?.toString() ?? '0') ?? 0.0)
@@ -1336,6 +1368,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     0.0,
               )
               .toList();
+        } else if (_selectedSort == r'$') {
+          restaurants = restaurants
+              .where(
+                (r) =>
+                    (double.tryParse(r['delivery_fee']?.toString() ?? '1') ??
+                        1.0) <=
+                    1.50,
+              )
+              .toList();
+        } else if (_selectedSort == r'$$') {
+          restaurants = restaurants.where((r) {
+            final fee =
+                double.tryParse(r['delivery_fee']?.toString() ?? '1') ?? 1.0;
+            final rating =
+                double.tryParse(r['rating']?.toString() ?? '0') ?? 0.0;
+            return fee <= 2.50 && rating >= 4.0;
+          }).toList();
+        } else if (_selectedSort == r'$$$') {
+          restaurants = restaurants.where((r) {
+            final rating =
+                double.tryParse(r['rating']?.toString() ?? '0') ?? 0.0;
+            return rating >= 4.5;
+          }).toList();
         }
 
         if (restaurants.isEmpty) {

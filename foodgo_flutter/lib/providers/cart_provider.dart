@@ -91,6 +91,13 @@ class CartProvider with ChangeNotifier {
   int? get lastOrderId => _lastOrderId;
   String? get appliedPromoCode => _appliedPromoCode;
   double get discountAmount => _discountAmount;
+  String _specialInstructions = '';
+  String get specialInstructions => _specialInstructions;
+
+  void setSpecialInstructions(String val) {
+    _specialInstructions = val;
+    notifyListeners();
+  }
 
   void setLastOrderId(int? id) {
     _lastOrderId = id;
@@ -268,6 +275,7 @@ class CartProvider with ChangeNotifier {
     _items.clear();
     _appliedPromoCode = null;
     _discountAmount = 0.0;
+    _specialInstructions = '';
     _saveToPrefs();
     notifyListeners();
   }

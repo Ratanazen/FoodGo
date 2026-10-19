@@ -153,7 +153,10 @@ class _NavItemState extends State<_NavItem>
   @override
   void didUpdateWidget(covariant _NavItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isSelected && !oldWidget.isSelected) {
+    if ((widget.isSelected && !oldWidget.isSelected) ||
+        (widget.badgeCount != null &&
+            oldWidget.badgeCount != null &&
+            widget.badgeCount! > oldWidget.badgeCount!)) {
       _bounceController.forward(from: 0.0);
     }
   }

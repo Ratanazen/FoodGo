@@ -6,7 +6,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-114%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-125%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -18,8 +18,8 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 * **Minimalist Location Header:** Clean search circle button, centered `Location` / `Naperville, Illinois`, and notification bell with unread badge `1`.
 * **Spaghetti Hero Promo Card:** High-contrast dark container (`#1E1E20`) highlighting `"Free Delivery For Spaghetti"`, `"Up to 3 times per day"`, with neon-lime `"Order Now"` pill button (`#CCFF00`) and round spaghetti dish presentation.
 * **4 Quick Categories:** Rounded square category filter cards (`Burger`, `Chicken`, `Fries`, `Drink`) with active selection state and vector icons.
-* **Recommended For You 2-Column Grid:** Dynamic dish cards featuring `Golden Spicy Chicken` ($5.00), `Cheese Burger Nagi` ($4.50), `Double Beef Cheese Burger` ($6.50), and `Crispy French Fries` ($3.00) with interactive favorite hearts and circular neon-lime `+` add-to-cart buttons.
-* **Food Item Details Screen:** Clean floating circular top buttons, hero dish image with realistic soft drop shadow, **4 macro-nutrients nutrition card** (`198 kcal`, `25.2 proteins`, `13.8 fats`, `23.7 carbo`), expandable `"Show more"` description, and sticky bottom bar with bag button & large neon-lime `"Buy Now"` pill button.
+* **Recommended For You 2-Column Grid:** Dynamic dish cards featuring `Golden Spicy Chicken` ($5.00), `Cheese Burger Nagi` ($4.50), `Double Beef Cheese Burger` ($6.50), and `Crispy French Fries` ($3.00) with interactive favorite hearts, price tier filtering (`$`, `$$`, `$$$`), and circular neon-lime `+` add-to-cart buttons with live cart pulse feedback.
+* **Food Item Details Screen:** Clean floating circular top buttons, hero dish image with realistic soft drop shadow, **4 macro-nutrients nutrition card** (`198 kcal`, `25.2 proteins`, `13.8 fats`, `23.7 carbo`), expandable `"Show more"` description, **special cooking instructions input** with cart state synchronization, and sticky bottom bar with animated bag button & large neon-lime `"Buy Now"` pill button.
 * **Live Order Tracking Sheet (TikTok Reference):** Interactive route polyline on Google Maps, live pulsing status dot, 5-stage milestone stepper (`Confirmed` -> `Preparing` -> `Picked up` -> `On the way` -> `Delivered`), driver info card (`Ahmad Faizal`), route breakdown card, and itemized order receipt.
 
 ### 2. Modern Illustrated Authentication Flow
@@ -32,15 +32,23 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 * **Forget Password Screen:** Email input with royal blue `Send OTP` button and simulated OTP dispatch feedback.
 
 ### 3. Application-Wide Screen Modernization
-* **Cart Screen:** Minimalist circular header, neon-lime quantity steppers (`-` and `+`) with tactile haptic feedback, free delivery milestone progress bar, dual currency total ($ USD & ៛ KHR), and high-impact neon-lime `"Proceed to Checkout"` button.
-* **Profile Screen:** User profile header with neon-lime accent ring, 3-column quick action shortcuts (Wallet, Orders, My KHQR Pay Me), and modern rounded `_ProfileOption` tiles with circular icon containers and subtle chevrons.
-* **Orders Screen:** Animated filter pill chips (`All`, `Active`, `Delivered`, `Cancelled`) with active lime selection, order cards with status badges, and neon-lime `"Order Again"` CTA.
+* **Cart Screen:** Minimalist circular header, neon-lime quantity steppers (`-` and `+`) with tactile haptic feedback, free delivery milestone progress bar, dual currency total ($ USD & KHR), and high-impact neon-lime `"Proceed to Checkout"` button.
+* **Profile Screen:** User profile header with neon-lime accent ring, 3-column quick action shortcuts (Wallet, Orders, My KHQR Pay Me), Admin Console access tile for authorized staff, and modern rounded `_ProfileOption` tiles with circular icon containers and subtle chevrons.
+* **Orders Screen:** Animated filter pill chips (`All`, `Active`, `Delivered`, `Cancelled`) with active lime selection, order cards with status badges, one-tap `"Order Again"` CTA, and integrated FoodGo Support Concierge modal with 24/7 hotline and issue reporting.
 * **Explore Screen:** Modern category chips with lime selection, rounded pill search bar (`BorderRadius.circular(28)`), and circular map floating action.
 * **Favorites Screen:** Minimalist AppBar with circular back button, lime indicator TabBar, lime price accents, and circular lime `+` add-to-cart buttons.
 * **Search Screen:** Rounded pill search input with lime search icon and clear action, trending search chips, and modal dish detail sheet with neon-lime add-to-cart button.
+* **Driver Dashboard Screen:** Real-time earnings summary, available and in-progress order cards with prominent customer special cooking instructions badges, and delivery QR verification scanner.
 
-### 4. Fintech & Security Features
-* **Cambodian KHQR Fintech Gateways:** Seamless dual-currency support (USD `$`, KHR `៛`), Bakong NBC Open API, ABA Bank Dynamic KHQR with live 5-minute countdown, ACLEDA Bank KHQR, and Cash on Delivery (COD).
+### 4. Administrator Console & Operations Center
+* **Executive Analytics Dashboard:** Real-time KPI telemetry (order volume, USD & KHR gross revenue, active courier tracking, registered customer base, and live database/ASGI health check).
+* **Dispatch & Order Management:** Live search, status pipeline filtering, manual driver assignment modal, and administrative order cancellation.
+* **User & Restaurant Directory:** Comprehensive role filtering (`customer`, `driver`, `restaurant_owner`, `admin`) with real-time active/inactive account toggles.
+* **Immutable Audit Trail:** Append-only security log recording every administrative action (`ASSIGN_DRIVER`, `CANCEL_ORDER`, `REFUND_PAYMENT`, `TOGGLE_USER_ACTIVE`, `TOGGLE_RESTAURANT`), tracking actor, remote IP, and JSON delta changes.
+* **Full Documentation:** Complete technical guides in [`docs/upgrade-plan.md`](docs/upgrade-plan.md) and [`docs/admin-dashboard.md`](docs/admin-dashboard.md).
+
+### 5. Fintech & Security Features
+* **Cambodian KHQR Fintech Gateways:** Seamless dual-currency support (USD `$`, KHR `KHR`), Bakong NBC Open API, ABA Bank Dynamic KHQR with live 5-minute countdown, ACLEDA Bank KHQR, and Cash on Delivery (COD).
 * **In-App Digital Wallet:** Instant top-ups via KHQR with atomic ACID ledger deduction.
 * **Cryptographic Doorstep QR Delivery Confirmation:** Cryptographically secure 15-minute expiring token and 6-digit backup PIN preventing fraudulent delivery handovers.
 * **Real-Time WebSockets:** Powered by Django Channels & Redis for live driver GPS simulation and status updates.
@@ -129,7 +137,7 @@ flutter run
 
 ---
 
-## 👥 Pre-Configured Demo Accounts
+##  Pre-Configured Demo Accounts
 
 The database comes pre-seeded with accounts for all roles:
 
@@ -144,7 +152,7 @@ The database comes pre-seeded with accounts for all roles:
 
 ---
 
-## 🚴 Live Driver GPS Simulation
+##  Live Driver GPS Simulation
 
 To test live delivery tracking over WebSockets in real time:
 
@@ -157,7 +165,7 @@ This script pushes live moving GPS coordinates for Order #1 directly to the WebS
 
 ---
 
-## 💳 Cambodian Bank KHQR & Payment Gateways
+##  Cambodian Bank KHQR & Payment Gateways
 
 FoodGo provides realistic, modular Cambodian fintech integrations:
 * **Bakong KHQR (NBC Open API):** Real EMVCo-compliant KHQR payload strings with merchant account tagging, dual currency, and CRC16-CCITT checksums.
@@ -176,7 +184,7 @@ curl -X POST http://127.0.0.1:8000/api/payments/aba/callback/ \
 
 ---
 
-## 📦 Secure QR Code Delivery Confirmation
+##  Secure QR Code Delivery Confirmation
 
 FoodGo enforces cryptographic doorstep handover confirmation between courier and customer:
 * **Driver Arrival:** Courier taps "Arrived at Customer" to generate a short-lived, cryptographically secure delivery token and 6-digit backup PIN (`POST /api/orders/<id>/delivery_qr/`).
@@ -188,7 +196,7 @@ FoodGo enforces cryptographic doorstep handover confirmation between courier and
 
 ---
 
-## 🧪 Automated Testing & CI/CD Pipelines
+##  Automated Testing & CI/CD Pipelines
 
 FoodGo maintains an enterprise-grade test verification suite and hardened continuous integration pipeline ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 

@@ -43,6 +43,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     _fetchDrivers();
     _fetchWalletBalance();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final cart = context.read<CartProvider>();
+      if (cart.specialInstructions.isNotEmpty &&
+          _deliveryInstructionsController.text.isEmpty) {
+        _deliveryInstructionsController.text = cart.specialInstructions;
+      }
+    });
   }
 
   @override

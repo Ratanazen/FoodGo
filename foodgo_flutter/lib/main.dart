@@ -6,6 +6,7 @@ import 'app/theme/app_theme.dart';
 import 'core/config/app_config.dart';
 import 'core/theme/glass_theme.dart';
 import 'providers/address_provider.dart';
+import 'providers/admin_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/favorites_provider.dart';
@@ -41,6 +42,7 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => AddressProvider()..fetchAddresses(),
         ),
+        ChangeNotifierProvider(create: (_) => AdminProvider()),
       ],
       child: const FoodGoApp(),
     ),

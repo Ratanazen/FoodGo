@@ -10,6 +10,7 @@ class UserProvider with ChangeNotifier {
 
   Map<String, dynamic>? get user => _user;
   bool get isLoading => _isLoading;
+  bool get isAdmin => _user?['role'] == 'admin' || _user?['is_staff'] == true;
 
   Future<void> fetchUser() async {
     _isLoading = true;

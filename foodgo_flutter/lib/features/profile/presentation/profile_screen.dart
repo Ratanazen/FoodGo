@@ -399,6 +399,39 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                    if (user?['role'] == 'admin' ||
+                        user?['is_staff'] == true) ...[
+                      const SizedBox(height: 16),
+                      GlassContainer(
+                        padding: const EdgeInsets.all(4),
+                        borderRadius: GlassTheme.borderRadiusSmall,
+                        child: ListTile(
+                          leading: const Icon(
+                            Icons.admin_panel_settings_rounded,
+                            color: GlassTheme.limeAccent,
+                          ),
+                          title: const Text(
+                            'Admin Console',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'Platform analytics, orders, users & audit logs',
+                            style: TextStyle(
+                              color: GlassTheme.textMuted,
+                              fontSize: 11,
+                            ),
+                          ),
+                          trailing: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.white54,
+                          ),
+                          onTap: () => context.push('/admin-dashboard'),
+                        ),
+                      ),
+                    ],
                   ],
                 );
               },

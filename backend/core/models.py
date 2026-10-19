@@ -374,3 +374,28 @@ class WalletTransaction(models.Model):
 
     def __str__(self):
         return f"{self.transaction_type.upper()} ${self.amount} ({self.wallet.user.username})"
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = (
+        ('ASSIGN_DRIVER', 'Assign Driver'),
+        ('CANCEL_ORDER', 'Cancel Order'),
+        ('REFUND_PAYMENT', 'Refund Payment'),
+        ('TOGGLE_USER_ACTIVE', 'Toggle User Active Status'),
+        ('TOGGLE_RESTAURANT', 'Toggle Restaurant Status'),
+        ('UPDATE_MENU_ITEM', 'Update Menu Item'),
+        ('SYSTEM_CONFIG', 'System Configuration Change'),
+    )
+    admin_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    target_type = models.CharField(max_length=50)
+    target_id = models.CharField(max_length=50)
+    details = models.JSONField(default=dict, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        actor = self.admin_user.username if self.admin_user else 'System'
+        return f"[{self.timestamp:%Y-%m-%d %H:%M}] {actor} -> {self.action} on {self.target_type} #{self.target_id}"

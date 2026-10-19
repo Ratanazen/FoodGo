@@ -116,6 +116,7 @@ class OrderSerializer(serializers.ModelSerializer):
     assigned_driver = serializers.SerializerMethodField()
     payment_info = serializers.SerializerMethodField()
     delivery_token_info = serializers.SerializerMethodField()
+    customer_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -124,14 +125,14 @@ class OrderSerializer(serializers.ModelSerializer):
             'subtotal', 'delivery_fee_charged', 'discount_amount', 'coupon_code', 'total_amount',
             'special_instructions', 'delivery_address_snapshot', 'estimated_delivery_time',
             'confirmed_at', 'ready_at', 'picked_up_at', 'delivered_at', 'cancelled_at', 'cancellation_reason',
-            'created_at', 'updated_at', 'items', 'assigned_driver', 'payment_info', 'delivery_token_info',
+            'created_at', 'updated_at', 'items', 'assigned_driver', 'payment_info', 'delivery_token_info', 'customer_info',
         ]
         read_only_fields = [
             'id', 'order_reference', 'restaurant_name', 'restaurant_image', 'status', 'payment_status',
             'subtotal', 'delivery_fee_charged', 'discount_amount', 'total_amount',
             'delivery_address_snapshot', 'estimated_delivery_time',
             'confirmed_at', 'ready_at', 'picked_up_at', 'delivered_at', 'cancelled_at', 'cancellation_reason',
-            'created_at', 'updated_at', 'items', 'assigned_driver', 'payment_info', 'delivery_token_info'
+            'created_at', 'updated_at', 'items', 'assigned_driver', 'payment_info', 'delivery_token_info', 'customer_info',
         ]
 
     def get_restaurant_image(self, obj):
@@ -199,6 +200,16 @@ class OrderSerializer(serializers.ModelSerializer):
             info['verification_pin'] = token.verification_pin
             info['qr_payload'] = f"FOODGO:DELIVERY:CONFIRM:v1?order_id={obj.id}&token={token.token}"
         return info
+
+    def get_customer_info(self, obj):
+        if obj.customer:
+            return {
+                'id': obj.customer.id,
+                'name': obj.customer.get_full_name() or obj.customer.username,
+                'phone': obj.customer.phone or '',
+                'email': obj.customer.email or '',
+            }
+        return None
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -318,4 +329,36 @@ class CouponSerializer(serializers.ModelSerializer):
         model = Coupon
         fields = ['id', 'code', 'discount_percent', 'max_discount_amount', 'min_order_amount', 'is_active']
         read_only_fields = ['id']
+
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    admin_username = serializers.CharField(source='admin_user.username', read_only=True, default='System')
+
+    class Meta:
+        model = AuditLog
+        fields = ['id', 'admin_user', 'admin_username', 'action', 'target_type', 'target_id', 'details', 'ip_address', 'timestamp']
+        read_only_fields = ['id', 'admin_user', 'admin_username', 'action', 'target_type', 'target_id', 'details', 'ip_address', 'timestamp']
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    order_count = serializers.SerializerMethodField()
+    wallet_balance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'role', 'phone', 'first_name', 'last_name',
+            'is_active', 'is_staff', 'is_superuser', 'date_joined', 'last_login',
+            'avatar', 'avatar_url', 'order_count', 'wallet_balance'
+        ]
+        read_only_fields = ['id', 'date_joined', 'last_login', 'order_count', 'wallet_balance']
+
+    def get_order_count(self, obj):
+        return getattr(obj, 'orders', None).count() if hasattr(obj, 'orders') else 0
+
+    def get_wallet_balance(self, obj):
+        if hasattr(obj, 'wallet') and obj.wallet:
+            return str(obj.wallet.balance)
+        return '0.00'
+
 

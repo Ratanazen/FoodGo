@@ -3,6 +3,10 @@ from .payment_views import (
     CreatePaymentView, PaymentDetailView, PaymentStatusView,
     CancelPaymentView, RefundPaymentView, ABACallbackView, ACLEDACallbackView, BakongCallbackView
 )
+from .admin_views import (
+    AdminAnalyticsView, AdminOrderViewSet, AdminUserViewSet,
+    AdminRestaurantViewSet, AdminAuditLogViewSet
+)
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import *
@@ -24,6 +28,10 @@ router.register(r'cart-items', CartItemViewSet)
 router.register(r'live-items', LiveItemViewSet)
 router.register(r'drivers', DriverViewSet, basename='driver')
 router.register(r'addresses', AddressViewSet, basename='address')
+router.register(r'admin/orders', AdminOrderViewSet, basename='admin-orders')
+router.register(r'admin/users', AdminUserViewSet, basename='admin-users')
+router.register(r'admin/restaurants', AdminRestaurantViewSet, basename='admin-restaurants')
+router.register(r'admin/audit-logs', AdminAuditLogViewSet, basename='admin-audit-logs')
 
 urlpatterns = [
     path('auth/phone-login/request/', RequestOTPView.as_view(), name='otp_request'),
@@ -35,6 +43,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('me/', UserMeView.as_view(), name='user-me'),
+    path('admin/analytics/', AdminAnalyticsView.as_view(), name='admin_analytics'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
     # Real KHQR & COD Payment Endpoints
     path('payments/', CreatePaymentView.as_view(), name='payment_create_root'),

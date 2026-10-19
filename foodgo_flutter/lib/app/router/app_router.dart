@@ -33,6 +33,7 @@ import '../../features/settings/presentation/settings_screen.dart';
 import '../../screens/map_screen.dart';
 import '../../features/dashboard/presentation/restaurant_dashboard_screen.dart';
 import '../../features/dashboard/presentation/driver_dashboard_screen.dart';
+import '../../features/admin/presentation/admin_dashboard_screen.dart';
 
 // Widgets
 import '../../widgets/glass/glass_bottom_navigation.dart';
@@ -167,6 +168,14 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => _buildPage(
         state: state,
         child: const DriverDashboardScreen(),
+        type: PageTransitionType.slideRight,
+      ),
+    ),
+    GoRoute(
+      path: '/admin-dashboard',
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const AdminDashboardScreen(),
         type: PageTransitionType.slideRight,
       ),
     ),

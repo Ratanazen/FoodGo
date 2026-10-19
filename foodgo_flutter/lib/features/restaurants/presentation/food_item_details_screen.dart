@@ -19,6 +19,65 @@ class FoodItemDetailsScreen extends StatefulWidget {
 
 class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
   bool _isDescriptionExpanded = false;
+  final TextEditingController _instructionsCtrl = TextEditingController();
+  bool _addedToBagAnimation = false;
+
+  @override
+  void dispose() {
+    _instructionsCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onAddToCart(
+    BuildContext context,
+    int itemId,
+    String name,
+    double price,
+    String imageUrl,
+    Map<String, dynamic> data, {
+    bool buyNow = false,
+  }) {
+    final cart = context.read<CartProvider>();
+    final notes = _instructionsCtrl.text.trim();
+    if (notes.isNotEmpty) {
+      cart.setSpecialInstructions(notes);
+    }
+    cart.addItem(
+      itemId,
+      name,
+      price,
+      imageUrl,
+      restaurantId: data['restaurantId'],
+      restaurantName: data['restaurantName'],
+    );
+    if (buyNow) {
+      context.push('/checkout');
+    } else {
+      setState(() => _addedToBagAnimation = true);
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (mounted) setState(() => _addedToBagAnimation = false);
+      });
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text('$name added to cart!')),
+            ],
+          ),
+          backgroundColor: GlassTheme.primaryGreenDark,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -281,6 +340,59 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
+
+                      // Special Instructions Note Input
+                      Text(
+                        'Special Instructions',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1B1B1B),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : const Color(0xFFF6F7F9),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white12
+                                : const Color(0xFFE5E7EB),
+                          ),
+                        ),
+                        child: TextField(
+                          controller: _instructionsCtrl,
+                          maxLines: 2,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          decoration: InputDecoration(
+                            hintText:
+                                'e.g. Extra sauce, no onions, allergy notes...',
+                            hintStyle: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white38 : Colors.black38,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.edit_note_rounded,
+                              size: 22,
+                              color: GlassTheme.primaryGreen,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
 
                       // Bottom clearance for sticky action bar
                       const SizedBox(height: 120),
@@ -398,45 +510,43 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       ),
                       child: Row(
                         children: [
-                          // Shopping Bag Icon Button
+                          // Shopping Bag Icon Button with Animated Feedback
                           InkWell(
-                            onTap: () {
-                              final cart = context.read<CartProvider>();
-                              cart.addItem(
-                                itemId,
-                                name,
-                                price,
-                                imageUrl,
-                                restaurantId: data['restaurantId'],
-                                restaurantName: data['restaurantName'],
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('$name added to cart!'),
-                                  backgroundColor: Colors.black87,
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            },
+                            onTap: () => _onAddToCart(
+                              context,
+                              itemId,
+                              name,
+                              price,
+                              imageUrl,
+                              data,
+                            ),
                             borderRadius: BorderRadius.circular(16),
-                            child: Container(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
                               width: 54,
                               height: 54,
                               decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.white10
-                                    : const Color(0xFFF5F6F7),
+                                color: _addedToBagAnimation
+                                    ? GlassTheme.primaryGreen
+                                    : (isDark
+                                          ? Colors.white10
+                                          : const Color(0xFFF5F6F7)),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: isDark
-                                      ? Colors.white12
-                                      : const Color(0xFFE2E4E6),
+                                  color: _addedToBagAnimation
+                                      ? GlassTheme.primaryGreen
+                                      : (isDark
+                                            ? Colors.white12
+                                            : const Color(0xFFE2E4E6)),
                                 ),
                               ),
                               child: Icon(
-                                Icons.shopping_bag_outlined,
-                                color: isDark ? Colors.white : Colors.black87,
+                                _addedToBagAnimation
+                                    ? Icons.check_rounded
+                                    : Icons.shopping_bag_outlined,
+                                color: _addedToBagAnimation
+                                    ? Colors.white
+                                    : (isDark ? Colors.white : Colors.black87),
                                 size: 24,
                               ),
                             ),
@@ -446,18 +556,15 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                           // Large Lime-Green "Buy Now" Pill Button
                           Expanded(
                             child: InkWell(
-                              onTap: () {
-                                final cart = context.read<CartProvider>();
-                                cart.addItem(
-                                  itemId,
-                                  name,
-                                  price,
-                                  imageUrl,
-                                  restaurantId: data['restaurantId'],
-                                  restaurantName: data['restaurantName'],
-                                );
-                                context.push('/checkout');
-                              },
+                              onTap: () => _onAddToCart(
+                                context,
+                                itemId,
+                                name,
+                                price,
+                                imageUrl,
+                                data,
+                                buyNow: true,
+                              ),
                               borderRadius: BorderRadius.circular(28),
                               child: Container(
                                 height: 54,

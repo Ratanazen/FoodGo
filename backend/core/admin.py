@@ -57,7 +57,7 @@ from .models import (
     User, Address, RestaurantCategory, Restaurant, FoodCategory,
     FoodItem, Order, OrderItem, Cart, CartItem, Payment, Driver,
     Delivery, DeliveryConfirmationToken, Review, Favorite, Coupon, Notification, LiveItem,
-    Wallet, WalletTransaction,
+    Wallet, WalletTransaction, AuditLog,
 )
 
 # ─────────────────────────────────────────────
@@ -818,5 +818,13 @@ class DeliveryConfirmationTokenAdmin(admin.ModelAdmin):
     @admin.display(description='Driver')
     def driver_name(self, obj):
         return obj.driver.user.get_full_name() or obj.driver.user.username
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'timestamp', 'admin_user', 'action', 'target_type', 'target_id')
+    list_filter = ('action', 'target_type', 'timestamp')
+    search_fields = ('target_id', 'admin_user__username', 'admin_user__email', 'details')
+    readonly_fields = ('admin_user', 'action', 'target_type', 'target_id', 'details', 'ip_address', 'timestamp')
 
 

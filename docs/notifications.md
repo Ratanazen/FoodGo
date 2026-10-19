@@ -1,4 +1,4 @@
-# 🔔 Notifications Architecture
+# Notifications Architecture
 
 ## System Events
 1. Order Confirmed

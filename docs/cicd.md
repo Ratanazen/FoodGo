@@ -1,4 +1,4 @@
-# 🚀 FoodGo CI/CD Pipeline Architecture & Operations
+# FoodGo CI/CD Pipeline Architecture & Operations
 
 **Document Version**: 1.0.0  
 **CI Engine**: GitHub Actions  

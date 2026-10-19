@@ -1,4 +1,4 @@
-# 💳 Payment Subsystem Architecture
+# Payment Subsystem Architecture
 
 FoodGo provides a multi-provider payment engine designed to prevent fraudulent client-side confirmations.
 

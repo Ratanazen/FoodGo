@@ -1,4 +1,4 @@
-# 📱 FoodGo Flutter Mobile & Web Client
+# FoodGo Flutter Mobile & Web Client
 
 The official client application for **FoodGo**, built with **Flutter 3.x**. Features a high-contrast, modern UI/UX design system with neon-lime (`#CCFF00`) accents, interactive custom vector character illustrations, real-time WebSocket order tracking, dual-currency Cambodian banking gateways (Bakong KHQR, ABA PayWay, ACLEDA), and cryptographic doorstep delivery confirmation.
 
@@ -8,12 +8,12 @@ The official client application for **FoodGo**, built with **Flutter 3.x**. Feat
 
 ---
 
-## 🎨 UI/UX Design System & Key Features
+## UI/UX Design System & Key Features
 
 ### 1. Modern TikTok Reference Experience
-* **Minimalist Top Bar:** Search circular button, centered delivery location selector (`📍 Naperville, Illinois ⌄`), and notification bell with active badge.
+* **Minimalist Top Bar:** Search circular button, centered delivery location selector (` Naperville, Illinois `), and notification bell with active badge.
 * **Spaghetti Hero Promo Card:** High-contrast dark container (`#1E1E20`) with `"Free Delivery For Spaghetti"`, round dish presentation, and neon-lime `"Order Now"` pill button (`#CCFF00`).
-* **Category Filter Pills:** Rounded square category filter cards (`Burger` 🍔, `Chicken` 🍗, `Fries` 🍟, `Drink` 🥤) with smooth toggle state.
+* **Category Filter Pills:** Rounded square category filter cards (`Burger` , `Chicken` , `Fries` , `Drink` ) with smooth toggle state.
 * **Recommended For You Grid:** 2-column dish card layout with floating favorite heart toggles, dual currency pricing ($ USD / ៛ KHR), and circular neon-lime `+` add-to-cart buttons with tactile haptics.
 * **Food Item Detail Sheet:** Hero dish image with soft drop shadows, **4 macro-nutrients nutrition card** (`198 kcal`, `25.2 proteins`, `13.8 fats`, `23.7 carbo`), expandable `"Show more"` description, bag action, and neon-lime `"Buy Now"` button.
 * **Live Order Tracking Sheet:** Interactive Google Maps polyline route, live pulsing status dot, 5-stage milestone stepper (`Confirmed` → `Preparing` → `Picked up` → `On the way` → `Delivered`), driver card with call action (`Ahmad Faizal`), route breakdown, and itemized receipt.
@@ -40,7 +40,7 @@ The official client application for **FoodGo**, built with **Flutter 3.x**. Feat
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 lib/
@@ -61,7 +61,7 @@ lib/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - **Flutter SDK 3.x**
@@ -86,7 +86,7 @@ flutter run
 
 ---
 
-## 🧪 Testing & Code Quality
+## Testing & Code Quality
 
 ```bash
 # 1. Static code analysis (Enforces zero warnings/errors)

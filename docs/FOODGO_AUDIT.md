@@ -1,8 +1,8 @@
-# 🔍 FoodGo v2 → v3 — Full Repository & Architecture Audit
+# FoodGo v2 → v3 — Full Repository & Architecture Audit
 
 **Audit Date:** September 22, 2026  
 **Repository:** [https://github.com/Ratanazen/FoodGo.git](https://github.com/Ratanazen/FoodGo.git)  
-**Target Roadmap:** FoodGo v2 (Stable Customer MVP) ➔ FoodGo v3 (Full Multi-Role Cambodian Food Delivery Platform)  
+**Target Roadmap:** FoodGo v2 (Stable Customer MVP) -> FoodGo v3 (Full Multi-Role Cambodian Food Delivery Platform)  
 **Audited Components:** `backend/`, `foodgo_flutter/`, `docker-compose.yml`, `.github/workflows/ci.yml`, `.env.example`, `README.md`
 
 ---
@@ -11,12 +11,12 @@
 
 | Verification Step | Target Command | Result | Status |
 | :--- | :--- | :--- | :--- |
-| **Django System Check** | `python manage.py check` | `System check identified no issues (0 silenced)` | 🟢 PASSED (0 issues) |
-| **Django Database Check** | `python manage.py makemigrations --check` | `No changes detected` | 🟢 PASSED |
-| **Django Test Suite** | `python manage.py test` | `Ran 13 tests in 7.391s: OK` | 🟢 PASSED (13/13) |
-| **Flutter Dependencies** | `flutter pub get` | Dependencies resolved, `qr_flutter` & `web_socket_channel` loaded | 🟢 PASSED |
-| **Flutter Static Analysis**| `flutter analyze` | `No issues found! (ran in 1.4s)` | 🟢 PASSED (0 issues) |
-| **Flutter Test Suite** | `flutter test` | `All tests passed!` (CartProvider & PaymentModel) | 🟢 PASSED |
+| **Django System Check** | `python manage.py check` | `System check identified no issues (0 silenced)` | [OK] PASSED (0 issues) |
+| **Django Database Check** | `python manage.py makemigrations --check` | `No changes detected` | [OK] PASSED |
+| **Django Test Suite** | `python manage.py test` | `Ran 13 tests in 7.391s: OK` | [OK] PASSED (13/13) |
+| **Flutter Dependencies** | `flutter pub get` | Dependencies resolved, `qr_flutter` & `web_socket_channel` loaded | [OK] PASSED |
+| **Flutter Static Analysis**| `flutter analyze` | `No issues found! (ran in 1.4s)` | [OK] PASSED (0 issues) |
+| **Flutter Test Suite** | `flutter test` | `All tests passed!` (CartProvider & PaymentModel) | [OK] PASSED |
 
 ---
 
@@ -90,7 +90,7 @@ Django REST Framework (Daphne ASGI Server)
 
 ### 3.5 Orders & Tracking (v2.4 / v3.2)
 - **Implemented:**
-  - Status progression: `pending` ➔ `confirmed` ➔ `preparing` ➔ `ready` ➔ `picked_up` ➔ `on_the_way` ➔ `delivered` (or `cancelled`).
+  - Status progression: `pending` -> `confirmed` -> `preparing` -> `ready` -> `picked_up` -> `on_the_way` -> `delivered` (or `cancelled`).
   - Real-time GPS driver tracking through Daphne/Channels WebSockets (`ws://127.0.0.1:8000/ws/tracking/<order_id>/`).
   - Simulated driver movement script (`simulate_driver.py`).
   - Flutter Map integration via `flutter_map` and `latlong2`.

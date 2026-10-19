@@ -1,4 +1,4 @@
-# 🏦 ACLEDA KHQR Integration Guide
+# ACLEDA KHQR Integration Guide
 
 ## Overview
 ACLEDA X-Pay Partner API enables digital payments directly through **ACLEDA mobile** and the inter-bank Bakong payment rail.

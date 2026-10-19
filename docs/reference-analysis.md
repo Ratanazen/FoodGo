@@ -56,7 +56,7 @@
   - Discount ribbon/pill top-left: e.g. `"20% OFF"`, `"15% OFF"`, `"25% OFF"`.
   - Brand logo badge top-right: e.g. McDonald's Golden Arches, KFC badge, Domino's tile, Pizza Hut logo.
   - Restaurant title: Bold typography (e.g. `McDonald's - Bukit Bintang`, `KFC - Jalan Ampang`).
-  - Metadata row: Rating star `★ 4.6`, delivery time `20 min`, and distance `1.2 km`.
+  - Metadata row: Rating star `* 4.6`, delivery time `20 min`, and distance `1.2 km`.
 
 #### 7. Floating Persistent Active Order Floater
 - **Placement**: Floats directly above the bottom navigation bar with elevation.
@@ -97,7 +97,7 @@
   - Horizontal progress bar connecting steps with green fill for completed/active milestones.
 - **Courier / Driver Card**:
   - Circular driver avatar (`Ahmad Faizal`).
-  - Driver rating: `★ 4.9 · 2384 trips`.
+  - Driver rating: `* 4.9 · 2384 trips`.
   - Action buttons: Light green chat bubble button + solid green phone call button.
   - Vehicle badge: Motorbike icon with `"Honda EX5 · Red"` and dark license plate pill `"WXY 4821"`.
 - **Status Timeline**:

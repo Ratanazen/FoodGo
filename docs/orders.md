@@ -1,4 +1,4 @@
-# 📦 Order Management & Lifecycle
+# Order Management & Lifecycle
 
 ## Order States
 ```

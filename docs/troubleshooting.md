@@ -1,4 +1,4 @@
-# 🛠️ FoodGo Troubleshooting & Diagnostics Guide
+# FoodGo Troubleshooting & Diagnostics Guide
 
 **Document Version**: 1.0.0  
 **Scope**: Diagnosing common errors across Flutter client, Django backend, Vercel serverless, and Docker environments.

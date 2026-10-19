@@ -1,4 +1,4 @@
-# 🗄️ Database Schema & Models
+# Database Schema & Models
 
 Production Database: **PostgreSQL 15**  
 Local / Fallback: **SQLite 3**

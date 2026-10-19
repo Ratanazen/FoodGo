@@ -1,4 +1,4 @@
-# 🗺️ Maps & Location Subsystem
+# Maps & Location Subsystem
 
 ## Map Technologies
 - **Flutter Client:** `flutter_map` with OpenStreetMap / Mapbox / Google Maps tile provider.

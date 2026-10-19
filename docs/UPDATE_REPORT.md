@@ -7,16 +7,16 @@
 
 ---
 
-## 📱 Frontend Modernization Deliverables (Flutter 3.x)
+## Frontend Modernization Deliverables (Flutter 3.x)
 
 1. **Design System & Tokens (`GlassTheme`)**:
    - Neon-lime accents (`#CCFF00`), dark hero card surfaces (`#1E1E20`), and high-contrast typography.
    - Royal blue authentication accents (`#1B64F2`).
 
 2. **TikTok Reference Home & Details Flow**:
-   - Minimalist location header: Circular search button, centered location picker (`📍 Naperville, Illinois ⌄`), notification bell with unread badge `1`.
+   - Minimalist location header: Circular search button, centered location picker (` Naperville, Illinois `), notification bell with unread badge `1`.
    - Spaghetti hero promotional card with `"Free Delivery For Spaghetti"` and neon-lime `"Order Now"` CTA.
-   - 4 Category filter pills (`Burger` 🍔, `Chicken` 🍗, `Fries` 🍟, `Drink` 🥤).
+   - 4 Category filter pills (`Burger` , `Chicken` , `Fries` , `Drink` ).
    - "Recommended For You" 2-column dish grid with favorite hearts and circular lime `+` add-to-cart buttons.
    - Food Item Details Screen with **4 Macro-Nutrients Card** (`198 kcal`, `25.2 proteins`, `13.8 fats`, `23.7 carbo`), expandable description, bag button, and neon-lime `"Buy Now"` button.
    - Live Order Tracking Sheet on interactive Google Maps with live status dot, 5-stage milestone stepper, driver card (`Ahmad Faizal`), route breakdown, and itemized receipt.
@@ -38,7 +38,7 @@
 
 ---
 
-## ⚙️ Backend & Fintech Deliverables (Django 6.1 ASGI)
+## Backend & Fintech Deliverables (Django 6.1 ASGI)
 
 1. **Architecture & Persistence**:
    - Unified database configuration supporting PostgreSQL 15 (`DATABASE_URL`) with SQLite development fallback.
@@ -68,20 +68,20 @@
 
 ---
 
-## 🧪 Verification Matrix
+## Verification Matrix
 
 | Target | Tests Run | Result | Status |
 |:---|:---:|:---:|:---:|
-| **Django Backend Tests** | 57 | 57 Passed | ✅ 100% |
-| **Flutter Unit & Widget Tests** | 57 | 57 Passed | ✅ 100% |
-| **Flutter Static Analysis** | 70+ Files | 0 Warnings | ✅ Clean |
-| **Dart Code Formatting** | 70 Files | 0 Changes Needed | ✅ Clean |
-| **Django Migrations Dry-Run** | Full Schema | 0 Missing | ✅ Clean |
-| **Docker Compose Config** | Compose V2 | Validated | ✅ Clean |
+| **Django Backend Tests** | 57 | 57 Passed | [Passed] 100% |
+| **Flutter Unit & Widget Tests** | 57 | 57 Passed | [Passed] 100% |
+| **Flutter Static Analysis** | 70+ Files | 0 Warnings | [Passed] Clean |
+| **Dart Code Formatting** | 70 Files | 0 Changes Needed | [Passed] Clean |
+| **Django Migrations Dry-Run** | Full Schema | 0 Missing | [Passed] Clean |
+| **Docker Compose Config** | Compose V2 | Validated | [Passed] Clean |
 
 ---
 
-## 📜 Historical Update Reports
+## Historical Update Reports
 
 ### September 22, 2026 — Initial Mobile App Update
 **Branch:** `feature/mobile-app-update` → merged into `master`
@@ -209,7 +209,7 @@ git revert 8c77d10  # Reverts the merge commit
 
 2. **Official Admin Bill & Tax Receipt:**
    - Created print-ready `backend/core/templates/core/order_bill.html` with FoodGo branding, items, subtotals, delivery fees, USD & KHR currency conversion, payment metadata, and barcode.
-   - Added `order-bill` view and `🧾 Print Bill` action in Django `OrderAdmin`.
+   - Added `order-bill` view and ` Print Bill` action in Django `OrderAdmin`.
    - Added in-app `View Bill` sheet on Flutter `orders_screen.dart` and `restaurant_dashboard_screen.dart`.
 
 ---
@@ -282,10 +282,10 @@ git revert 8c77d10  # Reverts the merge commit
 2. **Google Maps High-Definition Tile Layers:**
    - Integrated Google Maps tile servers with subdomains `mt0` - `mt3`.
    - Added interactive layer switcher modal supporting:
-     - 🗺️ **Google Roadmap**: Standard streets with landmark labels.
-     - 🛰️ **Google Satellite / Hybrid**: Aerial imagery overlaid with road networks.
-     - 🏔️ **Google Terrain**: Elevation and contour shading.
-     - 🌍 **OpenStreetMap**: Community raster fallback.
+     -  **Google Roadmap**: Standard streets with landmark labels.
+     -  **Google Satellite / Hybrid**: Aerial imagery overlaid with road networks.
+     -  **Google Terrain**: Elevation and contour shading.
+     -  **OpenStreetMap**: Community raster fallback.
    - Added official Google Maps logo attribution tag.
 
 3. **Dual Map Modes (Tracking & Exploration):**
@@ -323,15 +323,15 @@ git revert 8c77d10  # Reverts the merge commit
 
 4. **Floating Mini-Cart Checkout Bar (`FloatingMiniCartBar`):**
    - Modern sticky bottom bar animating into view when `cart.itemCount > 0`.
-   - Displays items count, total price summary, and direct "Checkout ➔" action navigating to `/cart`.
+   - Displays items count, total price summary, and direct "Checkout ->" action navigating to `/cart`.
    - Dynamic `bottomOffset` support for seamless layout with or without bottom navigation bars.
 
 5. **Foodpanda-Inspired Home & Explore Screens:**
    - Delivery / Pick-Up switcher pill at the top of `HomeScreen`.
    - Promotional voucher banner carousel with copyable promo codes (`FOODGOFREE`, `FOODGO30`).
    - Circular category icon badges for quick food discovery.
-   - "Featured Offers 🔥" carousel and "All Restaurants Near You 📍" feed.
-   - Interactive quick-filter chips in `ExploreScreen` (`🔥 Hot Deals`, `🛵 Free Delivery`, `⚡ Under 25 min`, `⭐ Top Rated 4.5+`).
+   - "Featured Offers " carousel and "All Restaurants Near You " feed.
+   - Interactive quick-filter chips in `ExploreScreen` (` Hot Deals`, ` Free Delivery`, ` Under 25 min`, `* Top Rated 4.5+`).
 
 6. **Interactive Restaurant & Dish Details:**
    - Foodpanda deal voucher banner ("20% OFF orders over $10 • Code: FOODGO20").

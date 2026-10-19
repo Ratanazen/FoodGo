@@ -1,4 +1,4 @@
-# 🚴 Driver & Delivery System
+# Driver & Delivery System
 
 ## Driver Roles
 - Drivers toggle their operational status via `DriverDashboardScreen`.

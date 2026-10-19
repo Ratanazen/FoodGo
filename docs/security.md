@@ -1,4 +1,4 @@
-# 🛡️ Security & Hardening Report
+# Security & Hardening Report
 
 ## Standards Enforced
 1. **Zero Client Trust:** All financial calculations, wallet top-ups, and payment verifications run server-side.

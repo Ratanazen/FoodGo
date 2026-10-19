@@ -1,4 +1,4 @@
-# 🏦 ABA KHQR Integration Guide
+# ABA KHQR Integration Guide
 
 ## Overview
 ABA PayWay / KHQR integration enables customers to scan dynamic KHQR codes using **ABA Mobile**, **Bakong**, or any partner financial institution in Cambodia.

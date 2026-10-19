@@ -1,4 +1,4 @@
-# ⚙️ FoodGo Backend Service
+# FoodGo Backend Service
 
 Production-ready Django REST Framework and Daphne ASGI backend for **FoodGo**, powering high-performance food delivery workflows, real-time WebSocket driver GPS tracking, Cambodian banking payment integrations (Bakong KHQR, ABA PayWay, ACLEDA, COD, Wallet), and cryptographic doorstep delivery confirmation.
 
@@ -8,7 +8,7 @@ Production-ready Django REST Framework and Daphne ASGI backend for **FoodGo**, p
 
 ---
 
-## 🏗️ Architecture & Core Modules
+## Architecture & Core Modules
 
 * **Framework:** Django 6.1 / 5.1 with Django REST Framework (DRF)
 * **Real-Time / Async:** Daphne ASGI + Django Channels (WebSockets for live driver location updates)
@@ -23,7 +23,7 @@ Production-ready Django REST Framework and Daphne ASGI backend for **FoodGo**, p
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 backend/
@@ -47,7 +47,7 @@ backend/
 
 ---
 
-## 🚀 Setup & Local Execution
+## Setup & Local Execution
 
 ```bash
 # 1. Create and activate Python virtual environment
@@ -69,7 +69,7 @@ python manage.py runserver 0.0.0.0:8000
 
 ---
 
-## 🧪 Automated Testing
+## Automated Testing
 
 ```bash
 # Run the complete backend test suite (57 tests)

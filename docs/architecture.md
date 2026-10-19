@@ -1,4 +1,4 @@
-# 🏛️ FoodGo Architecture Document
+# FoodGo Architecture Document
 
 ## High-Level Topology
 

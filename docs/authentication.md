@@ -1,4 +1,4 @@
-# 🔐 Authentication Architecture
+# Authentication Architecture
 
 FoodGo employs a dual-authentication strategy:
 

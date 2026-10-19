@@ -1,4 +1,4 @@
-# 💻 Local Development Guide
+# Local Development Guide
 
 ## Quick Start
 ```bash

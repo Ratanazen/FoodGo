@@ -1249,13 +1249,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                               fontSize: 15,
                             ),
                           ),
-                          const SizedBox(height: 3),
-                          Text(
-                            'Delivery: \$${r['delivery_fee']} · Rating: ${r['rating']} ⭐',
-                            style: const TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 12,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                'Delivery: \$${r['delivery_fee']} · Rating: ${r['rating']} ',
+                                style: const TextStyle(
+                                  color: GlassTheme.textMuted,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.star,
+                                size: 13,
+                                color: Colors.amber,
+                              ),
+                            ],
                           ),
                           Text(
                             r['address'] ?? '',

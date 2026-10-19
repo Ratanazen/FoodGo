@@ -1,4 +1,4 @@
-# 📝 FoodGo Form Audit & Input Validation Documentation
+# FoodGo Form Audit & Input Validation Documentation
 
 **Document Version**: 1.0.0  
 **Scope**: Client-side (Flutter 3.x) & Server-side (Django REST Framework) Form Validation Audit  

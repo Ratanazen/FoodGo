@@ -1,4 +1,4 @@
-# 🌐 FoodGo Production Hosting & Deployment Guide
+# FoodGo Production Hosting & Deployment Guide
 
 **Document Version**: 1.0.0  
 **Production API**: [https://food-go-app.vercel.app/](https://food-go-app.vercel.app/)  

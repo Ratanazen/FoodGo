@@ -9,17 +9,17 @@
 
 | # | Group | Test | Result |
 |:--|:------|:-----|:-------|
-| 1 | CartProvider Tests | Add item updates quantity and totalAmount | ✅ PASS |
-| 2 | PaymentModel Tests | fromJson deserializes correctly | ✅ PASS |
-| 3 | CartProvider Edge Cases | Remove item that does not exist does nothing | ✅ PASS |
-| 4 | CartProvider Edge Cases | Clear empty cart does not throw | ✅ PASS |
-| 5 | CartProvider Edge Cases | Adding multiple different items calculates total correctly | ✅ PASS |
-| 6 | CartProvider Edge Cases | Adding same item multiple times increases quantity | ✅ PASS |
-| 7 | PaymentModel Edge Cases | fromJson handles PAID status | ✅ PASS |
-| 8 | PaymentModel Edge Cases | fromJson handles EXPIRED status | ✅ PASS |
-| 9 | PaymentModel Edge Cases | fromJson handles null qr_payload | ✅ PASS |
+| 1 | CartProvider Tests | Add item updates quantity and totalAmount | [Passed] PASS |
+| 2 | PaymentModel Tests | fromJson deserializes correctly | [Passed] PASS |
+| 3 | CartProvider Edge Cases | Remove item that does not exist does nothing | [Passed] PASS |
+| 4 | CartProvider Edge Cases | Clear empty cart does not throw | [Passed] PASS |
+| 5 | CartProvider Edge Cases | Adding multiple different items calculates total correctly | [Passed] PASS |
+| 6 | CartProvider Edge Cases | Adding same item multiple times increases quantity | [Passed] PASS |
+| 7 | PaymentModel Edge Cases | fromJson handles PAID status | [Passed] PASS |
+| 8 | PaymentModel Edge Cases | fromJson handles EXPIRED status | [Passed] PASS |
+| 9 | PaymentModel Edge Cases | fromJson handles null qr_payload | [Passed] PASS |
 
-**Result:** 9/9 passed ✅
+**Result:** 9/9 passed [Passed]
 
 ---
 
@@ -29,7 +29,7 @@
 |:--|:-------|
 | 16 tests | All PASS |
 
-**Result:** 16/16 passed ✅
+**Result:** 16/16 passed [Passed]
 
 ---
 
@@ -37,8 +37,8 @@
 
 | Tool | Result |
 |:-----|:-------|
-| `flutter analyze` | No issues found ✅ |
-| `python manage.py check` | System check identified no issues ✅ |
+| `flutter analyze` | No issues found [Passed] |
+| `python manage.py check` | System check identified no issues [Passed] |
 
 ---
 
@@ -46,7 +46,7 @@
 
 | Build | Result | Time |
 |:------|:-------|:-----|
-| `flutter build web --release` | ✓ Built build/web | 63.4s |
+| `flutter build web --release` | [Passed] Built build/web | 63.4s |
 | Font tree-shaking (CupertinoIcons) | 257,628 → 1,472 bytes (99.4% reduction) | — |
 | Font tree-shaking (MaterialIcons) | 1,645,184 → 20,404 bytes (98.8% reduction) | — |
 
@@ -67,5 +67,5 @@
 - **Backend Unit Tests:** `python manage.py test` → **16/16 passed** (`OK`)
 - **Flutter Unit Tests:** `flutter test` → **9/9 passed** (`All tests passed!`)
 - **Flutter Static Analysis:** `flutter analyze` → **0 issues found**
-- **Flutter Web Release Build:** `flutter build web --release` → **`✓ Built build/web`** in 59.1s
+- **Flutter Web Release Build:** `flutter build web --release` → **`[Passed] Built build/web`** in 59.1s
 - **Admin Bill HTTP Route:** `HTTP 200 OK` at `/admin/core/order/<id>/bill/`

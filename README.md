@@ -137,7 +137,7 @@ flutter run
 
 ---
 
-##  Pre-Configured Demo Accounts
+## Pre-Configured Demo Accounts
 
 The database comes pre-seeded with accounts for all roles:
 
@@ -152,7 +152,7 @@ The database comes pre-seeded with accounts for all roles:
 
 ---
 
-##  Live Driver GPS Simulation
+## Live Driver GPS Simulation
 
 To test live delivery tracking over WebSockets in real time:
 
@@ -165,7 +165,7 @@ This script pushes live moving GPS coordinates for Order #1 directly to the WebS
 
 ---
 
-##  Cambodian Bank KHQR & Payment Gateways
+## Cambodian Bank KHQR & Payment Gateways
 
 FoodGo provides realistic, modular Cambodian fintech integrations:
 * **Bakong KHQR (NBC Open API):** Real EMVCo-compliant KHQR payload strings with merchant account tagging, dual currency, and CRC16-CCITT checksums.
@@ -184,7 +184,7 @@ curl -X POST http://127.0.0.1:8000/api/payments/aba/callback/ \
 
 ---
 
-##  Secure QR Code Delivery Confirmation
+## Secure QR Code Delivery Confirmation
 
 FoodGo enforces cryptographic doorstep handover confirmation between courier and customer:
 * **Driver Arrival:** Courier taps "Arrived at Customer" to generate a short-lived, cryptographically secure delivery token and 6-digit backup PIN (`POST /api/orders/<id>/delivery_qr/`).
@@ -196,7 +196,7 @@ FoodGo enforces cryptographic doorstep handover confirmation between courier and
 
 ---
 
-##  Automated Testing & CI/CD Pipelines
+## Automated Testing & CI/CD Pipelines
 
 FoodGo maintains an enterprise-grade test verification suite and hardened continuous integration pipeline ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 
@@ -240,10 +240,10 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test`)** | **57** | **57 Passed (100%)** | ~51.1s |
-| **Flutter Frontend (`foodgo_flutter/test/`)** | **57** | **57 Passed (100%)** | ~5.4s |
-| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **69+ Files** | **0 Errors, 0 Warnings** | ~2.2s |
-| **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`✓ Built build/web`)** | ~74s |
+| **Django Backend (`backend/manage.py test`)** | **64** | **64 Passed (100%)** | ~58.4s |
+| **Flutter Frontend (`foodgo_flutter/test/`)** | **61** | **61 Passed (100%)** | ~5.8s |
+| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **70+ Files** | **0 Errors, 0 Warnings** | ~2.1s |
+| **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |
 | **Django Static Collection (`collectstatic`)** | **249 Files** | **Success** | ~1.2s |
 
 ---

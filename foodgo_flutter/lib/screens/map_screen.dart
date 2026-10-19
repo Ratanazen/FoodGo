@@ -1104,7 +1104,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildFiveStepProgress() {
     final steps = ['Confirmed', 'Preparing', 'Picked up', 'On the way', 'Delivered'];
-    int currentStep = 1; // Default to 'Preparing'
+    int currentStep = 1; // Default to 'Preparing' (matches reference video)
     if (_orderStatus == 'delivered') {
       currentStep = 4;
     } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
@@ -1120,47 +1120,40 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     return Column(
       children: [
         Row(
-          children: List.generate(steps.length * 2 - 1, (i) {
-            if (i.isEven) {
-              final stepIdx = i ~/ 2;
-              final isDone = stepIdx <= currentStep;
-              return Container(
-                width: 14,
-                height: 14,
+          children: List.generate(steps.length, (index) {
+            final isCompletedOrCurrent = index <= currentStep;
+            return Expanded(
+              child: Container(
+                margin: EdgeInsets.only(
+                  right: index < steps.length - 1 ? 5 : 0,
+                ),
+                height: 4,
                 decoration: BoxDecoration(
-                  color: isDone ? GlassTheme.primaryGreen : Colors.grey.shade400,
-                  shape: BoxShape.circle,
+                  color: isCompletedOrCurrent
+                      ? const Color(0xFF4CAF50)
+                      : const Color(0xFFE0E0E0),
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                child: isDone
-                    ? const Icon(Icons.check, size: 9, color: Colors.white)
-                    : null,
-              );
-            } else {
-              final leftStepIdx = i ~/ 2;
-              final isPassed = leftStepIdx < currentStep;
-              return Expanded(
-                child: Container(
-                  height: 3,
-                  color: isPassed ? GlassTheme.primaryGreen : Colors.grey.shade300,
-                ),
-              );
-            }
-          }),
-        ),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: steps.map((s) {
-            final isHighlight = s == steps[currentStep];
-            return Text(
-              s,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
-                color: isHighlight ? GlassTheme.primaryGreen : GlassTheme.textMuted,
               ),
             );
-          }).toList(),
+          }),
+        ),
+        const SizedBox(height: 7),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(steps.length, (index) {
+            final isPassed = index <= currentStep;
+            return Text(
+              steps[index],
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isPassed ? FontWeight.bold : FontWeight.w500,
+                color: isPassed
+                    ? const Color(0xFF2E7D32)
+                    : GlassTheme.textMuted,
+              ),
+            );
+          }),
         ),
       ],
     );
@@ -1390,10 +1383,26 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           ),
         ),
         if (time.isNotEmpty)
-          Text(
-            time,
-            style: TextStyle(fontSize: 11, color: GlassTheme.textMuted),
-          ),
+          time.startsWith('0:')
+              ? Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1B3820) : const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    time,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2E7D32),
+                    ),
+                  ),
+                )
+              : Text(
+                  time,
+                  style: TextStyle(fontSize: 11, color: GlassTheme.textMuted),
+                ),
       ],
     );
   }

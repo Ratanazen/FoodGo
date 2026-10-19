@@ -39,28 +39,43 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Map<String, dynamic>> _deals = [
     {
-      'badge': '30% OFF',
-      'title': 'Mega Feast Drop',
-      'subtitle': 'Save 30% on popular meals',
+      'label': 'YOUR WHOLE ORDER',
+      'discount': '30% OFF',
       'code': 'FOODIE30',
-      'bgGradient': [Color(0xFF2E7D32), Color(0xFF1B5E20)],
-      'imageUrl': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
-    },
-    {
-      'badge': 'FREE DELIVERY',
-      'title': 'Zero Fee Week',
-      'subtitle': 'Free courier delivery on all items',
-      'code': 'FREESHIP',
-      'bgGradient': [Color(0xFF00796B), Color(0xFF004D40)],
       'imageUrl': 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
     },
     {
-      'badge': '20% OFF',
-      'title': 'Burger Bash',
-      'subtitle': 'Extra savings on burgers & fries',
+      'label': 'DELIVERY FEE',
+      'discount': 'FREE',
+      'code': 'FREESHIP',
+      'imageUrl': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+    },
+    {
+      'label': 'BURGER SPECIAL',
+      'discount': '20% OFF',
       'code': 'BURGER20',
-      'bgGradient': [Color(0xFFD84315), Color(0xFFBF360C)],
       'imageUrl': 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&q=80',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _fastDeliveryRestaurants = [
+    {
+      'id': 101,
+      'name': 'Tealive - Jalan Ampang',
+      'discount': '5% OFF',
+      'rating': 4.6,
+      'timeMin': 10,
+      'distanceKm': 0.6,
+      'imageUrl': 'https://images.unsplash.com/photo-1558857563-b371033873b8?w=400&q=80',
+    },
+    {
+      'id': 102,
+      'name': 'KFC - Jalan Ampang',
+      'discount': '20% OFF',
+      'rating': 4.5,
+      'timeMin': 15,
+      'distanceKm': 0.9,
+      'imageUrl': 'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=400&q=80',
     },
   ];
 
@@ -146,6 +161,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       _buildSectionHeader('Deals for you', () => context.push('/explore')),
                       const SizedBox(height: 12),
                       _buildDealsList(isDark),
+                      const SizedBox(height: 24),
+
+                      // ── Fast Delivery: 20 min or less (TikTok Signature) ──
+                      _buildFastDeliverySection(isDark),
                       const SizedBox(height: 24),
 
                       // ── Restaurants Near You Section ────────────────
@@ -420,22 +439,46 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'FAST & FREE DELIVERY!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                    letterSpacing: 0.2,
+                RichText(
+                  text: const TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'FAST & FREE\n',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                          letterSpacing: 0.5,
+                          height: 1.1,
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'DELIVERY!',
+                        style: TextStyle(
+                          color: Color(0xFFFF5722),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 22,
+                          letterSpacing: 0.5,
+                          shadows: [
+                            Shadow(
+                              color: Color(0x66000000),
+                              offset: Offset(1, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'On all orders this week!',
                   style: TextStyle(
-                    color: Color(0xFFC8E6C9),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    color: Color(0xFFFFF59D),
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -444,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE53935),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -454,7 +497,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'ORDER NOW',
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
-                      fontSize: 12,
+                      fontSize: 11,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -560,29 +603,24 @@ class _HomeScreenState extends State<HomeScreen> {
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildDealsList(bool isDark) {
     return SizedBox(
-      height: 142,
+      height: 140,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _deals.length,
         itemBuilder: (context, index) {
           final deal = _deals[index];
-          final gradientColors = deal['bgGradient'] as List<Color>;
 
           return Container(
-            width: 280,
+            width: 290,
             margin: const EdgeInsets.only(right: 14),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: gradientColors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: isDark ? const Color(0xFF18231C) : const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: gradientColors.first.withValues(alpha: 0.3),
-                  blurRadius: 10,
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.16),
+                  blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -594,53 +632,66 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          deal['badge'],
-                          style: TextStyle(
-                            color: gradientColors.first,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                          ),
+                      Text(
+                        deal['label'] ?? 'YOUR WHOLE ORDER',
+                        style: const TextStyle(
+                          color: Color(0xFFB0B0B0),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 3),
                       Text(
-                        deal['title'],
+                        deal['discount'] ?? '30% OFF',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
-                      // Claim Button
-                      ElevatedButton(
-                        onPressed: () => _claimCoupon(deal['code']),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: gradientColors.first,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          shape: RoundedRectangleBorder(
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2C2C2E),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFF3A3A3C)),
+                            ),
+                            child: Text(
+                              deal['code'] ?? 'FOODIE30',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () => _claimCoupon(deal['code']),
                             borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4CAF50),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Text(
+                                'Claim',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
                           ),
-                          elevation: 1,
-                        ),
-                        child: const Text(
-                          'Claim',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -650,8 +701,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(14),
                   child: CachedNetworkImage(
                     imageUrl: deal['imageUrl'],
-                    width: 80,
-                    height: 80,
+                    width: 90,
+                    height: 90,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -660,6 +711,121 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Fast Delivery: 20 min or less (TikTok Signature Section)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildFastDeliverySection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Fast delivery · 20 min or less',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 155,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _fastDeliveryRestaurants.length,
+            itemBuilder: (context, index) {
+              final item = _fastDeliveryRestaurants[index];
+              return Container(
+                width: 175,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          child: CachedNetworkImage(
+                            imageUrl: item['imageUrl'],
+                            height: 85,
+                            width: 175,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 6,
+                          left: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: GlassTheme.primaryGreen,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              item['discount'],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item['name'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              const Icon(Icons.star, color: Color(0xFFFFB300), size: 12),
+                              const SizedBox(width: 2),
+                              Text(
+                                '${item['rating']} · ${item['timeMin']} min · ${item['distanceKm']} km',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: GlassTheme.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -1130,31 +1296,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Dynamic ETA Green Badge
+              // Dynamic Stacked ETA Green Badge (TikTok Reference Style)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? GlassTheme.primaryGreen.withValues(alpha: 0.25)
+                      ? const Color(0xFF1B3820)
                       : const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Row(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '$_activeOrderEta min',
+                      '$_activeOrderEta',
                       style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
+                        color: Color(0xFF2E7D32),
                         fontWeight: FontWeight.w900,
-                        fontSize: 13,
+                        fontSize: 16,
+                        height: 1.1,
                       ),
                     ),
-                    const SizedBox(width: 2),
-                    const Icon(
-                      Icons.chevron_right,
-                      size: 16,
-                      color: GlassTheme.primaryGreen,
+                    const Text(
+                      'min',
+                      style: TextStyle(
+                        color: Color(0xFF2E7D32),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        height: 1.0,
+                      ),
                     ),
                   ],
                 ),

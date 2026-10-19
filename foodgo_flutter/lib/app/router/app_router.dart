@@ -19,6 +19,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 // Secondary screens
 import '../../features/search/presentation/search_screen.dart';
 import '../../features/restaurants/presentation/restaurant_details_screen.dart';
+import '../../features/restaurants/presentation/food_item_details_screen.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/checkout/presentation/order_success_screen.dart';
 import '../../features/payment/screens/qr_payment_screen.dart';
@@ -128,6 +129,20 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) {
         final id = state.pathParameters['id'];
         return _buildPage(state: state, child: RestaurantDetailsScreen(id: id), type: PageTransitionType.slideRight);
+      },
+    ),
+    GoRoute(
+      path: '/food-details',
+      pageBuilder: (context, state) {
+        final itemData = state.extra as Map<String, dynamic>?;
+        return _buildPage(state: state, child: FoodItemDetailsScreen(itemData: itemData), type: PageTransitionType.slideUp);
+      },
+    ),
+    GoRoute(
+      path: '/food/:id',
+      pageBuilder: (context, state) {
+        final itemData = state.extra as Map<String, dynamic>?;
+        return _buildPage(state: state, child: FoodItemDetailsScreen(itemData: itemData), type: PageTransitionType.slideUp);
       },
     ),
     GoRoute(

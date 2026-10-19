@@ -25,6 +25,13 @@ class GlassTheme {
     end: Alignment.bottomRight,
   );
 
+  // Modern Vibrant Lime Delivery Accents (New Reference Design)
+  static const Color limeAccent = Color(0xFFCCFF00);
+  static const Color limeAccentMuted = Color(0xFFD4E157);
+  static const Color limeAccentBright = Color(0xFFD7FB00);
+  static const Color limeSurface = Color(0xFFF9FBE7);
+  static const Color heroDarkCard = Color(0xFF1E1E20);
+
   // Modern Food Delivery (Foodpanda & Grab) Accents
   static const Color foodpandaPink = Color(0xFFD70F64);
   static const Color accentOrange = Color(0xFFFF6A00);

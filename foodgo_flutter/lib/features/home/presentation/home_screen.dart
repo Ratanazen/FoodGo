@@ -6,7 +6,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../providers/restaurant_provider.dart';
 import '../../../providers/address_provider.dart';
-import '../../../providers/user_provider.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -26,6 +25,104 @@ class _HomeScreenState extends State<HomeScreen> {
   final bool _showActiveOrderFloater = true;
   int _activeOrderEta = 11;
   Timer? _etaUpdateTimer;
+
+  // Reference Mockup (Naperville) 4 Quick Categories & Recommended Dishes
+  final List<Map<String, dynamic>> _quickCategories = [
+    {'name': 'Burger', 'emoji': '🍔', 'icon': Icons.lunch_dining},
+    {'name': 'Chicken', 'emoji': '🍗', 'icon': Icons.egg_alt},
+    {'name': 'Fries', 'emoji': '🍟', 'icon': Icons.fastfood},
+    {'name': 'Drink', 'emoji': '🥤', 'icon': Icons.local_drink},
+  ];
+  int? _selectedQuickCategoryIndex;
+
+  final Map<String, dynamic> _spaghettiPromoItem = {
+    'id': 99,
+    'name': 'Free Delivery Spaghetti',
+    'subtitle': 'Classic Italian Spaghetti Bolognese',
+    'price': 8.50,
+    'image': 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=600&q=80',
+    'category': 'Pasta',
+    'calories': '240',
+    'proteins': '18.5',
+    'fats': '11.2',
+    'carbo': '38.0',
+    'location': 'Naperville, Illinois',
+    'description':
+        'Slow-simmered artisanal spaghetti tossed with savory bolognese sauce, vine-ripened San Marzano tomatoes, fresh Italian basil, and generous shavings of aged Parmigiano-Reggiano.',
+    'restaurantId': 105,
+    'restaurantName': 'Naperville Pasta Co.',
+  };
+
+  final List<Map<String, dynamic>> _recommendedDishes = [
+    {
+      'id': 101,
+      'name': 'Golden Spicy Chicken',
+      'subtitle': 'Indulge in our succulent G...',
+      'price': 5.00,
+      'image': 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&q=80',
+      'category': 'Chicken',
+      'calories': '220',
+      'proteins': '28.0',
+      'fats': '14.0',
+      'carbo': '18.0',
+      'location': 'Naperville, Illinois',
+      'description':
+          'Indulge in our succulent Golden Spicy Chicken, marinated in chef-special aromatic spices, battered to a crisp golden crunch, and served piping hot with garlic dip.',
+      'restaurantId': 101,
+      'restaurantName': 'Naperville Crispy Chicken',
+    },
+    {
+      'id': 102,
+      'name': 'Cheese Burger Nagi',
+      'subtitle': 'Burger with Patty filled wit...',
+      'price': 4.50,
+      'image': 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=500&q=80',
+      'category': 'Burger',
+      'calories': '210',
+      'proteins': '22.0',
+      'fats': '15.0',
+      'carbo': '26.0',
+      'location': 'Naperville, Illinois',
+      'description':
+          'Signature black charcoal sesame bun burger with juicy prime beef patty filled with melted Wisconsin cheddar, caramelized red onions, and house sauce.',
+      'restaurantId': 102,
+      'restaurantName': 'Nagi Burger House',
+    },
+    {
+      'id': 103,
+      'name': 'Double Beef Cheese Burger',
+      'subtitle': 'Burger with patty filled with...',
+      'price': 6.50,
+      'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+      'category': 'Burger',
+      'calories': '198',
+      'proteins': '25.2',
+      'fats': '13.8',
+      'carbo': '23.7',
+      'location': 'Naperville, Illinois',
+      'description':
+          'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft sesame burger bun with melted cheddar cheese and crispy garden greens.',
+      'restaurantId': 103,
+      'restaurantName': 'Naperville Gourmet Burgers',
+    },
+    {
+      'id': 104,
+      'name': 'Crispy French Fries',
+      'subtitle': 'Freshly cut french fries with...',
+      'price': 3.00,
+      'image': 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500&q=80',
+      'category': 'Fries',
+      'calories': '145',
+      'proteins': '3.4',
+      'fats': '8.2',
+      'carbo': '29.1',
+      'location': 'Naperville, Illinois',
+      'description':
+          'Hand-cut russet potatoes fried to golden perfection, tossed with mineral sea salt and rosemary, served with tangy dipping sauces.',
+      'restaurantId': 104,
+      'restaurantName': 'Golden Fry Shack',
+    },
+  ];
 
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'emoji': '🍽️', 'icon': Icons.restaurant},
@@ -126,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? GlassTheme.backgroundDark : const Color(0xFFF7F9F7),
+      backgroundColor: isDark ? GlassTheme.backgroundDark : const Color(0xFFFBFBFD),
       body: Stack(
         children: [
           RefreshIndicator(
@@ -135,39 +232,53 @@ class _HomeScreenState extends State<HomeScreen> {
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // ── 1. Curved Lush Green Gradient Header ──────────────
+                // ── 1. Top Modern Location Header (Search | Location | Notification) ──
                 SliverToBoxAdapter(
-                  child: _buildCurvedHeader(context, isDark),
+                  child: _buildModernLocationHeader(context, isDark),
                 ),
 
-                // ── 2. Content Body with Sections ──────────────────────
+                // ── 2. Content Body with Hero & Categories ─────────────
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      const SizedBox(height: 18),
-
-                      // ── Hero Promo Banner: FAST & FREE DELIVERY! ────
-                      _buildHeroPromoBanner(context),
-                      const SizedBox(height: 22),
-
-                      // ── Categories Horizontal Carousel ──────────────
-                      _buildSectionHeader('Categories', () => context.push('/explore')),
                       const SizedBox(height: 12),
-                      _buildCategoriesList(isDark),
-                      const SizedBox(height: 22),
 
-                      // ── Deals For You Section ────────────────────────
+                      // ── Hero Promo: "Free Delivery For Spaghetti" ───
+                      _buildSpaghettiHeroPromo(context, isDark),
+                      const SizedBox(height: 20),
+
+                      // ── 4 Modern Quick Categories: Burger, Chicken, Fries, Drink ──
+                      _buildModernFourCategories(isDark),
+                      const SizedBox(height: 24),
+
+                      // ── "Recommended for you" Section Header ─────────
+                      _buildRecommendedHeader(context, isDark),
+                      const SizedBox(height: 14),
+                    ]),
+                  ),
+                ),
+
+                // ── 3. 2-Column Recommended Dishes Grid ────────────────
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  sliver: _buildRecommendedGrid(context, isDark),
+                ),
+
+                // ── 4. Deals For You & Fast Delivery ───────────────────
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: 28),
                       _buildSectionHeader('Deals for you', () => context.push('/explore')),
                       const SizedBox(height: 12),
                       _buildDealsList(isDark),
                       const SizedBox(height: 24),
 
-                      // ── Fast Delivery: 20 min or less (TikTok Signature) ──
                       _buildFastDeliverySection(isDark),
                       const SizedBox(height: 24),
 
-                      // ── Restaurants Near You Section ────────────────
                       _buildSectionHeader('Restaurants near you', () => context.push('/explore')),
                       const SizedBox(height: 8),
 
@@ -178,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // ── 3. 2-Column Responsive Restaurant Grid ────────────
+                // ── 5. Full Restaurant Catalog Grid ────────────────────
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   sliver: _buildRestaurantGrid(context, isDark),
@@ -186,13 +297,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Bottom padding to clear floating elements
                 const SliverToBoxAdapter(
-                  child: SizedBox(height: 180),
+                  child: SizedBox(height: 140),
                 ),
               ],
             ),
           ),
 
-          // ── Sticky Floating Active Order Floater (TikTok Signature) ──
+          // ── Sticky Floating Active Order Floater ──
           if (_showActiveOrderFloater)
             _buildFloatingActiveOrder(context, isDark),
         ],
@@ -201,204 +312,155 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // Header: Curved Lush Green Top Bar with Deliver-to Selector & Pill Search
+  // 1. Modern Minimalist Location Header (Matching Reference Screen 1)
   // ──────────────────────────────────────────────────────────────────────────
-  Widget _buildCurvedHeader(BuildContext context, bool isDark) {
+  Widget _buildModernLocationHeader(BuildContext context, bool isDark) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final user = context.watch<UserProvider>().user;
     final activeAddress = context.watch<AddressProvider>().selectedAddress;
+    final String locationName = (activeAddress?.city.isNotEmpty == true && activeAddress?.street.isNotEmpty == true)
+        ? '${activeAddress!.street}, ${activeAddress.city}'
+        : (activeAddress?.city.isNotEmpty == true
+            ? activeAddress!.city
+            : 'Naperville, Illinois');
 
-    final String addressLabel = activeAddress?.label.isNotEmpty == true
-        ? activeAddress!.label
-        : 'Home';
-    final String addressStreet = activeAddress != null
-        ? '${activeAddress.street}, ${activeAddress.city}'
-        : '12 Jalan Ampang, Kuala Lumpur';
-
-    final String avatarUrl = (user?['avatar_url']?.toString().isNotEmpty == true)
-        ? user!['avatar_url']
-        : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&q=80';
-
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: GlassTheme.headerGradient,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x33236E31),
-            blurRadius: 16,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
+    return Padding(
       padding: EdgeInsets.only(
         top: topPadding + 10,
         left: 16,
         right: 16,
-        bottom: 22,
+        bottom: 8,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Top Row: Avatar | Deliver to Switcher | Notification Bell
-          Row(
-            children: [
-              // User Avatar
-              InkWell(
-                onTap: () => context.push('/profile'),
-                borderRadius: BorderRadius.circular(22),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                    image: DecorationImage(
-                      image: CachedNetworkImageProvider(avatarUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // Deliver to location selector
-              Expanded(
-                child: InkWell(
-                  onTap: () => context.push('/addresses'),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFC8E6C9),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          const Text(
-                            'Deliver to',
-                            style: TextStyle(
-                              color: Color(0xFFC8E6C9),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              '$addressLabel  $addressStreet',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.keyboard_arrow_down,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Notification Bell with Red Badge
-              InkWell(
-                onTap: () => context.push('/notifications'),
-                borderRadius: BorderRadius.circular(22),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const Icon(Icons.notifications_none, color: Colors.white, size: 22),
-                      Positioned(
-                        top: 9,
-                        right: 10,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFF5252),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // Search Bar: Pure White Rounded Pill Container (Reference Video Style)
+          // Left: Search Circular Button
           InkWell(
             onTap: () => context.push('/search'),
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(24),
             child: Container(
-              height: 50,
-              padding: const EdgeInsets.symmetric(horizontal: 18),
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: const [
+                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? Colors.white12 : const Color(0xFFEEEEEE),
+                ),
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x18000000),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Row(
+              child: Icon(
+                Icons.search_rounded,
+                color: isDark ? Colors.white70 : const Color(0xFF555555),
+                size: 22,
+              ),
+            ),
+          ),
+
+          // Center: Location & City with Chevron
+          InkWell(
+            onTap: () => context.push('/addresses'),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.search, color: Color(0xFF757575), size: 22),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      'Search restaurants or dishes',
-                      style: TextStyle(
-                        color: Color(0xFF757575),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
+                  Text(
+                    'Location',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F8E9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.tune,
-                      color: GlassTheme.primaryGreen,
-                      size: 18,
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Color(0xFF8CD802), // Vibrant lime green pin
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        locationName,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Right: Notification Bell with Red Badge "1"
+          InkWell(
+            onTap: () => context.push('/notifications'),
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? Colors.white12 : const Color(0xFFEEEEEE),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    Icons.notifications_none_rounded,
+                    color: isDark ? Colors.white70 : const Color(0xFF555555),
+                    size: 22,
+                  ),
+                  Positioned(
+                    top: 9,
+                    right: 9,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF4842),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        '1',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          height: 1.0,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -411,112 +473,117 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // Hero Promo Banner: "FAST & FREE DELIVERY!" with "ORDER NOW" Red CTA
+  // 2. Spaghetti Dark Hero Card Promo (Matching Reference Screen 1)
   // ──────────────────────────────────────────────────────────────────────────
-  Widget _buildHeroPromoBanner(BuildContext context) {
+  Widget _buildSpaghettiHeroPromo(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      height: 155,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: const [
+        color: GlassTheme.heroDarkCard,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x2E1B5E20),
-            blurRadius: 14,
-            offset: Offset(0, 5),
+            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Row(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          Expanded(
+          // Left Content
+          Padding(
+            padding: const EdgeInsets.only(left: 20.0, top: 18.0, bottom: 18.0, right: 130.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                RichText(
-                  text: const TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'FAST & FREE\n',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                          letterSpacing: 0.5,
-                          height: 1.1,
-                        ),
-                      ),
-                      TextSpan(
-                        text: 'DELIVERY!',
-                        style: TextStyle(
-                          color: Color(0xFFFF5722),
-                          fontWeight: FontWeight.w900,
-                          fontSize: 22,
-                          letterSpacing: 0.5,
-                          shadows: [
-                            Shadow(
-                              color: Color(0x66000000),
-                              offset: Offset(1, 1),
-                              blurRadius: 2,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                const Text(
+                  'Free Delivery For',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 4),
                 const Text(
-                  'On all orders this week!',
+                  'Spaghetti',
                   style: TextStyle(
-                    color: Color(0xFFFFF59D),
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 22,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                const Text(
+                  'Up to 3 times per day',
+                  style: TextStyle(
+                    color: Color(0xFF9E9EA7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => _claimCoupon('FREESHIP'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE53935),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                    shape: RoundedRectangleBorder(
+                InkWell(
+                  onTap: () {
+                    context.push('/food-details', extra: _spaghettiPromoItem);
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.limeAccent,
                       borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: GlassTheme.limeAccent.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                    elevation: 3,
-                  ),
-                  child: const Text(
-                    'ORDER NOW',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 11,
-                      letterSpacing: 0.5,
+                    child: const Text(
+                      'Order Now',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            width: 86,
-            height: 86,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.two_wheeler,
-              size: 54,
-              color: Colors.white,
+
+          // Right Dish Image (round bowl of spaghetti bolognese)
+          Positioned(
+            right: -15,
+            top: 8,
+            bottom: 8,
+            child: Container(
+              width: 145,
+              height: 145,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 14,
+                    offset: const Offset(-4, 6),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: CachedNetworkImage(
+                  imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=400&q=80',
+                  fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => const Icon(Icons.restaurant, color: Colors.white54, size: 40),
+                ),
+              ),
             ),
           ),
         ],
@@ -525,46 +592,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // Categories Horizontal Carousel with 3D Styled Badges
+  // 3. Four Modern Categories (Burger, Chicken, Fries, Drink)
   // ──────────────────────────────────────────────────────────────────────────
-  Widget _buildCategoriesList(bool isDark) {
-    return SizedBox(
-      height: 94,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final cat = _categories[index];
-          final isSelected = _selectedCategoryIndex == index;
+  Widget _buildModernFourCategories(bool isDark) {
+    return Row(
+      children: List.generate(_quickCategories.length, (index) {
+        final cat = _quickCategories[index];
+        final isSelected = _selectedQuickCategoryIndex == index;
 
-          return Padding(
-            padding: const EdgeInsets.only(right: 12.0),
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: index == 0 ? 0 : 5,
+              right: index == _quickCategories.length - 1 ? 0 : 5,
+            ),
             child: InkWell(
               onTap: () {
-                setState(() => _selectedCategoryIndex = index);
+                setState(() {
+                  if (_selectedQuickCategoryIndex == index) {
+                    _selectedQuickCategoryIndex = null;
+                  } else {
+                    _selectedQuickCategoryIndex = index;
+                  }
+                });
               },
               borderRadius: BorderRadius.circular(18),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 76,
+              child: Container(
+                height: 84,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? GlassTheme.primaryGreen
+                      ? (isDark ? const Color(0xFF263320) : const Color(0xFFF3FAD5))
                       : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
                     color: isSelected
-                        ? Colors.transparent
-                        : (isDark ? Colors.white12 : const Color(0xFFEEEEEE)),
-                    width: 1,
+                        ? const Color(0xFF8CD802)
+                        : (isDark ? Colors.white10 : const Color(0xFFEEEEEE)),
+                    width: isSelected ? 1.5 : 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: isSelected
-                          ? GlassTheme.primaryGreen.withValues(alpha: 0.35)
-                          : Colors.black.withValues(alpha: 0.04),
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                       blurRadius: 8,
-                      offset: const Offset(0, 3),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -573,17 +643,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       cat['emoji'] as String,
-                      style: const TextStyle(fontSize: 28),
+                      style: const TextStyle(fontSize: 26),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       cat['name'] as String,
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        fontSize: 11,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                         color: isSelected
-                            ? Colors.white
-                            : (isDark ? Colors.white : const Color(0xFF333333)),
+                            ? (isDark ? Colors.white : Colors.black)
+                            : (isDark ? Colors.white70 : const Color(0xFF757575)),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -592,8 +662,221 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 4. "Recommended for you" Section Header
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildRecommendedHeader(BuildContext context, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Recommended for you',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+        InkWell(
+          onTap: () => context.push('/explore'),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Text(
+              'See More',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 5. Recommended Dishes 2-Column Grid (Direct /food-details Navigation)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildRecommendedGrid(BuildContext context, bool isDark) {
+    var list = _recommendedDishes;
+    if (_selectedQuickCategoryIndex != null) {
+      final selectedCat = _quickCategories[_selectedQuickCategoryIndex!]['name'] as String;
+      final filtered = list.where((d) => d['category'] == selectedCat).toList();
+      if (filtered.isNotEmpty) {
+        list = filtered;
+      }
+    }
+
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.72,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 14,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final item = list[index];
+          final favoritesProvider = context.watch<FavoritesProvider>();
+          final isFav = favoritesProvider.isFoodFavorite(item['id']);
+
+          return InkWell(
+            onTap: () => context.push('/food-details', extra: item),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Favorite Heart Button in top right
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: InkWell(
+                      onTap: () => favoritesProvider.toggleFoodItem(item),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          size: 20,
+                          color: isFav ? const Color(0xFFFF4842) : const Color(0xFFD0D0D0),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Dish Centered Image
+                  Expanded(
+                    child: Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: CachedNetworkImage(
+                          imageUrl: item['image'],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            child: const Icon(Icons.fastfood, size: 36, color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Item Name
+                  Text(
+                    item['name'] as String,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+
+                  // Subtitle
+                  Text(
+                    item['subtitle'] as String,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Price & Lime '+' Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '\$${(item['price'] as double).toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          context.read<CartProvider>().addItem(
+                                item['id'] as int,
+                                item['name'] as String,
+                                item['price'] as double,
+                                item['image'] as String,
+                              );
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text('${item['name']} added to cart!'),
+                                ],
+                              ),
+                              backgroundColor: const Color(0xFF2E7D32),
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: GlassTheme.limeAccent,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: GlassTheme.limeAccent.withValues(alpha: 0.4),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.black,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           );
         },
+        childCount: list.length,
       ),
     );
   }

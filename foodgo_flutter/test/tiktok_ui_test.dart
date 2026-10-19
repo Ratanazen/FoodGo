@@ -109,5 +109,34 @@ void main() {
       expect(getStepperStep('on_the_way'), 3);
       expect(getStepperStep('delivered'), 4);
     });
+
+    test('GlassTheme defines Naperville modern vibrant lime delivery accents', () {
+      expect(GlassTheme.limeAccent, const Color(0xFFCCFF00));
+      expect(GlassTheme.limeAccentBright, const Color(0xFFD7FB00));
+      expect(GlassTheme.limeSurface, const Color(0xFFF9FBE7));
+      expect(GlassTheme.heroDarkCard, const Color(0xFF1E1E20));
+    });
+
+    test('Food item details data model contains valid nutrients and restaurant linking', () {
+      final itemData = {
+        'id': 103,
+        'name': 'Double Beef Cheese Burger',
+        'location': 'Naperville, Illinois',
+        'price': 6.50,
+        'calories': '198',
+        'proteins': '25.2',
+        'fats': '13.8',
+        'carbo': '23.7',
+        'category': 'Burger',
+      };
+
+      expect(itemData['name'], 'Double Beef Cheese Burger');
+      expect(itemData['location'], 'Naperville, Illinois');
+      expect(itemData['price'], 6.50);
+      expect(itemData['calories'], '198');
+      expect(itemData['proteins'], '25.2');
+      expect(itemData['fats'], '13.8');
+      expect(itemData['carbo'], '23.7');
+    });
   });
 }

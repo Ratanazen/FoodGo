@@ -9,6 +9,7 @@ import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../widgets/lottie_assets.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../core/utils/khmer_currency.dart';
 import '../../../providers/cart_provider.dart';
 
 class CartScreen extends StatefulWidget {
@@ -207,38 +208,49 @@ class _CartScreenState extends State<CartScreen> {
                     Text(
                       '\$${item.price.toStringAsFixed(2)}',
                       style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        color: GlassTheme.limeAccentBright,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
                       ),
                     ),
                   ],
                 ),
               ),
-              GlassContainer(
-                borderRadius: GlassTheme.borderRadiusSmall,
-                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      onPressed: () {
+                    InkWell(
+                      onTap: () {
                         HapticFeedback.lightImpact();
                         cart.decrementItem(item.id);
                       },
-                      icon: const Icon(Icons.remove, size: 18),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                      tooltip: 'Decrease quantity',
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Text(
-                        '${item.quantity}',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                        child: const Icon(Icons.remove, size: 16, color: Colors.white),
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Text(
+                        '${item.quantity}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
                         HapticFeedback.lightImpact();
                         cart.addItem(
                           item.id,
@@ -249,10 +261,16 @@ class _CartScreenState extends State<CartScreen> {
                           restaurantName: item.restaurantName,
                         );
                       },
-                      icon: const Icon(Icons.add, size: 18, color: GlassTheme.primaryGreen),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                      tooltip: 'Increase quantity',
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: GlassTheme.limeAccent,
+                        ),
+                        child: const Icon(Icons.add, size: 16, color: Colors.black),
+                      ),
                     ),
                   ],
                 ),
@@ -449,20 +467,54 @@ class _CartScreenState extends State<CartScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Text(
-                  '\$${cart.grandTotal.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: GlassTheme.primaryGreen),
+                const Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '\$${cart.grandTotal.toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: GlassTheme.limeAccentBright),
+                    ),
+                    Text(
+                      '≈ ${KhmerCurrency.formatKhr(cart.grandTotal)} KHR',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.7)),
+                    ),
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: GlassButton(
-                text: 'Proceed to Checkout',
-                icon: Icons.arrow_forward,
-                onPressed: () => context.push('/checkout'),
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GlassTheme.limeAccent,
+                  foregroundColor: Colors.black,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                ),
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  context.push('/checkout');
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Proceed to Checkout',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward, color: Colors.black, size: 20),
+                  ],
+                ),
               ),
             ),
           ],
@@ -495,38 +547,70 @@ class _CartScreenState extends State<CartScreen> {
     return Consumer<CartProvider>(
       builder: (context, cart, child) {
         return Scaffold(
-          appBar: GlassAppBar(
-            title: 'Your Cart',
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Navigator.of(context).canPop()
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                  )
+                : null,
+            centerTitle: true,
+            title: const Text(
+              'Your Cart',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.white),
+            ),
             actions: [
               if (cart.items.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.delete_sweep_outlined, color: Colors.white70),
-                  tooltip: 'Clear Cart',
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        backgroundColor: GlassTheme.dialogDark,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                        title: const Text('Clear Cart?'),
-                        content: const Text('Are you sure you want to remove all items from your cart?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.white70),
+                      tooltip: 'Clear Cart',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            backgroundColor: GlassTheme.dialogDark,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                            title: const Text('Clear Cart?'),
+                            content: const Text('Are you sure you want to remove all items from your cart?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                onPressed: () {
+                                  cart.clear();
+                                  Navigator.pop(ctx);
+                                },
+                                child: const Text('Clear', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
                           ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                            onPressed: () {
-                              cart.clear();
-                              Navigator.pop(ctx);
-                            },
-                            child: const Text('Clear', style: TextStyle(color: Colors.white)),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                        );
+                      },
+                    ),
+                  ),
                 ),
             ],
           ),

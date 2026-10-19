@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -494,14 +495,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.primaryGreen,
-                        foregroundColor: Colors.white,
+                        backgroundColor: GlassTheme.limeAccent,
+                        foregroundColor: Colors.black,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         elevation: 0,
                       ),
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: const Text('Order Again', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      icon: const Icon(Icons.refresh, size: 16, color: Colors.black),
+                      label: const Text(
+                        'Order Again',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.black),
+                      ),
                       onPressed: () => _reorderItems(order),
                     ),
                   ),
@@ -817,31 +821,37 @@ class _OrdersScreenState extends State<OrdersScreen> {
     const filters = ['All', 'Active', 'Delivered', 'Cancelled'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         children: filters.map((filter) {
           final isSelected = _selectedFilter == filter;
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: ChoiceChip(
-              label: Text(filter),
-              selected: isSelected,
-              selectedColor: GlassTheme.primaryGreen,
-              backgroundColor: GlassTheme.surfaceDark,
-              side: BorderSide(
-                color: isSelected ? GlassTheme.primaryGreen : GlassTheme.borderDark,
-                width: 1,
-              ),
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 13,
-              ),
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() => _selectedFilter = filter);
-                }
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                setState(() => _selectedFilter = filter);
               },
+              borderRadius: BorderRadius.circular(20),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? GlassTheme.limeAccent : Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? GlassTheme.limeAccent : Colors.white.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: Text(
+                  filter,
+                  style: TextStyle(
+                    color: isSelected ? Colors.black : Colors.white70,
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
             ),
           );
         }).toList(),

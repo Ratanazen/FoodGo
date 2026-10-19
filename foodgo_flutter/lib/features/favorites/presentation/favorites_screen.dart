@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -21,17 +22,36 @@ class FavoritesScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: GlassAppBar(
-          title: 'Favorites (${favorites.totalFavoritesCount})',
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Navigator.of(context).canPop()
+              ? Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white),
+                      onPressed: () => context.pop(),
+                    ),
+                  ),
+                )
+              : null,
+          centerTitle: true,
+          title: Text(
+            'Favorites (${favorites.totalFavoritesCount})',
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: Colors.white),
           ),
           bottom: TabBar(
-            indicatorColor: GlassTheme.primaryGreen,
-            labelColor: GlassTheme.primaryGreen,
-            unselectedLabelColor: GlassTheme.textMuted,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            indicatorColor: GlassTheme.limeAccent,
+            indicatorWeight: 3,
+            labelColor: GlassTheme.limeAccent,
+            unselectedLabelColor: Colors.white60,
+            labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
             tabs: [
               Tab(text: 'Restaurants (${restaurants.length})'),
               Tab(text: 'Food Items (${foods.length})'),
@@ -143,9 +163,9 @@ class FavoritesScreen extends StatelessWidget {
                                     Text(
                                       '\$${price.toStringAsFixed(2)}',
                                       style: const TextStyle(
-                                        color: GlassTheme.primaryGreen,
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 14,
+                                        color: GlassTheme.limeAccentBright,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 15,
                                       ),
                                     ),
                                   ],
@@ -166,9 +186,10 @@ class FavoritesScreen extends StatelessWidget {
                                   );
                                 },
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.add_shopping_cart, color: GlassTheme.primaryGreen, size: 22),
-                                onPressed: () {
+                              const SizedBox(width: 4),
+                              InkWell(
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
                                   final cart = context.read<CartProvider>();
                                   final id = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
                                   cart.addItem(id, name, price, imgUrl);
@@ -180,12 +201,22 @@ class FavoritesScreen extends StatelessWidget {
                                       behavior: SnackBarBehavior.floating,
                                       action: SnackBarAction(
                                         label: 'View Cart',
-                                        textColor: GlassTheme.primaryGreen,
+                                        textColor: GlassTheme.limeAccent,
                                         onPressed: () => context.push('/cart'),
                                       ),
                                     ),
                                   );
                                 },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: GlassTheme.limeAccent,
+                                  ),
+                                  child: const Icon(Icons.add, color: Colors.black, size: 18),
+                                ),
                               ),
                             ],
                           ),

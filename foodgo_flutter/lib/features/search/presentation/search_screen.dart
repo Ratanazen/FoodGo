@@ -208,10 +208,20 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               const SizedBox(height: 20),
               SizedBox(
-                height: 50,
-                child: GlassButton(
-                  text: 'Add $qty to Cart • \$${(price * qty).toStringAsFixed(2)}',
-                  icon: Icons.add_shopping_cart,
+                height: 52,
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: GlassTheme.limeAccent,
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                  ),
+                  icon: const Icon(Icons.add_shopping_cart, color: Colors.black, size: 20),
+                  label: Text(
+                    'Add $qty to Cart • \$${(price * qty).toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black),
+                  ),
                   onPressed: () {
                     final cart = context.read<CartProvider>();
                     for (int i = 0; i < qty; i++) {
@@ -230,11 +240,11 @@ class _SearchScreenState extends State<SearchScreen> {
                       SnackBar(
                         content: Text('Added $qty "$name" to your cart!'),
                         duration: const Duration(seconds: 2),
-                        backgroundColor: GlassTheme.primaryGreen,
+                        backgroundColor: GlassTheme.surfaceDark,
                         behavior: SnackBarBehavior.floating,
                         action: SnackBarAction(
                           label: 'View Cart',
-                          textColor: Colors.white,
+                          textColor: GlassTheme.limeAccent,
                           onPressed: () => context.push('/cart'),
                         ),
                       ),
@@ -252,12 +262,30 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        title: 'Search Food',
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+      extendBodyBehindAppBar: false,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Navigator.of(context).canPop()
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              )
+            : null,
+        centerTitle: true,
+        title: const Text(
+          'Search Food',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: Colors.white),
         ),
       ),
       body: SafeArea(
@@ -266,28 +294,31 @@ class _SearchScreenState extends State<SearchScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search for pizza, burger, Khmer dishes...',
-                  hintStyle: TextStyle(color: GlassTheme.textMuted),
-                  prefixIcon: const Icon(Icons.search, color: GlassTheme.primaryGreen),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.white60, size: 18),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.1),
-                  border: OutlineInputBorder(
-                    borderRadius: GlassTheme.borderRadiusSmall,
-                    borderSide: BorderSide.none,
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'Search for pizza, burger, Khmer dishes...',
+                    hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 14),
+                    prefixIcon: const Icon(Icons.search, color: GlassTheme.limeAccent, size: 22),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, color: Colors.white70, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onSearchChanged('');
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
                   ),
                 ),
               ),

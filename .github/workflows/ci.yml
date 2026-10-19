@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ master, main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   security-and-secret-audit:
     name: Secret & API Leak Prevention Check
@@ -46,6 +50,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+        cache: 'pip'
+        cache-dependency-path: 'backend/requirements.txt'
     - name: Install dependencies
       run: |
         cd backend
@@ -53,7 +59,6 @@ jobs:
         pip install -r requirements.txt
     - name: Run Django System Checks
       env:
-        # Strictly dummy CI credentials - never real API keys or production secrets
         SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
         DEBUG: "False"
         SECURE_SSL_REDIRECT: "False"
@@ -71,12 +76,19 @@ jobs:
         PAYMENT_ENV: "sandbox"
         ABA_ENABLED: "True"
         ACLEDA_ENABLED: "True"
+        DATABASE_URL: "postgresql://postgres:password@localhost:5432/foodgo_test"
       run: |
         cd backend
         python manage.py test
+    - name: Verify Static Assets Collection
+      env:
+        SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
+      run: |
+        cd backend
+        python manage.py collectstatic --noinput
 
   flutter-test:
-    name: Flutter Analyze & Test Suite
+    name: Flutter Analyze, Test & Web Build
     runs-on: ubuntu-latest
     needs: security-and-secret-audit
     steps:
@@ -99,3 +111,22 @@ jobs:
       run: |
         cd foodgo_flutter
         flutter test
+    - name: Build Flutter Web Release
+      run: |
+        cd foodgo_flutter
+        flutter build web --release
+
+  docker-build-verification:
+    name: Docker Container Build Verification
+    runs-on: ubuntu-latest
+    needs: [backend-test, flutter-test]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Build Backend Docker Image
+      run: |
+        docker build -f Dockerfile -t foodgo-backend:ci .
+    - name: Build Frontend Docker Image
+      run: |
+        docker build -f Dockerfile.frontend -t foodgo-frontend:ci .

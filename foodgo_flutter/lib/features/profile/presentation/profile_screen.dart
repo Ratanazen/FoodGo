@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -76,12 +75,12 @@ class ProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: GlassTheme.primaryGreen, width: 2),
+                            border: Border.all(color: GlassTheme.limeAccent, width: 2.5),
                             boxShadow: [
                               BoxShadow(
-                                color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
-                                blurRadius: 14,
-                                spreadRadius: 1,
+                                color: GlassTheme.limeAccent.withValues(alpha: 0.25),
+                                blurRadius: 16,
+                                spreadRadius: 2,
                               ),
                             ],
                           ),
@@ -94,29 +93,29 @@ class ProfileScreen extends StatelessWidget {
                                   ),
                                   placeholder: (ctx, url) => CircleAvatar(
                                     radius: 40,
-                                    backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                                    child: const CircularProgressIndicator(color: GlassTheme.primaryGreen, strokeWidth: 2),
+                                    backgroundColor: GlassTheme.limeAccent.withValues(alpha: 0.15),
+                                    child: const CircularProgressIndicator(color: GlassTheme.limeAccent, strokeWidth: 2),
                                   ),
                                   errorWidget: (ctx, url, err) => CircleAvatar(
                                     radius: 40,
-                                    backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                    backgroundColor: GlassTheme.limeAccent.withValues(alpha: 0.15),
                                     child: Text(
                                       username.isNotEmpty ? username[0].toUpperCase() : 'G',
-                                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.limeAccent),
                                     ),
                                   ),
                                 )
                               : CircleAvatar(
                                   radius: 40,
-                                  backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                  backgroundColor: GlassTheme.limeAccent.withValues(alpha: 0.15),
                                   child: Text(
                                     username.isNotEmpty ? username[0].toUpperCase() : 'G',
-                                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: GlassTheme.limeAccent),
                                   ),
                                 ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(username, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                        const SizedBox(height: 14),
+                        Text(username, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
                         const SizedBox(height: 4),
                         Text(email, style: const TextStyle(color: GlassTheme.textMuted, fontSize: 13)),
                         if (phone.isNotEmpty) ...[
@@ -124,7 +123,7 @@ class ProfileScreen extends StatelessWidget {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.phone_outlined, size: 14, color: GlassTheme.primaryGreen),
+                              const Icon(Icons.phone_outlined, size: 14, color: GlassTheme.limeAccent),
                               const SizedBox(width: 6),
                               Text(
                                 phone,
@@ -133,6 +132,80 @@ class ProfileScreen extends StatelessWidget {
                             ],
                           ),
                         ],
+                        const SizedBox(height: 18),
+                        // Quick Action Shortcuts: Wallet, Orders, KHQR
+                        Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: () => context.push('/wallet'),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                  ),
+                                  child: const Column(
+                                    children: [
+                                      Icon(Icons.account_balance_wallet_outlined, color: GlassTheme.limeAccent, size: 22),
+                                      SizedBox(height: 6),
+                                      Text('Wallet', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () => context.push('/orders'),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                  ),
+                                  child: const Column(
+                                    children: [
+                                      Icon(Icons.receipt_long_outlined, color: Colors.amberAccent, size: 22),
+                                      SizedBox(height: 6),
+                                      Text('Orders', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () {
+                                  final u = context.read<UserProvider>().user;
+                                  MyQrModal.show(context, user: u);
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                  ),
+                                  child: const Column(
+                                    children: [
+                                      Icon(Icons.qr_code_2, color: Colors.redAccent, size: 22),
+                                      SizedBox(height: 6),
+                                      Text('My KHQR', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -336,19 +409,44 @@ class _ProfileOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = iconColor ?? GlassTheme.limeAccent;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: GlassCard(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: InkWell(
         onTap: onTap,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Row(
-          children: [
-            Icon(icon, color: iconColor ?? GlassTheme.primaryGreen),
-            const SizedBox(width: 16),
-            Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: textColor)),
-            const Spacer(),
-            Icon(Icons.chevron_right, color: GlassTheme.textMuted),
-          ],
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: effectiveColor.withValues(alpha: 0.15),
+                ),
+                child: Icon(icon, color: effectiveColor, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: textColor ?? Colors.white,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, color: Colors.white.withValues(alpha: 0.35), size: 14),
+            ],
+          ),
         ),
       ),
     );

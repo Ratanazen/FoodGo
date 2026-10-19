@@ -1,4 +1,4 @@
-# 🍔 FoodGo - Enterprise Food Delivery Platform
+# FoodGo - Enterprise Food Delivery Platform
 
 FoodGo is a modern, production-ready, full-stack food delivery application built with a beautifully animated **Flutter** frontend and a robust **Django REST Framework / WebSockets** backend.
 
@@ -12,15 +12,15 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 
 ---
 
-## ✨ Core Features & Modern UI/UX
+## Core Features & Modern UI/UX
 
 ### 1. Modern Food Delivery Experience
-* **Minimalist Location Header:** Clean search circle button, centered `Location` / `📍 Naperville, Illinois ⌄`, and notification bell with unread badge `1`.
+* **Minimalist Location Header:** Clean search circle button, centered `Location` / `Naperville, Illinois`, and notification bell with unread badge `1`.
 * **Spaghetti Hero Promo Card:** High-contrast dark container (`#1E1E20`) highlighting `"Free Delivery For Spaghetti"`, `"Up to 3 times per day"`, with neon-lime `"Order Now"` pill button (`#CCFF00`) and round spaghetti dish presentation.
-* **4 Quick Categories:** Rounded square category filter cards (`Burger` 🍔, `Chicken` 🍗, `Fries` 🍟, `Drink` 🥤) with active selection state.
+* **4 Quick Categories:** Rounded square category filter cards (`Burger`, `Chicken`, `Fries`, `Drink`) with active selection state and vector icons.
 * **Recommended For You 2-Column Grid:** Dynamic dish cards featuring `Golden Spicy Chicken` ($5.00), `Cheese Burger Nagi` ($4.50), `Double Beef Cheese Burger` ($6.50), and `Crispy French Fries` ($3.00) with interactive favorite hearts and circular neon-lime `+` add-to-cart buttons.
 * **Food Item Details Screen:** Clean floating circular top buttons, hero dish image with realistic soft drop shadow, **4 macro-nutrients nutrition card** (`198 kcal`, `25.2 proteins`, `13.8 fats`, `23.7 carbo`), expandable `"Show more"` description, and sticky bottom bar with bag button & large neon-lime `"Buy Now"` pill button.
-* **Live Order Tracking Sheet (TikTok Reference):** Interactive route polyline on Google Maps, live pulsing status dot, 5-stage milestone stepper (`Confirmed` → `Preparing` → `Picked up` → `On the way` → `Delivered`), driver info card (`Ahmad Faizal`), route breakdown card, and itemized order receipt.
+* **Live Order Tracking Sheet (TikTok Reference):** Interactive route polyline on Google Maps, live pulsing status dot, 5-stage milestone stepper (`Confirmed` -> `Preparing` -> `Picked up` -> `On the way` -> `Delivered`), driver info card (`Ahmad Faizal`), route breakdown card, and itemized order receipt.
 
 ### 2. Modern Illustrated Authentication Flow
 * **Offline Vector Character Illustrations:** Pure canvas-drawn vector illustrations rendered via custom painters (`AuthIllustration`):
@@ -47,10 +47,10 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 
 ---
 
-## 🏗️ Architecture Stack
+## Architecture Stack
 
 * **Frontend:** Flutter 3.x (Provider state management, GoRouter, `flutter_animate`, Google Maps / OpenStreetMap)
-* **Backend API:** Python 3.10+, Django 6.1 / 5.1, Django REST Framework, SimpleJWT
+* **Backend API:** Python 3.12+, Django 6.1, Django REST Framework, SimpleJWT
 * **Real-time / Async:** Daphne ASGI, Django Channels, WebSockets, Redis
 * **Database:** PostgreSQL 15 (production), SQLite (local dev)
 * **Design Tokens:** Centralized modern theme tokens in `GlassTheme` (neon-lime `#CCFF00`, auth blue `#1B64F2`, dark surfaces `#1E1E20`)
@@ -58,7 +58,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 
 ---
 
-## 🚀 Quick Start (One-Click Environment)
+## Quick Start (One-Click Environment)
 
 On Linux or macOS, run the automated launch script from the project root:
 
@@ -75,12 +75,12 @@ This single command will:
 
 ---
 
-## 🛠️ Step-by-Step Manual Running
+## Step-by-Step Manual Running
 
 If you prefer running services in separate terminal windows:
 
 ### 1. Prerequisites
-- **Python 3.10+**
+- **Python 3.12+**
 - **Flutter SDK 3.x**
 - **Git**
 
@@ -240,13 +240,16 @@ flutter build web --release
 
 ---
 
-## 📚 Complete Technical Documentation
+## Technical Documentation
 
 Comprehensive documentation is provided in the `docs/` directory:
+- [**Project Audit Report**](docs/project-audit.md) — Comprehensive architecture, defect findings, root causes, and remediation.
+- [**Form Audit & Validation Guide**](docs/form-fixes.md) — Screen-by-screen form audit, validation rules, and double-submit prevention.
+- [**CI/CD Pipeline Operations**](docs/cicd.md) — GitHub Actions 4-stage pipeline topology, secrets, and local execution.
+- [**Production Hosting & Deployment**](docs/deployment.md) — Vercel serverless WSGI and Render container deployment guide.
+- [**Troubleshooting & Diagnostics**](docs/troubleshooting.md) — Step-by-step diagnostics for Flutter, Django, Docker, and Vercel.
 - [**TikTok Reference UI/UX Analysis**](docs/reference-analysis.md) — Comprehensive visual breakdown of TikTok reference video frames and component specs.
 - [**Modernization Implementation Plan**](docs/implementation-plan.md) — Roadmap for modern delivery experience.
-- [**Codebase Implementation Audit**](docs/implementation-audit.md) — Full repository audit and payment verification.
-- [**Project Audit Report**](docs/PROJECT_AUDIT.md) — Codebase architecture and security audit.
 - [**API Documentation**](docs/API_DOCUMENTATION.md) — Full REST API reference with JSON request/response payloads.
 - [**Payment Setup Guide**](docs/PAYMENT_SETUP.md) — Merchant onboarding for Bakong, ABA PayWay, and ACLEDA.
 - [**Delivery Confirmation Guide**](docs/DELIVERY_QR.md) — Cryptographic delivery confirmation and security guarantees.
@@ -254,21 +257,21 @@ Comprehensive documentation is provided in the `docs/` directory:
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 To spin up the entire production stack (PostgreSQL, Redis, Daphne ASGI, Flutter Nginx):
 
 ```bash
 # Copy sample environment configuration
-cp backend/.env.example backend/.env
+cp .env.example backend/.env
 
 # Build and start all containers
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ---
 
-## 🛡️ Security & Architecture Best Practices
+## Security & Architecture Best Practices
 
 * **Zero PII in QR Payloads:** Delivery and payment QR codes never include customer names, phones, addresses, or credentials.
 * **Server-Authoritative Pricing:** Subtotals, discounts, delivery fees, and totals are computed strictly on the server.
@@ -278,6 +281,6 @@ docker-compose up -d --build
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

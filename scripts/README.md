@@ -36,6 +36,17 @@ bash scripts/start_simulation.sh
 
 ---
 
+## `build_app_icons.py`
+
+Generates cross-platform application icons for Android and iOS using Pillow (`PIL`).
+
+```bash
+source backend/venv/bin/activate
+python scripts/build_app_icons.py
+```
+
+---
+
 ## Root-level: `run_all.sh`
 
 Starts the entire dev ecosystem (Django + Flutter Web) in one command.
@@ -46,3 +57,4 @@ Starts the entire dev ecosystem (Django + Flutter Web) in one command.
 
 Kills anything on ports 8000 / 8080 first, then starts both servers in the background.
 Press `Ctrl+C` to stop everything.
+

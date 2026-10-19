@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:latlong2/latlong.dart';
 
 enum MapLayerType {
@@ -76,7 +77,8 @@ class MapConfig {
     final lat1 = _degreesToRadians(start.latitude);
     final lat2 = _degreesToRadians(end.latitude);
 
-    final a = sin(dLat / 2) * sin(dLat / 2) +
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
         sin(dLng / 2) * sin(dLng / 2) * cos(lat1) * cos(lat2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return earthRadiusKm * c;

@@ -1,9 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../providers/cart_provider.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
@@ -42,7 +44,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
 
   void _initCountdown() {
     if (_currentPayment.expiresAt != null) {
-      final diff = _currentPayment.expiresAt!.difference(DateTime.now()).inSeconds;
+      final diff = _currentPayment.expiresAt!
+          .difference(DateTime.now())
+          .inSeconds;
       _secondsRemaining = diff > 0 ? diff : 0;
     }
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -71,7 +75,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       setState(() => _isVerifying = true);
     }
     try {
-      final updated = await _paymentService.getPaymentStatus(_currentPayment.id);
+      final updated = await _paymentService.getPaymentStatus(
+        _currentPayment.id,
+      );
       if (!mounted) return;
       setState(() {
         _currentPayment = updated;
@@ -92,7 +98,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       } else if (!isBackground) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Payment not completed yet. Please scan and pay with your banking app.'),
+            content: Text(
+              'Payment not completed yet. Please scan and pay with your banking app.',
+            ),
             backgroundColor: Colors.orangeAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -137,7 +145,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         ? GlassTheme.bakongRed
         : (isAba ? GlassTheme.abaBlue : GlassTheme.acledaNavy);
 
-    final String qrString = _currentPayment.qrPayload ?? 'https://foodgo.app/khqr/pay';
+    final String qrString =
+        _currentPayment.qrPayload ?? 'https://foodgo.app/khqr/pay';
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -149,9 +158,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          color: GlassTheme.backgroundDark,
-        ),
+        decoration: const BoxDecoration(color: GlassTheme.backgroundDark),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
@@ -174,7 +181,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           const SizedBox(width: 8),
                           Text(
                             'Order #${_currentPayment.orderId}',
-                            style: const TextStyle(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
@@ -198,7 +209,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                       ),
                       const SizedBox(height: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: brandColor.withValues(alpha: 0.25),
                           border: Border.all(color: brandColor),
@@ -207,11 +221,21 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.qr_code_2, size: 16, color: brandColor == GlassTheme.bakongRed ? Colors.redAccent : Colors.white),
+                            Icon(
+                              Icons.qr_code_2,
+                              size: 16,
+                              color: brandColor == GlassTheme.bakongRed
+                                  ? Colors.redAccent
+                                  : Colors.white,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               providerTitle,
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
@@ -228,11 +252,19 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   child: Column(
                     children: [
                       if (_currentPayment.isFailed) ...[
-                        const Icon(Icons.error_outline, size: 80, color: Colors.redAccent),
+                        const Icon(
+                          Icons.error_outline,
+                          size: 80,
+                          color: Colors.redAccent,
+                        ),
                         const SizedBox(height: 16),
                         const Text(
                           'Payment Failed',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -247,11 +279,19 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           onPressed: () => context.pop(),
                         ),
                       ] else if (_currentPayment.isCancelled) ...[
-                        const Icon(Icons.cancel_outlined, size: 80, color: Colors.orangeAccent),
+                        const Icon(
+                          Icons.cancel_outlined,
+                          size: 80,
+                          color: Colors.orangeAccent,
+                        ),
                         const SizedBox(height: 16),
                         const Text(
                           'Payment Cancelled',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orangeAccent,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -265,12 +305,21 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           icon: Icons.receipt_long,
                           onPressed: () => context.go('/orders'),
                         ),
-                      ] else if (_currentPayment.isExpired || _secondsRemaining <= 0) ...[
-                        const Icon(Icons.timer_off_outlined, size: 80, color: Colors.redAccent),
+                      ] else if (_currentPayment.isExpired ||
+                          _secondsRemaining <= 0) ...[
+                        const Icon(
+                          Icons.timer_off_outlined,
+                          size: 80,
+                          color: Colors.redAccent,
+                        ),
                         const SizedBox(height: 16),
                         const Text(
                           'Payment QR Expired',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -291,7 +340,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: const BoxDecoration(
                             color: GlassTheme.khqrBannerRed,
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(16),
+                            ),
                           ),
                           child: const Center(
                             child: Text(
@@ -312,7 +363,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(16),
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: brandColor.withValues(alpha: 0.35),
@@ -357,7 +410,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.timer, color: Colors.orangeAccent, size: 20),
+                            const Icon(
+                              Icons.timer,
+                              color: Colors.orangeAccent,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Payment expires in: ${_formatTimer(_secondsRemaining)}',
@@ -374,7 +431,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         Text(
                           'Scan this dynamic KHQR with ABA Mobile, ACLEDA mobile, Bakong, or any Cambodian banking app.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                          style: TextStyle(
+                            color: GlassTheme.textMuted,
+                            fontSize: 13,
+                          ),
                         ),
                         const SizedBox(height: 16),
 
@@ -382,17 +442,33 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.2),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                           ),
-                          icon: const Icon(Icons.copy_rounded, size: 16, color: GlassTheme.primaryGreen),
-                          label: const Text('Copy KHQR Payload', style: TextStyle(fontWeight: FontWeight.w600)),
+                          icon: const Icon(
+                            Icons.copy_rounded,
+                            size: 16,
+                            color: GlassTheme.primaryGreen,
+                          ),
+                          label: const Text(
+                            'Copy KHQR Payload',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: qrString));
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('KHQR code payload copied to clipboard!'),
+                                content: Text(
+                                  'KHQR code payload copied to clipboard!',
+                                ),
                                 backgroundColor: GlassTheme.primaryGreen,
                                 duration: Duration(seconds: 2),
                                 behavior: SnackBarBehavior.floating,
@@ -404,22 +480,35 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
 
                         // Show/Hide QR Payload Details Toggle ("qr play show all")
                         InkWell(
-                          onTap: () => setState(() => _showRawPayload = !_showRawPayload),
+                          onTap: () => setState(
+                            () => _showRawPayload = !_showRawPayload,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  _showRawPayload ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                  _showRawPayload
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
                                   size: 18,
                                   color: GlassTheme.textMuted,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  _showRawPayload ? 'Hide QR Payload Details' : 'Show All QR Payload Details',
-                                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 12, fontWeight: FontWeight.w500),
+                                  _showRawPayload
+                                      ? 'Hide QR Payload Details'
+                                      : 'Show All QR Payload Details',
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -441,15 +530,23 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text(
                                       'EMVCo KHQR Payload:',
-                                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
                                       '${qrString.length} chars',
-                                      style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                                      style: TextStyle(
+                                        color: GlassTheme.textMuted,
+                                        fontSize: 11,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -462,11 +559,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                     color: GlassTheme.primaryGreenAccent,
                                   ),
                                 ),
-                                if (_currentPayment.merchantReference != null) ...[
+                                if (_currentPayment.merchantReference !=
+                                    null) ...[
                                   const SizedBox(height: 8),
                                   Text(
                                     'Merchant Ref: ${_currentPayment.merchantReference}',
-                                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                                    style: TextStyle(
+                                      color: GlassTheme.textMuted,
+                                      fontSize: 11,
+                                    ),
                                   ),
                                 ],
                               ],
@@ -480,13 +581,20 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                 const SizedBox(height: 24),
 
                 // Action Buttons
-                if (!_currentPayment.isExpired && !_currentPayment.isFailed && !_currentPayment.isCancelled && _secondsRemaining > 0) ...[
+                if (!_currentPayment.isExpired &&
+                    !_currentPayment.isFailed &&
+                    !_currentPayment.isCancelled &&
+                    _secondsRemaining > 0) ...[
                   SizedBox(
                     height: 54,
                     child: GlassButton(
-                      text: _isVerifying ? 'Checking Status...' : "I've Paid (Verify)",
+                      text: _isVerifying
+                          ? 'Checking Status...'
+                          : "I've Paid (Verify)",
                       icon: Icons.check_circle_outline,
-                      onPressed: _isVerifying ? () {} : () => _checkStatus(isBackground: false),
+                      onPressed: _isVerifying
+                          ? () {}
+                          : () => _checkStatus(isBackground: false),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -495,27 +603,43 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: GlassTheme.primaryGreen,
-                      side: BorderSide(color: GlassTheme.primaryGreen.withValues(alpha: 0.5)),
+                      side: BorderSide(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     icon: const Icon(Icons.bolt, size: 20),
-                    label: const Text('Simulate Webhook Pay (Test Mode)', style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Simulate Webhook Pay (Test Mode)',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     onPressed: _isVerifying
                         ? null
                         : () async {
                             setState(() => _isVerifying = true);
                             try {
-                              final isBakong = _currentPayment.provider.toUpperCase() == 'BAKONG';
-                              final isAba = _currentPayment.provider.toUpperCase() == 'ABA';
+                              final isBakong =
+                                  _currentPayment.provider.toUpperCase() ==
+                                  'BAKONG';
+                              final isAba =
+                                  _currentPayment.provider.toUpperCase() ==
+                                  'ABA';
                               final endpoint = isBakong
                                   ? 'payments/bakong/callback/'
-                                  : (isAba ? 'payments/aba/callback/' : 'payments/acleda/callback/');
+                                  : (isAba
+                                        ? 'payments/aba/callback/'
+                                        : 'payments/acleda/callback/');
                               await ApiService().post(endpoint, {
-                                'merchant_reference': _currentPayment.merchantReference,
-                                'amount': _currentPayment.amount.toStringAsFixed(2),
+                                'merchant_reference':
+                                    _currentPayment.merchantReference,
+                                'amount': _currentPayment.amount
+                                    .toStringAsFixed(2),
                                 'currency': _currentPayment.currency,
-                                'transaction_id': 'TEST-SIM-${DateTime.now().millisecondsSinceEpoch}',
+                                'transaction_id':
+                                    'TEST-SIM-${DateTime.now().millisecondsSinceEpoch}',
                                 'status': 'PAID',
                               });
                               await _checkStatus(isBackground: false);
@@ -527,7 +651,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: _cancelPayment,
-                    child: Text('Cancel Payment', style: TextStyle(color: GlassTheme.textMuted)),
+                    child: Text(
+                      'Cancel Payment',
+                      style: TextStyle(color: GlassTheme.textMuted),
+                    ),
                   ),
                 ],
               ],

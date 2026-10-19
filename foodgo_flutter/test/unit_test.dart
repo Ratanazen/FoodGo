@@ -274,22 +274,25 @@ void main() {
       expect(cart.grandTotal, 10.0);
     });
 
-    test('applyPromoCode with percentage discounts (FOODGO30, FOODGO20, FOODGO50)', () {
-      final cart = CartProvider();
-      cart.addItem(1, 'Pizza', 20.0, null, deliveryFee: 2.0);
+    test(
+      'applyPromoCode with percentage discounts (FOODGO30, FOODGO20, FOODGO50)',
+      () {
+        final cart = CartProvider();
+        cart.addItem(1, 'Pizza', 20.0, null, deliveryFee: 2.0);
 
-      expect(cart.applyPromoCode('FOODGO30'), true);
-      expect(cart.discountAmount, 6.0); // 30% of 20
-      expect(cart.grandTotal, 16.0); // 20 + 2 - 6 = 16
+        expect(cart.applyPromoCode('FOODGO30'), true);
+        expect(cart.discountAmount, 6.0); // 30% of 20
+        expect(cart.grandTotal, 16.0); // 20 + 2 - 6 = 16
 
-      expect(cart.applyPromoCode('FOODGO20'), true);
-      expect(cart.discountAmount, 4.0); // 20% of 20
-      expect(cart.grandTotal, 18.0); // 20 + 2 - 4 = 18
+        expect(cart.applyPromoCode('FOODGO20'), true);
+        expect(cart.discountAmount, 4.0); // 20% of 20
+        expect(cart.grandTotal, 18.0); // 20 + 2 - 4 = 18
 
-      expect(cart.applyPromoCode('FOODGO50'), true);
-      expect(cart.discountAmount, 10.0); // 50% of 20
-      expect(cart.grandTotal, 12.0); // 20 + 2 - 10 = 12
-    });
+        expect(cart.applyPromoCode('FOODGO50'), true);
+        expect(cart.discountAmount, 10.0); // 50% of 20
+        expect(cart.grandTotal, 12.0); // 20 + 2 - 10 = 12
+      },
+    );
 
     test('applyPromoCode with EXPRESS provides delivery discount', () {
       final cart = CartProvider();
@@ -368,8 +371,14 @@ void main() {
       final secondId = provider.addresses[1].id;
 
       await provider.setDefaultAddress(secondId);
-      expect(provider.addresses.firstWhere((a) => a.id == secondId).isDefault, true);
-      expect(provider.addresses.firstWhere((a) => a.id == firstId).isDefault, false);
+      expect(
+        provider.addresses.firstWhere((a) => a.id == secondId).isDefault,
+        true,
+      );
+      expect(
+        provider.addresses.firstWhere((a) => a.id == firstId).isDefault,
+        false,
+      );
       expect(provider.selectedAddress?.id, secondId);
     });
 
@@ -461,11 +470,19 @@ void main() {
       expect(ResponsiveBreakpoints.mobileMax, 650.0);
       expect(ResponsiveBreakpoints.tabletMax, 1050.0);
       expect(ResponsiveBreakpoints.wideThreshold, 800.0);
-      expect(ResponsiveBreakpoints.mobileMax < ResponsiveBreakpoints.wideThreshold, true);
-      expect(ResponsiveBreakpoints.wideThreshold < ResponsiveBreakpoints.tabletMax, true);
+      expect(
+        ResponsiveBreakpoints.mobileMax < ResponsiveBreakpoints.wideThreshold,
+        true,
+      );
+      expect(
+        ResponsiveBreakpoints.wideThreshold < ResponsiveBreakpoints.tabletMax,
+        true,
+      );
     });
 
-    testWidgets('ResponsiveWebContainer constrains width on wide screens', (WidgetTester tester) async {
+    testWidgets('ResponsiveWebContainer constrains width on wide screens', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -489,11 +506,14 @@ void main() {
       expect(KhmerCurrency.formatUsd(0.0), '\$0.00');
     });
 
-    test('formatKhr converts at 4100 rate with riel symbol and thousand commas', () {
-      expect(KhmerCurrency.formatKhr(1.0), '៛4,100');
-      expect(KhmerCurrency.formatKhr(10.0), '៛41,000');
-      expect(KhmerCurrency.formatKhr(25.0), '៛102,500');
-    });
+    test(
+      'formatKhr converts at 4100 rate with riel symbol and thousand commas',
+      () {
+        expect(KhmerCurrency.formatKhr(1.0), '៛4,100');
+        expect(KhmerCurrency.formatKhr(10.0), '៛41,000');
+        expect(KhmerCurrency.formatKhr(25.0), '៛102,500');
+      },
+    );
 
     test('formatDual and formatDualApprox format correctly', () {
       expect(KhmerCurrency.formatDual(10.0), '\$10.00 (៛41,000)');
@@ -512,7 +532,8 @@ void main() {
       const bakongId = '$username@bkrt';
       const amount = 10.0;
       final amtStr = amount.toStringAsFixed(2);
-      final payload = '00020101021229370016bakong@bkrt0109$bakongId'
+      final payload =
+          '00020101021229370016bakong@bkrt0109$bakongId'
           '5303840'
           '540${amtStr.length.toString().padLeft(2, '0')}$amtStr'
           '5802KH5911Alice_Smith'
@@ -567,18 +588,27 @@ void main() {
   });
 
   group('Delivery Confirmation QR & PIN Tests', () {
-    test('QR payload generator and parser parses order_id and token correctly', () {
-      const orderId = '123';
-      const token = 'abc_xyz_secret_token_123';
-      final qrPayload = 'FOODGO:DELIVERY:CONFIRM:v1?order_id=$orderId&token=$token';
+    test(
+      'QR payload generator and parser parses order_id and token correctly',
+      () {
+        const orderId = '123';
+        const token = 'abc_xyz_secret_token_123';
+        final qrPayload =
+            'FOODGO:DELIVERY:CONFIRM:v1?order_id=$orderId&token=$token';
 
-      expect(qrPayload.startsWith('FOODGO:DELIVERY:CONFIRM:v1'), true);
+        expect(qrPayload.startsWith('FOODGO:DELIVERY:CONFIRM:v1'), true);
 
-      // Parse payload
-      final uri = Uri.parse(qrPayload.replaceFirst('FOODGO:DELIVERY:CONFIRM:v1?', 'https://foodgo.app/?'));
-      expect(uri.queryParameters['order_id'], '123');
-      expect(uri.queryParameters['token'], 'abc_xyz_secret_token_123');
-    });
+        // Parse payload
+        final uri = Uri.parse(
+          qrPayload.replaceFirst(
+            'FOODGO:DELIVERY:CONFIRM:v1?',
+            'https://foodgo.app/?',
+          ),
+        );
+        expect(uri.queryParameters['order_id'], '123');
+        expect(uri.queryParameters['token'], 'abc_xyz_secret_token_123');
+      },
+    );
 
     test('Verification PIN validation enforces 6 numeric digits', () {
       final validPinRegex = RegExp(r'^\d{6}$');

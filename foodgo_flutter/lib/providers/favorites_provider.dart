@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,11 +16,14 @@ class FavoritesProvider with ChangeNotifier {
     _loadFuture = _loadFromPreferences();
   }
 
-  List<Map<String, dynamic>> get favoriteRestaurants => List.unmodifiable(_favoriteRestaurants);
-  List<Map<String, dynamic>> get favoriteFoodItems => List.unmodifiable(_favoriteFoodItems);
+  List<Map<String, dynamic>> get favoriteRestaurants =>
+      List.unmodifiable(_favoriteRestaurants);
+  List<Map<String, dynamic>> get favoriteFoodItems =>
+      List.unmodifiable(_favoriteFoodItems);
   bool get isInitialized => _isInitialized;
 
-  int get totalFavoritesCount => _favoriteRestaurants.length + _favoriteFoodItems.length;
+  int get totalFavoritesCount =>
+      _favoriteRestaurants.length + _favoriteFoodItems.length;
 
   Future<void> loadFavorites() async {
     await (_loadFuture ??= _loadFromPreferences());
@@ -95,7 +99,9 @@ class FavoritesProvider with ChangeNotifier {
     final id = restaurant['id']?.toString();
     if (id == null) return false;
 
-    final existingIndex = _favoriteRestaurants.indexWhere((r) => r['id']?.toString() == id);
+    final existingIndex = _favoriteRestaurants.indexWhere(
+      (r) => r['id']?.toString() == id,
+    );
     bool added;
     if (existingIndex >= 0) {
       _favoriteRestaurants.removeAt(existingIndex);
@@ -114,7 +120,9 @@ class FavoritesProvider with ChangeNotifier {
     final id = foodItem['id']?.toString();
     if (id == null) return false;
 
-    final existingIndex = _favoriteFoodItems.indexWhere((f) => f['id']?.toString() == id);
+    final existingIndex = _favoriteFoodItems.indexWhere(
+      (f) => f['id']?.toString() == id,
+    );
     bool added;
     if (existingIndex >= 0) {
       _favoriteFoodItems.removeAt(existingIndex);

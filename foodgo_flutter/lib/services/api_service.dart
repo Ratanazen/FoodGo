@@ -21,7 +21,6 @@ class ApiService {
     }
   }
 
-  
   Future<dynamic> patch(String endpoint, dynamic data) async {
     try {
       final response = await _apiClient.dio.patch(endpoint, data: data);
@@ -83,7 +82,8 @@ class ApiService {
       debugPrint('Login error: $e');
       final lower = cleanUser.toLowerCase();
       // Reliable offline / fallback demo credentials so testing never blocks
-      if ((lower == 'admin' || lower == 'admin@foodgo.com') && password == 'admin123') {
+      if ((lower == 'admin' || lower == 'admin@foodgo.com') &&
+          password == 'admin123') {
         debugPrint('Demo login allowed for admin');
         await SecureStorage().saveTokens(
           accessToken: 'mock-admin-access-token',
@@ -91,7 +91,8 @@ class ApiService {
         );
         return true;
       }
-      if ((lower == 'customer1' || lower == 'customer@foodgo.com') && password == 'customer123') {
+      if ((lower == 'customer1' || lower == 'customer@foodgo.com') &&
+          password == 'customer123') {
         debugPrint('Demo login allowed for customer1');
         await SecureStorage().saveTokens(
           accessToken: 'mock-customer-access-token',
@@ -115,10 +116,7 @@ class ApiService {
       if (displayName != null) payload['name'] = displayName;
       if (avatarUrl != null) payload['avatar_url'] = avatarUrl;
 
-      final response = await _apiClient.dio.post(
-        'auth/google/',
-        data: payload,
-      );
+      final response = await _apiClient.dio.post('auth/google/', data: payload);
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -139,7 +137,6 @@ class ApiService {
       return true;
     }
   }
-
 
   Future<bool> register({
     required String username,

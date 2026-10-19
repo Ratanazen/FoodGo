@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import '../core/theme/glass_theme.dart';
 import '../providers/cart_provider.dart';
 import '../providers/theme_provider.dart';
@@ -54,10 +55,7 @@ class ResponsiveWebContainer extends StatelessWidget {
       alignment: alignment,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Padding(
-          padding: padding ?? defaultPadding,
-          child: child,
-        ),
+        child: Padding(padding: padding ?? defaultPadding, child: child),
       ),
     );
   }
@@ -92,25 +90,25 @@ class ResponsiveCardGrid extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: children
-                .map((child) => Padding(
-                      padding: EdgeInsets.only(bottom: runSpacing),
-                      child: child,
-                    ))
+                .map(
+                  (child) => Padding(
+                    padding: EdgeInsets.only(bottom: runSpacing),
+                    child: child,
+                  ),
+                )
                 .toList(),
           );
         }
 
         // Calculate card width considering spacing
-        final itemWidth = (availableWidth - (spacing * (columns - 1))) / columns;
+        final itemWidth =
+            (availableWidth - (spacing * (columns - 1))) / columns;
 
         return Wrap(
           spacing: spacing,
           runSpacing: runSpacing,
           children: children
-              .map((child) => SizedBox(
-                    width: itemWidth,
-                    child: child,
-                  ))
+              .map((child) => SizedBox(width: itemWidth, child: child))
               .toList(),
         );
       },
@@ -134,7 +132,8 @@ class WebHeaderNavBar extends StatelessWidget {
     final cartCount = context.watch<CartProvider>().itemCount;
     final themeProvider = context.watch<ThemeProvider>();
     final userProvider = context.watch<UserProvider>();
-    final isDark = themeProvider.themeMode == ThemeMode.dark ||
+    final isDark =
+        themeProvider.themeMode == ThemeMode.dark ||
         (themeProvider.themeMode == ThemeMode.system &&
             MediaQuery.of(context).platformBrightness == Brightness.dark);
     final user = userProvider.user;
@@ -147,7 +146,9 @@ class WebHeaderNavBar extends StatelessWidget {
         color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.08),
             width: 1,
           ),
         ),
@@ -279,7 +280,10 @@ class WebHeaderNavBar extends StatelessWidget {
 
                   // Map Shortcut
                   IconButton(
-                    icon: const Icon(Icons.map_outlined, color: GlassTheme.primaryGreen),
+                    icon: const Icon(
+                      Icons.map_outlined,
+                      color: GlassTheme.primaryGreen,
+                    ),
                     tooltip: 'Live Delivery Map',
                     onPressed: () => context.push('/map'),
                   ),
@@ -293,10 +297,15 @@ class WebHeaderNavBar extends StatelessWidget {
                         onTap: () => onDestinationSelected(2),
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: selectedIndex == 2
-                                ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
+                                ? GlassTheme.primaryGreen.withValues(
+                                    alpha: 0.15,
+                                  )
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
@@ -334,7 +343,10 @@ class WebHeaderNavBar extends StatelessWidget {
                           top: 2,
                           right: 2,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: GlassTheme.primaryGreen,
                               borderRadius: BorderRadius.circular(10),
@@ -356,10 +368,14 @@ class WebHeaderNavBar extends StatelessWidget {
                   // Theme Toggle Button
                   IconButton(
                     icon: Icon(
-                      isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                      isDark
+                          ? Icons.light_mode_outlined
+                          : Icons.dark_mode_outlined,
                       size: 20,
                     ),
-                    tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+                    tooltip: isDark
+                        ? 'Switch to Light Mode'
+                        : 'Switch to Dark Mode',
                     onPressed: () => themeProvider.toggleTheme(),
                   ),
                   const SizedBox(width: 8),
@@ -369,7 +385,10 @@ class WebHeaderNavBar extends StatelessWidget {
                     onTap: () => onDestinationSelected(4),
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: selectedIndex == 4
                             ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
@@ -387,7 +406,8 @@ class WebHeaderNavBar extends StatelessWidget {
                             radius: 14,
                             backgroundColor: GlassTheme.primaryGreen,
                             child: Text(
-                              (user?['username'] != null && user!['username'].toString().isNotEmpty)
+                              (user?['username'] != null &&
+                                      user!['username'].toString().isNotEmpty)
                                   ? user['username'].toString()[0].toUpperCase()
                                   : 'U',
                               style: const TextStyle(
@@ -403,7 +423,9 @@ class WebHeaderNavBar extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: selectedIndex == 4 ? GlassTheme.primaryGreen : Colors.white,
+                              color: selectedIndex == 4
+                                  ? GlassTheme.primaryGreen
+                                  : Colors.white,
                             ),
                           ),
                         ],
@@ -448,10 +470,14 @@ class _WebNavLink extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? activeColor.withValues(alpha: 0.12) : Colors.transparent,
+            color: isSelected
+                ? activeColor.withValues(alpha: 0.12)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isSelected ? activeColor.withValues(alpha: 0.4) : Colors.transparent,
+              color: isSelected
+                  ? activeColor.withValues(alpha: 0.4)
+                  : Colors.transparent,
             ),
           ),
           child: Row(

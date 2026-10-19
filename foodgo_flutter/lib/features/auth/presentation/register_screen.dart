@@ -34,7 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _register() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isLoading = true);
 
     final success = await context.read<AuthProvider>().register(
@@ -51,7 +51,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Registration failed. Username or email may already be taken.'),
+            content: Text(
+              'Registration failed. Username or email may already be taken.',
+            ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -102,7 +104,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Center(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 20.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 28.0,
+              vertical: 20.0,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Form(
@@ -136,7 +141,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'Give proper information for continue',
                       style: TextStyle(
                         fontSize: 12.5,
-                        color: isDark ? Colors.grey[400] : GlassTheme.authSubtitle,
+                        color: isDark
+                            ? Colors.grey[400]
+                            : GlassTheme.authSubtitle,
                         fontWeight: FontWeight.w400,
                       ),
                       textAlign: TextAlign.center,
@@ -154,21 +161,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: InputDecoration(
                         hintText: 'Full name',
                         hintStyle: TextStyle(
-                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0xFF94A3B8),
                           fontSize: 14,
                         ),
                         prefixIcon: Icon(
                           Icons.person_outline_rounded,
-                          color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                          color: isDark
+                              ? Colors.white54
+                              : GlassTheme.authSubtitle,
                           size: 20,
                         ),
                         filled: true,
-                        fillColor: isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        fillColor: isDark
+                            ? const Color(0xFF1E293B)
+                            : GlassTheme.authInputFill,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 15,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide(
-                            color: isDark ? Colors.white12 : GlassTheme.authInputBorder,
+                            color: isDark
+                                ? Colors.white12
+                                : GlassTheme.authInputBorder,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -184,11 +202,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent,
+                            width: 1.5,
+                          ),
                         ),
                       ),
-                      validator: (val) =>
-                          val == null || val.trim().isEmpty ? 'Enter your full name' : null,
+                      validator: (val) => val == null || val.trim().isEmpty
+                          ? 'Enter your full name'
+                          : null,
                     ).animate().fade(delay: 250.ms),
 
                     const SizedBox(height: 14),
@@ -204,21 +226,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: InputDecoration(
                         hintText: 'Email address',
                         hintStyle: TextStyle(
-                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0xFF94A3B8),
                           fontSize: 14,
                         ),
                         prefixIcon: Icon(
                           Icons.mail_outline_rounded,
-                          color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                          color: isDark
+                              ? Colors.white54
+                              : GlassTheme.authSubtitle,
                           size: 20,
                         ),
                         filled: true,
-                        fillColor: isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        fillColor: isDark
+                            ? const Color(0xFF1E293B)
+                            : GlassTheme.authInputFill,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 15,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide(
-                            color: isDark ? Colors.white12 : GlassTheme.authInputBorder,
+                            color: isDark
+                                ? Colors.white12
+                                : GlassTheme.authInputBorder,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -234,12 +267,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                       validator: (val) {
-                        if (val == null || val.trim().isEmpty) return 'Enter an email address';
-                        if (!val.contains('@')) return 'Enter a valid email';
+                        if (val == null || val.trim().isEmpty) {
+                          return 'Enter an email address';
+                        }
+                        if (!val.contains('@')) {
+                          return 'Enter a valid email';
+                        }
                         return null;
                       },
                     ).animate().fade(delay: 300.ms),
@@ -257,29 +297,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: InputDecoration(
                         hintText: 'Password',
                         hintStyle: TextStyle(
-                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0xFF94A3B8),
                           fontSize: 14,
                         ),
                         prefixIcon: Icon(
                           Icons.lock_outline_rounded,
-                          color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                          color: isDark
+                              ? Colors.white54
+                              : GlassTheme.authSubtitle,
                           size: 20,
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: isDark
+                                ? Colors.white54
+                                : GlassTheme.authSubtitle,
                             size: 20,
                           ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                         filled: true,
-                        fillColor: isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        fillColor: isDark
+                            ? const Color(0xFF1E293B)
+                            : GlassTheme.authInputFill,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 15,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide(
-                            color: isDark ? Colors.white12 : GlassTheme.authInputBorder,
+                            color: isDark
+                                ? Colors.white12
+                                : GlassTheme.authInputBorder,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -295,7 +352,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                       validator: (val) {
@@ -316,11 +376,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         text: TextSpan(
                           style: TextStyle(
                             fontSize: 11,
-                            color: isDark ? Colors.grey[400] : GlassTheme.authSubtitle,
+                            color: isDark
+                                ? Colors.grey[400]
+                                : GlassTheme.authSubtitle,
                             height: 1.4,
                           ),
                           children: const [
-                            TextSpan(text: 'By signing up you are agree to our '),
+                            TextSpan(
+                              text: 'By signing up you are agree to our ',
+                            ),
                             TextSpan(
                               text: 'Terms & Conditions',
                               style: TextStyle(
@@ -355,7 +419,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          shadowColor: GlassTheme.authBlue.withValues(alpha: 0.4),
+                          shadowColor: GlassTheme.authBlue.withValues(
+                            alpha: 0.4,
+                          ),
                         ),
                         child: _isLoading
                             ? const SizedBox(
@@ -384,9 +450,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: OutlinedButton(
                         onPressed: _isLoading ? null : _loginWithGoogle,
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          backgroundColor: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.white,
                           side: BorderSide(
-                            color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                            color: isDark
+                                ? Colors.white12
+                                : const Color(0xFFE2E8F0),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -416,7 +486,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             Text(
                               'Sign up with Google',
                               style: TextStyle(
-                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1E293B),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -435,7 +507,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text(
                           'Already have an Account? ',
                           style: TextStyle(
-                            color: isDark ? Colors.grey[400] : GlassTheme.authSubtitle,
+                            color: isDark
+                                ? Colors.grey[400]
+                                : GlassTheme.authSubtitle,
                             fontSize: 13,
                           ),
                         ),

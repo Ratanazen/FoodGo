@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'app/router/app_router.dart';
 import 'app/theme/app_theme.dart';
 import 'core/config/app_config.dart';
@@ -31,11 +32,15 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => RestaurantProvider()..fetchRestaurants()),
+        ChangeNotifierProvider(
+          create: (_) => RestaurantProvider()..fetchRestaurants(),
+        ),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()..fetchUser()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
-        ChangeNotifierProvider(create: (_) => AddressProvider()..fetchAddresses()),
+        ChangeNotifierProvider(
+          create: (_) => AddressProvider()..fetchAddresses(),
+        ),
       ],
       child: const FoodGoApp(),
     ),
@@ -59,7 +64,9 @@ class FoodGoApp extends StatelessWidget {
           builder: (context, child) {
             final isDark = themeProvider.isDarkMode;
             return Container(
-              color: isDark ? GlassTheme.backgroundDark : const Color(0xFFF8F9FA),
+              color: isDark
+                  ? GlassTheme.backgroundDark
+                  : const Color(0xFFF8F9FA),
               child: ConnectivityBanner(child: child!),
             );
           },
@@ -68,4 +75,3 @@ class FoodGoApp extends StatelessWidget {
     );
   }
 }
-

@@ -1,5 +1,7 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
 import '../core/theme/glass_theme.dart';
 
 class GlassContainer extends StatelessWidget {
@@ -29,9 +31,13 @@ class GlassContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fallbackColor = isDark ? GlassTheme.glassDarkLight : GlassTheme.glassWhiteLight;
-    final fallbackBorderColor = isDark ? GlassTheme.borderDark : GlassTheme.borderLight;
-    
+    final fallbackColor = isDark
+        ? GlassTheme.glassDarkLight
+        : GlassTheme.glassWhiteLight;
+    final fallbackBorderColor = isDark
+        ? GlassTheme.borderDark
+        : GlassTheme.borderLight;
+
     final radius = borderRadius ?? GlassTheme.borderRadius;
 
     return Container(
@@ -51,10 +57,9 @@ class GlassContainer extends StatelessWidget {
             decoration: BoxDecoration(
               color: customColor ?? fallbackColor,
               borderRadius: radius,
-              border: customBorder ?? Border.all(
-                color: fallbackBorderColor,
-                width: 1.0,
-              ),
+              border:
+                  customBorder ??
+                  Border.all(color: fallbackBorderColor, width: 1.0),
             ),
             child: child,
           ),

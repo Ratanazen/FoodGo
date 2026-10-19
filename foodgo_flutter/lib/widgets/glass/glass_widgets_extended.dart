@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 
@@ -29,8 +30,12 @@ class GlassTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: GlassTheme.textMuted),
-          prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: GlassTheme.textMuted) : null,
-          suffixIcon: suffixIcon != null ? Icon(suffixIcon, color: GlassTheme.textMuted) : null,
+          prefixIcon: prefixIcon != null
+              ? Icon(prefixIcon, color: GlassTheme.textMuted)
+              : null,
+          suffixIcon: suffixIcon != null
+              ? Icon(suffixIcon, color: GlassTheme.textMuted)
+              : null,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -47,7 +52,12 @@ class GlassChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
 
-  const GlassChip({super.key, required this.label, this.isSelected = false, this.onTap});
+  const GlassChip({
+    super.key,
+    required this.label,
+    this.isSelected = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +66,9 @@ class GlassChip extends StatelessWidget {
       child: GlassContainer(
         borderRadius: BorderRadius.circular(AppRadius.pill),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        customColor: isSelected ? GlassTheme.primaryGreen.withValues(alpha: 0.2) : null,
+        customColor: isSelected
+            ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
+            : null,
         child: Text(
           label,
           style: TextStyle(

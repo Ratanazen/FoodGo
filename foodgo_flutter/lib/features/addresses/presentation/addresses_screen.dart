@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -35,7 +36,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: GlassTheme.dialogDark,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
               border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: SingleChildScrollView(
@@ -61,7 +64,11 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       children: [
                         const Text(
                           'Add Delivery Address',
-                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.white60),
@@ -78,15 +85,22 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       decoration: InputDecoration(
                         labelText: 'Street Address, Apartment, or Building',
                         labelStyle: TextStyle(color: GlassTheme.textMuted),
-                        prefixIcon: const Icon(Icons.location_on_outlined, color: GlassTheme.primaryGreen),
+                        prefixIcon: const Icon(
+                          Icons.location_on_outlined,
+                          color: GlassTheme.primaryGreen,
+                        ),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
                         ),
                       ),
-                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Please enter street address' : null,
+                      validator: (val) => (val == null || val.trim().isEmpty)
+                          ? 'Please enter street address'
+                          : null,
                     ),
                     const SizedBox(height: 14),
 
@@ -97,15 +111,22 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       decoration: InputDecoration(
                         labelText: 'City / District',
                         labelStyle: TextStyle(color: GlassTheme.textMuted),
-                        prefixIcon: const Icon(Icons.location_city, color: GlassTheme.primaryGreen),
+                        prefixIcon: const Icon(
+                          Icons.location_city,
+                          color: GlassTheme.primaryGreen,
+                        ),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
                         ),
                       ),
-                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Please enter city' : null,
+                      validator: (val) => (val == null || val.trim().isEmpty)
+                          ? 'Please enter city'
+                          : null,
                     ),
                     const SizedBox(height: 14),
 
@@ -116,12 +137,17 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       decoration: InputDecoration(
                         labelText: 'Postal / Area Code',
                         labelStyle: TextStyle(color: GlassTheme.textMuted),
-                        prefixIcon: const Icon(Icons.pin_drop_outlined, color: GlassTheme.primaryGreen),
+                        prefixIcon: const Icon(
+                          Icons.pin_drop_outlined,
+                          color: GlassTheme.primaryGreen,
+                        ),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
                         ),
                       ),
                     ),
@@ -133,12 +159,17 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       children: [
                         const Text(
                           'Set as Default Delivery Address',
-                          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         Switch.adaptive(
                           value: isDefault,
                           activeTrackColor: GlassTheme.primaryGreen,
-                          onChanged: (val) => setSheetState(() => isDefault = val),
+                          onChanged: (val) =>
+                              setSheetState(() => isDefault = val),
                         ),
                       ],
                     ),
@@ -149,7 +180,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlassTheme.primaryGreen,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                         onPressed: isSaving
                             ? null
@@ -157,18 +190,22 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                 if (!formKey.currentState!.validate()) return;
                                 setSheetState(() => isSaving = true);
 
-                                await context.read<AddressProvider>().addAddress(
-                                  street: streetController.text,
-                                  city: cityController.text,
-                                  zipCode: zipController.text,
-                                  isDefault: isDefault,
-                                );
+                                await context
+                                    .read<AddressProvider>()
+                                    .addAddress(
+                                      street: streetController.text,
+                                      city: cityController.text,
+                                      zipCode: zipController.text,
+                                      isDefault: isDefault,
+                                    );
 
                                 if (sheetCtx.mounted) {
                                   Navigator.pop(sheetCtx);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Address added successfully!'),
+                                      content: Text(
+                                        'Address added successfully!',
+                                      ),
                                       backgroundColor: GlassTheme.primaryGreen,
                                       behavior: SnackBarBehavior.floating,
                                     ),
@@ -176,8 +213,18 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                 }
                               },
                         child: isSaving
-                            ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                            : const Text('Save Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              )
+                            : const Text(
+                                'Save Address',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -199,7 +246,10 @@ class _AddressesScreenState extends State<AddressesScreen> {
       appBar: GlassAppBar(
         title: 'Saved Addresses',
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).iconTheme.color,
+          ),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -219,124 +269,37 @@ class _AddressesScreenState extends State<AddressesScreen> {
       body: ResponsiveWebContainer(
         maxWidth: 760,
         child: addressProvider.isLoading && addresses.isEmpty
-            ? const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen))
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: GlassTheme.primaryGreen,
+                ),
+              )
             : addresses.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.location_off_outlined, size: 64, color: GlassTheme.textMuted),
-                          const SizedBox(height: 16),
-                          const Text('No saved addresses yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          Text('Add a delivery address to order food faster', style: TextStyle(color: GlassTheme.textMuted)),
-                          const SizedBox(height: 24),
-                          GlassButton(
-                            text: 'Add New Address',
-                            icon: Icons.add,
-                            onPressed: () => _showAddAddressSheet(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.all(16.0),
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ...addresses.map((addr) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 14.0),
-                          child: GlassCard(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: addr.isDefault
-                                        ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
-                                        : Colors.white.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    addr.isDefault ? Icons.home : Icons.location_on_outlined,
-                                    color: addr.isDefault ? GlassTheme.primaryGreen : Colors.white70,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              addr.street,
-                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          if (addr.isDefault)
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                              decoration: BoxDecoration(
-                                                color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: const Text('Default', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 11, fontWeight: FontWeight.bold)),
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text('${addr.city}, Cambodia', style: TextStyle(color: GlassTheme.textMuted, fontSize: 13)),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        children: [
-                                          if (!addr.isDefault)
-                                            TextButton.icon(
-                                              style: TextButton.styleFrom(
-                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                              ),
-                                              onPressed: () => addressProvider.setDefaultAddress(addr.id),
-                                              icon: const Icon(Icons.check, size: 14, color: GlassTheme.primaryGreen),
-                                              label: const Text('Set as Default', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 12)),
-                                            ),
-                                          const Spacer(),
-                                          IconButton(
-                                            icon: const Icon(Icons.delete_outline, size: 18, color: Colors.white38),
-                                            tooltip: 'Delete',
-                                            padding: EdgeInsets.zero,
-                                            constraints: const BoxConstraints(),
-                                            onPressed: () {
-                                              addressProvider.deleteAddress(addr.id);
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text('Address deleted'),
-                                                  duration: Duration(seconds: 1),
-                                                  behavior: SnackBarBehavior.floating,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
+                      const Icon(
+                        Icons.location_off_outlined,
+                        size: 64,
+                        color: GlassTheme.textMuted,
+                      ),
                       const SizedBox(height: 16),
+                      const Text(
+                        'No saved addresses yet',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Add a delivery address to order food faster',
+                        style: TextStyle(color: GlassTheme.textMuted),
+                      ),
+                      const SizedBox(height: 24),
                       GlassButton(
                         text: 'Add New Address',
                         icon: Icons.add,
@@ -344,6 +307,163 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       ),
                     ],
                   ),
+                ),
+              )
+            : ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  ...addresses.map((addr) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 14.0),
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: addr.isDefault
+                                    ? GlassTheme.primaryGreen.withValues(
+                                        alpha: 0.2,
+                                      )
+                                    : Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                addr.isDefault
+                                    ? Icons.home
+                                    : Icons.location_on_outlined,
+                                color: addr.isDefault
+                                    ? GlassTheme.primaryGreen
+                                    : Colors.white70,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          addr.street,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (addr.isDefault)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: GlassTheme.primaryGreen
+                                                .withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Default',
+                                            style: TextStyle(
+                                              color: GlassTheme.primaryGreen,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${addr.city}, Cambodia',
+                                    style: TextStyle(
+                                      color: GlassTheme.textMuted,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      if (!addr.isDefault)
+                                        TextButton.icon(
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                          ),
+                                          onPressed: () => addressProvider
+                                              .setDefaultAddress(addr.id),
+                                          icon: const Icon(
+                                            Icons.check,
+                                            size: 14,
+                                            color: GlassTheme.primaryGreen,
+                                          ),
+                                          label: const Text(
+                                            'Set as Default',
+                                            style: TextStyle(
+                                              color: GlassTheme.primaryGreen,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      const Spacer(),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          size: 18,
+                                          color: Colors.white38,
+                                        ),
+                                        tooltip: 'Delete',
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        onPressed: () {
+                                          addressProvider.deleteAddress(
+                                            addr.id,
+                                          );
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Address deleted'),
+                                              duration: Duration(seconds: 1),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 16),
+                  GlassButton(
+                    text: 'Add New Address',
+                    icon: Icons.add,
+                    onPressed: () => _showAddAddressSheet(context),
+                  ),
+                ],
+              ),
       ),
     );
   }

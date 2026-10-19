@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../core/theme/glass_theme.dart';
 import '../providers/favorites_provider.dart';
 
@@ -24,13 +25,16 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
   @override
   Widget build(BuildContext context) {
     final res = widget.restaurant;
-    final isFavorite = context.watch<FavoritesProvider>().isRestaurantFavorite(res['id']);
+    final isFavorite = context.watch<FavoritesProvider>().isRestaurantFavorite(
+      res['id'],
+    );
     final name = res['name']?.toString() ?? 'Restaurant';
     final banner = res['banner']?.toString();
     final rating = res['rating']?.toString() ?? '4.8';
     final minTime = res['delivery_time_min'] ?? 15;
     final maxTime = res['delivery_time_max'] ?? 30;
-    final deliveryFee = double.tryParse(res['delivery_fee']?.toString() ?? '0') ?? 0.0;
+    final deliveryFee =
+        double.tryParse(res['delivery_fee']?.toString() ?? '0') ?? 0.0;
     final isFreeDelivery = deliveryFee <= 0.0;
 
     final width = widget.isHorizontal ? 260.0 : double.infinity;
@@ -39,9 +43,11 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
     final String fallbackBanner = res['id'] == 1
         ? 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80'
         : res['id'] == 2
-            ? 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80'
-            : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80';
-    final effectiveBanner = (banner != null && banner.isNotEmpty) ? banner : fallbackBanner;
+        ? 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80'
+        : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80';
+    final effectiveBanner = (banner != null && banner.isNotEmpty)
+        ? banner
+        : fallbackBanner;
 
     return InkWell(
       onTap: widget.onTap,
@@ -75,7 +81,9 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                 Hero(
                   tag: 'restaurant_banner_${res['id']}',
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(18),
+                    ),
                     child: Container(
                       height: imageHeight,
                       width: double.infinity,
@@ -89,18 +97,26 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                             child: SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: GlassTheme.primaryGreen,
+                              ),
                             ),
                           ),
                         ),
-                        errorWidget: (context, url, error) => CachedNetworkImage(
-                          imageUrl: fallbackBanner,
-                          fit: BoxFit.cover,
-                          errorWidget: (c, u, e) => Container(
-                            color: Colors.grey.withValues(alpha: 0.15),
-                            child: const Icon(Icons.store, color: GlassTheme.textMuted, size: 40),
-                          ),
-                        ),
+                        errorWidget: (context, url, error) =>
+                            CachedNetworkImage(
+                              imageUrl: fallbackBanner,
+                              fit: BoxFit.cover,
+                              errorWidget: (c, u, e) => Container(
+                                color: Colors.grey.withValues(alpha: 0.15),
+                                child: const Icon(
+                                  Icons.store,
+                                  color: GlassTheme.textMuted,
+                                  size: 40,
+                                ),
+                              ),
+                            ),
                       ),
                     ),
                   ),
@@ -111,20 +127,37 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                   top: 10,
                   left: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: isFreeDelivery ? GlassTheme.primaryGreen : GlassTheme.foodpandaPink,
+                      color: isFreeDelivery
+                          ? GlassTheme.primaryGreen
+                          : GlassTheme.foodpandaPink,
                       borderRadius: BorderRadius.circular(8),
-                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black26, blurRadius: 4),
+                      ],
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(isFreeDelivery ? Icons.moped : Icons.local_fire_department, size: 13, color: Colors.white),
+                        Icon(
+                          isFreeDelivery
+                              ? Icons.moped
+                              : Icons.local_fire_department,
+                          size: 13,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           isFreeDelivery ? 'Free Delivery' : '20% OFF Deals',
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ],
                     ),
@@ -141,12 +174,18 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                     child: InkWell(
                       customBorder: const CircleBorder(),
                       onTap: () async {
-                        final added = await context.read<FavoritesProvider>().toggleRestaurant(res);
+                        final added = await context
+                            .read<FavoritesProvider>()
+                            .toggleRestaurant(res);
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(added ? 'Saved $name to Favorites' : 'Removed $name from Favorites'),
+                            content: Text(
+                              added
+                                  ? 'Saved $name to Favorites'
+                                  : 'Removed $name from Favorites',
+                            ),
                             duration: const Duration(seconds: 1),
                             behavior: SnackBarBehavior.floating,
                             backgroundColor: GlassTheme.surfaceDark,
@@ -158,7 +197,9 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                         child: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
                           size: 18,
-                          color: isFavorite ? GlassTheme.foodpandaPink : Colors.white,
+                          color: isFavorite
+                              ? GlassTheme.foodpandaPink
+                              : Colors.white,
                         ),
                       ),
                     ),
@@ -170,7 +211,10 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                   bottom: 8,
                   right: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(8),
@@ -178,11 +222,19 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.access_time, size: 12, color: Colors.white70),
+                        const Icon(
+                          Icons.access_time,
+                          size: 12,
+                          color: Colors.white70,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '$minTime-$maxTime min',
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -207,7 +259,10 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                             color: Colors.transparent,
                             child: Text(
                               name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -216,7 +271,10 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: GlassTheme.ratingAmber.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
@@ -224,11 +282,19 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star, size: 12, color: GlassTheme.ratingAmber),
+                            const Icon(
+                              Icons.star,
+                              size: 12,
+                              color: GlassTheme.ratingAmber,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               rating,
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: GlassTheme.ratingAmber),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: GlassTheme.ratingAmber,
+                              ),
                             ),
                           ],
                         ),
@@ -249,14 +315,24 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                   // Delivery Fee Tag
                   Row(
                     children: [
-                      Icon(Icons.moped, size: 14, color: isFreeDelivery ? GlassTheme.primaryGreen : GlassTheme.textMuted),
+                      Icon(
+                        Icons.moped,
+                        size: 14,
+                        color: isFreeDelivery
+                            ? GlassTheme.primaryGreen
+                            : GlassTheme.textMuted,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        isFreeDelivery ? 'Free Delivery' : '\$${deliveryFee.toStringAsFixed(2)} delivery',
+                        isFreeDelivery
+                            ? 'Free Delivery'
+                            : '\$${deliveryFee.toStringAsFixed(2)} delivery',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: isFreeDelivery ? GlassTheme.primaryGreen : GlassTheme.textMuted,
+                          color: isFreeDelivery
+                              ? GlassTheme.primaryGreen
+                              : GlassTheme.textMuted,
                         ),
                       ),
                       const Spacer(),

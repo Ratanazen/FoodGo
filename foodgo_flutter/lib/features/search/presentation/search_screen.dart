@@ -1,9 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/shimmer_widgets.dart';
@@ -68,8 +70,9 @@ class _SearchScreenState extends State<SearchScreen> {
       if (!mounted) return;
       if (_searchController.text.trim() != query) return;
 
-      final List<dynamic> items =
-          res is List ? res : (res['results'] as List<dynamic>? ?? []);
+      final List<dynamic> items = res is List
+          ? res
+          : (res['results'] as List<dynamic>? ?? []);
 
       if (query.isNotEmpty && !_recentSearches.contains(query)) {
         _recentSearches.insert(0, query);
@@ -89,11 +92,15 @@ class _SearchScreenState extends State<SearchScreen> {
     int qty = 1;
     final name = item['name']?.toString() ?? 'Food Item';
     final price = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
-    final desc = item['description']?.toString() ?? 'Freshly prepared with quality ingredients.';
+    final desc =
+        item['description']?.toString() ??
+        'Freshly prepared with quality ingredients.';
     final image = item['image']?.toString();
-    final itemId = item['id'] is int ? item['id'] as int : int.parse(item['id'].toString());
-    final int? restId = item['restaurant'] is int 
-        ? item['restaurant'] as int 
+    final itemId = item['id'] is int
+        ? item['id'] as int
+        : int.parse(item['id'].toString());
+    final int? restId = item['restaurant'] is int
+        ? item['restaurant'] as int
         : (item['restaurant'] is Map ? item['restaurant']['id'] as int? : null);
     final String? restName = item['restaurant_name']?.toString();
 
@@ -135,7 +142,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     errorWidget: (_, _, _) => Container(
                       height: 160,
                       color: Colors.white10,
-                      child: const Icon(Icons.fastfood, size: 48, color: GlassTheme.primaryGreen),
+                      child: const Icon(
+                        Icons.fastfood,
+                        size: 48,
+                        color: GlassTheme.primaryGreen,
+                      ),
                     ),
                   ),
                 ),
@@ -147,7 +158,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   Expanded(
                     child: Text(
                       name,
-                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Consumer<FavoritesProvider>(
@@ -156,7 +171,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       return IconButton(
                         icon: Icon(
                           isFav ? Icons.favorite : Icons.favorite_border,
-                          color: isFav ? GlassTheme.foodpandaPink : Colors.white70,
+                          color: isFav
+                              ? GlassTheme.foodpandaPink
+                              : Colors.white70,
                         ),
                         onPressed: () => favs.toggleFoodItem(item),
                       );
@@ -168,11 +185,18 @@ class _SearchScreenState extends State<SearchScreen> {
                 const SizedBox(height: 4),
                 Text(
                   restName,
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: GlassTheme.textMuted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
               const SizedBox(height: 10),
-              Text(desc, style: TextStyle(color: GlassTheme.textMuted, fontSize: 14)),
+              Text(
+                desc,
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 14),
+              ),
               const SizedBox(height: 18),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -193,13 +217,25 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: Row(
                       children: [
                         IconButton(
-                          onPressed: qty > 1 ? () => setSheetState(() => qty--) : null,
+                          onPressed: qty > 1
+                              ? () => setSheetState(() => qty--)
+                              : null,
                           icon: const Icon(Icons.remove, size: 18),
                         ),
-                        Text('$qty', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text(
+                          '$qty',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         IconButton(
                           onPressed: () => setSheetState(() => qty++),
-                          icon: const Icon(Icons.add, size: 18, color: GlassTheme.primaryGreen),
+                          icon: const Icon(
+                            Icons.add,
+                            size: 18,
+                            color: GlassTheme.primaryGreen,
+                          ),
                         ),
                       ],
                     ),
@@ -215,12 +251,22 @@ class _SearchScreenState extends State<SearchScreen> {
                     backgroundColor: GlassTheme.limeAccent,
                     foregroundColor: Colors.black,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
                   ),
-                  icon: const Icon(Icons.add_shopping_cart, color: Colors.black, size: 20),
+                  icon: const Icon(
+                    Icons.add_shopping_cart,
+                    color: Colors.black,
+                    size: 20,
+                  ),
                   label: Text(
                     'Add $qty to Cart • \$${(price * qty).toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                   ),
                   onPressed: () {
                     final cart = context.read<CartProvider>();
@@ -273,10 +319,16 @@ class _SearchScreenState extends State<SearchScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15),
+                    ),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 16,
+                      color: Colors.white,
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
@@ -285,7 +337,11 @@ class _SearchScreenState extends State<SearchScreen> {
         centerTitle: true,
         title: const Text(
           'Search Food',
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 19,
+            color: Colors.white,
+          ),
         ),
       ),
       body: SafeArea(
@@ -298,20 +354,36 @@ class _SearchScreenState extends State<SearchScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 2,
+                ),
                 child: TextField(
                   controller: _searchController,
                   onChanged: _onSearchChanged,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: InputDecoration(
                     hintText: 'Search for pizza, burger, Khmer dishes...',
-                    hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 14),
-                    prefixIcon: const Icon(Icons.search, color: GlassTheme.limeAccent, size: 22),
+                    hintStyle: TextStyle(
+                      color: GlassTheme.textMuted,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: GlassTheme.limeAccent,
+                      size: 22,
+                    ),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear, color: Colors.white70, size: 18),
+                            icon: const Icon(
+                              Icons.clear,
+                              color: Colors.white70,
+                              size: 18,
+                            ),
                             onPressed: () {
                               _searchController.clear();
                               _onSearchChanged('');
@@ -332,11 +404,21 @@ class _SearchScreenState extends State<SearchScreen> {
                     children: [
                       const Text(
                         'Recent Searches',
-                        style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       InkWell(
                         onTap: () => setState(() => _recentSearches.clear()),
-                        child: const Text('Clear', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 12)),
+                        child: const Text(
+                          'Clear',
+                          style: TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -348,10 +430,24 @@ class _SearchScreenState extends State<SearchScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ActionChip(
-                            avatar: const Icon(Icons.history, size: 14, color: GlassTheme.primaryGreen),
-                            backgroundColor: Colors.white.withValues(alpha: 0.08),
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-                            label: Text(tag, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                            avatar: const Icon(
+                              Icons.history,
+                              size: 14,
+                              color: GlassTheme.primaryGreen,
+                            ),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.08,
+                            ),
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.15),
+                            ),
+                            label: Text(
+                              tag,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
                             onPressed: () {
                               _searchController.text = tag;
                               _performSearch(tag);
@@ -366,7 +462,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
                 const Text(
                   'Popular Searches',
-                  style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 SingleChildScrollView(
@@ -377,8 +477,16 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: const EdgeInsets.only(right: 8.0),
                         child: ActionChip(
                           backgroundColor: Colors.white.withValues(alpha: 0.06),
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-                          label: Text(tag, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.12),
+                          ),
+                          label: Text(
+                            tag,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
                           onPressed: () {
                             _searchController.text = tag;
                             _performSearch(tag);
@@ -400,132 +508,202 @@ class _SearchScreenState extends State<SearchScreen> {
                           child: ShimmerFoodCard(),
                         ),
                       )
-                    : _searchResults.isEmpty && _searchController.text.trim().isNotEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.search_off, size: 54, color: GlassTheme.textMuted),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'No food found matching "${_searchController.text.trim()}"',
-                                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 15),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
+                    : _searchResults.isEmpty &&
+                          _searchController.text.trim().isNotEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 54,
+                              color: GlassTheme.textMuted,
                             ),
-                          )
-                        : _searchResults.isEmpty
-                            ? Center(
-                                child: GlassCard(
-                                  padding: const EdgeInsets.all(32),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.restaurant_menu, size: 64, color: GlassTheme.primaryGreen),
-                                      const SizedBox(height: 16),
-                                      const Text('Find your craving', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                      const SizedBox(height: 8),
-                                      Text('Select a popular category or type any dish above!', textAlign: TextAlign.center, style: TextStyle(color: GlassTheme.textMuted)),
-                                    ],
-                                  ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'No food found matching "${_searchController.text.trim()}"',
+                              style: TextStyle(
+                                color: GlassTheme.textMuted,
+                                fontSize: 15,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
+                    : _searchResults.isEmpty
+                    ? Center(
+                        child: GlassCard(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.restaurant_menu,
+                                size: 64,
+                                color: GlassTheme.primaryGreen,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Find your craving',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              )
-                            : ListView.builder(
-                                itemCount: _searchResults.length,
-                                itemBuilder: (context, index) {
-                                  final item = _searchResults[index];
-                                  final price = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
-                                  final int? restId = item['restaurant'] is int 
-                                      ? item['restaurant'] as int 
-                                      : (item['restaurant'] is Map ? item['restaurant']['id'] as int? : null);
-                                  final String? restName = item['restaurant_name']?.toString();
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Select a popular category or type any dish above!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: GlassTheme.textMuted),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _searchResults.length,
+                        itemBuilder: (context, index) {
+                          final item = _searchResults[index];
+                          final price =
+                              double.tryParse(
+                                item['price']?.toString() ?? '0',
+                              ) ??
+                              0.0;
+                          final int? restId = item['restaurant'] is int
+                              ? item['restaurant'] as int
+                              : (item['restaurant'] is Map
+                                    ? item['restaurant']['id'] as int?
+                                    : null);
+                          final String? restName = item['restaurant_name']
+                              ?.toString();
 
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 12.0),
-                                    child: GlassCard(
-                                      onTap: () => _showDishDetailSheet(item),
-                                      padding: const EdgeInsets.all(12),
-                                      child: Row(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: GlassTheme.borderRadiusSmall,
-                                            child: Container(
-                                              width: 80,
-                                              height: 80,
-                                              color: Colors.white.withValues(alpha: 0.05),
-                                              child: item['image'] != null && item['image'].toString().isNotEmpty
-                                                  ? CachedNetworkImage(
-                                                      imageUrl: item['image'].toString(),
-                                                      fit: BoxFit.cover,
-                                                      errorWidget: (_, _, _) => const Icon(Icons.fastfood, size: 40, color: GlassTheme.primaryGreen),
-                                                    )
-                                                  : const Icon(Icons.fastfood, size: 40, color: GlassTheme.primaryGreen),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  item['name']?.toString() ?? '',
-                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  '\$${price.toStringAsFixed(2)}',
-                                                  style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 16),
-                                                ),
-                                                if (restName != null && restName.isNotEmpty) ...[
-                                                  const SizedBox(height: 2),
-                                                  Text(
-                                                    restName,
-                                                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: GlassCard(
+                              onTap: () => _showDishDetailSheet(item),
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: GlassTheme.borderRadiusSmall,
+                                    child: Container(
+                                      width: 80,
+                                      height: 80,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.05,
+                                      ),
+                                      child:
+                                          item['image'] != null &&
+                                              item['image']
+                                                  .toString()
+                                                  .isNotEmpty
+                                          ? CachedNetworkImage(
+                                              imageUrl: item['image']
+                                                  .toString(),
+                                              fit: BoxFit.cover,
+                                              errorWidget: (_, _, _) =>
+                                                  const Icon(
+                                                    Icons.fastfood,
+                                                    size: 40,
+                                                    color:
+                                                        GlassTheme.primaryGreen,
                                                   ),
-                                                ],
-                                              ],
+                                            )
+                                          : const Icon(
+                                              Icons.fastfood,
+                                              size: 40,
+                                              color: GlassTheme.primaryGreen,
                                             ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['name']?.toString() ?? '',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
                                           ),
-                                          InkWell(
-                                            onTap: () {
-                                              context.read<CartProvider>().addItem(
-                                                item['id'] is int ? item['id'] as int : int.parse(item['id'].toString()),
-                                                item['name']?.toString() ?? 'Food Item',
-                                                price,
-                                                item['image']?.toString(),
-                                                restaurantId: restId,
-                                                restaurantName: restName,
-                                              );
-                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('${item['name']} added to cart!'),
-                                                  duration: const Duration(seconds: 1),
-                                                  backgroundColor: GlassTheme.primaryGreen,
-                                                  behavior: SnackBarBehavior.floating,
-                                                  action: SnackBarAction(
-                                                    label: 'View Cart',
-                                                    textColor: Colors.white,
-                                                    onPressed: () => context.push('/cart'),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            child: GlassContainer(
-                                              borderRadius: BorderRadius.circular(20),
-                                              padding: const EdgeInsets.all(8),
-                                              child: const Icon(Icons.add, color: GlassTheme.primaryGreen),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '\$${price.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: GlassTheme.primaryGreen,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        if (restName != null &&
+                                            restName.isNotEmpty) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            restName,
+                                            style: TextStyle(
+                                              color: GlassTheme.textMuted,
+                                              fontSize: 11,
                                             ),
                                           ),
                                         ],
+                                      ],
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      context.read<CartProvider>().addItem(
+                                        item['id'] is int
+                                            ? item['id'] as int
+                                            : int.parse(item['id'].toString()),
+                                        item['name']?.toString() ?? 'Food Item',
+                                        price,
+                                        item['image']?.toString(),
+                                        restaurantId: restId,
+                                        restaurantName: restName,
+                                      );
+                                      ScaffoldMessenger.of(context)
+                                          .hideCurrentSnackBar();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            '${item['name']} added to cart!',
+                                          ),
+                                          duration: const Duration(seconds: 1),
+                                          backgroundColor:
+                                              GlassTheme.primaryGreen,
+                                          behavior: SnackBarBehavior.floating,
+                                          action: SnackBarAction(
+                                            label: 'View Cart',
+                                            textColor: Colors.white,
+                                            onPressed: () =>
+                                                context.push('/cart'),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: GlassContainer(
+                                      borderRadius: BorderRadius.circular(20),
+                                      padding: const EdgeInsets.all(8),
+                                      child: const Icon(
+                                        Icons.add,
+                                        color: GlassTheme.primaryGreen,
                                       ),
-                                    ).animate().fade().slideX(),
-                                  );
-                                },
+                                    ),
+                                  ),
+                                ],
                               ),
+                            ).animate().fade().slideX(),
+                          );
+                        },
+                      ),
               ),
             ],
           ),

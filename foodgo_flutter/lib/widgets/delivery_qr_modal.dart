@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
 import '../core/theme/glass_theme.dart';
 import '../services/api_service.dart';
 import 'glass_container.dart';
@@ -91,9 +93,11 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
       final data = await _api.post('orders/${widget.orderId}/delivery_qr/', {});
       if (!mounted) return;
 
-      final payload = data['qr_payload']?.toString() ??
+      final payload =
+          data['qr_payload']?.toString() ??
           'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}&token=${data['token']}';
-      final pin = data['verification_pin']?.toString() ??
+      final pin =
+          data['verification_pin']?.toString() ??
           widget.initialPin ??
           '${(int.tryParse(widget.orderId) ?? 1) * 73 % 900000 + 100000}';
 
@@ -114,7 +118,8 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
     } catch (e) {
       if (!mounted) return;
       // Fallback local display if offline or network issue
-      final fallbackPin = widget.initialPin ??
+      final fallbackPin =
+          widget.initialPin ??
           '${(int.tryParse(widget.orderId) ?? 1) * 73 % 900000 + 100000}';
       final fallbackPayload =
           'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}&token=demo-token-${widget.orderId}';
@@ -217,7 +222,11 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
               ),
             ],
           ),
-          child: const Icon(Icons.check_rounded, color: GlassTheme.primaryGreen, size: 48),
+          child: const Icon(
+            Icons.check_rounded,
+            color: GlassTheme.primaryGreen,
+            size: 48,
+          ),
         ),
         const SizedBox(height: 20),
         const Text(
@@ -240,7 +249,11 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           Text(
             'Timestamp: $_deliveryTimestamp',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: GlassTheme.primaryGreen,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
         const SizedBox(height: 24),
@@ -248,11 +261,16 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           style: ElevatedButton.styleFrom(
             backgroundColor: GlassTheme.primaryGreen,
             foregroundColor: Colors.black,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Back to Dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          child: const Text(
+            'Back to Dashboard',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ),
         const SizedBox(height: 8),
       ],
@@ -288,7 +306,11 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                     color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.qr_code_2, color: GlassTheme.primaryGreen, size: 22),
+                  child: const Icon(
+                    Icons.qr_code_2,
+                    color: GlassTheme.primaryGreen,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Column(
@@ -325,7 +347,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           Container(
             height: 260,
             alignment: Alignment.center,
-            child: const CircularProgressIndicator(color: GlassTheme.primaryGreen),
+            child: const CircularProgressIndicator(
+              color: GlassTheme.primaryGreen,
+            ),
           )
         else ...[
           // QR Code Card
@@ -351,7 +375,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                     alignment: Alignment.center,
                     children: [
                       QrImageView(
-                        data: _qrPayload ?? 'FOODGO:HANDOVER:ORDER#${widget.orderId}',
+                        data:
+                            _qrPayload ??
+                            'FOODGO:HANDOVER:ORDER#${widget.orderId}',
                         version: QrVersions.auto,
                         size: 200.0,
                         backgroundColor: Colors.white,
@@ -372,21 +398,37 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.timer_off, color: Colors.redAccent, size: 40),
+                              const Icon(
+                                Icons.timer_off,
+                                color: Colors.redAccent,
+                                size: 40,
+                              ),
                               const SizedBox(height: 8),
                               const Text(
                                 'QR Expired',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: GlassTheme.primaryGreen,
                                   foregroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 6,
+                                  ),
                                 ),
                                 onPressed: _fetchOrInitToken,
-                                child: const Text('Refresh', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                child: const Text(
+                                  'Refresh',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -395,7 +437,10 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                   ),
                   const SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE8F5E9),
                       borderRadius: BorderRadius.circular(12),
@@ -439,7 +484,11 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
               if (!isExpired) ...[
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.refresh, size: 16, color: Colors.white60),
+                  icon: const Icon(
+                    Icons.refresh,
+                    size: 16,
+                    color: Colors.white60,
+                  ),
                   tooltip: 'Regenerate QR',
                   onPressed: _fetchOrInitToken,
                 ),
@@ -458,12 +507,20 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           ),
           child: const Row(
             children: [
-              Icon(Icons.shield_outlined, color: GlassTheme.primaryGreen, size: 20),
+              Icon(
+                Icons.shield_outlined,
+                color: GlassTheme.primaryGreen,
+                size: 20,
+              ),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Present this code at customer doorstep. Customer will scan with FoodGo app to confirm handover.',
-                  style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
                 ),
               ),
             ],
@@ -475,11 +532,16 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white.withValues(alpha: 0.1),
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          child: const Text(
+            'Close',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
         ),
         const SizedBox(height: 8),
       ],

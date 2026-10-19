@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/glass_theme.dart';
 import 'glass_widgets.dart';
 import '../glass_container.dart';
@@ -20,9 +21,9 @@ class GlassCheckoutBar extends StatelessWidget {
     return GlassContainer(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       padding: EdgeInsets.only(
-        left: 24, 
-        right: 24, 
-        top: 16, 
+        left: 24,
+        right: 24,
+        top: 16,
         bottom: MediaQuery.of(context).padding.bottom + 16,
       ),
       child: Row(
@@ -34,10 +35,7 @@ class GlassCheckoutBar extends StatelessWidget {
             children: [
               Text(
                 'Total',
-                style: TextStyle(
-                  color: GlassTheme.textMuted,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 14),
               ),
               const SizedBox(height: 4),
               Text(
@@ -49,10 +47,7 @@ class GlassCheckoutBar extends StatelessWidget {
               ),
             ],
           ),
-          GlassButton(
-            text: buttonText,
-            onPressed: onPressed,
-          ),
+          GlassButton(text: buttonText, onPressed: onPressed),
         ],
       ),
     );

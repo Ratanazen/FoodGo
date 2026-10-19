@@ -23,9 +23,7 @@ Future<LatLng?> getDeviceLocation() async {
     if (permission == LocationPermission.deniedForever) return null;
 
     final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-      ),
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
 
     return LatLng(position.latitude, position.longitude);

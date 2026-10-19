@@ -39,8 +39,12 @@ class PaymentModel {
       currency: json['currency'] ?? 'USD',
       qrPayload: json['qr_payload'],
       status: json['status'] ?? 'PENDING',
-      expiresAt: json['expires_at'] != null ? DateTime.tryParse(json['expires_at']) : null,
-      paidAt: json['paid_at'] != null ? DateTime.tryParse(json['paid_at']) : null,
+      expiresAt: json['expires_at'] != null
+          ? DateTime.tryParse(json['expires_at'])
+          : null,
+      paidAt: json['paid_at'] != null
+          ? DateTime.tryParse(json['paid_at'])
+          : null,
     );
   }
 

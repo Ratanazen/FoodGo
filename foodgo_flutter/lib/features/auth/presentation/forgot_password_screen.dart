@@ -83,7 +83,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: Center(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 10.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 28.0,
+              vertical: 10.0,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
@@ -115,7 +118,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     'Don\'t worry it happens. Please enter the address associated with your account.',
                     style: TextStyle(
                       fontSize: 12.5,
-                      color: isDark ? Colors.grey[400] : GlassTheme.authSubtitle,
+                      color: isDark
+                          ? Colors.grey[400]
+                          : GlassTheme.authSubtitle,
                       fontWeight: FontWeight.w400,
                       height: 1.4,
                     ),
@@ -135,21 +140,32 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     decoration: InputDecoration(
                       hintText: 'Email address',
                       hintStyle: TextStyle(
-                        color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                        color: isDark
+                            ? Colors.white38
+                            : const Color(0xFF94A3B8),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(
                         Icons.mail_outline_rounded,
-                        color: isDark ? Colors.white54 : GlassTheme.authSubtitle,
+                        color: isDark
+                            ? Colors.white54
+                            : GlassTheme.authSubtitle,
                         size: 20,
                       ),
                       filled: true,
-                      fillColor: isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                      fillColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : GlassTheme.authInputFill,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 15,
+                      ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide(
-                          color: isDark ? Colors.white12 : GlassTheme.authInputBorder,
+                          color: isDark
+                              ? Colors.white12
+                              : GlassTheme.authInputBorder,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -206,7 +222,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       Text(
                         'You remember your password? ',
                         style: TextStyle(
-                          color: isDark ? Colors.grey[400] : GlassTheme.authSubtitle,
+                          color: isDark
+                              ? Colors.grey[400]
+                              : GlassTheme.authSubtitle,
                           fontSize: 13,
                         ),
                       ),
@@ -238,4 +256,3 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
-

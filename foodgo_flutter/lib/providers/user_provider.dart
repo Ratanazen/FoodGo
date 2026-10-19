@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+
 import '../services/api_service.dart';
 
 class UserProvider with ChangeNotifier {
@@ -50,16 +51,28 @@ class UserProvider with ChangeNotifier {
       dynamic payload;
       if (avatarFilePath != null && avatarFilePath.isNotEmpty) {
         final formData = FormData();
-        if (firstName != null) formData.fields.add(MapEntry('first_name', firstName));
-        if (lastName != null) formData.fields.add(MapEntry('last_name', lastName));
-        if (email != null) formData.fields.add(MapEntry('email', email));
-        if (phone != null) formData.fields.add(MapEntry('phone', phone));
-        if (avatarUrl != null) formData.fields.add(MapEntry('avatar_url', avatarUrl));
+        if (firstName != null) {
+          formData.fields.add(MapEntry('first_name', firstName));
+        }
+        if (lastName != null) {
+          formData.fields.add(MapEntry('last_name', lastName));
+        }
+        if (email != null) {
+          formData.fields.add(MapEntry('email', email));
+        }
+        if (phone != null) {
+          formData.fields.add(MapEntry('phone', phone));
+        }
+        if (avatarUrl != null) {
+          formData.fields.add(MapEntry('avatar_url', avatarUrl));
+        }
         final fileName = avatarFilePath.split('/').last;
-        formData.files.add(MapEntry(
-          'avatar',
-          await MultipartFile.fromFile(avatarFilePath, filename: fileName),
-        ));
+        formData.files.add(
+          MapEntry(
+            'avatar',
+            await MultipartFile.fromFile(avatarFilePath, filename: fileName),
+          ),
+        );
         payload = formData;
       } else {
         final map = <String, dynamic>{};
@@ -102,4 +115,3 @@ class UserProvider with ChangeNotifier {
     }
   }
 }
-

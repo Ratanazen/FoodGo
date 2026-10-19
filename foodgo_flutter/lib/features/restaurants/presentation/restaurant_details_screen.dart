@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/floating_mini_cart_bar.dart';
@@ -17,7 +18,8 @@ class RestaurantDetailsScreen extends StatefulWidget {
   const RestaurantDetailsScreen({super.key, this.id});
 
   @override
-  State<RestaurantDetailsScreen> createState() => _RestaurantDetailsScreenState();
+  State<RestaurantDetailsScreen> createState() =>
+      _RestaurantDetailsScreenState();
 }
 
 class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
@@ -42,14 +44,23 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
 
-  void _showDishDetailSheet(Map<String, dynamic> item, Map<String, dynamic> restaurant) {
+  void _showDishDetailSheet(
+    Map<String, dynamic> item,
+    Map<String, dynamic> restaurant,
+  ) {
     final price = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
-    final originalPrice = double.tryParse(item['original_price']?.toString() ?? '0');
+    final originalPrice = double.tryParse(
+      item['original_price']?.toString() ?? '0',
+    );
     final isVeg = item['is_vegetarian'] == true;
     final isSpicy = item['is_spicy'] == true;
     final isHalal = item['is_halal'] == true;
@@ -83,7 +94,8 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (item['image'] != null && item['image'].toString().isNotEmpty) ...[
+                if (item['image'] != null &&
+                    item['image'].toString().isNotEmpty) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: CachedNetworkImage(
@@ -94,7 +106,11 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                       errorWidget: (context, url, error) => Container(
                         height: 180,
                         color: Colors.white12,
-                        child: const Icon(Icons.fastfood, size: 48, color: Colors.white38),
+                        child: const Icon(
+                          Icons.fastfood,
+                          size: 48,
+                          color: Colors.white38,
+                        ),
                       ),
                     ),
                   ),
@@ -106,7 +122,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                     Expanded(
                       child: Text(
                         item['name'] ?? 'Dish',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Text(
@@ -136,17 +155,27 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    if (isVeg) _buildDietaryBadge('🌿 Vegetarian', Colors.green),
+                    if (isVeg)
+                      _buildDietaryBadge('🌿 Vegetarian', Colors.green),
                     if (isHalal) _buildDietaryBadge('حلال Halal', Colors.teal),
-                    if (isSpicy) _buildDietaryBadge('🔥 Spicy', Colors.deepOrange),
+                    if (isSpicy)
+                      _buildDietaryBadge('🔥 Spicy', Colors.deepOrange),
                     if (item['preparation_time_mins'] != null)
-                      _buildDietaryBadge('⏱️ ${item['preparation_time_mins']} mins', Colors.blueAccent),
+                      _buildDietaryBadge(
+                        '⏱️ ${item['preparation_time_mins']} mins',
+                        Colors.blueAccent,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  item['description'] ?? 'Freshly prepared recipe from our kitchen.',
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 14, height: 1.4),
+                  item['description'] ??
+                      'Freshly prepared recipe from our kitchen.',
+                  style: TextStyle(
+                    color: GlassTheme.textMuted,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 if (!isAvailable)
@@ -159,7 +188,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                     child: const Center(
                       child: Text(
                         'Currently Sold Out',
-                        style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   )
@@ -168,7 +200,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        onPressed: qty > 1 ? () => setSheetState(() => qty--) : null,
+                        onPressed: qty > 1
+                            ? () => setSheetState(() => qty--)
+                            : null,
                         icon: const Icon(Icons.remove_circle_outline, size: 28),
                         color: GlassTheme.primaryGreen,
                       ),
@@ -176,7 +210,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           '$qty',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -191,11 +228,15 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: GlassTheme.primaryGreen,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     onPressed: () {
                       final cart = context.read<CartProvider>();
-                      final restId = int.tryParse(restaurant['id']?.toString() ?? '');
+                      final restId = int.tryParse(
+                        restaurant['id']?.toString() ?? '',
+                      );
                       for (int i = 0; i < qty; i++) {
                         cart.addItem(
                           item['id'] as int? ?? 0,
@@ -217,7 +258,11 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                     },
                     child: Text(
                       'Add to Cart • \$${(price * qty).toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -249,9 +294,7 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
           if (provider.isLoading && provider.restaurants.isEmpty) {
             return const Scaffold(
               appBar: GlassAppBar(title: 'Loading Restaurant...'),
-              body: SafeArea(
-                child: ShimmerDetailHeader(),
-              ),
+              body: SafeArea(child: ShimmerDetailHeader()),
             );
           }
 
@@ -269,11 +312,29 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.store_mall_directory_outlined, size: 64, color: GlassTheme.textMuted),
+                      Icon(
+                        Icons.store_mall_directory_outlined,
+                        size: 64,
+                        color: GlassTheme.textMuted,
+                      ),
                       const SizedBox(height: 16),
-                      const Text('Restaurant not found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const Text(
+                        'Restaurant not found',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Text('The requested restaurant may be closed or unavailable.', textAlign: TextAlign.center, style: TextStyle(color: GlassTheme.textMuted, fontSize: 13)),
+                      Text(
+                        'The requested restaurant may be closed or unavailable.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: GlassTheme.textMuted,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 24),
                       GlassButton(
                         text: 'Explore Restaurants',
@@ -287,7 +348,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
             );
           }
 
-          final categories = List<dynamic>.from(restaurant['food_categories'] ?? []);
+          final categories = List<dynamic>.from(
+            restaurant['food_categories'] ?? [],
+          );
           final allItems = <Map<String, dynamic>>[];
           for (var cat in categories) {
             final catItems = List<dynamic>.from(cat['items'] ?? []);
@@ -299,22 +362,30 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
           }
 
           // Build category list for tabs
-          final categoryNames = ['All', ...categories.map((c) => c['name']?.toString() ?? 'Menu')];
+          final categoryNames = [
+            'All',
+            ...categories.map((c) => c['name']?.toString() ?? 'Menu'),
+          ];
 
           // Filter items based on tab and menu search query
           final displayedItems = allItems.where((it) {
-            final matchesCat = _selectedCategoryIndex == 0 ||
+            final matchesCat =
+                _selectedCategoryIndex == 0 ||
                 it['category_name'] == categoryNames[_selectedCategoryIndex];
             final q = _searchQuery.trim().toLowerCase();
-            final matchesSearch = q.isEmpty ||
+            final matchesSearch =
+                q.isEmpty ||
                 (it['name']?.toString().toLowerCase().contains(q) ?? false) ||
-                (it['description']?.toString().toLowerCase().contains(q) ?? false);
+                (it['description']?.toString().toLowerCase().contains(q) ??
+                    false);
             return matchesCat && matchesSearch;
           }).toList();
 
           final minTime = restaurant['delivery_time_min'] ?? 15;
           final maxTime = restaurant['delivery_time_max'] ?? 30;
-          final deliveryFee = double.tryParse(restaurant['delivery_fee']?.toString() ?? '0') ?? 0.0;
+          final deliveryFee =
+              double.tryParse(restaurant['delivery_fee']?.toString() ?? '0') ??
+              0.0;
           final rating = restaurant['rating']?.toString() ?? '4.8';
 
           return Stack(
@@ -323,322 +394,473 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                 maxWidth: 1150,
                 child: CustomScrollView(
                   slivers: [
-                  // ── Hero Banner AppBar (Foodpanda / Grab style) ────────
-                  SliverAppBar(
-                    expandedHeight: 250.0,
-                    pinned: true,
-                    backgroundColor: GlassTheme.backgroundDark,
-                    leading: Container(
-                      margin: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                    actions: [
-                      Container(
+                    // ── Hero Banner AppBar (Foodpanda / Grab style) ────────
+                    SliverAppBar(
+                      expandedHeight: 250.0,
+                      pinned: true,
+                      backgroundColor: GlassTheme.backgroundDark,
+                      leading: Container(
                         margin: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.5),
                           shape: BoxShape.circle,
                         ),
-                        child: Consumer<FavoritesProvider>(
-                          builder: (context, favProvider, child) {
-                            final isResFav = favProvider.isRestaurantFavorite(restaurant['id']);
-                            return IconButton(
-                              icon: Icon(
-                                isResFav ? Icons.favorite : Icons.favorite_border,
-                                color: isResFav ? GlassTheme.foodpandaPink : Colors.white,
-                                size: 20,
-                              ),
-                              onPressed: () async {
-                                final added = await favProvider.toggleRestaurant(restaurant);
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(added
-                                        ? 'Saved "${restaurant['name']}" to Favorites'
-                                        : 'Removed "${restaurant['name']}" from Favorites'),
-                                    duration: const Duration(seconds: 1),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                            );
-                          },
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          onPressed: () => context.pop(),
                         ),
                       ),
-                    ],
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Hero(
-                            tag: 'restaurant_banner_${widget.id}',
-                            child: CachedNetworkImage(
-                              imageUrl: (restaurant['banner'] != null && restaurant['banner'].toString().isNotEmpty)
-                                  ? restaurant['banner'].toString()
-                                  : (widget.id == '1'
-                                      ? 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80'
-                                      : widget.id == '2'
+                      actions: [
+                        Container(
+                          margin: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Consumer<FavoritesProvider>(
+                            builder: (context, favProvider, child) {
+                              final isResFav = favProvider.isRestaurantFavorite(
+                                restaurant['id'],
+                              );
+                              return IconButton(
+                                icon: Icon(
+                                  isResFav
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isResFav
+                                      ? GlassTheme.foodpandaPink
+                                      : Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () async {
+                                  final added = await favProvider
+                                      .toggleRestaurant(restaurant);
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context)
+                                      .hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        added
+                                            ? 'Saved "${restaurant['name']}" to Favorites'
+                                            : 'Removed "${restaurant['name']}" from Favorites',
+                                      ),
+                                      duration: const Duration(seconds: 1),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Hero(
+                              tag: 'restaurant_banner_${widget.id}',
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    (restaurant['banner'] != null &&
+                                        restaurant['banner']
+                                            .toString()
+                                            .isNotEmpty)
+                                    ? restaurant['banner'].toString()
+                                    : (widget.id == '1'
+                                          ? 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80'
+                                          : widget.id == '2'
                                           ? 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80'
                                           : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80'),
-                              fit: BoxFit.cover,
-                              errorWidget: (context, url, error) => Container(color: Colors.grey.withValues(alpha: 0.2)),
+                                fit: BoxFit.cover,
+                                errorWidget: (context, url, error) => Container(
+                                  color: Colors.grey.withValues(alpha: 0.2),
+                                ),
+                              ),
                             ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.2),
-                                  Colors.black.withValues(alpha: 0.85),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withValues(alpha: 0.2),
+                                    Colors.black.withValues(alpha: 0.85),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 16,
+                              left: 16,
+                              right: 16,
+                              child: Hero(
+                                tag: 'restaurant_title_${widget.id}',
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: Text(
+                                    restaurant['name'] ?? 'Restaurant',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // ── Restaurant Info Card & Deals Banner ────────────────
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 12.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Restaurant Metadata Card
+                            GlassContainer(
+                              padding: const EdgeInsets.all(16),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.star,
+                                        color: GlassTheme.ratingAmber,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        rating,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '(350+ reviews)',
+                                        style: TextStyle(
+                                          color: GlassTheme.textMuted,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              (restaurant['is_active'] != false
+                                                      ? GlassTheme.primaryGreen
+                                                      : Colors.redAccent)
+                                                  .withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          restaurant['is_active'] != false
+                                              ? 'Open Now'
+                                              : 'Closed',
+                                          style: TextStyle(
+                                            color:
+                                                restaurant['is_active'] != false
+                                                ? GlassTheme.primaryGreen
+                                                : Colors.redAccent,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: GlassTheme.primaryGreen
+                                              .withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.access_time,
+                                              size: 14,
+                                              color: GlassTheme.primaryGreen,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '$minTime-$maxTime min',
+                                              style: const TextStyle(
+                                                color: GlassTheme.primaryGreen,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Divider(
+                                    height: 20,
+                                    color: Colors.white12,
+                                  ),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.moped,
+                                        color: GlassTheme.primaryGreen,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        deliveryFee <= 0
+                                            ? 'Free Delivery'
+                                            : 'Delivery: \$${deliveryFee.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      const Icon(
+                                        Icons.location_on,
+                                        color: Colors.blueAccent,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Text(
+                                        '1.2 km away',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                          Positioned(
-                            bottom: 16,
-                            left: 16,
-                            right: 16,
-                            child: Hero(
-                              tag: 'restaurant_title_${widget.id}',
-                              child: Material(
-                                color: Colors.transparent,
-                                child: Text(
-                                  restaurant['name'] ?? 'Restaurant',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
+                            const SizedBox(height: 12),
+
+                            // Foodpanda Deals Pill Banner
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: GlassTheme.foodpandaPink.withValues(
+                                  alpha: 0.15,
+                                ),
+                                border: Border.all(
+                                  color: GlassTheme.foodpandaPink.withValues(
+                                    alpha: 0.3,
                                   ),
                                 ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.local_offer,
+                                    color: GlassTheme.foodpandaPink,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '20% OFF orders over \$10 • Code: FOODGO20',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                            const SizedBox(height: 12),
 
-                  // ── Restaurant Info Card & Deals Banner ────────────────
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Restaurant Metadata Card
-                          GlassContainer(
-                            padding: const EdgeInsets.all(16),
-                            borderRadius: BorderRadius.circular(16),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.star, color: GlassTheme.ratingAmber, size: 20),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      rating,
-                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '(350+ reviews)',
-                                      style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: (restaurant['is_active'] != false ? GlassTheme.primaryGreen : Colors.redAccent).withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        restaurant['is_active'] != false ? 'Open Now' : 'Closed',
-                                        style: TextStyle(
-                                          color: restaurant['is_active'] != false ? GlassTheme.primaryGreen : Colors.redAccent,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.access_time, size: 14, color: GlassTheme.primaryGreen),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '$minTime-$maxTime min',
-                                            style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12),
+                            // In-Restaurant Menu Search Bar
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                ),
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                ),
+                                decoration: InputDecoration(
+                                  icon: const Icon(
+                                    Icons.search,
+                                    size: 18,
+                                    color: GlassTheme.primaryGreen,
+                                  ),
+                                  hintText:
+                                      'Search dishes in this restaurant...',
+                                  hintStyle: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 12,
+                                  ),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  suffixIcon: _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(
+                                            Icons.clear,
+                                            size: 16,
+                                            color: Colors.white60,
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            setState(() => _searchQuery = '');
+                                          },
+                                        )
+                                      : null,
                                 ),
-                                const Divider(height: 20, color: Colors.white12),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.moped, color: GlassTheme.primaryGreen, size: 18),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      deliveryFee <= 0 ? 'Free Delivery' : 'Delivery: \$${deliveryFee.toStringAsFixed(2)}',
-                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                                    ),
-                                    const Spacer(),
-                                    const Icon(Icons.location_on, color: Colors.blueAccent, size: 16),
-                                    const SizedBox(width: 4),
-                                    const Text('1.2 km away', style: TextStyle(fontSize: 13, color: Colors.white70)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Foodpanda Deals Pill Banner
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: GlassTheme.foodpandaPink.withValues(alpha: 0.15),
-                              border: Border.all(color: GlassTheme.foodpandaPink.withValues(alpha: 0.3)),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.local_offer, color: GlassTheme.foodpandaPink, size: 18),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    '20% OFF orders over \$10 • Code: FOODGO20',
-                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // In-Restaurant Menu Search Bar
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.06),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              style: const TextStyle(fontSize: 13, color: Colors.white),
-                              decoration: InputDecoration(
-                                icon: const Icon(Icons.search, size: 18, color: GlassTheme.primaryGreen),
-                                hintText: 'Search dishes in this restaurant...',
-                                hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                                border: InputBorder.none,
-                                isDense: true,
-                                suffixIcon: _searchQuery.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear, size: 16, color: Colors.white60),
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          setState(() => _searchQuery = '');
-                                        },
-                                      )
-                                    : null,
+                                onChanged: (val) =>
+                                    setState(() => _searchQuery = val),
                               ),
-                              onChanged: (val) => setState(() => _searchQuery = val),
                             ),
-                          ),
-                          const SizedBox(height: 14),
+                            const SizedBox(height: 14),
 
-                          // ── Sticky Category Tab Bar (Foodpanda Style) ────
-                          SizedBox(
-                            height: 38,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: categoryNames.length,
-                              itemBuilder: (context, index) {
-                                final isSelected = _selectedCategoryIndex == index;
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: InkWell(
-                                    onTap: () => setState(() => _selectedCategoryIndex = index),
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? GlassTheme.primaryGreen
-                                            : Colors.white.withValues(alpha: 0.06),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.12),
-                                        ),
+                            // ── Sticky Category Tab Bar (Foodpanda Style) ────
+                            SizedBox(
+                              height: 38,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: categoryNames.length,
+                                itemBuilder: (context, index) {
+                                  final isSelected =
+                                      _selectedCategoryIndex == index;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: InkWell(
+                                      onTap: () => setState(
+                                        () => _selectedCategoryIndex = index,
                                       ),
-                                      child: Center(
-                                        child: Text(
-                                          categoryNames[index],
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                            color: isSelected ? Colors.white : Colors.white70,
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? GlassTheme.primaryGreen
+                                              : Colors.white.withValues(
+                                                  alpha: 0.06,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? Colors.transparent
+                                                : Colors.white.withValues(
+                                                    alpha: 0.12,
+                                                  ),
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            categoryNames[index],
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.w500,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.white70,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
+                            const SizedBox(height: 16),
 
-                          Text(
-                            categoryNames[_selectedCategoryIndex],
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
+                            Text(
+                              categoryNames[_selectedCategoryIndex],
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  // ── Menu Items List (Foodpanda Food Item Layout) ────────
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
+                    // ── Menu Items List (Foodpanda Food Item Layout) ────────
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
                           final item = displayedItems[index];
-                          final price = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
-                          final originalPrice = double.tryParse(item['original_price']?.toString() ?? '');
+                          final price =
+                              double.tryParse(
+                                item['price']?.toString() ?? '0',
+                              ) ??
+                              0.0;
+                          final originalPrice = double.tryParse(
+                            item['original_price']?.toString() ?? '',
+                          );
                           final isAvailable = item['is_available'] != false;
                           final isVeg = item['is_vegetarian'] == true;
                           final isSpicy = item['is_spicy'] == true;
                           final isHalal = item['is_halal'] == true;
                           final itemId = item['id'] as int? ?? index;
-                          final cartItem = context.watch<CartProvider>().items[itemId];
+                          final cartItem = context
+                              .watch<CartProvider>()
+                              .items[itemId];
                           final int inCartQty = cartItem?.quantity ?? 0;
 
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12.0),
                             child: InkWell(
-                              onTap: () => _showDishDetailSheet(item, restaurant),
+                              onTap: () =>
+                                  _showDishDetailSheet(item, restaurant),
                               borderRadius: BorderRadius.circular(16),
                               child: GlassCard(
                                 padding: const EdgeInsets.all(12),
@@ -648,29 +870,49 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                     // Left side: Item title, description, badges, price
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Row(
                                             children: [
                                               Expanded(
                                                 child: Text(
                                                   item['name'] ?? 'Dish',
-                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               if (!isAvailable)
                                                 Container(
-                                                  margin: const EdgeInsets.only(left: 6),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                  margin: const EdgeInsets.only(
+                                                    left: 6,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.redAccent.withValues(alpha: 0.2),
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    color: Colors.redAccent
+                                                        .withValues(alpha: 0.2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                   ),
                                                   child: const Text(
                                                     'Sold Out',
-                                                    style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                                                    style: TextStyle(
+                                                      color: Colors.redAccent,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                                   ),
                                                 ),
                                             ],
@@ -678,7 +920,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                           const SizedBox(height: 4),
                                           Text(
                                             item['description'] ?? 'Delicious freshly prepared recipe.',
-                                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                                            style: TextStyle(
+                                              color: GlassTheme.textMuted,
+                                              fontSize: 12,
+                                            ),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -686,9 +931,21 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                             const SizedBox(height: 6),
                                             Row(
                                               children: [
-                                                if (isVeg) _buildDietaryBadge('🌿 Veg', Colors.green),
-                                                if (isHalal) _buildDietaryBadge('حلال', Colors.teal),
-                                                if (isSpicy) _buildDietaryBadge('🔥 Spicy', Colors.deepOrange),
+                                                if (isVeg)
+                                                  _buildDietaryBadge(
+                                                    '🌿 Veg',
+                                                    Colors.green,
+                                                  ),
+                                                if (isHalal)
+                                                  _buildDietaryBadge(
+                                                    'حلال',
+                                                    Colors.teal,
+                                                  ),
+                                                if (isSpicy)
+                                                  _buildDietaryBadge(
+                                                    '🔥 Spicy',
+                                                    Colors.deepOrange,
+                                                  ),
                                               ],
                                             ),
                                           ],
@@ -698,17 +955,20 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                               Text(
                                                 '\$${price.toStringAsFixed(2)}',
                                                 style: const TextStyle(
-                                                  color: GlassTheme.primaryGreen,
+                                                  color:
+                                                      GlassTheme.primaryGreen,
                                                   fontWeight: FontWeight.w900,
                                                   fontSize: 16,
                                                 ),
                                               ),
-                                              if (originalPrice != null && originalPrice > price) ...[
+                                              if (originalPrice != null &&
+                                                  originalPrice > price) ...[
                                                 const SizedBox(width: 8),
                                                 Text(
                                                   '\$${originalPrice.toStringAsFixed(2)}',
                                                   style: const TextStyle(
-                                                    decoration: TextDecoration.lineThrough,
+                                                    decoration: TextDecoration
+                                                        .lineThrough,
                                                     color: Colors.white38,
                                                     fontSize: 12,
                                                   ),
@@ -726,33 +986,66 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                       clipBehavior: Clip.none,
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(14),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
                                           child: Container(
                                             width: 90,
                                             height: 90,
-                                            color: Colors.white.withValues(alpha: 0.05),
-                                            child: item['image'] != null && item['image'].toString().isNotEmpty
+                                            color: Colors.white.withValues(
+                                              alpha: 0.05,
+                                            ),
+                                            child:
+                                                item['image'] != null &&
+                                                    item['image']
+                                                        .toString()
+                                                        .isNotEmpty
                                                 ? CachedNetworkImage(
-                                                    imageUrl: item['image'].toString(),
+                                                    imageUrl: item['image']
+                                                        .toString(),
                                                     fit: BoxFit.cover,
-                                                    placeholder: (context, url) => Container(
-                                                      color: Colors.white.withValues(alpha: 0.05),
-                                                      child: const Center(
-                                                        child: SizedBox(
-                                                          width: 18,
-                                                          height: 18,
-                                                          child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                                                    placeholder:
+                                                        (
+                                                          context,
+                                                          url,
+                                                        ) => Container(
+                                                          color: Colors.white
+                                                              .withValues(
+                                                                alpha: 0.05,
+                                                              ),
+                                                          child: const Center(
+                                                            child: SizedBox(
+                                                              width: 18,
+                                                              height: 18,
+                                                              child: CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                color: GlassTheme
+                                                                    .primaryGreen,
+                                                              ),
+                                                            ),
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ),
-                                                    errorWidget: (context, url, error) => Container(
-                                                      color: Colors.grey.withValues(alpha: 0.2),
-                                                      child: const Icon(Icons.fastfood, color: Colors.white38),
-                                                    ),
+                                                    errorWidget:
+                                                        (context, url, error) =>
+                                                            Container(
+                                                              color: Colors.grey
+                                                                  .withValues(
+                                                                    alpha: 0.2,
+                                                                  ),
+                                                              child: const Icon(
+                                                                Icons.fastfood,
+                                                                color: Colors
+                                                                    .white38,
+                                                              ),
+                                                            ),
                                                   )
                                                 : Container(
-                                                    color: Colors.grey.withValues(alpha: 0.2),
-                                                    child: const Icon(Icons.fastfood, color: Colors.white38),
+                                                    color: Colors.grey
+                                                        .withValues(alpha: 0.2),
+                                                    child: const Icon(
+                                                      Icons.fastfood,
+                                                      color: Colors.white38,
+                                                    ),
                                                   ),
                                           ),
                                         ),
@@ -763,32 +1056,60 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                           left: 4,
                                           child: Consumer<FavoritesProvider>(
                                             builder: (context, favs, child) {
-                                              final isFav = favs.isFoodFavorite(itemId);
+                                              final isFav = favs.isFoodFavorite(
+                                                itemId,
+                                              );
                                               return Material(
-                                                color: Colors.black.withValues(alpha: 0.5),
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.5,
+                                                ),
                                                 shape: const CircleBorder(),
                                                 child: InkWell(
-                                                  customBorder: const CircleBorder(),
+                                                  customBorder:
+                                                      const CircleBorder(),
                                                   onTap: () async {
-                                                    final added = await favs.toggleFoodItem(item);
-                                                    if (!context.mounted) return;
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                    final added = await favs
+                                                        .toggleFoodItem(item);
+                                                    if (!context.mounted) {
+                                                      return;
+                                                    }
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).hideCurrentSnackBar();
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
                                                       SnackBar(
-                                                        content: Text(added
-                                                            ? 'Saved "${item['name']}" to Favorites'
-                                                            : 'Removed "${item['name']}" from Favorites'),
-                                                        duration: const Duration(seconds: 1),
-                                                        behavior: SnackBarBehavior.floating,
+                                                        content: Text(
+                                                          added
+                                                              ? 'Saved "${item['name']}" to Favorites'
+                                                              : 'Removed "${item['name']}" from Favorites',
+                                                        ),
+                                                        duration:
+                                                            const Duration(
+                                                              seconds: 1,
+                                                            ),
+                                                        behavior:
+                                                            SnackBarBehavior
+                                                                .floating,
                                                       ),
                                                     );
                                                   },
                                                   child: Padding(
-                                                    padding: const EdgeInsets.all(5.0),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          5.0,
+                                                        ),
                                                     child: Icon(
-                                                      isFav ? Icons.favorite : Icons.favorite_border,
+                                                      isFav
+                                                          ? Icons.favorite
+                                                          : Icons
+                                                                .favorite_border,
                                                       size: 14,
-                                                      color: isFav ? GlassTheme.foodpandaPink : Colors.white,
+                                                      color: isFav
+                                                          ? GlassTheme
+                                                                .foodpandaPink
+                                                          : Colors.white,
                                                     ),
                                                   ),
                                                 ),
@@ -803,46 +1124,76 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                             bottom: -6,
                                             right: -6,
                                             child: Material(
-                                              color: inCartQty > 0 ? GlassTheme.primaryGreen : Colors.white,
+                                              color: inCartQty > 0
+                                                  ? GlassTheme.primaryGreen
+                                                  : Colors.white,
                                               shape: const CircleBorder(),
                                               elevation: 4,
                                               child: InkWell(
-                                                customBorder: const CircleBorder(),
+                                                customBorder:
+                                                    const CircleBorder(),
                                                 onTap: () {
-                                                  context.read<CartProvider>().addItem(
-                                                    itemId,
-                                                    item['name'] ?? 'Dish',
-                                                    price,
-                                                    item['image']?.toString(),
-                                                    restaurantId: int.tryParse(widget.id ?? '1'),
-                                                    restaurantName: restaurant['name'],
-                                                  );
-                                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                  context
+                                                      .read<CartProvider>()
+                                                      .addItem(
+                                                        itemId,
+                                                        item['name'] ?? 'Dish',
+                                                        price,
+                                                        item['image']
+                                                            ?.toString(),
+                                                        restaurantId:
+                                                            int.tryParse(
+                                                              widget.id ?? '1',
+                                                            ),
+                                                        restaurantName:
+                                                            restaurant['name'],
+                                                      );
+                                                  ScaffoldMessenger.of(context)
+                                                      .hideCurrentSnackBar();
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
                                                     SnackBar(
-                                                      content: Text('Added "${item['name']}" to cart!'),
-                                                      duration: const Duration(seconds: 1),
-                                                      behavior: SnackBarBehavior.floating,
+                                                      content: Text(
+                                                        'Added "${item['name']}" to cart!',
+                                                      ),
+                                                      duration: const Duration(
+                                                        seconds: 1,
+                                                      ),
+                                                      behavior: SnackBarBehavior
+                                                          .floating,
                                                       action: SnackBarAction(
                                                         label: 'View Cart',
-                                                        textColor: GlassTheme.primaryGreen,
-                                                        onPressed: () => context.push('/cart'),
+                                                        textColor: GlassTheme
+                                                            .primaryGreen,
+                                                        onPressed: () => context
+                                                            .push('/cart'),
                                                       ),
                                                     ),
                                                   );
                                                 },
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(6.0),
+                                                  padding: const EdgeInsets.all(
+                                                    6.0,
+                                                  ),
                                                   child: inCartQty > 0
                                                       ? Text(
                                                           '$inCartQty',
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 12,
-                                                          ),
+                                                          style:
+                                                              const TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 12,
+                                                              ),
                                                         )
-                                                      : const Icon(Icons.add, color: Colors.black87, size: 18),
+                                                      : const Icon(
+                                                          Icons.add,
+                                                          color: Colors.black87,
+                                                          size: 18,
+                                                        ),
                                                 ),
                                               ),
                                             ),
@@ -854,18 +1205,14 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                               ),
                             ),
                           );
-                        },
-                        childCount: displayedItems.length,
+                        }, childCount: displayedItems.length),
                       ),
                     ),
-                  ),
 
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 120),
-                  ),
-                ],
+                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                  ],
+                ),
               ),
-            ),
 
               // ── Sticky Bottom Checkout Bar (Foodpanda Style) ─────────
               const FloatingMiniCartBar(bottomOffset: 24.0),

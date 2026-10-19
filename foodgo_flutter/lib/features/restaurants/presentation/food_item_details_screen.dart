@@ -26,33 +26,37 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     // Use passed data or defaults matching the reference mockup (Double Beef Cheese Burger)
-    final data = widget.itemData ?? {
-      'id': 1,
-      'name': 'Double Beef Cheese Burger',
-      'location': 'Naperville, Illinois',
-      'price': 6.50,
-      'calories': '198',
-      'proteins': '25.2',
-      'fats': '13.8',
-      'carbo': '23.7',
-      'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
-      'description':
-          'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft black sesame burger bun with patty filled with melted cheddar cheese and crispy garden greens.',
-      'restaurantId': 1,
-      'restaurantName': 'Naperville Gourmet Burgers',
-    };
+    final data =
+        widget.itemData ??
+        {
+          'id': 1,
+          'name': 'Double Beef Cheese Burger',
+          'location': 'Naperville, Illinois',
+          'price': 6.50,
+          'calories': '198',
+          'proteins': '25.2',
+          'fats': '13.8',
+          'carbo': '23.7',
+          'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+          'description': 'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft black sesame burger bun with patty filled with melted cheddar cheese and crispy garden greens.',
+          'restaurantId': 1,
+          'restaurantName': 'Naperville Gourmet Burgers',
+        };
 
     final int itemId = (data['id'] is int)
         ? data['id'] as int
         : int.tryParse(data['id']?.toString() ?? '1') ?? 1;
     final String name = data['name']?.toString() ?? 'Double Beef Cheese Burger';
-    final String location = data['location']?.toString() ?? 'Naperville, Illinois';
+    final String location =
+        data['location']?.toString() ?? 'Naperville, Illinois';
     final double price = (data['price'] is num)
         ? (data['price'] as num).toDouble()
         : double.tryParse(data['price']?.toString() ?? '6.50') ?? 6.50;
-    final String imageUrl = data['image']?.toString() ??
+    final String imageUrl =
+        data['image']?.toString() ??
         'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80';
-    final String description = data['description']?.toString() ??
+    final String description =
+        data['description']?.toString() ??
         'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft black sesame burger bun with patty filled with melted cheddar cheese and crispy garden greens.';
 
     final String calories = data['calories']?.toString() ?? '198';
@@ -79,7 +83,10 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: isDark
-                              ? [const Color(0xFF1E2820), const Color(0xFF141C16)]
+                              ? [
+                                  const Color(0xFF1E2820),
+                                  const Color(0xFF141C16),
+                                ]
                               : [const Color(0xFFEBECEE), Colors.white],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -90,14 +97,19 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                     // Centered Large Hero Food Image
                     Positioned.fill(
                       child: Padding(
-                        padding: EdgeInsets.only(top: topPadding + 40, bottom: 20),
+                        padding: EdgeInsets.only(
+                          top: topPadding + 40,
+                          bottom: 20,
+                        ),
                         child: Center(
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.18),
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.4 : 0.18,
+                                  ),
                                   blurRadius: 36,
                                   offset: const Offset(0, 18),
                                 ),
@@ -118,7 +130,11 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                   width: 230,
                                   height: 230,
                                   color: Colors.grey.shade200,
-                                  child: const Icon(Icons.fastfood, size: 64, color: Colors.grey),
+                                  child: const Icon(
+                                    Icons.fastfood,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ),
                             ),
@@ -141,7 +157,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : const Color(0xFF1B1B1B),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1B1B1B),
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -170,12 +188,19 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
 
                       // 4 Macro-Nutrient Metrics (kcal, proteins, fats, carbo)
                       Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 12,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFFF7F8F9),
+                          color: isDark
+                              ? GlassTheme.surfaceCardDark
+                              : const Color(0xFFF7F8F9),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isDark ? Colors.white12 : const Color(0xFFEDEDED),
+                            color: isDark
+                                ? Colors.white12
+                                : const Color(0xFFEDEDED),
                           ),
                         ),
                         child: Row(
@@ -198,7 +223,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF1B1B1B),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1B1B1B),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -206,11 +233,15 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       Text(
                         description,
                         maxLines: _isDescriptionExpanded ? null : 3,
-                        overflow: _isDescriptionExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                        overflow: _isDescriptionExpanded
+                            ? TextOverflow.visible
+                            : TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 13,
                           height: 1.5,
-                          color: isDark ? Colors.white70 : const Color(0xFF757575),
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF757575),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -295,7 +326,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                          color: isDark
+                              ? GlassTheme.surfaceCardDark
+                              : Colors.white,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -370,10 +403,14 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       width: 54,
                       height: 54,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white10 : const Color(0xFFF5F6F7),
+                        color: isDark
+                            ? Colors.white10
+                            : const Color(0xFFF5F6F7),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isDark ? Colors.white12 : const Color(0xFFE2E4E6),
+                          color: isDark
+                              ? Colors.white12
+                              : const Color(0xFFE2E4E6),
                         ),
                       ),
                       child: Icon(
@@ -408,7 +445,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                           borderRadius: BorderRadius.circular(28),
                           boxShadow: [
                             BoxShadow(
-                              color: GlassTheme.limeAccentBright.withValues(alpha: 0.4),
+                              color: GlassTheme.limeAccentBright.withValues(
+                                alpha: 0.4,
+                              ),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),

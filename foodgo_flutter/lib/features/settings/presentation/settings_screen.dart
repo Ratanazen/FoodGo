@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -70,7 +71,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Select Language / ជ្រើសរើសភាសា', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Select Language / ជ្រើសរើសភាសា',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 16),
             ...[
               {'label': 'English (US)', 'name': 'English'},
@@ -79,8 +87,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ].map((lang) {
               final isSel = _selectedLanguage == lang['name'];
               return ListTile(
-                title: Text(lang['label']!, style: TextStyle(color: Colors.white, fontWeight: isSel ? FontWeight.bold : FontWeight.normal)),
-                trailing: isSel ? const Icon(Icons.check, color: GlassTheme.primaryGreen) : null,
+                title: Text(
+                  lang['label']!,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                trailing: isSel
+                    ? const Icon(Icons.check, color: GlassTheme.primaryGreen)
+                    : null,
                 onTap: () {
                   setState(() => _selectedLanguage = lang['name']!);
                   _saveSetting('settings_language', lang['name']!);
@@ -107,22 +123,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: GlassTheme.dialogDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Text & Font Size', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Text & Font Size',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: ['Small (90%)', 'Medium (Default 100%)', 'Large (115%)'].map((size) {
-            final key = size.split(' ').first;
-            final isSelected = _selectedFontSize == key;
-            return ListTile(
-              title: Text(size, style: TextStyle(color: isSelected ? GlassTheme.primaryGreen : Colors.white, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-              trailing: isSelected ? Icon(Icons.check_circle, color: GlassTheme.primaryGreen) : const Icon(Icons.circle_outlined, color: Colors.white38),
-              onTap: () {
-                setState(() => _selectedFontSize = key);
-                _saveSetting('settings_font_size', key);
-                Navigator.pop(ctx);
-              },
-            );
-          }).toList(),
+          children: ['Small (90%)', 'Medium (Default 100%)', 'Large (115%)']
+              .map((size) {
+                final key = size.split(' ').first;
+                final isSelected = _selectedFontSize == key;
+                return ListTile(
+                  title: Text(
+                    size,
+                    style: TextStyle(
+                      color: isSelected
+                          ? GlassTheme.primaryGreen
+                          : Colors.white,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Icon(Icons.check_circle, color: GlassTheme.primaryGreen)
+                      : const Icon(
+                          Icons.circle_outlined,
+                          color: Colors.white38,
+                        ),
+                  onTap: () {
+                    setState(() => _selectedFontSize = key);
+                    _saveSetting('settings_font_size', key);
+                    Navigator.pop(ctx);
+                  },
+                );
+              })
+              .toList(),
         ),
       ),
     );
@@ -140,19 +176,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(sheetCtx).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: GlassTheme.dialogDark,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
               border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Change Account Password', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Change Account Password',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: currentPw,
@@ -163,7 +210,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     labelStyle: TextStyle(color: GlassTheme.textMuted),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -176,7 +225,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     labelStyle: TextStyle(color: GlassTheme.textMuted),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -189,7 +240,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     labelStyle: TextStyle(color: GlassTheme.textMuted),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -197,26 +250,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GlassTheme.primaryGreen,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: isSubmitting
                       ? null
                       : () async {
                           if (currentPw.text.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please enter your current password'), backgroundColor: Colors.redAccent),
+                              const SnackBar(
+                                content: Text(
+                                  'Please enter your current password',
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
                             );
                             return;
                           }
-                          if (newPw.text.isEmpty || newPw.text != confirmPw.text) {
+                          if (newPw.text.isEmpty ||
+                              newPw.text != confirmPw.text) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Passwords do not match or are empty'), backgroundColor: Colors.redAccent),
+                              const SnackBar(
+                                content: Text(
+                                  'Passwords do not match or are empty',
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
                             );
                             return;
                           }
                           if (newPw.text.length < 6) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('New password must be at least 6 characters'), backgroundColor: Colors.redAccent),
+                              const SnackBar(
+                                content: Text(
+                                  'New password must be at least 6 characters',
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
                             );
                             return;
                           }
@@ -230,19 +301,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             if (sheetCtx.mounted) Navigator.pop(sheetCtx);
                             if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Password updated successfully!'), backgroundColor: GlassTheme.primaryGreen),
+                              const SnackBar(
+                                content: Text('Password updated successfully!'),
+                                backgroundColor: GlassTheme.primaryGreen,
+                              ),
                             );
                           } catch (e) {
                             setSheetState(() => isSubmitting = false);
                             if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to update password: $e'), backgroundColor: Colors.redAccent),
+                              SnackBar(
+                                content: Text('Failed to update password: $e'),
+                                backgroundColor: Colors.redAccent,
+                              ),
                             );
                           }
                         },
                   child: isSubmitting
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Save New Password', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Save New Password',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -261,12 +351,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: GlassTheme.dialogDark,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
               SizedBox(width: 8),
-              Text('Delete Account', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(
+                'Delete Account',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           content: Column(
@@ -275,12 +373,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               const Text(
                 'This action is irreversible. All your order history, saved addresses, and profile data will be permanently deleted.',
-                style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
                 'Type "DELETE" to confirm:',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -291,7 +397,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   hintStyle: const TextStyle(color: Colors.white38),
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 onChanged: (_) => setDialogState(() {}),
               ),
@@ -300,14 +408,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white60),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              onPressed: (confirmController.text.trim() != 'DELETE' || isDeleting)
+              onPressed:
+                  (confirmController.text.trim() != 'DELETE' || isDeleting)
                   ? null
                   : () async {
                       setDialogState(() => isDeleting = true);
@@ -330,13 +444,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         setDialogState(() => isDeleting = false);
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to delete account: $e'), backgroundColor: Colors.redAccent),
+                          SnackBar(
+                            content: Text('Failed to delete account: $e'),
+                            backgroundColor: Colors.redAccent,
+                          ),
                         );
                       }
                     },
               child: isDeleting
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Delete Permanently', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Delete Permanently',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -363,8 +493,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                IconButton(icon: const Icon(Icons.close, color: Colors.white60), onPressed: () => Navigator.pop(ctx)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white60),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
               ],
             ),
             const Divider(color: Colors.white12),
@@ -372,7 +512,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: SingleChildScrollView(
                 child: Text(
                   content,
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 14, height: 1.6),
+                  style: TextStyle(
+                    color: GlassTheme.textMuted,
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
                 ),
               ),
             ),
@@ -389,12 +533,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (dialogCtx, setDialogState) => AlertDialog(
           backgroundColor: GlassTheme.dialogDark,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Text('Rate FoodGo Experience', textAlign: TextAlign.center, style: TextStyle(color: Colors.white)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: const Text(
+            'Rate FoodGo Experience',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('How would you rate your delivery experience?', style: TextStyle(color: Colors.white70, fontSize: 13), textAlign: TextAlign.center),
+              const Text(
+                'How would you rate your delivery experience?',
+                style: TextStyle(color: Colors.white70, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -411,22 +565,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                rating == 5 ? '⭐️⭐️⭐️⭐️⭐️ Outstanding!' : rating >= 4 ? 'Great food & fast delivery' : 'Thanks for your feedback!',
-                style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                rating == 5
+                    ? '⭐️⭐️⭐️⭐️⭐️ Outstanding!'
+                    : rating >= 4
+                    ? 'Great food & fast delivery'
+                    : 'Thanks for your feedback!',
+                style: const TextStyle(
+                  color: GlassTheme.primaryGreen,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white60))),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white60),
+              ),
+            ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: GlassTheme.primaryGreen),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GlassTheme.primaryGreen,
+              ),
               onPressed: () {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Thank you for rating FoodGo! ❤️'), backgroundColor: GlassTheme.primaryGreen),
+                  const SnackBar(
+                    content: Text('Thank you for rating FoodGo! ❤️'),
+                    backgroundColor: GlassTheme.primaryGreen,
+                  ),
                 );
               },
-              child: const Text('Submit Rating', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Submit Rating',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),
@@ -449,36 +628,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('FoodGo Help & Support', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'FoodGo Help & Support',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text('We are here to assist you 24/7 with your food orders.', style: TextStyle(color: GlassTheme.textMuted, fontSize: 13)),
+            Text(
+              'We are here to assist you 24/7 with your food orders.',
+              style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+            ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.chat_bubble_outline, color: GlassTheme.primaryGreen),
-              title: const Text('Live Chat Support', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              subtitle: Text('Instant replies within 2 minutes', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+              leading: const Icon(
+                Icons.chat_bubble_outline,
+                color: GlassTheme.primaryGreen,
+              ),
+              title: const Text(
+                'Live Chat Support',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                'Instant replies within 2 minutes',
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Connecting to FoodGo Support Agent...'), backgroundColor: GlassTheme.primaryGreen),
+                  const SnackBar(
+                    content: Text('Connecting to FoodGo Support Agent...'),
+                    backgroundColor: GlassTheme.primaryGreen,
+                  ),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.send_rounded, color: Colors.blueAccent),
-              title: const Text('Telegram Official Channel', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              subtitle: Text('@foodgocambodia', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+              title: const Text(
+                'Telegram Official Channel',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                '@foodgocambodia',
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Telegram channel: @foodgocambodia'), backgroundColor: Colors.blueAccent),
+                  const SnackBar(
+                    content: Text('Telegram channel: @foodgocambodia'),
+                    backgroundColor: Colors.blueAccent,
+                  ),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.phone_outlined, color: Colors.amber),
-              title: const Text('Customer Care Hotline', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              subtitle: Text('+855 23 999 888 (Toll-Free Phnom Penh)', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+              title: const Text(
+                'Customer Care Hotline',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                '+855 23 999 888 (Toll-Free Phnom Penh)',
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+              ),
               onTap: () {
                 Clipboard.setData(const ClipboardData(text: '+85523999888'));
                 Navigator.pop(ctx);
@@ -639,10 +864,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _showPolicySheet(
                     'Privacy Policy',
                     'At FoodGo, your privacy is our core priority.\n\n'
-                    '1. Data Collection: We collect only essential contact, location, and payment details necessary for order dispatch.\n\n'
-                    '2. Payment Security: Banking credentials, KHQR payload tokens, and wallet secrets are encrypted via end-to-end HTTPS/TLS protocols and never stored in plain text.\n\n'
-                    '3. Location Privacy: Driver and customer coordinates are used strictly for in-transit live order routing.\n\n'
-                    'For inquiries, reach out to security@foodgo.com.',
+                        '1. Data Collection: We collect only essential contact, location, and payment details necessary for order dispatch.\n\n'
+                        '2. Payment Security: Banking credentials, KHQR payload tokens, and wallet secrets are encrypted via end-to-end HTTPS/TLS protocols and never stored in plain text.\n\n'
+                        '3. Location Privacy: Driver and customer coordinates are used strictly for in-transit live order routing.\n\n'
+                        'For inquiries, reach out to security@foodgo.com.',
                   ),
                 ),
                 _Divider(),
@@ -654,10 +879,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _showPolicySheet(
                     'Terms of Service',
                     'Welcome to FoodGo Platform Terms.\n\n'
-                    '1. Acceptance: By placing an order, you agree to comply with FoodGo policies.\n\n'
-                    '2. Orders & Cancellations: Once preparation starts, cancellation requests may incur restaurant processing fees.\n\n'
-                    '3. Payments: All digital KHQR and Wallet payments are debited in real-time.\n\n'
-                    '4. Conduct: Respectful communication between drivers, customers, and restaurant staff is mandatory.',
+                        '1. Acceptance: By placing an order, you agree to comply with FoodGo policies.\n\n'
+                        '2. Orders & Cancellations: Once preparation starts, cancellation requests may incur restaurant processing fees.\n\n'
+                        '3. Payments: All digital KHQR and Wallet payments are debited in real-time.\n\n'
+                        '4. Conduct: Respectful communication between drivers, customers, and restaurant staff is mandatory.',
                   ),
                 ),
               ],
@@ -713,7 +938,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   iconColor: Colors.redAccent,
                   title: 'Delete Account',
                   subtitle: 'Permanently remove account & all order data',
-                  trailing: const Icon(Icons.chevron_right, color: Colors.redAccent),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: Colors.redAccent,
+                  ),
                   onTap: _showDeleteAccountDialog,
                 ),
               ],
@@ -748,8 +976,12 @@ class _SectionHeader extends StatelessWidget {
 
 class _Divider extends StatelessWidget {
   @override
-  Widget build(BuildContext context) =>
-      Divider(height: 1, indent: 56, endIndent: 0, color: GlassTheme.textMuted.withValues(alpha: 0.15));
+  Widget build(BuildContext context) => Divider(
+    height: 1,
+    indent: 56,
+    endIndent: 0,
+    color: GlassTheme.textMuted.withValues(alpha: 0.15),
+  );
 }
 
 class _SettingsTile extends StatelessWidget {
@@ -782,9 +1014,15 @@ class _SettingsTile extends StatelessWidget {
         ),
         child: Icon(icon, color: iconColor, size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+      ),
       subtitle: subtitle != null
-          ? Text(subtitle!, style: TextStyle(color: GlassTheme.textMuted, fontSize: 12))
+          ? Text(
+              subtitle!,
+              style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+            )
           : null,
       trailing: trailing != null
           ? DefaultTextStyle(

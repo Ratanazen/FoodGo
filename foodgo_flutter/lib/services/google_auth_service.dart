@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
 import '../core/theme/glass_theme.dart';
 import '../widgets/glass_container.dart';
 
@@ -54,15 +55,21 @@ class GoogleAuthService {
       }
       return null;
     } catch (e) {
-      debugPrint('GoogleSignIn native failed: $e. Falling back to account chooser dialog.');
+      debugPrint(
+        'GoogleSignIn native failed: $e. Falling back to account chooser dialog.',
+      );
       if (!context.mounted) return null;
       return await _showGoogleAccountPickerModal(context);
     }
   }
 
   /// Interactive Google Account selector modal
-  static Future<GoogleAuthResult?> _showGoogleAccountPickerModal(BuildContext context) async {
-    final emailController = TextEditingController(text: 'customer.google@gmail.com');
+  static Future<GoogleAuthResult?> _showGoogleAccountPickerModal(
+    BuildContext context,
+  ) async {
+    final emailController = TextEditingController(
+      text: 'customer.google@gmail.com',
+    );
     final nameController = TextEditingController(text: 'Google User');
 
     final result = await showDialog<GoogleAuthResult>(
@@ -71,11 +78,16 @@ class GoogleAuthService {
       builder: (ctx) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
           child: GlassContainer(
             borderRadius: BorderRadius.circular(24),
             padding: const EdgeInsets.all(24),
-            customBorder: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            customBorder: Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+            ),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -95,7 +107,11 @@ class GoogleAuthService {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.g_mobiledata, color: GlassTheme.googleBlue, size: 28),
+                        child: const Icon(
+                          Icons.g_mobiledata,
+                          color: GlassTheme.googleBlue,
+                          size: 28,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       const Expanded(
@@ -121,7 +137,11 @@ class GoogleAuthService {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white70,
+                          size: 20,
+                        ),
                         onPressed: () => Navigator.of(ctx).pop(null),
                       ),
                     ],
@@ -171,12 +191,24 @@ class GoogleAuthService {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Full Name',
-                      labelStyle: const TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                      prefixIcon: const Icon(Icons.person_outline, color: GlassTheme.primaryGreen, size: 20),
+                      labelStyle: const TextStyle(
+                        color: GlassTheme.textMuted,
+                        fontSize: 13,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.person_outline,
+                        color: GlassTheme.primaryGreen,
+                        size: 20,
+                      ),
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.05),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -186,12 +218,24 @@ class GoogleAuthService {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Google Email (@gmail.com)',
-                      labelStyle: const TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                      prefixIcon: const Icon(Icons.mail_outline, color: GlassTheme.googleBlue, size: 20),
+                      labelStyle: const TextStyle(
+                        color: GlassTheme.textMuted,
+                        fontSize: 13,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.mail_outline,
+                        color: GlassTheme.googleBlue,
+                        size: 20,
+                      ),
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.05),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -200,24 +244,38 @@ class GoogleAuthService {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black87,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    icon: const Icon(Icons.login, color: GlassTheme.googleBlue, size: 20),
+                    icon: const Icon(
+                      Icons.login,
+                      color: GlassTheme.googleBlue,
+                      size: 20,
+                    ),
                     label: const Text(
                       'Continue to FoodGo',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
                     onPressed: () {
                       final email = emailController.text.trim();
                       final name = nameController.text.trim();
                       if (email.isEmpty) return;
-                      Navigator.of(ctx).pop(GoogleAuthResult(
-                        idToken: 'google-token-${DateTime.now().millisecondsSinceEpoch}',
-                        email: email,
-                        displayName: name.isNotEmpty ? name : email.split('@').first,
-                        photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
-                      ));
+                      Navigator.of(ctx).pop(
+                        GoogleAuthResult(
+                          idToken:
+                              'google-token-${DateTime.now().millisecondsSinceEpoch}',
+                          email: email,
+                          displayName: name.isNotEmpty
+                              ? name
+                              : email.split('@').first,
+                          photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+                        ),
+                      );
                     },
                   ),
                 ],
@@ -244,12 +302,14 @@ class GoogleAuthService {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          Navigator.of(ctx).pop(GoogleAuthResult(
-            idToken: 'google-token-${DateTime.now().millisecondsSinceEpoch}',
-            email: email,
-            displayName: name,
-            photoUrl: avatarUrl,
-          ));
+          Navigator.of(ctx).pop(
+            GoogleAuthResult(
+              idToken: 'google-token-${DateTime.now().millisecondsSinceEpoch}',
+              email: email,
+              displayName: name,
+              photoUrl: avatarUrl,
+            ),
+          );
         },
         child: Container(
           padding: const EdgeInsets.all(10),
@@ -287,7 +347,11 @@ class GoogleAuthService {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 14),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.white38,
+                size: 14,
+              ),
             ],
           ),
         ),

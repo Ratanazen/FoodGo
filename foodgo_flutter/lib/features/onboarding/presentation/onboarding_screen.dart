@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
@@ -36,7 +37,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       body: Stack(
         children: [
           // Background circles for glassmorphism effect
@@ -49,7 +49,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
-                
               ),
             ),
           ),
@@ -60,7 +59,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   alignment: Alignment.topRight,
                   child: TextButton(
                     onPressed: () => context.go('/login'),
-                    child: Text('Skip', style: TextStyle(color: GlassTheme.textMuted)),
+                    child: Text(
+                      'Skip',
+                      style: TextStyle(color: GlassTheme.textMuted),
+                    ),
                   ),
                 ),
                 Expanded(
@@ -93,7 +95,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
-                                
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -124,14 +125,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             width: _currentPage == index ? 24 : 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: _currentPage == index ? GlassTheme.primaryGreen : GlassTheme.textMuted.withValues(alpha: 0.3),
+                              color: _currentPage == index
+                                  ? GlassTheme.primaryGreen
+                                  : GlassTheme.textMuted.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
                         ),
                       ),
                       GlassButton(
-                        text: _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
+                        text: _currentPage == _pages.length - 1
+                            ? 'Get Started'
+                            : 'Next',
                         onPressed: () {
                           if (_currentPage == _pages.length - 1) {
                             context.go('/login');

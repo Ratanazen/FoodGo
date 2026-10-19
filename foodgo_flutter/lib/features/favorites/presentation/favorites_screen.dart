@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../providers/favorites_provider.dart';
 import '../../../../providers/cart_provider.dart';
@@ -32,10 +33,16 @@ class FavoritesScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.15),
+                      ),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                       onPressed: () => context.pop(),
                     ),
                   ),
@@ -44,14 +51,21 @@ class FavoritesScreen extends StatelessWidget {
           centerTitle: true,
           title: Text(
             'Favorites (${favorites.totalFavoritesCount})',
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: Colors.white),
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 19,
+              color: Colors.white,
+            ),
           ),
           bottom: TabBar(
             indicatorColor: GlassTheme.limeAccent,
             indicatorWeight: 3,
             labelColor: GlassTheme.limeAccent,
             unselectedLabelColor: Colors.white60,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 14,
+            ),
             tabs: [
               Tab(text: 'Restaurants (${restaurants.length})'),
               Tab(text: 'Food Items (${foods.length})'),
@@ -70,7 +84,10 @@ class FavoritesScreen extends StatelessWidget {
                     onAction: () => context.go('/explore'),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
                     itemCount: restaurants.length,
                     itemBuilder: (context, index) {
                       final res = restaurants[index];
@@ -97,12 +114,17 @@ class FavoritesScreen extends StatelessWidget {
                     onAction: () => context.go('/home'),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
                     itemCount: foods.length,
                     itemBuilder: (context, index) {
                       final item = foods[index];
                       final name = item['name']?.toString() ?? 'Delicious Food';
-                      final price = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
+                      final price =
+                          double.tryParse(item['price']?.toString() ?? '0') ??
+                          0.0;
                       final imgUrl = item['image_url']?.toString() ?? '';
                       final desc = item['description']?.toString() ?? '';
 
@@ -113,7 +135,9 @@ class FavoritesScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: GlassTheme.surfaceCardDark,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.08),
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -129,14 +153,20 @@ class FavoritesScreen extends StatelessWidget {
                                           width: 70,
                                           height: 70,
                                           color: Colors.white10,
-                                          child: const Icon(Icons.fastfood, color: GlassTheme.textMuted),
+                                          child: const Icon(
+                                            Icons.fastfood,
+                                            color: GlassTheme.textMuted,
+                                          ),
                                         ),
                                       )
                                     : Container(
                                         width: 70,
                                         height: 70,
                                         color: Colors.white10,
-                                        child: const Icon(Icons.fastfood, color: GlassTheme.textMuted),
+                                        child: const Icon(
+                                          Icons.fastfood,
+                                          color: GlassTheme.textMuted,
+                                        ),
                                       ),
                               ),
                               const SizedBox(width: 12),
@@ -146,7 +176,10 @@ class FavoritesScreen extends StatelessWidget {
                                   children: [
                                     Text(
                                       name,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -154,7 +187,10 @@ class FavoritesScreen extends StatelessWidget {
                                       const SizedBox(height: 3),
                                       Text(
                                         desc,
-                                        style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                                        style: TextStyle(
+                                          color: GlassTheme.textMuted,
+                                          fontSize: 12,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -172,13 +208,19 @@ class FavoritesScreen extends StatelessWidget {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.favorite, color: GlassTheme.foodpandaPink, size: 20),
+                                icon: const Icon(
+                                  Icons.favorite,
+                                  color: GlassTheme.foodpandaPink,
+                                  size: 20,
+                                ),
                                 onPressed: () async {
                                   await favorites.toggleFoodItem(item);
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Removed $name from Favorites'),
+                                      content: Text(
+                                        'Removed $name from Favorites',
+                                      ),
                                       duration: const Duration(seconds: 1),
                                       behavior: SnackBarBehavior.floating,
                                       backgroundColor: GlassTheme.surfaceDark,
@@ -191,9 +233,14 @@ class FavoritesScreen extends StatelessWidget {
                                 onTap: () {
                                   HapticFeedback.lightImpact();
                                   final cart = context.read<CartProvider>();
-                                  final id = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
+                                  final id =
+                                      int.tryParse(
+                                        item['id']?.toString() ?? '0',
+                                      ) ??
+                                      0;
                                   cart.addItem(id, name, price, imgUrl);
-                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context)
+                                      .hideCurrentSnackBar();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('Added $name to cart!'),
@@ -215,7 +262,11 @@ class FavoritesScreen extends StatelessWidget {
                                     shape: BoxShape.circle,
                                     color: GlassTheme.limeAccent,
                                   ),
-                                  child: const Icon(Icons.add, color: Colors.black, size: 18),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Colors.black,
+                                    size: 18,
+                                  ),
                                 ),
                               ),
                             ],
@@ -248,9 +299,16 @@ class FavoritesScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: GlassTheme.foodpandaPink.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
-                border: Border.all(color: GlassTheme.foodpandaPink.withValues(alpha: 0.3), width: 1.5),
+                border: Border.all(
+                  color: GlassTheme.foodpandaPink.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
               ),
-              child: const Icon(Icons.favorite_border, size: 48, color: GlassTheme.foodpandaPink),
+              child: const Icon(
+                Icons.favorite_border,
+                size: 48,
+                color: GlassTheme.foodpandaPink,
+              ),
             ),
             const SizedBox(height: 20),
             Text(
@@ -261,7 +319,11 @@ class FavoritesScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: TextStyle(color: GlassTheme.textMuted, fontSize: 13, height: 1.4),
+              style: TextStyle(
+                color: GlassTheme.textMuted,
+                fontSize: 13,
+                height: 1.4,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

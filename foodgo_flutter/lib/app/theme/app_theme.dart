@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../core/theme/glass_theme.dart';
 
 class AppTheme {
@@ -12,7 +13,10 @@ class AppTheme {
     final interTextTheme = GoogleFonts.interTextTheme(baseTextTheme).copyWith(
       bodyLarge: const TextStyle(color: GlassTheme.textDark),
       bodyMedium: const TextStyle(color: GlassTheme.textDark),
-      titleLarge: const TextStyle(color: GlassTheme.textDark, fontWeight: FontWeight.bold),
+      titleLarge: const TextStyle(
+        color: GlassTheme.textDark,
+        fontWeight: FontWeight.bold,
+      ),
     );
 
     return ThemeData(
@@ -47,9 +51,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: GlassTheme.borderRadius,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadius),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: Colors.white,
@@ -94,7 +96,10 @@ class AppTheme {
     final interTextTheme = GoogleFonts.interTextTheme(baseTextTheme).copyWith(
       bodyLarge: const TextStyle(color: GlassTheme.textLight),
       bodyMedium: const TextStyle(color: GlassTheme.textLight),
-      titleLarge: const TextStyle(color: GlassTheme.textLight, fontWeight: FontWeight.bold),
+      titleLarge: const TextStyle(
+        color: GlassTheme.textLight,
+        fontWeight: FontWeight.bold,
+      ),
     );
 
     return ThemeData(
@@ -129,9 +134,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: Colors.transparent,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: GlassTheme.borderRadius,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadius),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: GlassTheme.dialogDark,

@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+
 import '../core/theme/glass_theme.dart';
 
 class ConnectivityBanner extends StatefulWidget {
@@ -20,7 +22,9 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
   void initState() {
     super.initState();
     _checkInitialConnectivity();
-    _subscription = Connectivity().onConnectivityChanged.listen(_updateConnectionStatus);
+    _subscription = Connectivity().onConnectivityChanged.listen(
+      _updateConnectionStatus,
+    );
   }
 
   Future<void> _checkInitialConnectivity() async {
@@ -31,7 +35,8 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
   }
 
   void _updateConnectionStatus(List<ConnectivityResult> results) {
-    final offline = results.isEmpty || results.contains(ConnectivityResult.none);
+    final offline =
+        results.isEmpty || results.contains(ConnectivityResult.none);
     if (_isOffline != offline && mounted) {
       setState(() => _isOffline = offline);
     }

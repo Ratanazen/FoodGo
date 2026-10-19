@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/user_provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
@@ -24,7 +25,9 @@ class _WalletScreenState extends State<WalletScreen> {
   bool _isLoading = true;
   bool _isProcessing = false;
   Map<String, dynamic>? _wallet;
-  final TextEditingController _amountController = TextEditingController(text: '10.00');
+  final TextEditingController _amountController = TextEditingController(
+    text: '10.00',
+  );
   final List<double> _quickAmounts = [5.00, 10.00, 20.00, 50.00, 100.00];
   String _txFilter = 'all';
 
@@ -58,7 +61,9 @@ class _WalletScreenState extends State<WalletScreen> {
     if (amount <= 0) return;
     setState(() => _isProcessing = true);
     try {
-      final updated = await _api.post('wallets/top_up/', {'amount': amount.toStringAsFixed(2)});
+      final updated = await _api.post('wallets/top_up/', {
+        'amount': amount.toStringAsFixed(2),
+      });
       if (!mounted) return;
       setState(() {
         _wallet = updated;
@@ -66,7 +71,9 @@ class _WalletScreenState extends State<WalletScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Successfully added \$${amount.toStringAsFixed(2)} to account!'),
+          content: Text(
+            'Successfully added \$${amount.toStringAsFixed(2)} to account!',
+          ),
           backgroundColor: GlassTheme.primaryGreen,
           behavior: SnackBarBehavior.floating,
         ),
@@ -89,13 +96,17 @@ class _WalletScreenState extends State<WalletScreen> {
     if (amount <= 0) return;
     setState(() => _isProcessing = true);
     try {
-      final res = await _api.post('wallets/khqr_topup/', {'amount': amount.toStringAsFixed(2)});
+      final res = await _api.post('wallets/khqr_topup/', {
+        'amount': amount.toStringAsFixed(2),
+      });
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
       final String qrPayload = res['qr_payload'] ?? '';
       final String merchantRef = res['merchant_reference'] ?? '';
-      final String effectivePayload = qrPayload.isNotEmpty ? qrPayload : 'FOODGO-KHQR-TOPUP';
+      final String effectivePayload = qrPayload.isNotEmpty
+          ? qrPayload
+          : 'FOODGO-KHQR-TOPUP';
       bool showRawPayload = false;
 
       showDialog(
@@ -118,7 +129,14 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: const SvgAssetIcon(assetName: 'khqr_logo', size: 24),
                 ),
                 const SizedBox(width: 12),
-                const Text('KHQR Top-Up', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'KHQR Top-Up',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             content: SingleChildScrollView(
@@ -138,7 +156,9 @@ class _WalletScreenState extends State<WalletScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: const BoxDecoration(
                       color: GlassTheme.khqrBannerRed,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
                     ),
                     child: const Center(
                       child: Text(
@@ -159,7 +179,9 @@ class _WalletScreenState extends State<WalletScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(16),
+                      ),
                     ),
                     child: Center(
                       child: QrImageView(
@@ -175,27 +197,55 @@ class _WalletScreenState extends State<WalletScreen> {
 
                   Text(
                     '\$${amount.toStringAsFixed(2)} USD',
-                    style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 26, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: GlassTheme.primaryGreen,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '≈ ${KhmerCurrency.formatKhr(amount)} KHR',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text('Ref: $merchantRef', style: TextStyle(color: GlassTheme.textMuted, fontSize: 11)),
+                  Text(
+                    'Ref: $merchantRef',
+                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                  ),
                   const SizedBox(height: 14),
 
                   // Copy Payload Button
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                     ),
-                    icon: const Icon(Icons.copy_rounded, size: 16, color: GlassTheme.primaryGreen),
-                    label: const Text('Copy KHQR Payload', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    icon: const Icon(
+                      Icons.copy_rounded,
+                      size: 16,
+                      color: GlassTheme.primaryGreen,
+                    ),
+                    label: const Text(
+                      'Copy KHQR Payload',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: effectivePayload));
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -212,22 +262,34 @@ class _WalletScreenState extends State<WalletScreen> {
 
                   // Toggle "Show All QR Payload Details"
                   InkWell(
-                    onTap: () => setDialogState(() => showRawPayload = !showRawPayload),
+                    onTap: () =>
+                        setDialogState(() => showRawPayload = !showRawPayload),
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            showRawPayload ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                            showRawPayload
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
                             size: 16,
                             color: GlassTheme.textMuted,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            showRawPayload ? 'Hide QR Payload' : 'Show All QR Payload Details',
-                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 11, fontWeight: FontWeight.w500),
+                            showRawPayload
+                                ? 'Hide QR Payload'
+                                : 'Show All QR Payload Details',
+                            style: TextStyle(
+                              color: GlassTheme.textMuted,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
@@ -251,8 +313,21 @@ class _WalletScreenState extends State<WalletScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('KHQR Payload:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-                              Text('${effectivePayload.length} chars', style: TextStyle(color: GlassTheme.textMuted, fontSize: 10)),
+                              const Text(
+                                'KHQR Payload:',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '${effectivePayload.length} chars',
+                                style: TextStyle(
+                                  color: GlassTheme.textMuted,
+                                  fontSize: 10,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 4),
@@ -287,7 +362,10 @@ class _WalletScreenState extends State<WalletScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogCtx).pop(),
-                child: const Text('Close', style: TextStyle(color: Colors.white60)),
+                child: const Text(
+                  'Close',
+                  style: TextStyle(color: Colors.white60),
+                ),
               ),
             ],
           ),
@@ -325,7 +403,11 @@ class _WalletScreenState extends State<WalletScreen> {
         color: GlassTheme.backgroundDark,
         child: SafeArea(
           child: _isLoading && _wallet == null
-              ? const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen))
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: GlassTheme.primaryGreen,
+                  ),
+                )
               : RefreshIndicator(
                   onRefresh: _fetchWallet,
                   color: GlassTheme.primaryGreen,
@@ -336,15 +418,27 @@ class _WalletScreenState extends State<WalletScreen> {
                       GlassContainer(
                         padding: const EdgeInsets.all(24),
                         borderRadius: BorderRadius.circular(24),
-                        customColor: GlassTheme.primaryGreen.withValues(alpha: 0.12),
+                        customColor: GlassTheme.primaryGreen.withValues(
+                          alpha: 0.12,
+                        ),
                         child: Column(
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.account_balance_wallet_outlined, color: GlassTheme.primaryGreen, size: 20),
+                                const Icon(
+                                  Icons.account_balance_wallet_outlined,
+                                  color: GlassTheme.primaryGreen,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
-                                const Text('Total Available Balance', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                                const Text(
+                                  'Total Available Balance',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 10),
@@ -367,7 +461,13 @@ class _WalletScreenState extends State<WalletScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text('Live Dual Balance · អត្រា ៤,១០០ ៛/USD', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                            Text(
+                              'Live Dual Balance · អត្រា ៤,១០០ ៛/USD',
+                              style: TextStyle(
+                                color: GlassTheme.textMuted,
+                                fontSize: 12,
+                              ),
+                            ),
                             const SizedBox(height: 14),
                             InkWell(
                               onTap: () {
@@ -375,7 +475,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                 MyQrModal.show(
                                   context,
                                   user: user,
-                                  initialAmount: double.tryParse(_amountController.text.trim()) ?? 0.0,
+                                  initialAmount:
+                                      double.tryParse(
+                                        _amountController.text.trim(),
+                                      ) ??
+                                      0.0,
                                   onReceivePayment: (amt) async {
                                     await _instantTopUp(amt);
                                   },
@@ -383,16 +487,29 @@ class _WalletScreenState extends State<WalletScreen> {
                               },
                               borderRadius: BorderRadius.circular(14),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: GlassTheme.bakongRed.withValues(alpha: 0.16),
+                                  color: GlassTheme.bakongRed.withValues(
+                                    alpha: 0.16,
+                                  ),
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: GlassTheme.bakongRed.withValues(alpha: 0.45)),
+                                  border: Border.all(
+                                    color: GlassTheme.bakongRed.withValues(
+                                      alpha: 0.45,
+                                    ),
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: const [
-                                    Icon(Icons.qr_code_2, size: 20, color: Colors.redAccent),
+                                    Icon(
+                                      Icons.qr_code_2,
+                                      size: 20,
+                                      color: Colors.redAccent,
+                                    ),
                                     SizedBox(width: 8),
                                     Text(
                                       'My QR (Pay Me / ទទួលប្រាក់)',
@@ -412,7 +529,14 @@ class _WalletScreenState extends State<WalletScreen> {
                       const SizedBox(height: 24),
 
                       // Quick Top Up Section
-                      const Text('Add Money to Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const Text(
+                        'Add Money to Account',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                       const SizedBox(height: 12),
 
                       // Preset chips
@@ -420,19 +544,30 @@ class _WalletScreenState extends State<WalletScreen> {
                         spacing: 8,
                         runSpacing: 8,
                         children: _quickAmounts.map((amt) {
-                          final isSelected = _amountController.text == amt.toStringAsFixed(2);
+                          final isSelected =
+                              _amountController.text == amt.toStringAsFixed(2);
                           return InkWell(
-                            onTap: () => setState(() => _amountController.text = amt.toStringAsFixed(2)),
+                            onTap: () => setState(
+                              () => _amountController.text = amt
+                                  .toStringAsFixed(2),
+                            ),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? GlassTheme.primaryGreen.withValues(alpha: 0.3)
+                                    ? GlassTheme.primaryGreen.withValues(
+                                        alpha: 0.3,
+                                      )
                                     : Colors.white.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: isSelected ? GlassTheme.primaryGreen : Colors.white.withValues(alpha: 0.1),
+                                  color: isSelected
+                                      ? GlassTheme.primaryGreen
+                                      : Colors.white.withValues(alpha: 0.1),
                                 ),
                               ),
                               child: Text(
@@ -440,7 +575,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: isSelected ? GlassTheme.primaryGreen : Colors.white,
+                                  color: isSelected
+                                      ? GlassTheme.primaryGreen
+                                      : Colors.white,
                                 ),
                               ),
                             ),
@@ -452,15 +589,27 @@ class _WalletScreenState extends State<WalletScreen> {
                       // Custom Amount TextField
                       TextField(
                         controller: _amountController,
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Custom Amount',
                           labelStyle: TextStyle(color: GlassTheme.textMuted),
-                          prefixIcon: const Icon(Icons.attach_money, color: GlassTheme.primaryGreen),
+                          prefixIcon: const Icon(
+                            Icons.attach_money,
+                            color: GlassTheme.primaryGreen,
+                          ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -476,14 +625,23 @@ class _WalletScreenState extends State<WalletScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: GlassTheme.abaBlue,
                                   foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                                 ),
                                 icon: const Icon(Icons.qr_code_2, size: 22),
-                                label: const Text('KHQR Top Up', style: TextStyle(fontWeight: FontWeight.bold)),
+                                label: const Text(
+                                  'KHQR Top Up',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                                 onPressed: _isProcessing
                                     ? null
                                     : () {
-                                        final amt = double.tryParse(_amountController.text.trim()) ?? 0.0;
+                                        final amt =
+                                            double.tryParse(
+                                              _amountController.text.trim(),
+                                            ) ??
+                                            0.0;
                                         if (amt > 0) _showKHQRTopUpDialog(amt);
                                       },
                               ),
@@ -501,7 +659,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                 onPressed: _isProcessing
                                     ? () {}
                                     : () {
-                                        final amt = double.tryParse(_amountController.text.trim()) ?? 0.0;
+                                        final amt =
+                                            double.tryParse(
+                                              _amountController.text.trim(),
+                                            ) ??
+                                            0.0;
                                         if (amt > 0) _instantTopUp(amt);
                                       },
                               ),
@@ -515,8 +677,21 @@ class _WalletScreenState extends State<WalletScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Transaction History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                          Text('${transactions.length} total', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                          const Text(
+                            'Transaction History',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            '${transactions.length} total',
+                            style: TextStyle(
+                              color: GlassTheme.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -526,18 +701,30 @@ class _WalletScreenState extends State<WalletScreen> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildTxFilterChip('All', 'all', transactions.length),
-                            const SizedBox(width: 8),
                             _buildTxFilterChip(
-                              '+ Top-Ups', 
-                              'deposit', 
-                              transactions.where((t) => t['transaction_type'] == 'deposit').length,
+                              'All',
+                              'all',
+                              transactions.length,
                             ),
                             const SizedBox(width: 8),
                             _buildTxFilterChip(
-                              '- Payments', 
-                              'payment', 
-                              transactions.where((t) => t['transaction_type'] != 'deposit').length,
+                              '+ Top-Ups',
+                              'deposit',
+                              transactions
+                                  .where(
+                                    (t) => t['transaction_type'] == 'deposit',
+                                  )
+                                  .length,
+                            ),
+                            const SizedBox(width: 8),
+                            _buildTxFilterChip(
+                              '- Payments',
+                              'payment',
+                              transactions
+                                  .where(
+                                    (t) => t['transaction_type'] != 'deposit',
+                                  )
+                                  .length,
                             ),
                           ],
                         ),
@@ -546,8 +733,12 @@ class _WalletScreenState extends State<WalletScreen> {
 
                       () {
                         final filteredTxs = transactions.where((tx) {
-                          if (_txFilter == 'deposit') return tx['transaction_type'] == 'deposit';
-                          if (_txFilter == 'payment') return tx['transaction_type'] != 'deposit';
+                          if (_txFilter == 'deposit') {
+                            return tx['transaction_type'] == 'deposit';
+                          }
+                          if (_txFilter == 'payment') {
+                            return tx['transaction_type'] != 'deposit';
+                          }
                           return true;
                         }).toList();
 
@@ -557,13 +748,19 @@ class _WalletScreenState extends State<WalletScreen> {
                             child: Center(
                               child: Column(
                                 children: [
-                                  Icon(Icons.receipt_long_outlined, size: 48, color: GlassTheme.textMuted),
+                                  Icon(
+                                    Icons.receipt_long_outlined,
+                                    size: 48,
+                                    color: GlassTheme.textMuted,
+                                  ),
                                   const SizedBox(height: 8),
                                   Text(
                                     _txFilter == 'all'
                                         ? 'No transactions yet'
                                         : 'No ${_txFilter == 'deposit' ? 'top-up' : 'payment'} transactions found',
-                                    style: TextStyle(color: GlassTheme.textMuted),
+                                    style: TextStyle(
+                                      color: GlassTheme.textMuted,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -573,7 +770,8 @@ class _WalletScreenState extends State<WalletScreen> {
 
                         return Column(
                           children: filteredTxs.reversed.map((tx) {
-                            final isDeposit = tx['transaction_type'] == 'deposit';
+                            final isDeposit =
+                                tx['transaction_type'] == 'deposit';
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 10.0),
                               child: GlassCard(
@@ -581,26 +779,43 @@ class _WalletScreenState extends State<WalletScreen> {
                                 child: Row(
                                   children: [
                                     CircleAvatar(
-                                      backgroundColor: (isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent)
-                                          .withValues(alpha: 0.2),
+                                      backgroundColor:
+                                          (isDeposit
+                                                  ? GlassTheme.primaryGreen
+                                                  : Colors.orangeAccent)
+                                              .withValues(alpha: 0.2),
                                       child: Icon(
-                                        isDeposit ? Icons.arrow_downward : Icons.arrow_upward,
-                                        color: isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent,
+                                        isDeposit
+                                            ? Icons.arrow_downward
+                                            : Icons.arrow_upward,
+                                        color: isDeposit
+                                            ? GlassTheme.primaryGreen
+                                            : Colors.orangeAccent,
                                         size: 18,
                                       ),
                                     ),
                                     const SizedBox(width: 14),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            tx['description'] ?? (isDeposit ? 'Deposit (បញ្ចូលប្រាក់)' : 'Payment (ទូទាត់ប្រាក់)'),
-                                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                            tx['description'] ??
+                                                (isDeposit
+                                                    ? 'Deposit (បញ្ចូលប្រាក់)'
+                                                    : 'Payment (ទូទាត់ប្រាក់)'),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                           Text(
                                             '${tx['transaction_type'].toString().toUpperCase()} • ${KhmerCurrency.formatKhr(double.tryParse(tx['amount']?.toString() ?? '0') ?? 0.0)}',
-                                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                                            style: TextStyle(
+                                              color: GlassTheme.textMuted,
+                                              fontSize: 11,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -608,7 +823,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                     Text(
                                       '${isDeposit ? '+' : '-'}\$${tx['amount']}',
                                       style: TextStyle(
-                                        color: isDeposit ? GlassTheme.primaryGreen : Colors.orangeAccent,
+                                        color: isDeposit
+                                            ? GlassTheme.primaryGreen
+                                            : Colors.orangeAccent,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
@@ -637,10 +854,14 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? GlassTheme.primaryGreen.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.05),
+          color: isSelected
+              ? GlassTheme.primaryGreen.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? GlassTheme.primaryGreen : Colors.white.withValues(alpha: 0.1),
+            color: isSelected
+                ? GlassTheme.primaryGreen
+                : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../glass_container.dart';
 
 class GlassQuantityControl extends StatelessWidget {
@@ -31,10 +32,7 @@ class GlassQuantityControl extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(width: 12),
-          InkWell(
-            onTap: onIncrement,
-            child: const Icon(Icons.add, size: 20),
-          ),
+          InkWell(onTap: onIncrement, child: const Icon(Icons.add, size: 20)),
         ],
       ),
     );

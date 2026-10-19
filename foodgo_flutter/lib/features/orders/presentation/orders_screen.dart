@@ -1,10 +1,12 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -48,8 +50,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Future<void> _fetchOrdersSilently() async {
     try {
       final data = await ApiService().get('orders/');
-      final List<dynamic> orders =
-          data is List ? data : (data['results'] as List<dynamic>? ?? []);
+      final List<dynamic> orders = data is List
+          ? data
+          : (data['results'] as List<dynamic>? ?? []);
       if (!mounted) return;
       setState(() {
         _orders = orders;
@@ -60,13 +63,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
   List<dynamic> get _filteredOrders {
     if (_selectedFilter == 'All') return _orders;
     if (_selectedFilter == 'Active') {
-      return _orders.where((o) => _isInProgress((o['status'] as String?) ?? '')).toList();
+      return _orders
+          .where((o) => _isInProgress((o['status'] as String?) ?? ''))
+          .toList();
     }
     if (_selectedFilter == 'Delivered') {
-      return _orders.where((o) => (o['status'] as String?) == 'delivered').toList();
+      return _orders
+          .where((o) => (o['status'] as String?) == 'delivered')
+          .toList();
     }
     if (_selectedFilter == 'Cancelled') {
-      return _orders.where((o) => (o['status'] as String?) == 'cancelled').toList();
+      return _orders
+          .where((o) => (o['status'] as String?) == 'cancelled')
+          .toList();
     }
     return _orders;
   }
@@ -87,8 +96,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final cart = context.read<CartProvider>();
     int addedCount = 0;
     for (final it in items) {
-      final id = int.tryParse(it['food_item']?.toString() ?? it['id']?.toString() ?? '0') ?? 0;
-      final name = it['food_item_name']?.toString() ?? it['name']?.toString() ?? 'Item';
+      final id =
+          int.tryParse(
+            it['food_item']?.toString() ?? it['id']?.toString() ?? '0',
+          ) ??
+          0;
+      final name =
+          it['food_item_name']?.toString() ?? it['name']?.toString() ?? 'Item';
       final price = double.tryParse(it['price']?.toString() ?? '0') ?? 0.0;
       final qty = int.tryParse(it['quantity']?.toString() ?? '1') ?? 1;
       final img = it['image']?.toString();
@@ -102,7 +116,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Added $addedCount item(s) from Order #${order['id']} to your cart!'),
+        content: Text(
+          'Added $addedCount item(s) from Order #${order['id']} to your cart!',
+        ),
         behavior: SnackBarBehavior.floating,
         backgroundColor: GlassTheme.primaryGreenDark,
         action: SnackBarAction(
@@ -115,7 +131,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
     context.push('/cart');
   }
 
-
   Future<void> _fetchOrders() async {
     setState(() {
       _isLoading = true;
@@ -123,8 +138,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
     });
     try {
       final data = await ApiService().get('orders/');
-      final List<dynamic> orders =
-          data is List ? data : (data['results'] as List<dynamic>? ?? []);
+      final List<dynamic> orders = data is List
+          ? data
+          : (data['results'] as List<dynamic>? ?? []);
       if (!mounted) return;
       setState(() {
         _orders = orders;
@@ -142,8 +158,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
   // ── Helpers ──────────────────────────────────────────────────────────
 
   static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   String _formatDate(String? raw) {
@@ -183,8 +209,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   bool _isInProgress(String status) {
-    return ['pending', 'confirmed', 'preparing', 'on_delivery']
-        .contains(status);
+    return [
+      'pending',
+      'confirmed',
+      'preparing',
+      'on_delivery',
+    ].contains(status);
   }
 
   // ── UI builders ─────────────────────────────────────────────────────
@@ -320,11 +350,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Text(
                   'Order #${order['id']}',
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
                 GlassContainer(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   borderRadius: GlassTheme.borderRadiusSmall,
                   customColor: color.withValues(alpha: 0.2),
                   child: Row(
@@ -357,7 +391,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
               children: [
                 ClipRRect(
                   borderRadius: GlassTheme.borderRadiusSmall,
-                  child: order['restaurant_image'] != null && order['restaurant_image'].toString().isNotEmpty
+                  child:
+                      order['restaurant_image'] != null &&
+                          order['restaurant_image'].toString().isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: order['restaurant_image'].toString(),
                           width: 60,
@@ -371,7 +407,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               child: SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: GlassTheme.primaryGreen,
+                                ),
                               ),
                             ),
                           ),
@@ -379,7 +418,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             width: 60,
                             height: 60,
                             color: Colors.grey.withValues(alpha: 0.2),
-                            child: const Icon(Icons.restaurant, color: GlassTheme.textMuted),
+                            child: const Icon(
+                              Icons.restaurant,
+                              color: GlassTheme.textMuted,
+                            ),
                           ),
                         )
                       : Container(
@@ -389,7 +431,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             color: Colors.grey.withValues(alpha: 0.2),
                             borderRadius: GlassTheme.borderRadiusSmall,
                           ),
-                          child: const Icon(Icons.restaurant, color: GlassTheme.textMuted),
+                          child: const Icon(
+                            Icons.restaurant,
+                            color: GlassTheme.textMuted,
+                          ),
                         ),
                 ),
                 const SizedBox(width: 16),
@@ -398,7 +443,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        order['restaurant_name'] ?? 'Restaurant #${order['restaurant']}',
+                        order['restaurant_name'] ??
+                            'Restaurant #${order['restaurant']}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
@@ -410,7 +456,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       Text(
                         _formatDate(order['created_at'] as String?),
                         style: TextStyle(
-                            color: GlassTheme.textMuted, fontSize: 12),
+                          color: GlassTheme.textMuted,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -428,27 +476,57 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.25),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
-                    icon: const Icon(Icons.receipt_long, size: 16, color: GlassTheme.primaryGreen),
-                    label: const Text('View Bill', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    icon: const Icon(
+                      Icons.receipt_long,
+                      size: 16,
+                      color: GlassTheme.primaryGreen,
+                    ),
+                    label: const Text(
+                      'View Bill',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     onPressed: () => _showOrderBillDialog(order),
                   ),
                 ),
-                if (_isInProgress(status) || status == 'on_delivery' || status == 'picked_up' || status == 'arrived') ...[
+                if (_isInProgress(status) ||
+                    status == 'on_delivery' ||
+                    status == 'picked_up' ||
+                    status == 'arrived') ...[
                   if (status == 'pending') ...[
                     const SizedBox(width: 8),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.redAccent,
-                        side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.6)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        side: BorderSide(
+                          color: Colors.redAccent.withValues(alpha: 0.6),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                       ),
                       onPressed: () => _confirmCancelOrder(order),
-                      child: const Text('Cancel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                   const SizedBox(width: 8),
@@ -456,11 +534,22 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: GlassTheme.primaryGreen,
                       side: const BorderSide(color: GlassTheme.primaryGreen),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
                     ),
                     icon: const Icon(Icons.qr_code_scanner, size: 16),
-                    label: const Text('Confirm', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Confirm',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     onPressed: () => DeliveryScannerModal.show(
                       context,
                       orderId: order['id'].toString(),
@@ -482,12 +571,29 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.amber,
-                        side: BorderSide(color: Colors.amber.withValues(alpha: 0.6)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        side: BorderSide(
+                          color: Colors.amber.withValues(alpha: 0.6),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                       ),
-                      icon: const Icon(Icons.star, size: 16, color: Colors.amber),
-                      label: const Text('Rate', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      icon: const Icon(
+                        Icons.star,
+                        size: 16,
+                        color: Colors.amber,
+                      ),
+                      label: const Text(
+                        'Rate',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       onPressed: () => _showRatingDialog(order),
                     ),
                   ],
@@ -497,14 +603,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: GlassTheme.limeAccent,
                         foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         elevation: 0,
                       ),
-                      icon: const Icon(Icons.refresh, size: 16, color: Colors.black),
+                      icon: const Icon(
+                        Icons.refresh,
+                        size: 16,
+                        color: Colors.black,
+                      ),
                       label: const Text(
                         'Order Again',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.black),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                        ),
                       ),
                       onPressed: () => _reorderItems(order),
                     ),
@@ -533,7 +649,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Keep Order', style: TextStyle(color: Colors.white60)),
+            child: const Text(
+              'Keep Order',
+              style: TextStyle(color: Colors.white60),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -563,7 +682,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 );
               }
             },
-            child: const Text('Cancel Order', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Cancel Order',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -579,7 +701,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: GlassTheme.dialogDark,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text('Rate Order #${order['id']}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -595,11 +719,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   final starIndex = index + 1;
                   return IconButton(
                     icon: Icon(
-                      starIndex <= selectedRating ? Icons.star : Icons.star_border,
+                      starIndex <= selectedRating
+                          ? Icons.star
+                          : Icons.star_border,
                       color: Colors.amber,
                       size: 32,
                     ),
-                    onPressed: () => setDialogState(() => selectedRating = starIndex),
+                    onPressed: () =>
+                        setDialogState(() => selectedRating = starIndex),
                   );
                 }),
               ),
@@ -610,12 +737,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
                   hintText: 'Share your feedback (optional)...',
-                  hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                  hintStyle: TextStyle(
+                    color: GlassTheme.textMuted,
+                    fontSize: 12,
+                  ),
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.05),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                    borderSide: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
                   ),
                 ),
               ),
@@ -624,10 +756,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Later', style: TextStyle(color: Colors.white60)),
+              child: const Text(
+                'Later',
+                style: TextStyle(color: Colors.white60),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: GlassTheme.primaryGreen),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GlassTheme.primaryGreen,
+              ),
               onPressed: () {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -638,7 +775,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                 );
               },
-              child: const Text('Submit Rating', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Submit Rating',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -650,8 +790,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final items = (order['items'] as List<dynamic>?) ?? [];
     final status = (order['status'] as String?) ?? 'pending';
     final paymentStatus = (order['payment_status'] as String?) ?? 'UNPAID';
-    final restaurantName = order['restaurant_name'] ?? 'Restaurant #${order['restaurant']}';
-    final totalAmount = double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0;
+    final restaurantName =
+        order['restaurant_name'] ?? 'Restaurant #${order['restaurant']}';
+    final totalAmount =
+        double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0;
 
     showModalBottomSheet(
       context: context,
@@ -696,12 +838,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       const SizedBox(height: 4),
                       Text(
                         '#FG-${order['id']} · ${_formatDate(order['created_at'] as String?)}',
-                        style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                        style: TextStyle(
+                          color: GlassTheme.textMuted,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: _statusColor(status).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
@@ -726,44 +874,73 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.store, color: GlassTheme.primaryGreen, size: 22),
+                    const Icon(
+                      Icons.store,
+                      color: GlassTheme.primaryGreen,
+                      size: 22,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         restaurantName,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('ITEMS', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+              const Text(
+                'ITEMS',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                ),
+              ),
               const SizedBox(height: 8),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 200),
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: items.length,
-                  separatorBuilder: (context, sepIdx) => Divider(color: Colors.white.withValues(alpha: 0.08), height: 12),
+                  separatorBuilder: (context, sepIdx) => Divider(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    height: 12,
+                  ),
                   itemBuilder: (context, i) {
                     final it = items[i];
                     final name = it['food_name'] ?? 'Item #${it['food_item']}';
                     final qty = it['quantity'] ?? 1;
                     final price = it['price'] ?? '0.00';
-                    final lineTotal = ((double.tryParse(price.toString()) ?? 0.0) * (int.tryParse(qty.toString()) ?? 1)).toStringAsFixed(2);
+                    final lineTotal =
+                        ((double.tryParse(price.toString()) ?? 0.0) *
+                                (int.tryParse(qty.toString()) ?? 1))
+                            .toStringAsFixed(2);
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: Text(
                             '$qty x $name',
-                            style: const TextStyle(color: Colors.white70, fontSize: 14),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                         Text(
                           '\$$lineTotal',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     );
@@ -774,11 +951,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Payment Status', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  const Text(
+                    'Payment Status',
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
                   Text(
                     paymentStatus,
                     style: TextStyle(
-                      color: paymentStatus == 'PAID' ? GlassTheme.primaryGreen : Colors.orangeAccent,
+                      color: paymentStatus == 'PAID'
+                          ? GlassTheme.primaryGreen
+                          : Colors.orangeAccent,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -789,27 +971,38 @@ class _OrdersScreenState extends State<OrdersScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Total Amount', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text(
+                    'Total Amount',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         '\$${totalAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 20),
+                        style: const TextStyle(
+                          color: GlassTheme.primaryGreen,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
                       ),
                       Text(
                         '≈ ${KhmerCurrency.formatKhr(totalAmount)} KHR (អត្រា ៤,១០០)',
-                        style: const TextStyle(color: Colors.white54, fontSize: 11),
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              GlassButton(
-                text: 'Close',
-                onPressed: () => Navigator.pop(ctx),
-              ),
+              GlassButton(text: 'Close', onPressed: () => Navigator.pop(ctx)),
             ],
           ),
         ),
@@ -835,12 +1028,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
               borderRadius: BorderRadius.circular(20),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected ? GlassTheme.limeAccent : Colors.white.withValues(alpha: 0.06),
+                  color: isSelected
+                      ? GlassTheme.limeAccent
+                      : Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? GlassTheme.limeAccent : Colors.white.withValues(alpha: 0.12),
+                    color: isSelected
+                        ? GlassTheme.limeAccent
+                        : Colors.white.withValues(alpha: 0.12),
                   ),
                 ),
                 child: Text(
@@ -868,17 +1068,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.filter_list_off, size: 56, color: Colors.white.withValues(alpha: 0.3)),
+              Icon(
+                Icons.filter_list_off,
+                size: 56,
+                color: Colors.white.withValues(alpha: 0.3),
+              ),
               const SizedBox(height: 12),
               Text(
                 'No $_selectedFilter orders found',
-                style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Orders will appear here once updated to this status.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  fontSize: 13,
+                ),
               ),
             ],
           ),
@@ -913,9 +1124,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
               child: Text(
                 'My Orders',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
+                style: Theme.of(context).textTheme.headlineMedium
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
@@ -925,10 +1134,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
               child: _isLoading
                   ? _buildLoading()
                   : _error != null
-                      ? _buildError()
-                      : _orders.isEmpty
-                          ? _buildEmpty()
-                          : _buildOrderList(),
+                  ? _buildError()
+                  : _orders.isEmpty
+                  ? _buildEmpty()
+                  : _buildOrderList(),
             ),
           ],
         ),

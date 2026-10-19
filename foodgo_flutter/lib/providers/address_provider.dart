@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import '../services/api_service.dart';
 
 class AddressItem {
@@ -26,7 +27,9 @@ class AddressItem {
 
   factory AddressItem.fromJson(Map<String, dynamic> json) {
     return AddressItem(
-      id: json['id'] is int ? json['id'] as int : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       street: json['street']?.toString() ?? '123 Street',
       city: json['city']?.toString() ?? 'Phnom Penh',
       state: json['state']?.toString() ?? 'Phnom Penh',
@@ -70,7 +73,10 @@ class AddressProvider with ChangeNotifier {
       if (exists) return _selectedAddress;
     }
     if (_addresses.isNotEmpty) {
-      return _addresses.firstWhere((a) => a.isDefault, orElse: () => _addresses.first);
+      return _addresses.firstWhere(
+        (a) => a.isDefault,
+        orElse: () => _addresses.first,
+      );
     }
     return null;
   }
@@ -86,8 +92,12 @@ class AddressProvider with ChangeNotifier {
 
     try {
       final res = await _api.get('addresses/');
-      final List<dynamic> list = res is List ? res : (res['results'] as List<dynamic>? ?? []);
-      _addresses = list.map((e) => AddressItem.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+      final List<dynamic> list = res is List
+          ? res
+          : (res['results'] as List<dynamic>? ?? []);
+      _addresses = list
+          .map((e) => AddressItem.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
 
       if (_addresses.isEmpty) {
         _loadDefaultFallbackAddresses();
@@ -144,19 +154,25 @@ class AddressProvider with ChangeNotifier {
 
     try {
       final res = await _api.post('addresses/', payload);
-      final newItem = AddressItem.fromJson(Map<String, dynamic>.from(res as Map));
+      final newItem = AddressItem.fromJson(
+        Map<String, dynamic>.from(res as Map),
+      );
 
       if (isDefault) {
-        _addresses = _addresses.map((a) => AddressItem(
-          id: a.id,
-          street: a.street,
-          city: a.city,
-          state: a.state,
-          zipCode: a.zipCode,
-          isDefault: false,
-          lat: a.lat,
-          lng: a.lng,
-        )).toList();
+        _addresses = _addresses
+            .map(
+              (a) => AddressItem(
+                id: a.id,
+                street: a.street,
+                city: a.city,
+                state: a.state,
+                zipCode: a.zipCode,
+                isDefault: false,
+                lat: a.lat,
+                lng: a.lng,
+              ),
+            )
+            .toList();
       }
 
       _addresses.insert(0, newItem);
@@ -168,16 +184,20 @@ class AddressProvider with ChangeNotifier {
     } catch (_) {
       final localId = DateTime.now().millisecondsSinceEpoch % 100000;
       if (isDefault) {
-        _addresses = _addresses.map((a) => AddressItem(
-          id: a.id,
-          street: a.street,
-          city: a.city,
-          state: a.state,
-          zipCode: a.zipCode,
-          isDefault: false,
-          lat: a.lat,
-          lng: a.lng,
-        )).toList();
+        _addresses = _addresses
+            .map(
+              (a) => AddressItem(
+                id: a.id,
+                street: a.street,
+                city: a.city,
+                state: a.state,
+                zipCode: a.zipCode,
+                isDefault: false,
+                lat: a.lat,
+                lng: a.lng,
+              ),
+            )
+            .toList();
       }
 
       final localItem = AddressItem(

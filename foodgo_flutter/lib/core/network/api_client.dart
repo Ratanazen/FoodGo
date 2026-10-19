@@ -51,8 +51,7 @@ class ApiClient {
           try {
             final newAccessToken = await _refreshToken();
             // Retry the original request with the new access token
-            requestOptions.headers['Authorization'] =
-                'Bearer $newAccessToken';
+            requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
             final response = await _dio.fetch(requestOptions);
             return handler.resolve(response);
           } on DioException catch (refreshError) {

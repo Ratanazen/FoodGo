@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 export 'glass_widgets_extended.dart';
 export 'glass_modals.dart';
 export 'glass_states.dart';
@@ -12,9 +13,9 @@ class GlassCard extends StatelessWidget {
   final BorderRadius? borderRadius;
 
   const GlassCard({
-    super.key, 
-    required this.child, 
-    this.padding, 
+    super.key,
+    required this.child,
+    this.padding,
     this.onTap,
     this.borderRadius,
   });
@@ -52,9 +53,9 @@ class GlassButton extends StatelessWidget {
   final bool isLoading;
 
   const GlassButton({
-    super.key, 
-    required this.text, 
-    required this.onPressed, 
+    super.key,
+    required this.text,
+    required this.onPressed,
     this.icon,
     this.color,
     this.isLoading = false,
@@ -64,7 +65,9 @@ class GlassButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isEnabled = onPressed != null && !isLoading;
     final baseColor = color ?? GlassTheme.primaryGreen.withValues(alpha: 0.8);
-    final effectiveColor = isEnabled ? baseColor : baseColor.withValues(alpha: 0.4);
+    final effectiveColor = isEnabled
+        ? baseColor
+        : baseColor.withValues(alpha: 0.4);
 
     return Semantics(
       button: true,
@@ -184,10 +187,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               leading ?? const SizedBox(width: 40),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text(title, style: Theme.of(context).textTheme.titleLarge),
               Row(children: actions ?? [const SizedBox(width: 40)]),
             ],
           ),
@@ -198,5 +198,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight + 20 + (bottom?.preferredSize.height ?? 0));
+  Size get preferredSize => Size.fromHeight(
+    kToolbarHeight + 20 + (bottom?.preferredSize.height ?? 0),
+  );
 }

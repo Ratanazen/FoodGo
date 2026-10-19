@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/svg_icon.dart';
@@ -21,7 +22,8 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String _selectedProvider = 'WALLET'; // 'WALLET', 'BAKONG', 'ABA', 'ACLEDA', 'COD'
+  String _selectedProvider =
+      'WALLET'; // 'WALLET', 'BAKONG', 'ABA', 'ACLEDA', 'COD'
   bool _isProcessing = false;
   int? _selectedDriverId; // null = Auto-assign fastest driver
   List<Map<String, dynamic>> _availableDrivers = [];
@@ -30,7 +32,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isLoadingWallet = true;
 
   final TextEditingController _voucherController = TextEditingController();
-  final TextEditingController _deliveryInstructionsController = TextEditingController();
+  final TextEditingController _deliveryInstructionsController =
+      TextEditingController();
   final ApiService _api = ApiService();
   final FlutterPaymentService _paymentService = FlutterPaymentService();
 
@@ -67,10 +70,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _fetchDrivers() async {
     try {
       final res = await _api.get('drivers/?online=true');
-      final List<dynamic> list = res is List ? res : (res['results'] as List<dynamic>? ?? []);
+      final List<dynamic> list = res is List
+          ? res
+          : (res['results'] as List<dynamic>? ?? []);
       if (!mounted) return;
       setState(() {
-        _availableDrivers = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _availableDrivers = list
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
         _isLoadingDrivers = false;
       });
     } catch (_) {
@@ -131,7 +138,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Select Delivery Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const Text(
+                    'Select Delivery Address',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.white60),
                     onPressed: () => Navigator.pop(ctx),
@@ -140,7 +154,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               const SizedBox(height: 12),
               ...addressProvider.addresses.map((addr) {
-                final isSelected = addressProvider.selectedAddress?.id == addr.id;
+                final isSelected =
+                    addressProvider.selectedAddress?.id == addr.id;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: InkWell(
@@ -152,17 +167,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: isSelected ? GlassTheme.primaryGreen.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
+                        color: isSelected
+                            ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
+                            : Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isSelected ? GlassTheme.primaryGreen : Colors.white.withValues(alpha: 0.1),
+                          color: isSelected
+                              ? GlassTheme.primaryGreen
+                              : Colors.white.withValues(alpha: 0.1),
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            addr.isDefault ? Icons.home : Icons.location_on_outlined,
-                            color: isSelected ? GlassTheme.primaryGreen : Colors.white70,
+                            addr.isDefault
+                                ? Icons.home
+                                : Icons.location_on_outlined,
+                            color: isSelected
+                                ? GlassTheme.primaryGreen
+                                : Colors.white70,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -175,30 +198,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       addr.street,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
                                       ),
                                     ),
                                     if (addr.isDefault) ...[
                                       const SizedBox(width: 6),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(6),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
                                         ),
-                                        child: const Text('Default', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                                        decoration: BoxDecoration(
+                                          color: GlassTheme.primaryGreen
+                                              .withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Default',
+                                          style: TextStyle(
+                                            color: GlassTheme.primaryGreen,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ],
                                 ),
                                 const SizedBox(height: 2),
-                                Text(addr.city, style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                                Text(
+                                  addr.city,
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           Icon(
-                            isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                            color: isSelected ? GlassTheme.primaryGreen : Colors.white38,
+                            isSelected
+                                ? Icons.check_circle
+                                : Icons.radio_button_unchecked,
+                            color: isSelected
+                                ? GlassTheme.primaryGreen
+                                : Colors.white38,
                           ),
                         ],
                       ),
@@ -213,10 +261,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   context.push('/addresses');
                 },
                 icon: const Icon(Icons.add, color: GlassTheme.primaryGreen),
-                label: const Text('Manage & Add Addresses', style: TextStyle(color: Colors.white)),
+                label: const Text(
+                  'Manage & Add Addresses',
+                  style: TextStyle(color: Colors.white),
+                ),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -237,7 +290,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 24),
             SizedBox(width: 10),
-            Text('Insufficient Balance', style: TextStyle(color: Colors.white, fontSize: 18)),
+            Text(
+              'Insufficient Balance',
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
           ],
         ),
         content: Column(
@@ -261,15 +317,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Navigator.pop(ctx);
               setState(() => _selectedProvider = 'BAKONG');
             },
-            child: const Text('Pay via KHQR', style: TextStyle(color: Colors.white70)),
+            child: const Text(
+              'Pay via KHQR',
+              style: TextStyle(color: Colors.white70),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: GlassTheme.primaryGreen),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: GlassTheme.primaryGreen,
+            ),
             onPressed: () {
               Navigator.pop(ctx);
               context.push('/wallet');
             },
-            child: const Text('Top Up Wallet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Top Up Wallet',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -278,9 +345,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _handlePlaceOrder(CartProvider cart, double total) async {
     if (cart.items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Your cart is empty.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Your cart is empty.')));
       return;
     }
 
@@ -293,12 +359,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     try {
       final restaurantProvider = context.read<RestaurantProvider>();
-      final int restaurantId = cart.restaurantId ??
+      final int restaurantId =
+          cart.restaurantId ??
           (restaurantProvider.restaurants.isNotEmpty
               ? restaurantProvider.restaurants.first['id']
               : 1);
 
-      final List<Map<String, dynamic>> itemsPayload = cart.items.values.map((entry) {
+      final List<Map<String, dynamic>> itemsPayload = cart.items.values.map((
+        entry,
+      ) {
         return <String, dynamic>{
           'food_item': entry.id,
           'quantity': entry.quantity,
@@ -310,7 +379,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       final Map<String, dynamic> orderPayload = {
         'restaurant': restaurantId,
-        'special_instructions': _deliveryInstructionsController.text.trim().isNotEmpty
+        'special_instructions':
+            _deliveryInstructionsController.text.trim().isNotEmpty
             ? _deliveryInstructionsController.text.trim()
             : 'FoodGo Order via $_selectedProvider',
         'items': itemsPayload,
@@ -373,7 +443,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       appBar: GlassAppBar(
         title: 'Checkout',
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: ResponsiveWebContainer(
         maxWidth: 800,
@@ -383,13 +456,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Delivery Address Section ─────────────────────────────
-              const Text('Delivery Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Delivery Address',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               GlassCard(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const SvgAssetIcon(assetName: 'restaurant_pin', size: 30, color: GlassTheme.primaryGreen),
+                    const SvgAssetIcon(
+                      assetName: 'restaurant_pin',
+                      size: 30,
+                      color: GlassTheme.primaryGreen,
+                    ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -398,26 +478,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           Row(
                             children: [
                               Text(
-                                activeAddress != null ? activeAddress.street : 'Home',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                activeAddress != null
+                                    ? activeAddress.street
+                                    : 'Home',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
                               ),
                               if (activeAddress?.isDefault == true) ...[
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                    color: GlassTheme.primaryGreen.withValues(
+                                      alpha: 0.2,
+                                    ),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Text('Default', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  child: const Text(
+                                    'Default',
+                                    style: TextStyle(
+                                      color: GlassTheme.primaryGreen,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ],
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            activeAddress != null ? activeAddress.fullAddress : 'Daun Penh, Phnom Penh, Cambodia',
-                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                            activeAddress != null
+                                ? activeAddress.fullAddress
+                                : 'Daun Penh, Phnom Penh, Cambodia',
+                            style: TextStyle(
+                              color: GlassTheme.textMuted,
+                              fontSize: 13,
+                            ),
                           ),
                         ],
                       ),
@@ -426,12 +528,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       onTap: _showAddressPickerModal,
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                          color: GlassTheme.primaryGreen.withValues(
+                            alpha: 0.15,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text('Change', style: TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
+                        child: const Text(
+                          'Change',
+                          style: TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -441,15 +555,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
               // Estimated Delivery Time Banner
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: GlassTheme.primaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: GlassTheme.primaryGreen.withValues(alpha: 0.25)),
+                  border: Border.all(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.timer_outlined, color: GlassTheme.primaryGreen, size: 18),
+                    Icon(
+                      Icons.timer_outlined,
+                      color: GlassTheme.primaryGreen,
+                      size: 18,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Estimated Delivery Time: 25 - 35 mins',
@@ -466,15 +589,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
               // Delivery Instructions
               GlassCard(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
                 child: TextField(
                   controller: _deliveryInstructionsController,
                   maxLines: 2,
                   style: const TextStyle(fontSize: 13, color: Colors.white),
                   decoration: InputDecoration(
-                    icon: const Icon(Icons.note_alt_outlined, color: GlassTheme.primaryGreen, size: 20),
+                    icon: const Icon(
+                      Icons.note_alt_outlined,
+                      color: GlassTheme.primaryGreen,
+                      size: 20,
+                    ),
                     hintText: 'Delivery instructions (e.g., Gate code, ring bell, leave at door)...',
-                    hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                    hintStyle: TextStyle(
+                      color: GlassTheme.textMuted,
+                      fontSize: 12,
+                    ),
                     border: InputBorder.none,
                   ),
                 ),
@@ -485,11 +618,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Choose Delivery Driver', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Choose Delivery Driver',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   if (_selectedDriverId != null)
                     TextButton(
                       onPressed: () => setState(() => _selectedDriverId = null),
-                      child: const Text('Reset to Auto', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 12)),
+                      child: const Text(
+                        'Reset to Auto',
+                        style: TextStyle(
+                          color: GlassTheme.primaryGreen,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -506,10 +648,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: _selectedDriverId == null ? GlassTheme.primaryGreen : Colors.white12,
+                          color: _selectedDriverId == null
+                              ? GlassTheme.primaryGreen
+                              : Colors.white12,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.flash_on, color: Colors.white, size: 24),
+                        child: const Icon(
+                          Icons.flash_on,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -518,19 +666,42 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           children: [
                             const Row(
                               children: [
-                                Text('Fastest Available Driver', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                Text(
+                                  'Fastest Available Driver',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
                                 SizedBox(width: 6),
-                                Text('⚡ Auto-Assign', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 11, fontWeight: FontWeight.w600)),
+                                Text(
+                                  '⚡ Auto-Assign',
+                                  style: TextStyle(
+                                    color: GlassTheme.primaryGreen,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 2),
-                            Text('System automatically pairs with nearest top-rated rider', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                            Text(
+                              'System automatically pairs with nearest top-rated rider',
+                              style: TextStyle(
+                                color: GlassTheme.textMuted,
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       Icon(
-                        _selectedDriverId == null ? Icons.check_circle : Icons.radio_button_unchecked,
-                        color: _selectedDriverId == null ? GlassTheme.primaryGreen : Colors.white38,
+                        _selectedDriverId == null
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        color: _selectedDriverId == null
+                            ? GlassTheme.primaryGreen
+                            : Colors.white38,
                         size: 24,
                       ),
                     ],
@@ -541,11 +712,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
               // Option 2: Specific available drivers
               if (_isLoadingDrivers)
-                const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator(color: GlassTheme.primaryGreen)))
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(
+                      color: GlassTheme.primaryGreen,
+                    ),
+                  ),
+                )
               else
                 ..._availableDrivers.map((driver) {
                   final driverId = driver['id'] as int;
-                  final name = driver['full_name'] ?? driver['username'] ?? 'Delivery Driver';
+                  final name =
+                      driver['full_name'] ??
+                      driver['username'] ??
+                      'Delivery Driver';
                   final vehicle = driver['vehicle_type'] ?? 'Motorcycle';
                   final plate = driver['license_plate'] ?? 'PP-2026';
                   final rating = driver['rating']?.toString() ?? '4.9';
@@ -563,10 +744,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: isSelected ? GlassTheme.primaryGreen : Colors.white12,
+                                color: isSelected
+                                    ? GlassTheme.primaryGreen
+                                    : Colors.white12,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.delivery_dining, color: Colors.white, size: 24),
+                              child: const Icon(
+                                Icons.delivery_dining,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -575,33 +762,67 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
                                       const SizedBox(width: 6),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: Colors.amber.withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: Colors.amber.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.star, color: Colors.amber, size: 12),
+                                            const Icon(
+                                              Icons.star,
+                                              color: Colors.amber,
+                                              size: 12,
+                                            ),
                                             const SizedBox(width: 2),
-                                            Text(rating, style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
+                                            Text(
+                                              rating,
+                                              style: const TextStyle(
+                                                color: Colors.amber,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  Text('$vehicle • $plate', style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                                  Text(
+                                    '$vehicle • $plate',
+                                    style: TextStyle(
+                                      color: GlassTheme.textMuted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                             Icon(
-                              isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                              color: isSelected ? GlassTheme.primaryGreen : Colors.white38,
+                              isSelected
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              color: isSelected
+                                  ? GlassTheme.primaryGreen
+                                  : Colors.white38,
                               size: 24,
                             ),
                           ],
@@ -617,11 +838,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Voucher & Discount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Voucher & Discount',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   if (cart.appliedPromoCode != null)
                     TextButton(
                       onPressed: () => cart.removePromoCode(),
-                      child: const Text('Remove', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                      child: const Text(
+                        'Remove',
+                        style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                      ),
                     ),
                 ],
               ),
@@ -630,7 +857,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    const Icon(Icons.confirmation_number_outlined, color: GlassTheme.primaryGreen, size: 24),
+                    const Icon(
+                      Icons.confirmation_number_outlined,
+                      color: GlassTheme.primaryGreen,
+                      size: 24,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: cart.appliedPromoCode != null
@@ -639,21 +870,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               children: [
                                 Text(
                                   'Promo Code "${cart.appliedPromoCode}" Applied',
-                                  style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: const TextStyle(
+                                    color: GlassTheme.primaryGreen,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
                                 Text(
                                   'Saving \$${cart.discountAmount.toStringAsFixed(2)} on this order',
-                                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             )
                           : TextField(
                               controller: _voucherController,
                               textCapitalization: TextCapitalization.characters,
-                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
                               decoration: InputDecoration(
                                 hintText: 'Enter Promo Code (e.g. FOODGO30)',
-                                hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                                hintStyle: TextStyle(
+                                  color: GlassTheme.textMuted,
+                                  fontSize: 13,
+                                ),
                                 border: InputBorder.none,
                                 isDense: true,
                               ),
@@ -668,19 +913,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlassTheme.primaryGreen,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         onPressed: () {
                           if (cart.applyPromoCode(_voucherController.text)) {
                             _voucherController.clear();
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Invalid code. Try FOODGO30, FOODGOFREE')),
+                              const SnackBar(
+                                content: Text(
+                                  'Invalid code. Try FOODGO30, FOODGOFREE',
+                                ),
+                              ),
                             );
                           }
                         },
-                        child: const Text('Apply', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                        child: const Text(
+                          'Apply',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                   ],
                 ),
@@ -688,7 +949,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 24),
 
               // ── Select Payment Method Section ────────────────────────
-              const Text('Select Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Select Payment Method',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
 
               // 1. FoodGo Digital Wallet (Integrated Fintech)
@@ -700,19 +964,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 icon: Icons.account_balance_wallet,
                 iconColor: GlassTheme.primaryGreen,
                 isSelected: _selectedProvider == 'WALLET',
-                badge: _walletBalance >= cart.grandTotal ? 'INSTANT PAY' : 'TOP UP',
-                badgeColor: _walletBalance >= cart.grandTotal ? GlassTheme.primaryGreen : Colors.amber,
+                badge: _walletBalance >= cart.grandTotal
+                    ? 'INSTANT PAY'
+                    : 'TOP UP',
+                badgeColor: _walletBalance >= cart.grandTotal
+                    ? GlassTheme.primaryGreen
+                    : Colors.amber,
                 onTap: () => setState(() => _selectedProvider = 'WALLET'),
                 trailingAction: _walletBalance < cart.grandTotal
                     ? InkWell(
                         onTap: () => context.push('/wallet'),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.2,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text('Top Up', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 11, fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'Top Up',
+                            style: TextStyle(
+                              color: GlassTheme.primaryGreen,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       )
                     : null,
@@ -779,7 +1059,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 buttonText = 'Processing Order...';
                 buttonIcon = Icons.hourglass_empty;
               } else if (_selectedProvider == 'WALLET') {
-                buttonText = 'Pay \$${total.toStringAsFixed(2)} with FoodGo Wallet';
+                buttonText =
+                    'Pay \$${total.toStringAsFixed(2)} with FoodGo Wallet';
                 buttonIcon = Icons.flash_on;
               } else if (_selectedProvider == 'COD') {
                 buttonText = 'Place Cash on Delivery Order';
@@ -796,7 +1077,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               }
 
               return GlassContainer(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
                 padding: const EdgeInsets.all(24.0),
                 child: SafeArea(
                   child: Column(
@@ -808,9 +1091,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Total Amount', style: TextStyle(fontSize: 14, color: Colors.white70)),
+                              const Text(
+                                'Total Amount',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white70,
+                                ),
+                              ),
                               if (cart.discountAmount > 0)
-                                Text('Saved \$${cart.discountAmount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 11, color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                                Text(
+                                  'Saved \$${cart.discountAmount.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: GlassTheme.primaryGreen,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                             ],
                           ),
                           Column(
@@ -818,11 +1114,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             children: [
                               Text(
                                 '\$${total.toStringAsFixed(2)}',
-                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: GlassTheme.primaryGreen),
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: GlassTheme.primaryGreen,
+                                ),
                               ),
                               Text(
                                 '≈ ${KhmerCurrency.formatKhr(total)} KHR',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.8)),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
                               ),
                             ],
                           ),
@@ -906,13 +1210,23 @@ class _PaymentOptionTile extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
                         if (badge != null) ...[
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: (badgeColor ?? GlassTheme.primaryGreen).withValues(alpha: 0.2),
+                              color: (badgeColor ?? GlassTheme.primaryGreen)
+                                  .withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -928,7 +1242,13 @@ class _PaymentOptionTile extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: TextStyle(color: GlassTheme.textMuted, fontSize: 12)),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: GlassTheme.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -937,7 +1257,9 @@ class _PaymentOptionTile extends StatelessWidget {
                 const SizedBox(width: 8),
               ],
               Icon(
-                isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                isSelected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
                 color: isSelected ? GlassTheme.primaryGreen : Colors.white38,
               ),
             ],

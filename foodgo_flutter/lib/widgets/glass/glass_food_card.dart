@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 
@@ -53,7 +54,10 @@ class GlassFoodCard extends StatelessWidget {
                             child: SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: GlassTheme.primaryGreen,
+                              ),
                             ),
                           ),
                         ),
@@ -61,7 +65,10 @@ class GlassFoodCard extends StatelessWidget {
                           width: 80,
                           height: 80,
                           color: Colors.grey.withValues(alpha: 0.2),
-                          child: const Icon(Icons.fastfood, color: Colors.white38),
+                          child: const Icon(
+                            Icons.fastfood,
+                            color: Colors.white38,
+                          ),
                         ),
                       )
                     : Container(
@@ -79,7 +86,10 @@ class GlassFoodCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -95,7 +105,10 @@ class GlassFoodCard extends StatelessWidget {
                     children: [
                       const Icon(Icons.star, color: Colors.amber, size: 16),
                       const SizedBox(width: 4),
-                      Text(rating, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(
+                        rating,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const Spacer(),
                       Text(
                         price,

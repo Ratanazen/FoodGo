@@ -81,7 +81,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         decoration: const BoxDecoration(
           color: GlassTheme.backgroundDark,
           image: DecorationImage(
-            image: CachedNetworkImageProvider('https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'),
+            image: CachedNetworkImageProvider(
+              'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+            ),
             fit: BoxFit.cover,
             opacity: 0.2,
           ),
@@ -95,88 +97,109 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 child: GlassContainer(
                   padding: const EdgeInsets.all(32.0),
                   child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Icon(Icons.phone_iphone, size: 80, color: GlassTheme.primaryGreen)
-                        .animate().fade(duration: 500.ms).scale(delay: 200.ms),
-                    const SizedBox(height: 16),
-                    Text(
-                      _otpSent ? 'Enter OTP' : 'Enter Mobile Number',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
-                      textAlign: TextAlign.center,
-                    ).animate().fade().slideY(),
-                    const SizedBox(height: 32),
-                    if (!_otpSent) ...[
-                      TextFormField(
-                        controller: _phoneController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Phone Number',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
-                          prefixIcon: const Icon(Icons.phone, color: GlassTheme.primaryGreen),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                            borderRadius: BorderRadius.circular(12),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(
+                        Icons.phone_iphone,
+                        size: 80,
+                        color: GlassTheme.primaryGreen,
+                      ).animate().fade(duration: 500.ms).scale(delay: 200.ms),
+                      const SizedBox(height: 16),
+                      Text(
+                        _otpSent ? 'Enter OTP' : 'Enter Mobile Number',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                        textAlign: TextAlign.center,
+                      ).animate().fade().slideY(),
+                      const SizedBox(height: 32),
+                      if (!_otpSent) ...[
+                        TextFormField(
+                          controller: _phoneController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Phone Number',
+                            labelStyle: TextStyle(color: GlassTheme.textMuted),
+                            prefixIcon: const Icon(
+                              Icons.phone,
+                              color: GlassTheme.primaryGreen,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: GlassTheme.primaryGreen,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: GlassTheme.primaryGreen),
-                            borderRadius: BorderRadius.circular(12),
+                          keyboardType: TextInputType.phone,
+                        ).animate().fade().slideX(),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 56,
+                          child: GlassButton(
+                            onPressed: _isLoading ? () {} : _sendOTP,
+                            text: _isLoading ? 'Sending...' : 'Send OTP',
+                            icon: Icons.send,
                           ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                        ),
-                        keyboardType: TextInputType.phone,
-                      ).animate().fade().slideX(),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        height: 56,
-                        child: GlassButton(
-                          onPressed: _isLoading ? () {} : _sendOTP,
-                          text: _isLoading ? 'Sending...' : 'Send OTP',
-                          icon: Icons.send,
-                        ),
-                      ).animate().fade().scale(),
-                    ] else ...[
-                      TextFormField(
-                        controller: _otpController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: '4-Digit OTP',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
-                          prefixIcon: const Icon(Icons.password, color: GlassTheme.primaryGreen),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                            borderRadius: BorderRadius.circular(12),
+                        ).animate().fade().scale(),
+                      ] else ...[
+                        TextFormField(
+                          controller: _otpController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: '4-Digit OTP',
+                            labelStyle: TextStyle(color: GlassTheme.textMuted),
+                            prefixIcon: const Icon(
+                              Icons.password,
+                              color: GlassTheme.primaryGreen,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: GlassTheme.primaryGreen,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: GlassTheme.primaryGreen),
-                            borderRadius: BorderRadius.circular(12),
+                          keyboardType: TextInputType.number,
+                          maxLength: 4,
+                        ).animate().fade().slideX(),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 56,
+                          child: GlassButton(
+                            onPressed: _isLoading ? () {} : _verifyOTP,
+                            text: _isLoading ? 'Verifying...' : 'Login',
+                            icon: Icons.check_circle,
                           ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                        ),
-                        keyboardType: TextInputType.number,
-                        maxLength: 4,
-                      ).animate().fade().slideX(),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        height: 56,
-                        child: GlassButton(
-                          onPressed: _isLoading ? () {} : _verifyOTP,
-                          text: _isLoading ? 'Verifying...' : 'Login',
-                          icon: Icons.check_circle,
-                        ),
-                      ).animate().fade().scale(),
+                        ).animate().fade().scale(),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
   }
 }

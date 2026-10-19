@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+
 import '../core/theme/glass_theme.dart';
 
 /// Centralized manager for Lottie animations with graceful offline/loading fallback.

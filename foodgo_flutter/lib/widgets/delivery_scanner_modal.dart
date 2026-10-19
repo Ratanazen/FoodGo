@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../core/theme/glass_theme.dart';
 import '../services/api_service.dart';
 import 'glass_container.dart';
@@ -77,7 +79,10 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
     super.dispose();
   }
 
-  Future<void> _submitConfirmation({String? directToken, String? directPin}) async {
+  Future<void> _submitConfirmation({
+    String? directToken,
+    String? directPin,
+  }) async {
     final token = (directToken ?? _tokenController.text).trim();
     final pin = (directPin ?? _pinController.text).trim();
 
@@ -109,9 +114,11 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
 
       if (!mounted) return;
 
-      final deliveryTime = response['delivery_time']?.toString() ??
+      final deliveryTime =
+          response['delivery_time']?.toString() ??
           DateTime.now().toIso8601String();
-      final driverName = response['driver_name']?.toString() ?? 'Assigned Driver';
+      final driverName =
+          response['driver_name']?.toString() ?? 'Assigned Driver';
 
       setState(() {
         _isSubmitting = false;
@@ -164,8 +171,13 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
             final pasteCtrl = TextEditingController(text: text);
             return AlertDialog(
               backgroundColor: GlassTheme.surfaceDark,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text('Paste Scanned QR Data', style: TextStyle(color: Colors.white)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                'Paste Scanned QR Data',
+                style: TextStyle(color: Colors.white),
+              ),
               content: TextField(
                 controller: pasteCtrl,
                 style: const TextStyle(color: Colors.white),
@@ -177,7 +189,10 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white60),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -217,7 +232,8 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
     String formattedTime = _confirmedDeliveryTime ?? '';
     try {
       final dt = DateTime.parse(formattedTime).toLocal();
-      formattedTime = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+      formattedTime =
+          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
     } catch (_) {}
 
     return Column(
@@ -251,7 +267,11 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
               ),
             ],
           ),
-          child: const Icon(Icons.check_rounded, color: GlassTheme.primaryGreen, size: 48),
+          child: const Icon(
+            Icons.check_rounded,
+            color: GlassTheme.primaryGreen,
+            size: 48,
+          ),
         ),
         const SizedBox(height: 20),
         const Text(
@@ -279,7 +299,11 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           ),
           child: Column(
             children: [
-              _buildReceiptRow('Status', 'DELIVERED', valueColor: GlassTheme.primaryGreen),
+              _buildReceiptRow(
+                'Status',
+                'DELIVERED',
+                valueColor: GlassTheme.primaryGreen,
+              ),
               const Divider(color: Colors.white10, height: 16),
               _buildReceiptRow('Confirmed At', formattedTime),
               if (_confirmedDriverName != null) ...[
@@ -294,11 +318,16 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           style: ElevatedButton.styleFrom(
             backgroundColor: GlassTheme.primaryGreen,
             foregroundColor: Colors.black,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          child: const Text(
+            'Done',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ),
         const SizedBox(height: 8),
       ],
@@ -309,7 +338,10 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white60, fontSize: 13),
+        ),
         Text(
           value,
           style: TextStyle(
@@ -349,7 +381,11 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                     color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.qr_code_scanner, color: GlassTheme.primaryGreen, size: 22),
+                  child: const Icon(
+                    Icons.qr_code_scanner,
+                    color: GlassTheme.primaryGreen,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Column(
@@ -396,14 +432,18 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: _selectedTab == 0 ? GlassTheme.primaryGreen : Colors.transparent,
+                      color: _selectedTab == 0
+                          ? GlassTheme.primaryGreen
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       'Scan Driver QR',
                       style: TextStyle(
-                        color: _selectedTab == 0 ? Colors.black : Colors.white70,
+                        color: _selectedTab == 0
+                            ? Colors.black
+                            : Colors.white70,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -417,14 +457,18 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: _selectedTab == 1 ? GlassTheme.primaryGreen : Colors.transparent,
+                      color: _selectedTab == 1
+                          ? GlassTheme.primaryGreen
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       'Enter 6-Digit PIN',
                       style: TextStyle(
-                        color: _selectedTab == 1 ? Colors.black : Colors.white70,
+                        color: _selectedTab == 1
+                            ? Colors.black
+                            : Colors.white70,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -443,16 +487,25 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
             decoration: BoxDecoration(
               color: Colors.redAccent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+              border: Border.all(
+                color: Colors.redAccent.withValues(alpha: 0.4),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.error_outline, color: Colors.redAccent, size: 18),
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.redAccent,
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -461,7 +514,10 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           const SizedBox(height: 14),
         ],
 
-        if (_selectedTab == 0) _buildCameraViewfinder() else _buildPinEntryView(),
+        if (_selectedTab == 0)
+          _buildCameraViewfinder()
+        else
+          _buildPinEntryView(),
 
         const SizedBox(height: 20),
         SizedBox(
@@ -470,18 +526,28 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
             style: ElevatedButton.styleFrom(
               backgroundColor: GlassTheme.primaryGreen,
               foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             onPressed: _isSubmitting ? null : () => _submitConfirmation(),
             child: _isSubmitting
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      color: Colors.black,
+                      strokeWidth: 2,
+                    ),
                   )
                 : Text(
-                    _selectedTab == 0 ? 'Verify Scanned Code' : 'Submit 6-Digit PIN',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    _selectedTab == 0
+                        ? 'Verify Scanned Code'
+                        : 'Submit 6-Digit PIN',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
                   ),
           ),
         ),
@@ -499,17 +565,40 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: GlassTheme.primaryGreen.withValues(alpha: 0.8), width: 2),
+            border: Border.all(
+              color: GlassTheme.primaryGreen.withValues(alpha: 0.8),
+              width: 2,
+            ),
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Positioned(top: 8, left: 8, child: _corner(isTop: true, isLeft: true)),
-              Positioned(top: 8, right: 8, child: _corner(isTop: true, isLeft: false)),
-              Positioned(bottom: 8, left: 8, child: _corner(isTop: false, isLeft: true)),
-              Positioned(bottom: 8, right: 8, child: _corner(isTop: false, isLeft: false)),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: _corner(isTop: true, isLeft: true),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: _corner(isTop: true, isLeft: false),
+              ),
+              Positioned(
+                bottom: 8,
+                left: 8,
+                child: _corner(isTop: false, isLeft: true),
+              ),
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: _corner(isTop: false, isLeft: false),
+              ),
 
-              Icon(Icons.qr_code_2, size: 84, color: Colors.white.withValues(alpha: 0.2)),
+              Icon(
+                Icons.qr_code_2,
+                size: 84,
+                color: Colors.white.withValues(alpha: 0.2),
+              ),
 
               AnimatedBuilder(
                 animation: _laserAnimation,
@@ -524,7 +613,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                         color: GlassTheme.primaryGreen,
                         boxShadow: [
                           BoxShadow(
-                            color: GlassTheme.primaryGreen.withValues(alpha: 0.9),
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.9,
+                            ),
                             blurRadius: 8,
                             spreadRadius: 2,
                           ),
@@ -538,7 +629,10 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
               Positioned(
                 bottom: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black87,
                     borderRadius: BorderRadius.circular(12),
@@ -572,7 +666,10 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                 foregroundColor: GlassTheme.primaryGreen,
               ),
               icon: const Icon(Icons.paste, size: 16),
-              label: const Text('Paste / Enter QR Data', style: TextStyle(fontSize: 12)),
+              label: const Text(
+                'Paste / Enter QR Data',
+                style: TextStyle(fontSize: 12),
+              ),
               onPressed: _simulateScanDriverPayload,
             ),
           ],
@@ -605,16 +702,25 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           decoration: InputDecoration(
             counterText: '',
             hintText: '• • • • • •',
-            hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 8, fontSize: 24),
+            hintStyle: const TextStyle(
+              color: Colors.white24,
+              letterSpacing: 8,
+              fontSize: 24,
+            ),
             filled: true,
             fillColor: Colors.white.withValues(alpha: 0.05),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.2),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: GlassTheme.primaryGreen, width: 2),
+              borderSide: const BorderSide(
+                color: GlassTheme.primaryGreen,
+                width: 2,
+              ),
             ),
           ),
         ),
@@ -633,10 +739,18 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
       height: 16,
       decoration: BoxDecoration(
         border: Border(
-          top: isTop ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
-          bottom: !isTop ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
-          left: isLeft ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
-          right: !isLeft ? const BorderSide(color: GlassTheme.primaryGreen, width: 3) : BorderSide.none,
+          top: isTop
+              ? const BorderSide(color: GlassTheme.primaryGreen, width: 3)
+              : BorderSide.none,
+          bottom: !isTop
+              ? const BorderSide(color: GlassTheme.primaryGreen, width: 3)
+              : BorderSide.none,
+          left: isLeft
+              ? const BorderSide(color: GlassTheme.primaryGreen, width: 3)
+              : BorderSide.none,
+          right: !isLeft
+              ? const BorderSide(color: GlassTheme.primaryGreen, width: 3)
+              : BorderSide.none,
         ),
       ),
     );

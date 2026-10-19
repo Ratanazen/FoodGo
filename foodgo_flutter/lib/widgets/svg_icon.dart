@@ -5,10 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class FoodGoLogo extends StatelessWidget {
   final double size;
 
-  const FoodGoLogo({
-    super.key,
-    this.size = 80.0,
-  });
+  const FoodGoLogo({super.key, this.size = 80.0});
 
   @override
   Widget build(BuildContext context) {

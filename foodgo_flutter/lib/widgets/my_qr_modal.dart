@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
 import '../core/theme/glass_theme.dart';
 import '../core/utils/khmer_currency.dart';
 import 'glass/glass_widgets.dart';
@@ -95,7 +96,8 @@ class _MyQrSheetState extends State<_MyQrSheet> {
   String get _qrPayload {
     final amtStr = _amount > 0 ? _amount.toStringAsFixed(2) : '0.00';
     final currCode = _isKhr ? '116' : '840';
-    final raw = '00020101021229370016bakong@bkrt0109$_bakongId'
+    final raw =
+        '00020101021229370016bakong@bkrt0109$_bakongId'
         '5303$currCode'
         '${_amount > 0 ? "540${amtStr.length.toString().padLeft(2, '0')}$amtStr" : ""}'
         '5802KH5911${_userName.replaceAll(" ", "_")}'
@@ -155,7 +157,10 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                           color: GlassTheme.bakongRed.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const SvgAssetIcon(assetName: 'khqr_logo', size: 22),
+                        child: const SvgAssetIcon(
+                          assetName: 'khqr_logo',
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Column(
@@ -190,20 +195,30 @@ class _MyQrSheetState extends State<_MyQrSheet> {
 
               // User Info Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 18,
-                      backgroundColor: GlassTheme.bakongRed.withValues(alpha: 0.25),
+                      backgroundColor: GlassTheme.bakongRed.withValues(
+                        alpha: 0.25,
+                      ),
                       child: Text(
                         _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -213,11 +228,19 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                         children: [
                           Text(
                             _userName,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
                           Text(
                             'Bakong ID: $_bakongId',
-                            style: const TextStyle(color: GlassTheme.primaryGreenAccent, fontSize: 11, fontFamily: 'monospace'),
+                            style: const TextStyle(
+                              color: GlassTheme.primaryGreenAccent,
+                              fontSize: 11,
+                              fontFamily: 'monospace',
+                            ),
                           ),
                         ],
                       ),
@@ -236,7 +259,11 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                       },
                       child: const Padding(
                         padding: EdgeInsets.all(6),
-                        child: Icon(Icons.copy, size: 18, color: Colors.white70),
+                        child: Icon(
+                          Icons.copy,
+                          size: 18,
+                          color: Colors.white70,
+                        ),
                       ),
                     ),
                   ],
@@ -250,17 +277,33 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                   Expanded(
                     child: TextField(
                       controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       onChanged: _onAmountChanged,
-                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                       decoration: InputDecoration(
                         isDense: true,
                         labelText: 'Receive Amount (Optional)',
-                        labelStyle: const TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                        prefixIcon: const Icon(Icons.attach_money, size: 18, color: GlassTheme.primaryGreen),
+                        labelStyle: const TextStyle(
+                          color: GlassTheme.textMuted,
+                          fontSize: 12,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.attach_money,
+                          size: 18,
+                          color: GlassTheme.primaryGreen,
+                        ),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                   ),
@@ -269,14 +312,21 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                     onTap: () => setState(() => _isKhr = !_isKhr),
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         _isKhr ? '៛ KHR' : '\$ USD',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),
@@ -289,15 +339,35 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _PresetChip(label: 'Open', isSelected: _amount == 0, onTap: () => _setPreset(0)),
+                    _PresetChip(
+                      label: 'Open',
+                      isSelected: _amount == 0,
+                      onTap: () => _setPreset(0),
+                    ),
                     const SizedBox(width: 6),
-                    _PresetChip(label: '+\$5 (៛20.5k)', isSelected: _amount == 5, onTap: () => _setPreset(5)),
+                    _PresetChip(
+                      label: '+\$5 (៛20.5k)',
+                      isSelected: _amount == 5,
+                      onTap: () => _setPreset(5),
+                    ),
                     const SizedBox(width: 6),
-                    _PresetChip(label: '+\$10 (៛41k)', isSelected: _amount == 10, onTap: () => _setPreset(10)),
+                    _PresetChip(
+                      label: '+\$10 (៛41k)',
+                      isSelected: _amount == 10,
+                      onTap: () => _setPreset(10),
+                    ),
                     const SizedBox(width: 6),
-                    _PresetChip(label: '+\$20 (៛82k)', isSelected: _amount == 20, onTap: () => _setPreset(20)),
+                    _PresetChip(
+                      label: '+\$20 (៛82k)',
+                      isSelected: _amount == 20,
+                      onTap: () => _setPreset(20),
+                    ),
                     const SizedBox(width: 6),
-                    _PresetChip(label: '+\$50 (៛205k)', isSelected: _amount == 50, onTap: () => _setPreset(50)),
+                    _PresetChip(
+                      label: '+\$50 (៛205k)',
+                      isSelected: _amount == 50,
+                      onTap: () => _setPreset(50),
+                    ),
                   ],
                 ),
               ),
@@ -325,7 +395,9 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: const BoxDecoration(
                         color: GlassTheme.khqrBannerRed,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(18),
+                        ),
                       ),
                       child: const Center(
                         child: Text(
@@ -347,11 +419,32 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Text('Bakong', style: TextStyle(color: GlassTheme.bakongRed, fontWeight: FontWeight.bold, fontSize: 10)),
+                          Text(
+                            'Bakong',
+                            style: TextStyle(
+                              color: GlassTheme.bakongRed,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
                           Text(' • ', style: TextStyle(color: Colors.black26)),
-                          Text('ABA Mobile', style: TextStyle(color: GlassTheme.abaBlue, fontWeight: FontWeight.bold, fontSize: 10)),
+                          Text(
+                            'ABA Mobile',
+                            style: TextStyle(
+                              color: GlassTheme.abaBlue,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
                           Text(' • ', style: TextStyle(color: Colors.black26)),
-                          Text('ACLEDA', style: TextStyle(color: GlassTheme.acledaNavy, fontWeight: FontWeight.bold, fontSize: 10)),
+                          Text(
+                            'ACLEDA',
+                            style: TextStyle(
+                              color: GlassTheme.acledaNavy,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -407,12 +500,22 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       icon: const Icon(Icons.copy, size: 18),
-                      label: const Text('Copy KHQR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      label: const Text(
+                        'Copy KHQR',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: _qrPayload));
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -446,7 +549,9 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                               navigator.pop();
                               messenger.showSnackBar(
                                 SnackBar(
-                                  content: Text('+\$${amtToCredit.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(amtToCredit)}) credited to wallet!'),
+                                  content: Text(
+                                    '+\$${amtToCredit.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(amtToCredit)}) credited to wallet!',
+                                  ),
                                   backgroundColor: GlassTheme.primaryGreen,
                                   behavior: SnackBarBehavior.floating,
                                 ),
@@ -483,10 +588,14 @@ class _PresetChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? GlassTheme.bakongRed.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.05),
+          color: isSelected
+              ? GlassTheme.bakongRed.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? GlassTheme.bakongRed : Colors.white.withValues(alpha: 0.1),
+            color: isSelected
+                ? GlassTheme.bakongRed
+                : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Text(

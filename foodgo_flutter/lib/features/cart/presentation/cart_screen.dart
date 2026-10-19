@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -47,7 +48,9 @@ class _CartScreenState extends State<CartScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Invalid promo code. Try FOODGO30, FOODGOFREE, or FOODGO20.'),
+          content: Text(
+            'Invalid promo code. Try FOODGO30, FOODGOFREE, or FOODGO20.',
+          ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -59,7 +62,9 @@ class _CartScreenState extends State<CartScreen> {
     const threshold = 20.0;
     final isFree = cart.deliveryFee <= 0 || cart.totalAmount >= threshold;
     final remaining = (threshold - cart.totalAmount).clamp(0.0, threshold);
-    final progress = isFree ? 1.0 : (cart.totalAmount / threshold).clamp(0.0, 1.0);
+    final progress = isFree
+        ? 1.0
+        : (cart.totalAmount / threshold).clamp(0.0, 1.0);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -137,7 +142,11 @@ class _CartScreenState extends State<CartScreen> {
               SizedBox(width: 8),
               Text(
                 'Delete',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -190,7 +199,11 @@ class _CartScreenState extends State<CartScreen> {
                       : null,
                 ),
                 child: item.image == null || item.image!.isEmpty
-                    ? const Icon(Icons.fastfood, size: 36, color: GlassTheme.primaryGreen)
+                    ? const Icon(
+                        Icons.fastfood,
+                        size: 36,
+                        color: GlassTheme.primaryGreen,
+                      )
                     : null,
               ),
               const SizedBox(width: 14),
@@ -200,7 +213,10 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Text(
                       item.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -220,7 +236,9 @@ class _CartScreenState extends State<CartScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
                 child: Row(
@@ -239,14 +257,22 @@ class _CartScreenState extends State<CartScreen> {
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.12),
                         ),
-                        child: const Icon(Icons.remove, size: 16, color: Colors.white),
+                        child: const Icon(
+                          Icons.remove,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
                       child: Text(
                         '${item.quantity}',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     InkWell(
@@ -269,7 +295,11 @@ class _CartScreenState extends State<CartScreen> {
                           shape: BoxShape.circle,
                           color: GlassTheme.limeAccent,
                         ),
-                        child: const Icon(Icons.add, size: 16, color: Colors.black),
+                        child: const Icon(
+                          Icons.add,
+                          size: 16,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ],
@@ -277,7 +307,11 @@ class _CartScreenState extends State<CartScreen> {
               ),
               const SizedBox(width: 4),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20, color: Colors.white38),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: Colors.white38,
+                ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
                   final removedItem = item;
@@ -319,12 +353,18 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildSummaryCard(BuildContext context, CartProvider cart, {bool isDesktop = false}) {
+  Widget _buildSummaryCard(
+    BuildContext context,
+    CartProvider cart, {
+    bool isDesktop = false,
+  }) {
     final hasDiscount = cart.discountAmount > 0;
     final promoCode = cart.appliedPromoCode;
 
     return GlassContainer(
-      borderRadius: isDesktop ? BorderRadius.circular(24) : const BorderRadius.vertical(top: Radius.circular(32)),
+      borderRadius: isDesktop
+          ? BorderRadius.circular(24)
+          : const BorderRadius.vertical(top: Radius.circular(32)),
       padding: const EdgeInsets.all(24.0),
       child: SafeArea(
         top: false,
@@ -334,7 +374,10 @@ class _CartScreenState extends State<CartScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (isDesktop) ...[
-              const Text('Order Summary', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Order Summary',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
             ],
 
@@ -355,7 +398,11 @@ class _CartScreenState extends State<CartScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.check_circle, color: GlassTheme.primaryGreen, size: 18),
+                            const Icon(
+                              Icons.check_circle,
+                              color: GlassTheme.primaryGreen,
+                              size: 18,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               'Code "$promoCode" Applied',
@@ -371,7 +418,11 @@ class _CartScreenState extends State<CartScreen> {
                           onTap: () => cart.removePromoCode(),
                           child: const Padding(
                             padding: EdgeInsets.all(4.0),
-                            child: Icon(Icons.close, color: Colors.white60, size: 18),
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white60,
+                              size: 18,
+                            ),
                           ),
                         ),
                       ],
@@ -379,16 +430,27 @@ class _CartScreenState extends State<CartScreen> {
                   ] else ...[
                     Row(
                       children: [
-                        const Icon(Icons.local_offer_outlined, color: GlassTheme.primaryGreen, size: 18),
+                        const Icon(
+                          Icons.local_offer_outlined,
+                          color: GlassTheme.primaryGreen,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: TextField(
                             controller: _voucherController,
                             textCapitalization: TextCapitalization.characters,
-                            style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Enter Voucher or Promo Code',
-                              hintStyle: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                              hintStyle: TextStyle(
+                                color: GlassTheme.textMuted,
+                                fontSize: 12,
+                              ),
                               isDense: true,
                               border: InputBorder.none,
                             ),
@@ -398,11 +460,25 @@ class _CartScreenState extends State<CartScreen> {
                         TextButton(
                           onPressed: () => _applyVoucher(cart),
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            backgroundColor: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
-                          child: const Text('Apply', style: TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
+                          child: const Text(
+                            'Apply',
+                            style: TextStyle(
+                              color: GlassTheme.primaryGreen,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -412,11 +488,23 @@ class _CartScreenState extends State<CartScreen> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _buildPromoChip('FOODGO30 (30% OFF)', 'FOODGO30', cart),
+                          _buildPromoChip(
+                            'FOODGO30 (30% OFF)',
+                            'FOODGO30',
+                            cart,
+                          ),
                           const SizedBox(width: 6),
-                          _buildPromoChip('FOODGOFREE (Free Delivery)', 'FOODGOFREE', cart),
+                          _buildPromoChip(
+                            'FOODGOFREE (Free Delivery)',
+                            'FOODGOFREE',
+                            cart,
+                          ),
                           const SizedBox(width: 6),
-                          _buildPromoChip('FOODGO20 (20% OFF)', 'FOODGO20', cart),
+                          _buildPromoChip(
+                            'FOODGO20 (20% OFF)',
+                            'FOODGO20',
+                            cart,
+                          ),
                         ],
                       ),
                     ),
@@ -430,7 +518,13 @@ class _CartScreenState extends State<CartScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Subtotal', style: TextStyle(fontSize: 15)),
-                Text('\$${cart.totalAmount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                Text(
+                  '\$${cart.totalAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -439,11 +533,15 @@ class _CartScreenState extends State<CartScreen> {
               children: [
                 const Text('Delivery Fee', style: TextStyle(fontSize: 15)),
                 Text(
-                  cart.deliveryFee <= 0 ? 'FREE' : '\$${cart.deliveryFee.toStringAsFixed(2)}',
+                  cart.deliveryFee <= 0
+                      ? 'FREE'
+                      : '\$${cart.deliveryFee.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: cart.deliveryFee <= 0 ? GlassTheme.primaryGreen : null,
+                    color: cart.deliveryFee <= 0
+                        ? GlassTheme.primaryGreen
+                        : null,
                   ),
                 ),
               ],
@@ -453,10 +551,20 @@ class _CartScreenState extends State<CartScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Discount ($promoCode)', style: const TextStyle(fontSize: 15, color: GlassTheme.primaryGreen)),
+                  Text(
+                    'Discount ($promoCode)',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: GlassTheme.primaryGreen,
+                    ),
+                  ),
                   Text(
                     '-\$${cart.discountAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: GlassTheme.primaryGreen),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: GlassTheme.primaryGreen,
+                    ),
                   ),
                 ],
               ),
@@ -467,17 +575,32 @@ class _CartScreenState extends State<CartScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text(
+                  'Total',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       '\$${cart.grandTotal.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: GlassTheme.limeAccentBright),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: GlassTheme.limeAccentBright,
+                      ),
                     ),
                     Text(
                       '≈ ${KhmerCurrency.formatKhr(cart.grandTotal)} KHR',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.7)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
                     ),
                   ],
                 ),
@@ -537,7 +660,14 @@ class _CartScreenState extends State<CartScreen> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
-        child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
@@ -557,10 +687,16 @@ class _CartScreenState extends State<CartScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.15),
+                        ),
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                         onPressed: () => context.pop(),
                       ),
                     ),
@@ -569,7 +705,11 @@ class _CartScreenState extends State<CartScreen> {
             centerTitle: true,
             title: const Text(
               'Your Cart',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.white),
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+                color: Colors.white,
+              ),
             ),
             actions: [
               if (cart.items.isNotEmpty)
@@ -579,31 +719,49 @@ class _CartScreenState extends State<CartScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.15),
+                      ),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.white70),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: Colors.white70,
+                      ),
                       tooltip: 'Clear Cart',
                       onPressed: () {
                         showDialog(
                           context: context,
                           builder: (ctx) => AlertDialog(
                             backgroundColor: GlassTheme.dialogDark,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
                             title: const Text('Clear Cart?'),
-                            content: const Text('Are you sure you want to remove all items from your cart?'),
+                            content: const Text(
+                              'Are you sure you want to remove all items from your cart?',
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx),
-                                child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(color: Colors.white60),
+                                ),
                               ),
                               ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.redAccent,
+                                ),
                                 onPressed: () {
                                   cart.clear();
                                   Navigator.pop(ctx);
                                 },
-                                child: const Text('Clear', style: TextStyle(color: Colors.white)),
+                                child: const Text(
+                                  'Clear',
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
@@ -621,9 +779,18 @@ class _CartScreenState extends State<CartScreen> {
                     children: [
                       LottieAsset.emptyBox(size: 150),
                       const SizedBox(height: 16),
-                      const Text('Your cart is empty', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Your cart is empty',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Text('Discover delicious food and add items to your cart', style: TextStyle(color: GlassTheme.textMuted)),
+                      Text(
+                        'Discover delicious food and add items to your cart',
+                        style: TextStyle(color: GlassTheme.textMuted),
+                      ),
                       const SizedBox(height: 32),
                       GlassButton(
                         text: 'Explore Food',
@@ -646,8 +813,16 @@ class _CartScreenState extends State<CartScreen> {
                                 child: ListView(
                                   children: [
                                     _buildFreeDeliveryBar(cart),
-                                    ...cart.items.values.toList().asMap().entries.map(
-                                          (entry) => _buildCartItemCard(cart, entry.value, entry.key),
+                                    ...cart.items.values
+                                        .toList()
+                                        .asMap()
+                                        .entries
+                                        .map(
+                                          (entry) => _buildCartItemCard(
+                                            cart,
+                                            entry.value,
+                                            entry.key,
+                                          ),
                                         ),
                                   ],
                                 ),
@@ -655,10 +830,15 @@ class _CartScreenState extends State<CartScreen> {
                               const SizedBox(width: 24),
                               Expanded(
                                 flex: 2,
-                                child: _buildSummaryCard(context, cart, isDesktop: true)
-                                    .animate()
-                                    .fade(delay: 200.ms)
-                                    .slideX(begin: 0.1),
+                                child:
+                                    _buildSummaryCard(
+                                          context,
+                                          cart,
+                                          isDesktop: true,
+                                        )
+                                        .animate()
+                                        .fade(delay: 200.ms)
+                                        .slideX(begin: 0.1),
                               ),
                             ],
                           ),
@@ -671,16 +851,24 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                             Expanded(
                               child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
                                 itemCount: cart.items.length,
                                 itemBuilder: (context, index) =>
-                                    _buildCartItemCard(cart, cart.items.values.toList()[index], index),
+                                    _buildCartItemCard(
+                                      cart,
+                                      cart.items.values.toList()[index],
+                                      index,
+                                    ),
                               ),
                             ),
-                            _buildSummaryCard(context, cart, isDesktop: false)
-                                .animate()
-                                .fade(delay: 200.ms)
-                                .slideY(begin: 1.0),
+                            _buildSummaryCard(
+                              context,
+                              cart,
+                              isDesktop: false,
+                            ).animate().fade(delay: 200.ms).slideY(begin: 1.0),
                           ],
                         ),
                 ),

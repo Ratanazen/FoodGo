@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -11,10 +12,12 @@ class RestaurantDashboardScreen extends StatefulWidget {
   const RestaurantDashboardScreen({super.key});
 
   @override
-  State<RestaurantDashboardScreen> createState() => _RestaurantDashboardScreenState();
+  State<RestaurantDashboardScreen> createState() =>
+      _RestaurantDashboardScreenState();
 }
 
-class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> with SingleTickerProviderStateMixin {
+class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
+    with SingleTickerProviderStateMixin {
   final ApiService _api = ApiService();
   bool _isLoading = true;
   Map<String, dynamic>? _restaurant;
@@ -74,11 +77,13 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
       await _api.patch('orders/$orderId/', {'status': newStatus});
       _fetchDashboardData();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Order updated to $newStatus'),
-        backgroundColor: GlassTheme.primaryGreen,
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Order updated to $newStatus'),
+          backgroundColor: GlassTheme.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       debugPrint('Failed to update status');
     }
@@ -101,7 +106,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
     final ingController = TextEditingController();
     final newCatController = TextEditingController();
 
-    int? selectedCatId = _categories.isNotEmpty ? _categories.first['id'] : null;
+    int? selectedCatId = _categories.isNotEmpty
+        ? _categories.first['id']
+        : null;
     bool isCreatingNewCat = _categories.isEmpty;
     bool isSaving = false;
 
@@ -118,7 +125,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
             child: Container(
               decoration: BoxDecoration(
                 color: GlassTheme.surfaceCardDark,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               padding: const EdgeInsets.all(24.0),
@@ -135,13 +144,25 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                                color: GlassTheme.primaryGreen.withValues(
+                                  alpha: 0.2,
+                                ),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(Icons.add_circle_outline, color: GlassTheme.primaryGreen),
+                              child: const Icon(
+                                Icons.add_circle_outline,
+                                color: GlassTheme.primaryGreen,
+                              ),
                             ),
                             const SizedBox(width: 12),
-                            const Text('Add Food Item', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                            const Text(
+                              'Add Food Item',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                         IconButton(
@@ -153,7 +174,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                     const SizedBox(height: 20),
 
                     // Name input
-                    _buildInput(controller: nameController, label: 'Food Item Name', icon: Icons.fastfood),
+                    _buildInput(
+                      controller: nameController,
+                      label: 'Food Item Name',
+                      icon: Icons.fastfood,
+                    ),
                     const SizedBox(height: 14),
 
                     // Category selection
@@ -165,31 +190,63 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                         decoration: InputDecoration(
                           labelText: 'Category',
                           labelStyle: TextStyle(color: GlassTheme.textMuted),
-                          prefixIcon: const Icon(Icons.category, color: GlassTheme.primaryGreen),
+                          prefixIcon: const Icon(
+                            Icons.category,
+                            color: GlassTheme.primaryGreen,
+                          ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                         items: _categories.map<DropdownMenuItem<int>>((cat) {
                           return DropdownMenuItem<int>(
                             value: cat['id'],
-                            child: Text(cat['name'], style: const TextStyle(color: Colors.white)),
+                            child: Text(
+                              cat['name'],
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           );
                         }).toList(),
-                        onChanged: (val) => setModalState(() => selectedCatId = val),
+                        onChanged: (val) =>
+                            setModalState(() => selectedCatId = val),
                       ),
                       const SizedBox(height: 8),
                       TextButton.icon(
-                        icon: const Icon(Icons.add, size: 16, color: GlassTheme.primaryGreen),
-                        label: const Text('+ Create New Category', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 12)),
-                        onPressed: () => setModalState(() => isCreatingNewCat = true),
+                        icon: const Icon(
+                          Icons.add,
+                          size: 16,
+                          color: GlassTheme.primaryGreen,
+                        ),
+                        label: const Text(
+                          '+ Create New Category',
+                          style: TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontSize: 12,
+                          ),
+                        ),
+                        onPressed: () =>
+                            setModalState(() => isCreatingNewCat = true),
                       ),
                     ] else ...[
-                      _buildInput(controller: newCatController, label: 'New Category Name (e.g. Burgers, Drinks)', icon: Icons.create_new_folder),
+                      _buildInput(
+                        controller: newCatController,
+                        label: 'New Category Name (e.g. Burgers, Drinks)',
+                        icon: Icons.create_new_folder,
+                      ),
                       if (_categories.isNotEmpty)
                         TextButton(
-                          child: const Text('Choose from existing categories', style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 12)),
-                          onPressed: () => setModalState(() => isCreatingNewCat = false),
+                          child: const Text(
+                            'Choose from existing categories',
+                            style: TextStyle(
+                              color: GlassTheme.primaryGreen,
+                              fontSize: 12,
+                            ),
+                          ),
+                          onPressed: () =>
+                              setModalState(() => isCreatingNewCat = false),
                         ),
                     ],
                     const SizedBox(height: 14),
@@ -199,7 +256,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                       controller: priceController,
                       label: 'Price (USD, e.g. 7.50)',
                       icon: Icons.attach_money,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                     const SizedBox(height: 14),
 
@@ -213,16 +272,27 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                     const SizedBox(height: 14),
 
                     // Description & Ingredients
-                    _buildInput(controller: descController, label: 'Description', icon: Icons.notes, maxLines: 2),
+                    _buildInput(
+                      controller: descController,
+                      label: 'Description',
+                      icon: Icons.notes,
+                      maxLines: 2,
+                    ),
                     const SizedBox(height: 14),
-                    _buildInput(controller: ingController, label: 'Ingredients (comma separated)', icon: Icons.eco_outlined),
+                    _buildInput(
+                      controller: ingController,
+                      label: 'Ingredients (comma separated)',
+                      icon: Icons.eco_outlined,
+                    ),
                     const SizedBox(height: 24),
 
                     // Submit Button
                     SizedBox(
                       height: 52,
                       child: GlassButton(
-                        text: isSaving ? 'Adding Item...' : 'Save & Add to Menu',
+                        text: isSaving
+                            ? 'Adding Item...'
+                            : 'Save & Add to Menu',
                         icon: isSaving ? Icons.hourglass_top : Icons.check,
                         onPressed: isSaving
                             ? () {}
@@ -231,7 +301,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                                 final priceStr = priceController.text.trim();
                                 if (name.isEmpty || priceStr.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Please enter food name and price')),
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please enter food name and price',
+                                      ),
+                                    ),
                                   );
                                   return;
                                 }
@@ -240,11 +314,15 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                                 try {
                                   int? catId = selectedCatId;
                                   // Create category if new
-                                  if (isCreatingNewCat && newCatController.text.trim().isNotEmpty) {
-                                    final catRes = await _api.post('food-categories/', {
-                                      'restaurant': _restaurant!['id'],
-                                      'name': newCatController.text.trim(),
-                                    });
+                                  if (isCreatingNewCat &&
+                                      newCatController.text.trim().isNotEmpty) {
+                                    final catRes = await _api.post(
+                                      'food-categories/',
+                                      {
+                                        'restaurant': _restaurant!['id'],
+                                        'name': newCatController.text.trim(),
+                                      },
+                                    );
                                     catId = catRes['id'];
                                   }
 
@@ -269,7 +347,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Successfully added "$name" to your menu!'),
+                                      content: Text(
+                                        'Successfully added "$name" to your menu!',
+                                      ),
                                       backgroundColor: GlassTheme.primaryGreen,
                                       behavior: SnackBarBehavior.floating,
                                     ),
@@ -278,7 +358,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                                   setModalState(() => isSaving = false);
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Failed to add item: $e'), backgroundColor: Colors.redAccent),
+                                      SnackBar(
+                                        content: Text('Failed to add item: $e'),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
                                     );
                                   }
                                 }
@@ -313,7 +396,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
         prefixIcon: Icon(icon, color: GlassTheme.primaryGreen),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
@@ -336,119 +422,144 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          color: GlassTheme.backgroundDark,
-        ),
+        decoration: const BoxDecoration(color: GlassTheme.backgroundDark),
         child: SafeArea(
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator(color: GlassTheme.primaryGreen))
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: GlassTheme.primaryGreen,
+                  ),
+                )
               : _restaurant == null
-                  ? Center(child: Text('You do not own a restaurant.', style: TextStyle(color: GlassTheme.textMuted)))
-                  : ResponsiveWebContainer(
-                      maxWidth: 1050,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                          // Restaurant Header Card
-                          GlassContainer(
-                            padding: const EdgeInsets.all(20),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                                  backgroundImage: _restaurant!['banner'] != null
-                                      ? CachedNetworkImageProvider(_restaurant!['banner'])
-                                      : null,
-                                  child: _restaurant!['banner'] == null
-                                      ? const Icon(Icons.store, size: 28, color: GlassTheme.primaryGreen)
-                                      : null,
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _restaurant!['name'] ?? 'Restaurant',
-                                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        '${_foodItems.length} items on menu · ${_orders.length} orders',
-                                        style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Tab Selector (Live Orders vs Menu Items)
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: TabBar(
-                              controller: _tabController,
-                              indicator: BoxDecoration(
-                                color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: GlassTheme.primaryGreen),
+              ? Center(
+                  child: Text(
+                    'You do not own a restaurant.',
+                    style: TextStyle(color: GlassTheme.textMuted),
+                  ),
+                )
+              : ResponsiveWebContainer(
+                  maxWidth: 1050,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Restaurant Header Card
+                        GlassContainer(
+                          padding: const EdgeInsets.all(20),
+                          borderRadius: BorderRadius.circular(20),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 28,
+                                backgroundColor: GlassTheme.primaryGreen
+                                    .withValues(alpha: 0.2),
+                                backgroundImage: _restaurant!['banner'] != null
+                                    ? CachedNetworkImageProvider(
+                                        _restaurant!['banner'],
+                                      )
+                                    : null,
+                                child: _restaurant!['banner'] == null
+                                    ? const Icon(
+                                        Icons.store,
+                                        size: 28,
+                                        color: GlassTheme.primaryGreen,
+                                      )
+                                    : null,
                               ),
-                              labelColor: Colors.white,
-                              unselectedLabelColor: GlassTheme.textMuted,
-                              tabs: [
-                                Tab(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.receipt_long, size: 18),
-                                      const SizedBox(width: 6),
-                                      Text('Orders (${_orders.length})'),
-                                    ],
-                                  ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _restaurant!['name'] ?? 'Restaurant',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${_foodItems.length} items on menu · ${_orders.length} orders',
+                                      style: TextStyle(
+                                        color: GlassTheme.textMuted,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Tab(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.restaurant_menu, size: 18),
-                                      const SizedBox(width: 6),
-                                      Text('Menu (${_foodItems.length})'),
-                                    ],
-                                  ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Tab Selector (Live Orders vs Menu Items)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: TabBar(
+                            controller: _tabController,
+                            indicator: BoxDecoration(
+                              color: GlassTheme.primaryGreen.withValues(
+                                alpha: 0.3,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: GlassTheme.primaryGreen,
+                              ),
+                            ),
+                            labelColor: Colors.white,
+                            unselectedLabelColor: GlassTheme.textMuted,
+                            tabs: [
+                              Tab(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.receipt_long, size: 18),
+                                    const SizedBox(width: 6),
+                                    Text('Orders (${_orders.length})'),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              Tab(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.restaurant_menu, size: 18),
+                                    const SizedBox(width: 6),
+                                    Text('Menu (${_foodItems.length})'),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
+                        ),
+                        const SizedBox(height: 16),
 
-                          // Tab Views
-                          Expanded(
-                            child: TabBarView(
-                              controller: _tabController,
-                              children: [
-                                // Tab 1: Orders
-                                _buildOrdersTab(),
+                        // Tab Views
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              // Tab 1: Orders
+                              _buildOrdersTab(),
 
-                                // Tab 2: Menu Items
-                                _buildMenuTab(),
-                              ],
-                            ),
+                              // Tab 2: Menu Items
+                              _buildMenuTab(),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
+                ),
         ),
       ),
     );
@@ -456,7 +567,12 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
 
   Widget _buildOrdersTab() {
     if (_orders.isEmpty) {
-      return Center(child: Text('No orders yet', style: TextStyle(color: GlassTheme.textMuted)));
+      return Center(
+        child: Text(
+          'No orders yet',
+          style: TextStyle(color: GlassTheme.textMuted),
+        ),
+      );
     }
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -503,22 +619,39 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Order #${order['id']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                  Text(
+                    'Order #${order['id']}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       order['status'].toString().toUpperCase(),
-                      style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text('Total: \$${order['total_amount']}', style: const TextStyle(color: Colors.white70)),
+              Text(
+                'Total: \$${order['total_amount']}',
+                style: const TextStyle(color: Colors.white70),
+              ),
             ],
           ),
           Row(
@@ -527,12 +660,23 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    side: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.25),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  icon: const Icon(Icons.receipt_long, size: 16, color: GlassTheme.primaryGreen),
-                  label: const Text('View Bill', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  icon: const Icon(
+                    Icons.receipt_long,
+                    size: 16,
+                    color: GlassTheme.primaryGreen,
+                  ),
+                  label: const Text(
+                    'View Bill',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
                   onPressed: () => _showRestaurantOrderBill(order),
                 ),
               ),
@@ -542,7 +686,8 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                   child: GlassButton(
                     text: 'Cook',
                     icon: Icons.soup_kitchen,
-                    onPressed: () => _updateOrderStatus(order['id'].toString(), 'preparing'),
+                    onPressed: () =>
+                        _updateOrderStatus(order['id'].toString(), 'preparing'),
                   ),
                 ),
               ],
@@ -552,7 +697,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                   child: GlassButton(
                     text: 'Driver',
                     icon: Icons.delivery_dining,
-                    onPressed: () => _updateOrderStatus(order['id'].toString(), 'on_the_way'),
+                    onPressed: () => _updateOrderStatus(
+                      order['id'].toString(),
+                      'on_the_way',
+                    ),
                   ),
                 ),
               ],
@@ -601,17 +749,28 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                 children: [
                   Text(
                     'Order Bill #FG-${order['id']}',
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       status.toUpperCase(),
-                      style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 11),
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                 ],
@@ -623,33 +782,66 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                   decoration: BoxDecoration(
                     color: Colors.amber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: 0.3),
+                    ),
                   ),
-                  child: Text('Note: $instructions', style: const TextStyle(color: Colors.amber, fontSize: 12)),
+                  child: Text(
+                    'Note: $instructions',
+                    style: const TextStyle(color: Colors.amber, fontSize: 12),
+                  ),
                 ),
                 const SizedBox(height: 14),
               ],
-              const Text('ITEMS ORDERED', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+              const Text(
+                'ITEMS ORDERED',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                ),
+              ),
               const SizedBox(height: 8),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 220),
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: items.length,
-                  separatorBuilder: (context, sepIdx) => Divider(color: Colors.white.withValues(alpha: 0.08), height: 12),
+                  separatorBuilder: (context, sepIdx) => Divider(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    height: 12,
+                  ),
                   itemBuilder: (context, i) {
                     final it = items[i];
                     final name = it['food_name'] ?? 'Item #${it['food_item']}';
                     final qty = it['quantity'] ?? 1;
                     final price = it['price'] ?? '0.00';
-                    final lineTotal = ((double.tryParse(price.toString()) ?? 0.0) * (int.tryParse(qty.toString()) ?? 1)).toStringAsFixed(2);
+                    final lineTotal =
+                        ((double.tryParse(price.toString()) ?? 0.0) *
+                                (int.tryParse(qty.toString()) ?? 1))
+                            .toStringAsFixed(2);
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Text('$qty x $name', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            '$qty x $name',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                        Text('\$$lineTotal', style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 14)),
+                        Text(
+                          '\$$lineTotal',
+                          style: const TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
                       ],
                     );
                   },
@@ -659,11 +851,16 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Payment Status:', style: TextStyle(color: Colors.white70)),
+                  const Text(
+                    'Payment Status:',
+                    style: TextStyle(color: Colors.white70),
+                  ),
                   Text(
                     paymentStatus,
                     style: TextStyle(
-                      color: paymentStatus == 'PAID' ? GlassTheme.primaryGreen : Colors.orangeAccent,
+                      color: paymentStatus == 'PAID'
+                          ? GlassTheme.primaryGreen
+                          : Colors.orangeAccent,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -673,15 +870,26 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Total Bill:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('\$$total', style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 20)),
+                  const Text(
+                    'Total Bill:',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    '\$$total',
+                    style: const TextStyle(
+                      color: GlassTheme.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
-              GlassButton(
-                text: 'Close',
-                onPressed: () => Navigator.pop(ctx),
-              ),
+              GlassButton(text: 'Close', onPressed: () => Navigator.pop(ctx)),
             ],
           ),
         ),
@@ -700,10 +908,15 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
             style: ElevatedButton.styleFrom(
               backgroundColor: GlassTheme.primaryGreen,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             icon: const Icon(Icons.add, size: 20),
-            label: const Text('Add New Food Item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            label: const Text(
+              'Add New Food Item',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
             onPressed: _showAddFoodItemDialog,
           ),
         ),
@@ -712,18 +925,24 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
         // List of items
         Expanded(
           child: _foodItems.isEmpty
-              ? Center(child: Text('No food items on menu yet. Add one above!', style: TextStyle(color: GlassTheme.textMuted)))
+              ? Center(
+                  child: Text(
+                    'No food items on menu yet. Add one above!',
+                    style: TextStyle(color: GlassTheme.textMuted),
+                  ),
+                )
               : LayoutBuilder(
                   builder: (context, constraints) {
                     final isWide = constraints.maxWidth >= 650;
                     if (isWide) {
                       return GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          mainAxisExtent: 96,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              mainAxisExtent: 96,
+                            ),
                         itemCount: _foodItems.length,
                         itemBuilder: (context, index) {
                           final item = _foodItems[index];
@@ -761,7 +980,8 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
               width: 56,
               height: 56,
               color: Colors.white.withValues(alpha: 0.05),
-              child: item['image'] != null && item['image'].toString().isNotEmpty
+              child:
+                  item['image'] != null && item['image'].toString().isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: item['image'],
                       fit: BoxFit.cover,
@@ -769,10 +989,16 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                         child: SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: GlassTheme.primaryGreen),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: GlassTheme.primaryGreen,
+                          ),
                         ),
                       ),
-                      errorWidget: (context, url, error) => const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.fastfood,
+                        color: GlassTheme.primaryGreen,
+                      ),
                     )
                   : const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
             ),
@@ -785,7 +1011,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
               children: [
                 Text(
                   item['name'] ?? '',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -793,20 +1023,30 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         item['category_name'] ?? '',
-                        style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                        style: TextStyle(
+                          color: GlassTheme.textMuted,
+                          fontSize: 11,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       '\$${item['price']}',
-                      style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -820,7 +1060,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> w
               Switch(
                 value: isAvail,
                 activeThumbColor: GlassTheme.primaryGreen,
-                activeTrackColor: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                activeTrackColor: GlassTheme.primaryGreen.withValues(
+                  alpha: 0.5,
+                ),
                 onChanged: (_) => _toggleItemAvailability(item['id'], isAvail),
               ),
               Text(

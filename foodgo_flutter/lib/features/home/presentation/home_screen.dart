@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -47,8 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     'fats': '11.2',
     'carbo': '38.0',
     'location': 'Naperville, Illinois',
-    'description':
-        'Slow-simmered artisanal spaghetti tossed with savory bolognese sauce, vine-ripened San Marzano tomatoes, fresh Italian basil, and generous shavings of aged Parmigiano-Reggiano.',
+    'description': 'Slow-simmered artisanal spaghetti tossed with savory bolognese sauce, vine-ripened San Marzano tomatoes, fresh Italian basil, and generous shavings of aged Parmigiano-Reggiano.',
     'restaurantId': 105,
     'restaurantName': 'Naperville Pasta Co.',
   };
@@ -66,8 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'fats': '14.0',
       'carbo': '18.0',
       'location': 'Naperville, Illinois',
-      'description':
-          'Indulge in our succulent Golden Spicy Chicken, marinated in chef-special aromatic spices, battered to a crisp golden crunch, and served piping hot with garlic dip.',
+      'description': 'Indulge in our succulent Golden Spicy Chicken, marinated in chef-special aromatic spices, battered to a crisp golden crunch, and served piping hot with garlic dip.',
       'restaurantId': 101,
       'restaurantName': 'Naperville Crispy Chicken',
     },
@@ -83,8 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'fats': '15.0',
       'carbo': '26.0',
       'location': 'Naperville, Illinois',
-      'description':
-          'Signature black charcoal sesame bun burger with juicy prime beef patty filled with melted Wisconsin cheddar, caramelized red onions, and house sauce.',
+      'description': 'Signature black charcoal sesame bun burger with juicy prime beef patty filled with melted Wisconsin cheddar, caramelized red onions, and house sauce.',
       'restaurantId': 102,
       'restaurantName': 'Nagi Burger House',
     },
@@ -100,8 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'fats': '13.8',
       'carbo': '23.7',
       'location': 'Naperville, Illinois',
-      'description':
-          'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft sesame burger bun with melted cheddar cheese and crispy garden greens.',
+      'description': 'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft sesame burger bun with melted cheddar cheese and crispy garden greens.',
       'restaurantId': 103,
       'restaurantName': 'Naperville Gourmet Burgers',
     },
@@ -117,8 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'fats': '8.2',
       'carbo': '29.1',
       'location': 'Naperville, Illinois',
-      'description':
-          'Hand-cut russet potatoes fried to golden perfection, tossed with mineral sea salt and rosemary, served with tangy dipping sauces.',
+      'description': 'Hand-cut russet potatoes fried to golden perfection, tossed with mineral sea salt and rosemary, served with tangy dipping sauces.',
       'restaurantId': 104,
       'restaurantName': 'Golden Fry Shack',
     },
@@ -206,9 +202,11 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const Icon(Icons.check_circle, color: Colors.white, size: 20),
             const SizedBox(width: 8),
-            Text(applied
-                ? 'Coupon $code claimed! Applied to your cart.'
-                : 'Coupon $code ready for checkout!'),
+            Text(
+              applied
+                  ? 'Coupon $code claimed! Applied to your cart.'
+                  : 'Coupon $code ready for checkout!',
+            ),
           ],
         ),
         backgroundColor: GlassTheme.primaryGreen,
@@ -223,12 +221,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? GlassTheme.backgroundDark : const Color(0xFFFBFBFD),
+      backgroundColor: isDark
+          ? GlassTheme.backgroundDark
+          : const Color(0xFFFBFBFD),
       body: Stack(
         children: [
           RefreshIndicator(
             color: GlassTheme.primaryGreen,
-            onRefresh: () => context.read<RestaurantProvider>().fetchRestaurants(),
+            onRefresh: () =>
+                context.read<RestaurantProvider>().fetchRestaurants(),
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -271,7 +272,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       const SizedBox(height: 28),
-                      _buildSectionHeader('Deals for you', () => context.push('/explore')),
+                      _buildSectionHeader(
+                        'Deals for you',
+                        () => context.push('/explore'),
+                      ),
                       const SizedBox(height: 12),
                       _buildDealsList(isDark),
                       const SizedBox(height: 24),
@@ -279,7 +283,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       _buildFastDeliverySection(isDark),
                       const SizedBox(height: 24),
 
-                      _buildSectionHeader('Restaurants near you', () => context.push('/explore')),
+                      _buildSectionHeader(
+                        'Restaurants near you',
+                        () => context.push('/explore'),
+                      ),
                       const SizedBox(height: 8),
 
                       // Sorting filter chips
@@ -296,9 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 // Bottom padding to clear floating elements
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 140),
-                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 140)),
               ],
             ),
           ),
@@ -317,11 +322,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildModernLocationHeader(BuildContext context, bool isDark) {
     final topPadding = MediaQuery.of(context).padding.top;
     final activeAddress = context.watch<AddressProvider>().selectedAddress;
-    final String locationName = (activeAddress?.city.isNotEmpty == true && activeAddress?.street.isNotEmpty == true)
+    final String locationName =
+        (activeAddress?.city.isNotEmpty == true &&
+            activeAddress?.street.isNotEmpty == true)
         ? '${activeAddress!.street}, ${activeAddress.city}'
         : (activeAddress?.city.isNotEmpty == true
-            ? activeAddress!.city
-            : 'Naperville, Illinois');
+              ? activeAddress!.city
+              : 'Naperville, Illinois');
 
     return Padding(
       padding: EdgeInsets.only(
@@ -374,7 +381,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Location',
                     style: TextStyle(
-                      color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
+                      color: isDark
+                          ? Colors.grey[400]
+                          : const Color(0xFF8E8E93),
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),
@@ -495,7 +504,12 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Left Content
           Padding(
-            padding: const EdgeInsets.only(left: 20.0, top: 18.0, bottom: 18.0, right: 130.0),
+            padding: const EdgeInsets.only(
+              left: 20.0,
+              top: 18.0,
+              bottom: 18.0,
+              right: 130.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -533,7 +547,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: GlassTheme.limeAccent,
                       borderRadius: BorderRadius.circular(20),
@@ -581,7 +598,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: CachedNetworkImage(
                   imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=400&q=80',
                   fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => const Icon(Icons.restaurant, color: Colors.white54, size: 40),
+                  errorWidget: (context, url, error) => const Icon(
+                    Icons.restaurant,
+                    color: Colors.white54,
+                    size: 40,
+                  ),
                 ),
               ),
             ),
@@ -621,7 +642,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 84,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? (isDark ? const Color(0xFF263320) : const Color(0xFFF3FAD5))
+                      ? (isDark
+                            ? const Color(0xFF263320)
+                            : const Color(0xFFF3FAD5))
                       : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
@@ -632,7 +655,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.2 : 0.04,
+                      ),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -650,10 +675,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       cat['name'] as String,
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                         color: isSelected
                             ? (isDark ? Colors.white : Colors.black)
-                            : (isDark ? Colors.white70 : const Color(0xFF757575)),
+                            : (isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF757575)),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -708,7 +737,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRecommendedGrid(BuildContext context, bool isDark) {
     var list = _recommendedDishes;
     if (_selectedQuickCategoryIndex != null) {
-      final selectedCat = _quickCategories[_selectedQuickCategoryIndex!]['name'] as String;
+      final selectedCat =
+          _quickCategories[_selectedQuickCategoryIndex!]['name'] as String;
       final filtered = list.where((d) => d['category'] == selectedCat).toList();
       if (filtered.isNotEmpty) {
         list = filtered;
@@ -722,162 +752,171 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisSpacing: 12,
         mainAxisSpacing: 14,
       ),
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final item = list[index];
-          final favoritesProvider = context.watch<FavoritesProvider>();
-          final isFav = favoritesProvider.isFoodFavorite(item['id']);
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final item = list[index];
+        final favoritesProvider = context.watch<FavoritesProvider>();
+        final isFav = favoritesProvider.isFoodFavorite(item['id']);
 
-          return InkWell(
-            onTap: () => context.push('/food-details', extra: item),
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+        return InkWell(
+          onTap: () => context.push('/food-details', extra: item),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Favorite Heart Button in top right
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: InkWell(
-                      onTap: () => favoritesProvider.toggleFoodItem(item),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border,
-                          size: 20,
-                          color: isFav ? const Color(0xFFFF4842) : const Color(0xFFD0D0D0),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Dish Centered Image
-                  Expanded(
-                    child: Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: CachedNetworkImage(
-                          imageUrl: item['image'],
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey.withValues(alpha: 0.1),
-                            child: const Icon(Icons.fastfood, size: 36, color: Colors.grey),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Item Name
-                  Text(
-                    item['name'] as String,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-
-                  // Subtitle
-                  Text(
-                    item['subtitle'] as String,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Price & Lime '+' Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '\$${(item['price'] as double).toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          context.read<CartProvider>().addItem(
-                                item['id'] as int,
-                                item['name'] as String,
-                                item['price'] as double,
-                                item['image'] as String,
-                              );
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                                  const SizedBox(width: 8),
-                                  Text('${item['name']} added to cart!'),
-                                ],
-                              ),
-                              backgroundColor: const Color(0xFF2E7D32),
-                              behavior: SnackBarBehavior.floating,
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: GlassTheme.limeAccent,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: GlassTheme.limeAccent.withValues(alpha: 0.4),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.black,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+              ],
             ),
-          );
-        },
-        childCount: list.length,
-      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Favorite Heart Button in top right
+                Align(
+                  alignment: Alignment.topRight,
+                  child: InkWell(
+                    onTap: () => favoritesProvider.toggleFoodItem(item),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        size: 20,
+                        color: isFav
+                            ? const Color(0xFFFF4842)
+                            : const Color(0xFFD0D0D0),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Dish Centered Image
+                Expanded(
+                  child: Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: CachedNetworkImage(
+                        imageUrl: item['image'],
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey.withValues(alpha: 0.1),
+                          child: const Icon(
+                            Icons.fastfood,
+                            size: 36,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Item Name
+                Text(
+                  item['name'] as String,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+
+                // Subtitle
+                Text(
+                  item['subtitle'] as String,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+
+                // Price & Lime '+' Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '\$${(item['price'] as double).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        context.read<CartProvider>().addItem(
+                          item['id'] as int,
+                          item['name'] as String,
+                          item['price'] as double,
+                          item['image'] as String,
+                        );
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text('${item['name']} added to cart!'),
+                              ],
+                            ),
+                            backgroundColor: const Color(0xFF2E7D32),
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: GlassTheme.limeAccent,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: GlassTheme.limeAccent.withValues(
+                                alpha: 0.4,
+                              ),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.black,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      }, childCount: list.length),
     );
   }
 
@@ -938,11 +977,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF2C2C2E),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFF3A3A3C)),
+                              border: Border.all(
+                                color: const Color(0xFF3A3A3C),
+                              ),
                             ),
                             child: Text(
                               deal['code'] ?? 'FOODIE30',
@@ -959,7 +1003,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () => _claimCoupon(deal['code']),
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 5,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF4CAF50),
                                 borderRadius: BorderRadius.circular(16),
@@ -1006,10 +1053,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         const Text(
           'Fast delivery · 20 min or less',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -1042,7 +1086,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     Stack(
                       children: [
                         ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16),
+                          ),
                           child: CachedNetworkImage(
                             imageUrl: item['imageUrl'],
                             height: 85,
@@ -1054,7 +1100,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           top: 6,
                           left: 6,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: GlassTheme.primaryGreen,
                               borderRadius: BorderRadius.circular(6),
@@ -1088,7 +1137,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 3),
                           Row(
                             children: [
-                              const Icon(Icons.star, color: Color(0xFFFFB300), size: 12),
+                              const Icon(
+                                Icons.star,
+                                color: Color(0xFFFFB300),
+                                size: 12,
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 '${item['rating']} · ${item['timeMin']} min · ${item['distanceKm']} km',
@@ -1177,7 +1230,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Filter by category if not 'All'
         if (_selectedCategoryIndex > 0) {
-          final catName = _categories[_selectedCategoryIndex]['name'].toString().toLowerCase();
+          final catName = _categories[_selectedCategoryIndex]['name']
+              .toString()
+              .toLowerCase();
           restaurants = restaurants.where((r) {
             final name = (r['name']?.toString() ?? '').toLowerCase();
             final desc = (r['description']?.toString() ?? '').toLowerCase();
@@ -1187,14 +1242,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Apply sorting
         if (_selectedSort == '⭐ Top Rated') {
-          restaurants.sort((a, b) => (double.tryParse(b['rating']?.toString() ?? '0') ?? 0.0)
-              .compareTo(double.tryParse(a['rating']?.toString() ?? '0') ?? 0.0));
+          restaurants.sort(
+            (a, b) => (double.tryParse(b['rating']?.toString() ?? '0') ?? 0.0)
+                .compareTo(
+                  double.tryParse(a['rating']?.toString() ?? '0') ?? 0.0,
+                ),
+          );
         } else if (_selectedSort == '⚡ Fastest') {
-          restaurants.sort((a, b) => (int.tryParse(a['delivery_time_min']?.toString() ?? '99') ?? 99)
-              .compareTo(int.tryParse(b['delivery_time_min']?.toString() ?? '99') ?? 99));
+          restaurants.sort(
+            (a, b) =>
+                (int.tryParse(a['delivery_time_min']?.toString() ?? '99') ?? 99)
+                    .compareTo(
+                      int.tryParse(
+                            b['delivery_time_min']?.toString() ?? '99',
+                          ) ??
+                          99,
+                    ),
+          );
         } else if (_selectedSort == '🛵 Free Delivery') {
-          restaurants = restaurants.where((r) =>
-              (double.tryParse(r['delivery_fee']?.toString() ?? '1') ?? 1.0) == 0.0).toList();
+          restaurants = restaurants
+              .where(
+                (r) =>
+                    (double.tryParse(r['delivery_fee']?.toString() ?? '1') ??
+                        1.0) ==
+                    0.0,
+              )
+              .toList();
         }
 
         if (restaurants.isEmpty) {
@@ -1205,9 +1278,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.storefront_outlined, size: 48, color: Colors.grey),
+                    const Icon(
+                      Icons.storefront_outlined,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 10),
-                    const Text('No restaurants match this category.', style: TextStyle(color: Colors.grey)),
+                    const Text(
+                      'No restaurants match this category.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                     const SizedBox(height: 8),
                     TextButton.icon(
                       onPressed: () {
@@ -1217,8 +1297,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         });
                         provider.fetchRestaurants();
                       },
-                      icon: const Icon(Icons.refresh, color: GlassTheme.primaryGreen),
-                      label: const Text('Reset Filter', style: TextStyle(color: GlassTheme.primaryGreen)),
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: GlassTheme.primaryGreen,
+                      ),
+                      label: const Text(
+                        'Reset Filter',
+                        style: TextStyle(color: GlassTheme.primaryGreen),
+                      ),
                     ),
                   ],
                 ),
@@ -1234,13 +1320,10 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisSpacing: 12,
             mainAxisSpacing: 14,
           ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final res = restaurants[index];
-              return _buildModernRestaurantCard(context, res, isDark, index);
-            },
-            childCount: restaurants.length,
-          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final res = restaurants[index];
+            return _buildModernRestaurantCard(context, res, isDark, index);
+          }, childCount: restaurants.length),
         );
       },
     );
@@ -1260,21 +1343,26 @@ class _HomeScreenState extends State<HomeScreen> {
     final banner = res['banner']?.toString();
     final rating = double.tryParse(res['rating']?.toString() ?? '4.6') ?? 4.6;
     final timeMin = res['delivery_time_min'] ?? 15;
-    final fee = double.tryParse(res['delivery_fee']?.toString() ?? '1.0') ?? 1.0;
+    final fee =
+        double.tryParse(res['delivery_fee']?.toString() ?? '1.0') ?? 1.0;
     final distanceKm = 0.6 + (index * 0.4);
 
     final String discountText = (index % 3 == 0)
         ? '20% OFF'
         : (index % 3 == 1)
-            ? '15% OFF'
-            : '25% OFF';
+        ? '15% OFF'
+        : '25% OFF';
 
     final String fallbackBanner = (index % 2 == 0)
         ? 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80'
         : 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&q=80';
-    final effectiveBanner = (banner != null && banner.isNotEmpty) ? banner : fallbackBanner;
+    final effectiveBanner = (banner != null && banner.isNotEmpty)
+        ? banner
+        : fallbackBanner;
 
-    final isFavorite = context.watch<FavoritesProvider>().isRestaurantFavorite(id);
+    final isFavorite = context.watch<FavoritesProvider>().isRestaurantFavorite(
+      id,
+    );
 
     return InkWell(
       onTap: () => context.push('/restaurant/$id'),
@@ -1301,7 +1389,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
                   child: CachedNetworkImage(
                     imageUrl: effectiveBanner,
                     height: 110,
@@ -1325,7 +1415,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: GlassTheme.primaryGreen,
                       borderRadius: BorderRadius.circular(8),
@@ -1345,18 +1438,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 // Top-Right Brand Logo Chip
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: _buildBrandLogo(name),
-                ),
+                Positioned(top: 8, right: 8, child: _buildBrandLogo(name)),
 
                 // Favorite Button bottom-right of image
                 Positioned(
                   bottom: 6,
                   right: 6,
                   child: InkWell(
-                    onTap: () => context.read<FavoritesProvider>().toggleRestaurant(res),
+                    onTap: () =>
+                        context.read<FavoritesProvider>().toggleRestaurant(res),
                     child: Container(
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
@@ -1365,7 +1455,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? const Color(0xFFFF5252) : Colors.white,
+                        color: isFavorite
+                            ? const Color(0xFFFF5252)
+                            : Colors.white,
                         size: 14,
                       ),
                     ),
@@ -1395,21 +1487,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Rating • Delivery Time • Distance
                   Row(
                     children: [
-                      const Icon(Icons.star, color: Color(0xFFFFB300), size: 13),
+                      const Icon(
+                        Icons.star,
+                        color: Color(0xFFFFB300),
+                        size: 13,
+                      ),
                       const SizedBox(width: 3),
                       Text(
                         rating.toStringAsFixed(1),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white70 : const Color(0xFF444444),
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF444444),
                         ),
                       ),
                       Text(
                         ' • ${timeMin}m • ${distanceKm.toStringAsFixed(1)}km',
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? Colors.white54 : const Color(0xFF757575),
+                          color: isDark
+                              ? Colors.white54
+                              : const Color(0xFF757575),
                         ),
                       ),
                     ],
@@ -1424,7 +1524,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: fee == 0.0 ? GlassTheme.primaryGreen : GlassTheme.textMuted,
+                      color: fee == 0.0
+                          ? GlassTheme.primaryGreen
+                          : GlassTheme.textMuted,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1508,7 +1610,9 @@ class _HomeScreenState extends State<HomeScreen> {
             color: isDark ? GlassTheme.surfaceDark : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isDark ? GlassTheme.primaryGreen.withValues(alpha: 0.5) : const Color(0xFFE0E0E0),
+              color: isDark
+                  ? GlassTheme.primaryGreen.withValues(alpha: 0.5)
+                  : const Color(0xFFE0E0E0),
               width: 1.2,
             ),
             boxShadow: const [
@@ -1581,7 +1685,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Dynamic Stacked ETA Green Badge (TikTok Reference Style)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF1B3820)

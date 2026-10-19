@@ -68,6 +68,12 @@ jobs:
       run: |
         cd backend
         python manage.py check
+    - name: Check for Missing Migrations
+      env:
+        SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
+      run: |
+        cd backend
+        python manage.py makemigrations --check --dry-run
     - name: Run Django Test Suite
       env:
         SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
@@ -103,6 +109,10 @@ jobs:
       run: |
         cd foodgo_flutter
         flutter pub get
+    - name: Enforce Code Formatting
+      run: |
+        cd foodgo_flutter
+        dart format --output=none --set-exit-if-changed lib test
     - name: Analyze code (Zero Warning Policy)
       run: |
         cd foodgo_flutter
@@ -115,6 +125,12 @@ jobs:
       run: |
         cd foodgo_flutter
         flutter build web --release
+    - name: Upload Flutter Web Release Bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: foodgo-web-build
+        path: foodgo_flutter/build/web
+        retention-days: 7
 
   docker-build-verification:
     name: Docker Container Build Verification
@@ -122,6 +138,9 @@ jobs:
     needs: [backend-test, flutter-test]
     steps:
     - uses: actions/checkout@v4
+    - name: Validate Docker Compose Configuration
+      run: |
+        docker compose config
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     - name: Build Backend Docker Image

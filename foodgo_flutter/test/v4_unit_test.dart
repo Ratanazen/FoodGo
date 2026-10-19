@@ -53,19 +53,30 @@ void main() {
       final cart = CartProvider();
       cart.clear();
 
-      cart.addItem(1, 'Beef Lok Lak', 7.00, null, restaurantId: 10, restaurantName: 'Restaurant A');
+      cart.addItem(
+        1,
+        'Beef Lok Lak',
+        7.00,
+        null,
+        restaurantId: 10,
+        restaurantName: 'Restaurant A',
+      );
       expect(cart.isDifferentRestaurant(10), false);
       expect(cart.isDifferentRestaurant(11), true);
       expect(cart.isDifferentRestaurant(null), false);
     });
 
     test('NBC EMVCo standard CRC-16 CCITT computation returns valid 4-character hex checksum', () {
-      const rawPayload = '00020101021229370016bakong@bkrt0109customer@bkrt53038405802KH5911FoodGo_Member6010Phnom_Penh6304';
+      const rawPayload =
+          '00020101021229370016bakong@bkrt0109customer@bkrt53038405802KH5911FoodGo_Member6010Phnom_Penh6304';
       final crc = calculateCrc16(rawPayload);
 
       expect(crc.length, 4);
       expect(RegExp(r'^[0-9A-F]{4}$').hasMatch(crc), true);
-      expect(crc != 'ABCD', true); // Verifies real calculation over hardcoded ABCD placeholder
+      expect(
+        crc != 'ABCD',
+        true,
+      ); // Verifies real calculation over hardcoded ABCD placeholder
     });
 
     test('ApiService singleton pattern returns identical instance', () {
@@ -74,20 +85,27 @@ void main() {
       expect(identical(s1, s2), true);
     });
 
-    test('Wallet transaction filtering filters deposit vs payment correctly', () {
-      final txs = [
-        {'id': 1, 'transaction_type': 'deposit', 'amount': '20.00'},
-        {'id': 2, 'transaction_type': 'payment', 'amount': '8.50'},
-        {'id': 3, 'transaction_type': 'deposit', 'amount': '50.00'},
-        {'id': 4, 'transaction_type': 'refund', 'amount': '12.00'},
-      ];
+    test(
+      'Wallet transaction filtering filters deposit vs payment correctly',
+      () {
+        final txs = [
+          {'id': 1, 'transaction_type': 'deposit', 'amount': '20.00'},
+          {'id': 2, 'transaction_type': 'payment', 'amount': '8.50'},
+          {'id': 3, 'transaction_type': 'deposit', 'amount': '50.00'},
+          {'id': 4, 'transaction_type': 'refund', 'amount': '12.00'},
+        ];
 
-      final deposits = txs.where((t) => t['transaction_type'] == 'deposit').toList();
-      final payments = txs.where((t) => t['transaction_type'] != 'deposit').toList();
+        final deposits = txs
+            .where((t) => t['transaction_type'] == 'deposit')
+            .toList();
+        final payments = txs
+            .where((t) => t['transaction_type'] != 'deposit')
+            .toList();
 
-      expect(deposits.length, 2);
-      expect(payments.length, 2);
-    });
+        expect(deposits.length, 2);
+        expect(payments.length, 2);
+      },
+    );
 
     test('Driver earnings calculation aggregates delivery fees accurately', () {
       final completedOrders = [
@@ -97,7 +115,13 @@ void main() {
       ];
 
       final double earnings = completedOrders.fold<double>(0.0, (acc, item) {
-        final fee = double.tryParse(item['delivery_fee_charged']?.toString() ?? item['delivery_fee']?.toString() ?? '2.00') ?? 2.00;
+        final fee =
+            double.tryParse(
+              item['delivery_fee_charged']?.toString() ??
+                  item['delivery_fee']?.toString() ??
+                  '2.00',
+            ) ??
+            2.00;
         return acc + fee;
       });
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 import 'glass_widgets.dart';
@@ -19,12 +20,14 @@ class GlassSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassContainer(
-      width: width,
-      height: height,
-      borderRadius: BorderRadius.circular(borderRadius),
-      customColor: Colors.grey.withValues(alpha: 0.1),
-      child: const SizedBox(),
-    ).animate(onPlay: (controller) => controller.repeat(reverse: true)).fade(begin: 0.5, end: 1.0, duration: 800.ms);
+          width: width,
+          height: height,
+          borderRadius: BorderRadius.circular(borderRadius),
+          customColor: Colors.grey.withValues(alpha: 0.1),
+          child: const SizedBox(),
+        )
+        .animate(onPlay: (controller) => controller.repeat(reverse: true))
+        .fade(begin: 0.5, end: 1.0, duration: 800.ms);
   }
 }
 
@@ -50,9 +53,16 @@ class AppErrorView extends StatelessWidget {
           children: [
             Icon(Icons.error_outline, size: 64, color: GlassTheme.textMuted),
             const SizedBox(height: 24),
-            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center, style: TextStyle(color: GlassTheme.textMuted)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: GlassTheme.textMuted),
+            ),
             const SizedBox(height: 24),
             GlassButton(text: 'Retry', onPressed: onRetry),
           ],
@@ -92,9 +102,16 @@ class EmptyStateView extends StatelessWidget {
               child: Icon(icon, size: 64, color: GlassTheme.primaryGreen),
             ),
             const SizedBox(height: 24),
-            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center, style: TextStyle(color: GlassTheme.textMuted)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: GlassTheme.textMuted),
+            ),
             if (buttonText != null && onAction != null) ...[
               const SizedBox(height: 24),
               GlassButton(text: buttonText!, onPressed: onAction!),

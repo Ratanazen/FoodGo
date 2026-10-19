@@ -39,14 +39,10 @@ import '../../widgets/glass/glass_bottom_navigation.dart';
 import '../../widgets/responsive_layout.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> _shellNavigatorKey =
+    GlobalKey<NavigatorState>();
 
-enum PageTransitionType {
-  fade,
-  slideRight,
-  slideUp,
-  fadeScale,
-}
+enum PageTransitionType { fade, slideRight, slideUp, fadeScale }
 
 Page<dynamic> _buildPage({
   required GoRouterState state,
@@ -62,23 +58,41 @@ Page<dynamic> _buildPage({
       switch (type) {
         case PageTransitionType.fade:
           return FadeTransition(
-            opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
             child: child,
           );
         case PageTransitionType.slideRight:
-          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
           return SlideTransition(
-            position: Tween<Offset>(begin: const Offset(0.2, 0.0), end: Offset.zero).animate(curved),
+            position: Tween<Offset>(
+              begin: const Offset(0.2, 0.0),
+              end: Offset.zero,
+            ).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
           );
         case PageTransitionType.slideUp:
-          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
           return SlideTransition(
-            position: Tween<Offset>(begin: const Offset(0.0, 0.2), end: Offset.zero).animate(curved),
+            position: Tween<Offset>(
+              begin: const Offset(0.0, 0.2),
+              end: Offset.zero,
+            ).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
           );
         case PageTransitionType.fadeScale:
-          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
           return ScaleTransition(
             scale: Tween<double>(begin: 0.94, end: 1.0).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
@@ -94,66 +108,118 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/splash',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const SplashScreen(), type: PageTransitionType.fade),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const SplashScreen(),
+        type: PageTransitionType.fade,
+      ),
     ),
     GoRoute(
       path: '/onboarding',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const OnboardingScreen(), type: PageTransitionType.fade),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const OnboardingScreen(),
+        type: PageTransitionType.fade,
+      ),
     ),
     GoRoute(
       path: '/login',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const LoginScreen(), type: PageTransitionType.fadeScale),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const LoginScreen(),
+        type: PageTransitionType.fadeScale,
+      ),
     ),
     GoRoute(
       path: '/phone-login',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const PhoneLoginScreen(), type: PageTransitionType.fadeScale),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const PhoneLoginScreen(),
+        type: PageTransitionType.fadeScale,
+      ),
     ),
     GoRoute(
       path: '/register',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const RegisterScreen(), type: PageTransitionType.fadeScale),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const RegisterScreen(),
+        type: PageTransitionType.fadeScale,
+      ),
     ),
     GoRoute(
       path: '/forgot-password',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const ForgotPasswordScreen(), type: PageTransitionType.fadeScale),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const ForgotPasswordScreen(),
+        type: PageTransitionType.fadeScale,
+      ),
     ),
     GoRoute(
       path: '/restaurant-dashboard',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const RestaurantDashboardScreen(), type: PageTransitionType.slideRight),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const RestaurantDashboardScreen(),
+        type: PageTransitionType.slideRight,
+      ),
     ),
     GoRoute(
       path: '/driver-dashboard',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const DriverDashboardScreen(), type: PageTransitionType.slideRight),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const DriverDashboardScreen(),
+        type: PageTransitionType.slideRight,
+      ),
     ),
     GoRoute(
       path: '/restaurant/:id',
       pageBuilder: (context, state) {
         final id = state.pathParameters['id'];
-        return _buildPage(state: state, child: RestaurantDetailsScreen(id: id), type: PageTransitionType.slideRight);
+        return _buildPage(
+          state: state,
+          child: RestaurantDetailsScreen(id: id),
+          type: PageTransitionType.slideRight,
+        );
       },
     ),
     GoRoute(
       path: '/food-details',
       pageBuilder: (context, state) {
         final itemData = state.extra as Map<String, dynamic>?;
-        return _buildPage(state: state, child: FoodItemDetailsScreen(itemData: itemData), type: PageTransitionType.slideUp);
+        return _buildPage(
+          state: state,
+          child: FoodItemDetailsScreen(itemData: itemData),
+          type: PageTransitionType.slideUp,
+        );
       },
     ),
     GoRoute(
       path: '/food/:id',
       pageBuilder: (context, state) {
         final itemData = state.extra as Map<String, dynamic>?;
-        return _buildPage(state: state, child: FoodItemDetailsScreen(itemData: itemData), type: PageTransitionType.slideUp);
+        return _buildPage(
+          state: state,
+          child: FoodItemDetailsScreen(itemData: itemData),
+          type: PageTransitionType.slideUp,
+        );
       },
     ),
     GoRoute(
       path: '/checkout',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const CheckoutScreen(), type: PageTransitionType.slideRight),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const CheckoutScreen(),
+        type: PageTransitionType.slideRight,
+      ),
     ),
     GoRoute(
       path: '/qr-payment',
       pageBuilder: (context, state) {
         final payment = state.extra as PaymentModel;
-        return _buildPage(state: state, child: QRPaymentScreen(payment: payment), type: PageTransitionType.slideRight);
+        return _buildPage(
+          state: state,
+          child: QRPaymentScreen(payment: payment),
+          type: PageTransitionType.slideRight,
+        );
       },
     ),
     GoRoute(
@@ -162,47 +228,87 @@ final GoRouter appRouter = GoRouter(
         final orderId = state.extra is int
             ? state.extra as int
             : int.tryParse(state.uri.queryParameters['orderId'] ?? '');
-        return _buildPage(state: state, child: OrderSuccessScreen(orderId: orderId), type: PageTransitionType.fadeScale);
+        return _buildPage(
+          state: state,
+          child: OrderSuccessScreen(orderId: orderId),
+          type: PageTransitionType.fadeScale,
+        );
       },
     ),
     GoRoute(
       path: '/map',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const MapScreen(orderId: ''), type: PageTransitionType.slideRight),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const MapScreen(orderId: ''),
+        type: PageTransitionType.slideRight,
+      ),
     ),
     GoRoute(
       path: '/map/:id',
       pageBuilder: (context, state) {
         final id = state.pathParameters['id'] ?? '';
-        return _buildPage(state: state, child: MapScreen(orderId: id), type: PageTransitionType.slideRight);
+        return _buildPage(
+          state: state,
+          child: MapScreen(orderId: id),
+          type: PageTransitionType.slideRight,
+        );
       },
     ),
     GoRoute(
       path: '/notifications',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const NotificationsScreen(), type: PageTransitionType.slideUp),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const NotificationsScreen(),
+        type: PageTransitionType.slideUp,
+      ),
     ),
     GoRoute(
       path: '/edit-profile',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const EditProfileScreen(), type: PageTransitionType.slideUp),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const EditProfileScreen(),
+        type: PageTransitionType.slideUp,
+      ),
     ),
     GoRoute(
       path: '/addresses',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const AddressesScreen(), type: PageTransitionType.slideUp),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const AddressesScreen(),
+        type: PageTransitionType.slideUp,
+      ),
     ),
     GoRoute(
       path: '/wallet',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const WalletScreen(), type: PageTransitionType.slideUp),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const WalletScreen(),
+        type: PageTransitionType.slideUp,
+      ),
     ),
     GoRoute(
       path: '/payments',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const WalletScreen(), type: PageTransitionType.slideUp),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const WalletScreen(),
+        type: PageTransitionType.slideUp,
+      ),
     ),
     GoRoute(
       path: '/settings',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const SettingsScreen(), type: PageTransitionType.slideUp),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const SettingsScreen(),
+        type: PageTransitionType.slideUp,
+      ),
     ),
     GoRoute(
       path: '/search',
-      pageBuilder: (context, state) => _buildPage(state: state, child: const SearchScreen(), type: PageTransitionType.slideRight),
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const SearchScreen(),
+        type: PageTransitionType.slideRight,
+      ),
     ),
 
     ShellRoute(
@@ -213,27 +319,51 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/home',
-          pageBuilder: (context, state) => _buildPage(state: state, child: const HomeScreen(), type: PageTransitionType.fade),
+          pageBuilder: (context, state) => _buildPage(
+            state: state,
+            child: const HomeScreen(),
+            type: PageTransitionType.fade,
+          ),
         ),
         GoRoute(
           path: '/favorites',
-          pageBuilder: (context, state) => _buildPage(state: state, child: const FavoritesScreen(), type: PageTransitionType.fade),
+          pageBuilder: (context, state) => _buildPage(
+            state: state,
+            child: const FavoritesScreen(),
+            type: PageTransitionType.fade,
+          ),
         ),
         GoRoute(
           path: '/cart',
-          pageBuilder: (context, state) => _buildPage(state: state, child: const CartScreen(), type: PageTransitionType.fade),
+          pageBuilder: (context, state) => _buildPage(
+            state: state,
+            child: const CartScreen(),
+            type: PageTransitionType.fade,
+          ),
         ),
         GoRoute(
           path: '/explore',
-          pageBuilder: (context, state) => _buildPage(state: state, child: const ExploreScreen(), type: PageTransitionType.fade),
+          pageBuilder: (context, state) => _buildPage(
+            state: state,
+            child: const ExploreScreen(),
+            type: PageTransitionType.fade,
+          ),
         ),
         GoRoute(
           path: '/orders',
-          pageBuilder: (context, state) => _buildPage(state: state, child: const OrdersScreen(), type: PageTransitionType.fade),
+          pageBuilder: (context, state) => _buildPage(
+            state: state,
+            child: const OrdersScreen(),
+            type: PageTransitionType.fade,
+          ),
         ),
         GoRoute(
           path: '/profile',
-          pageBuilder: (context, state) => _buildPage(state: state, child: const ProfileScreen(), type: PageTransitionType.fade),
+          pageBuilder: (context, state) => _buildPage(
+            state: state,
+            child: const ProfileScreen(),
+            type: PageTransitionType.fade,
+          ),
         ),
       ],
     ),
@@ -280,17 +410,29 @@ class MainScreenShell extends StatelessWidget {
     if (location.startsWith('/favorites')) return 1;
     if (location.startsWith('/cart')) return 2;
     if (location.startsWith('/explore')) return 3;
-    if (location.startsWith('/profile') || location.startsWith('/orders')) return 4;
+    if (location.startsWith('/profile') || location.startsWith('/orders')) {
+      return 4;
+    }
     return 0;
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
-      case 0: context.go('/home'); break;
-      case 1: context.go('/favorites'); break;
-      case 2: context.go('/cart'); break;
-      case 3: context.go('/explore'); break;
-      case 4: context.go('/profile'); break;
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/favorites');
+        break;
+      case 2:
+        context.go('/cart');
+        break;
+      case 3:
+        context.go('/explore');
+        break;
+      case 4:
+        context.go('/profile');
+        break;
     }
   }
 }

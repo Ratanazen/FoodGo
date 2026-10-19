@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+
 import '../core/theme/glass_theme.dart';
 
 /// Theme-aware shimmer wrapper that applies dark or light skeleton tones.
@@ -12,8 +13,12 @@ class ShimmerWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: isDark ? GlassTheme.shimmerBaseDark : GlassTheme.shimmerBaseLight,
-      highlightColor: isDark ? GlassTheme.shimmerHighlightDark : GlassTheme.shimmerHighlightLight,
+      baseColor: isDark
+          ? GlassTheme.shimmerBaseDark
+          : GlassTheme.shimmerBaseLight,
+      highlightColor: isDark
+          ? GlassTheme.shimmerHighlightDark
+          : GlassTheme.shimmerHighlightLight,
       period: const Duration(milliseconds: 1400),
       child: child,
     );
@@ -128,11 +133,7 @@ class ShimmerCategoryRow extends StatelessWidget {
               padding: const EdgeInsets.only(right: 14.0),
               child: Column(
                 children: const [
-                  ShimmerBox(
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                  ),
+                  ShimmerBox(width: 56, height: 56, borderRadius: 28),
                   SizedBox(height: 8),
                   ShimmerBox(width: 44, height: 10, borderRadius: 4),
                 ],

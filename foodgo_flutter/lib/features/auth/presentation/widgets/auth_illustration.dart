@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
 
-enum AuthIllustrationType {
-  signIn,
-  signUp,
-  forgotPassword,
-}
+enum AuthIllustrationType { signIn, signUp, forgotPassword }
 
 class AuthIllustration extends StatelessWidget {
   final AuthIllustrationType type;
   final double size;
 
-  const AuthIllustration({
-    super.key,
-    required this.type,
-    this.size = 140,
-  });
+  const AuthIllustration({super.key, required this.type, this.size = 140});
 
   @override
   Widget build(BuildContext context) {
@@ -79,9 +71,27 @@ class _AuthIllustrationPainter extends CustomPainter {
     switch (type) {
       case AuthIllustrationType.signIn:
         // Chart bars on the right
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(96, 75, 8, 22), const Radius.circular(2)), barChartPaint);
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(108, 62, 8, 35), const Radius.circular(2)), barChartPaint);
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(120, 50, 8, 47), const Radius.circular(2)), barChartPaint);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(96, 75, 8, 22),
+            const Radius.circular(2),
+          ),
+          barChartPaint,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(108, 62, 8, 35),
+            const Radius.circular(2),
+          ),
+          barChartPaint,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(120, 50, 8, 47),
+            const Radius.circular(2),
+          ),
+          barChartPaint,
+        );
 
         // Little sparkle stars
         _drawSparkle(canvas, const Offset(112, 38), const Color(0xFFF59E0B));
@@ -120,9 +130,27 @@ class _AuthIllustrationPainter extends CustomPainter {
         canvas.drawPath(hairPath, linePaint);
 
         // Phone held in hand
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(78, 70, 14, 26), const Radius.circular(3)), lightSkinPaint);
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(78, 70, 14, 26), const Radius.circular(3)), linePaint);
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(80, 72, 10, 18), const Radius.circular(2)), bluePaint);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(78, 70, 14, 26),
+            const Radius.circular(3),
+          ),
+          lightSkinPaint,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(78, 70, 14, 26),
+            const Radius.circular(3),
+          ),
+          linePaint,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(80, 72, 10, 18),
+            const Radius.circular(2),
+          ),
+          bluePaint,
+        );
         break;
 
       case AuthIllustrationType.signUp:
@@ -131,14 +159,50 @@ class _AuthIllustrationPainter extends CustomPainter {
         final card2Paint = Paint()..color = const Color(0xFFF472B6);
         final card3Paint = Paint()..color = const Color(0xFF34D399);
 
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(86, 26, 14, 14), const Radius.circular(3)), card1Paint);
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(86, 26, 14, 14), const Radius.circular(3)), linePaint);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(86, 26, 14, 14),
+            const Radius.circular(3),
+          ),
+          card1Paint,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(86, 26, 14, 14),
+            const Radius.circular(3),
+          ),
+          linePaint,
+        );
 
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(70, 36, 12, 12), const Radius.circular(3)), card2Paint);
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(70, 36, 12, 12), const Radius.circular(3)), linePaint);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(70, 36, 12, 12),
+            const Radius.circular(3),
+          ),
+          card2Paint,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(70, 36, 12, 12),
+            const Radius.circular(3),
+          ),
+          linePaint,
+        );
 
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(72, 18, 10, 10), const Radius.circular(2)), card3Paint);
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(72, 18, 10, 10), const Radius.circular(2)), linePaint);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(72, 18, 10, 10),
+            const Radius.circular(2),
+          ),
+          card3Paint,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(72, 18, 10, 10),
+            const Radius.circular(2),
+          ),
+          linePaint,
+        );
 
         // Body / Yellow Shirt
         final signUpBodyPath = Path()
@@ -150,8 +214,20 @@ class _AuthIllustrationPainter extends CustomPainter {
         canvas.drawPath(signUpBodyPath, linePaint);
 
         // Document board held
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(62, 78, 20, 28), const Radius.circular(4)), whitePaint);
-        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(62, 78, 20, 28), const Radius.circular(4)), linePaint);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(62, 78, 20, 28),
+            const Radius.circular(4),
+          ),
+          whitePaint,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(62, 78, 20, 28),
+            const Radius.circular(4),
+          ),
+          linePaint,
+        );
         canvas.drawLine(const Offset(66, 84), const Offset(76, 84), linePaint);
         canvas.drawLine(const Offset(66, 89), const Offset(78, 89), linePaint);
         canvas.drawLine(const Offset(66, 94), const Offset(74, 94), linePaint);
@@ -235,8 +311,16 @@ class _AuthIllustrationPainter extends CustomPainter {
       ..color = color
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(offset.dx - 4, offset.dy), Offset(offset.dx + 4, offset.dy), p);
-    canvas.drawLine(Offset(offset.dx, offset.dy - 4), Offset(offset.dx, offset.dy + 4), p);
+    canvas.drawLine(
+      Offset(offset.dx - 4, offset.dy),
+      Offset(offset.dx + 4, offset.dy),
+      p,
+    );
+    canvas.drawLine(
+      Offset(offset.dx, offset.dy - 4),
+      Offset(offset.dx, offset.dy + 4),
+      p,
+    );
   }
 
   @override

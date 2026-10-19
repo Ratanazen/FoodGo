@@ -35,7 +35,8 @@ class AppConfig {
     _customWsUrl = prefs.getString('custom_ws_url') ?? '';
 
     // Auto-migrate away from decommissioned Render or incorrect Vercel URLs
-    if (_customApiUrl.contains('onrender.com') || _customApiUrl.contains('food-go-backend.vercel.app')) {
+    if (_customApiUrl.contains('onrender.com') ||
+        _customApiUrl.contains('food-go-backend.vercel.app')) {
       _customApiUrl = '';
       await prefs.remove('custom_api_url');
     }

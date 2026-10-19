@@ -63,12 +63,15 @@ class AuthProvider with ChangeNotifier {
         'phone': phone,
         'otp': otp,
       });
-      
+
       final access = response['access'];
       final refresh = response['refresh'];
-      
+
       if (access != null) {
-        await _secureStorage.saveTokens(accessToken: access, refreshToken: refresh);
+        await _secureStorage.saveTokens(
+          accessToken: access,
+          refreshToken: refresh,
+        );
         _isAuthenticated = true;
         notifyListeners();
         return true;

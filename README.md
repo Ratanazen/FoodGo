@@ -11,11 +11,13 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ---
 
 ## ✨ Core Features
+* **Modern Delivery UI/UX (TikTok Reference):** Lush green gradient curved header, Deliver-to address switcher, elevated pill search bar, hero promo banner, horizontal 3D categories, deals carousel with voucher claim, 2-column restaurant card grid, and persistent floating active order tracker with live ETA.
+* **Modern Live Order Tracking Sheet:** Floating top navigation bar, interactive route polyline, live pulsing badge, 5-stage milestone stepper (`Confirmed` → `Preparing` → `Picked up` → `On the way` → `Delivered`), driver info card (`Ahmad Faizal`), route breakdown card, and itemized order receipt.
 * **Role-Based Architecture:** Unified app routing for Customers, Restaurant Owners, Drivers, and Admins.
 * **Real-Time Live Map Tracking:** Powered by Django Channels (WebSockets). Watch delivery drivers move live on Google Maps.
 * **Cambodian KHQR Fintech Gateways:** Supports Bakong NBC Open API, ABA Bank Dynamic KHQR, ACLEDA Bank KHQR, and Cash on Delivery (COD).
 * **In-App Digital Wallet:** Integrated wallet with instant top-ups, transaction ledger, and automated checkout deductions.
-* **Glassmorphic Design System:** Unified dark theme inspired by modern delivery platforms (Foodpanda & Grab), fully centralized in `GlassTheme`.
+* **Dual Design System:** Modern Lush Green Clean theme & Dark Glassmorphism, fully centralized in `GlassTheme`.
 * **Containerized Ecosystem:** Ready for one-command deployment via Docker & Compose.
 
 ---
@@ -164,15 +166,15 @@ FoodGo enforces cryptographic doorstep handover confirmation between courier and
 Run the full automated test suites:
 
 ```bash
-# 1. Django Backend Test Suite (51 tests — 100% Passing)
+# 1. Django Backend Test Suite (57 tests — 100% Passing)
 cd backend
-python manage.py test
+./venv/bin/python manage.py test
 
 # 2. Flutter Static Code Analysis (0 issues)
 cd ../foodgo_flutter
-flutter analyze
+flutter analyze --no-pub
 
-# 3. Flutter Unit & Widget Tests (42 tests — 100% Passing)
+# 3. Flutter Unit & Widget Tests (54 tests — 100% Passing)
 flutter test
 ```
 
@@ -181,8 +183,10 @@ flutter test
 ## 📚 Complete Technical Documentation
 
 Comprehensive documentation is provided in the `docs/` directory:
-- [**Project Audit Report**](docs/PROJECT_AUDIT.md) — Exhaustive codebase audit, security assessment, and gap resolutions.
-- [**Implementation Plan**](docs/IMPLEMENTATION_PLAN.md) — 11-phase architecture roadmap and state machine design.
+- [**TikTok Reference UI/UX Analysis**](docs/reference-analysis.md) — Comprehensive visual breakdown of TikTok reference video frames and component specs.
+- [**Modernization Implementation Plan**](docs/implementation-plan.md) — P0-P3 roadmap for modern delivery experience.
+- [**Codebase Implementation Audit**](docs/implementation-audit.md) — Full repository audit and payment verification.
+- [**Project Audit Report**](docs/PROJECT_AUDIT.md) — Codebase architecture and security audit.
 - [**API Documentation**](docs/API_DOCUMENTATION.md) — Full REST API reference with JSON request/response payloads.
 - [**Payment Setup Guide**](docs/PAYMENT_SETUP.md) — Merchant onboarding for Bakong, ABA PayWay, and ACLEDA.
 - [**Delivery Confirmation Guide**](docs/DELIVERY_QR.md) — Cryptographic delivery confirmation and security guarantees.

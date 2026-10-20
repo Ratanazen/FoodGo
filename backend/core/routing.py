@@ -3,4 +3,5 @@ from . import consumers
 
 websocket_urlpatterns = [
     re_path(r'ws/tracking/(?P<order_id>\w+)/$', consumers.OrderTrackingConsumer.as_asgi()),
+    re_path(r'ws/payments/(?P<payment_id>\w+)/$', consumers.PaymentConsumer.as_asgi()),
 ]

@@ -1738,14 +1738,21 @@ class _HomeScreenState extends State<HomeScreen> {
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildFloatingActiveOrder(BuildContext context, bool isDark) {
     final notifs = context.watch<NotificationProvider>().orderNotifications;
-    final activeNotif = notifs.isNotEmpty ? notifs.first : null;
-    final activeOrderId = activeNotif?.orderId?.toString() ?? '1024';
-    final courierTitle = activeNotif != null
-        ? activeNotif.title
-        : 'Ahmad is on the way';
-    final courierSub = activeNotif != null
-        ? '${activeNotif.data['restaurant_name'] ?? 'FoodGo'} • Arriving in ${_activeOrderEta}m'
-        : 'To Home • Arriving 11:15 PM';
+    // Only show floater if an order is actively in transit (exclude delivered orders)
+    final activeNotif = notifs.where((n) {
+      final t = n.title.toLowerCase();
+      final m = n.message.toLowerCase();
+      return !t.contains('delivered') && !m.contains('delivered');
+    }).firstOrNull;
+
+    if (activeNotif == null) {
+      return const SizedBox.shrink();
+    }
+
+    final activeOrderId = activeNotif.orderId?.toString() ?? '1024';
+    final courierTitle = activeNotif.title;
+    final courierSub =
+        '${activeNotif.data['restaurant_name'] ?? 'FoodGo'} • Arriving in ${_activeOrderEta}m';
 
     return Positioned(
       bottom: 96,

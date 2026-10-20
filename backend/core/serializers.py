@@ -306,20 +306,41 @@ class ReviewSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     customer_username = serializers.CharField(source='order.customer.username', read_only=True)
     order_reference = serializers.CharField(source='order.order_reference', read_only=True)
+    restaurant_name = serializers.CharField(source='order.restaurant.name', read_only=True)
+    order_summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Payment
         fields = [
-            'id', 'order', 'customer_username', 'order_reference', 'provider', 'method', 'transaction_id',
+            'id', 'order', 'customer_username', 'order_reference', 'restaurant_name', 'order_summary',
+            'provider', 'method', 'transaction_id',
             'merchant_reference', 'amount', 'currency', 'qr_payload',
             'qr_image', 'status', 'provider_response', 'created_at',
             'updated_at', 'paid_at', 'expires_at'
         ]
         read_only_fields = [
-            'id', 'customer_username', 'order_reference', 'transaction_id', 'merchant_reference', 'qr_payload',
+            'id', 'customer_username', 'order_reference', 'restaurant_name', 'order_summary',
+            'transaction_id', 'merchant_reference', 'qr_payload',
             'qr_image', 'status', 'provider_response', 'created_at',
             'updated_at', 'paid_at', 'expires_at'
         ]
+
+    def get_order_summary(self, obj):
+        if not obj.order:
+            return None
+        items = []
+        for item in obj.order.items.select_related('food_item'):
+            items.append({
+                'name': item.food_item.name if item.food_item else 'Item',
+                'quantity': item.quantity,
+                'price': str(item.price),
+            })
+        return {
+            'restaurant': obj.order.restaurant.name if obj.order.restaurant else 'FoodGo Partner',
+            'item_count': obj.order.items.count(),
+            'items': items,
+            'special_instructions': obj.order.special_instructions,
+        }
 
 class RestaurantCategorySerializer(serializers.ModelSerializer):
     class Meta:

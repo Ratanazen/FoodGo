@@ -1207,8 +1207,8 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                         label: 'View Cart',
                                                         textColor: GlassTheme
                                                             .primaryGreen,
-                                                        onPressed: () => context
-                                                            .push('/cart'),
+                                                        onPressed: () =>
+                                                            context.go('/cart'),
                                                       ),
                                                     ),
                                                   );

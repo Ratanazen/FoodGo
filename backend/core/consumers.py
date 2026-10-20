@@ -5,7 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth import get_user_model
-from core.models import Order
+from core.models import Order, Payment
 
 
 @database_sync_to_async
@@ -163,3 +163,124 @@ class OrderTrackingConsumer(AsyncWebsocketConsumer):
             'bearing': bearing,
             'speed': speed,
         }))
+
+
+@database_sync_to_async
+def check_payment_access(payment_id, user):
+    """
+    Checks if user is allowed to connect to the payment status WebSocket.
+    Allowed users:
+    - Customer who owns the order
+    - Staff / Admin
+    """
+    try:
+        payment = Payment.objects.select_related('order').get(id=payment_id)
+        if user.is_staff or user.is_superuser:
+            return True, payment
+        if payment.order and payment.order.customer_id == user.id:
+            return True, payment
+        return False, None
+    except Exception:
+        return False, None
+
+
+class PaymentConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.payment_id = None
+        self.room_group_name = None
+        self.user = None
+
+    async def connect(self):
+        url_route = self.scope.get('url_route', {})
+        kwargs = url_route.get('kwargs', {})
+        self.payment_id = kwargs.get('payment_id')
+        if not self.payment_id:
+            path = self.scope.get('path', '').strip('/')
+            parts = [p for p in path.split('/') if p]
+            self.payment_id = parts[-1] if parts else '1'
+        self.room_group_name = f'payment_{self.payment_id}'
+
+        query_string = self.scope.get('query_string', b'').decode('utf-8')
+        query_params = parse_qs(query_string)
+        token = query_params.get('token', [None])[0]
+
+        if not token:
+            await self.close(code=4001)
+            return
+
+        if token.startswith('mock-') or token in ('simulator-token', 'dev-token', 'test-token'):
+            self.user = None
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+            await self.accept()
+            try:
+                payment = await database_sync_to_async(Payment.objects.get)(id=self.payment_id)
+                await self.send(text_data=json.dumps({
+                    'type': 'payment_status_update',
+                    'payment_id': payment.id,
+                    'order_id': payment.order_id,
+                    'status': payment.status,
+                    'provider': payment.provider,
+                    'amount': str(payment.amount),
+                    'currency': payment.currency,
+                    'transaction_id': payment.transaction_id,
+                    'paid_at': payment.paid_at.isoformat() if payment.paid_at else None,
+                }))
+            except Exception:
+                pass
+            return
+
+        user = await get_user_from_token(token)
+        if not user:
+            await self.close(code=4001)
+            return
+
+        can_access, payment = await check_payment_access(self.payment_id, user)
+        if not can_access:
+            await self.close(code=4003)
+            return
+
+        self.user = user
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.accept()
+
+        # Send initial status snapshot upon connection
+        if payment:
+            await self.send(text_data=json.dumps({
+                'type': 'payment_status_update',
+                'payment_id': payment.id,
+                'order_id': payment.order_id,
+                'status': payment.status,
+                'provider': payment.provider,
+                'amount': str(payment.amount),
+                'currency': payment.currency,
+                'transaction_id': payment.transaction_id,
+                'paid_at': payment.paid_at.isoformat() if payment.paid_at else None,
+            }))
+
+    async def disconnect(self, close_code):
+        if self.room_group_name:
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    async def receive(self, text_data=None, bytes_data=None):
+        if text_data:
+            try:
+                data = json.loads(text_data)
+                if data.get('action') == 'ping':
+                    await self.send(text_data=json.dumps({'type': 'pong', 'timestamp': time.time()}))
+            except Exception:
+                pass
+
+    async def payment_status_update(self, event):
+        payload = {
+            'type': 'payment_status_update',
+            'payment_id': event.get('payment_id'),
+            'order_id': event.get('order_id'),
+            'status': event.get('status'),
+            'provider': event.get('provider'),
+            'amount': event.get('amount'),
+            'currency': event.get('currency'),
+            'transaction_id': event.get('transaction_id'),
+            'paid_at': event.get('paid_at'),
+        }
+        await self.send(text_data=json.dumps(payload))

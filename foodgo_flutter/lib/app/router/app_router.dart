@@ -222,10 +222,15 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/qr-payment',
       pageBuilder: (context, state) {
-        final payment = state.extra as PaymentModel;
+        final payment = state.extra is PaymentModel
+            ? state.extra as PaymentModel
+            : null;
+        final paymentId = int.tryParse(
+          state.uri.queryParameters['paymentId'] ?? '',
+        );
         return _buildPage(
           state: state,
-          child: QRPaymentScreen(payment: payment),
+          child: QRPaymentScreen(payment: payment, paymentId: paymentId),
           type: PageTransitionType.slideRight,
         );
       },

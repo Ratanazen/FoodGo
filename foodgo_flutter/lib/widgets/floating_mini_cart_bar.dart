@@ -27,7 +27,7 @@ class FloatingMiniCartBar extends StatelessWidget {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => context.push('/cart'),
+                  onTap: () => context.go('/cart'),
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
                     padding: const EdgeInsets.symmetric(

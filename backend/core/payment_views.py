@@ -12,8 +12,34 @@ from rest_framework.generics import RetrieveAPIView
 from .models import Order, Payment
 from .serializers import PaymentSerializer
 from .payments.service import payment_service
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 logger = logging.getLogger(__name__)
+
+def broadcast_payment_status(payment):
+    """
+    Broadcasts real-time payment status transition to all connected WebSocket subscribers.
+    """
+    try:
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            async_to_sync(channel_layer.group_send)(
+                f"payment_{payment.id}",
+                {
+                    "type": "payment_status_update",
+                    "payment_id": payment.id,
+                    "order_id": payment.order_id,
+                    "status": payment.status,
+                    "provider": payment.provider,
+                    "amount": str(payment.amount),
+                    "currency": payment.currency,
+                    "transaction_id": payment.transaction_id,
+                    "paid_at": payment.paid_at.isoformat() if payment.paid_at else None,
+                }
+            )
+    except Exception as e:
+        logger.warning(f"Failed to broadcast payment status over WebSocket: {e}")
 
 class CreatePaymentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -83,6 +109,7 @@ class CreatePaymentView(APIView):
                 order.status = 'pending'
                 order.save(update_fields=['payment_status', 'status'])
 
+        broadcast_payment_status(payment)
         return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
 
 
@@ -121,6 +148,7 @@ class PaymentStatusView(APIView):
 
         # Status transitions
         new_status = status_info.get('status')
+        status_changed = False
         if new_status == 'PAID' and payment.status != 'PAID':
             with transaction.atomic():
                 payment.status = 'PAID'
@@ -134,6 +162,7 @@ class PaymentStatusView(APIView):
                 order.payment_status = 'PAID'
                 order.status = 'confirmed'
                 order.save(update_fields=['payment_status', 'status'])
+                status_changed = True
         elif new_status == 'FAILED' and payment.status != 'FAILED':
             with transaction.atomic():
                 payment.status = 'FAILED'
@@ -142,6 +171,7 @@ class PaymentStatusView(APIView):
                 if order.payment_status != 'PAID':
                     order.payment_status = 'FAILED'
                     order.save(update_fields=['payment_status'])
+                status_changed = True
         elif new_status == 'EXPIRED' and payment.status == 'PENDING':
             with transaction.atomic():
                 payment.status = 'EXPIRED'
@@ -150,6 +180,10 @@ class PaymentStatusView(APIView):
                 if order.payment_status != 'PAID':
                     order.payment_status = 'FAILED'
                     order.save(update_fields=['payment_status'])
+                status_changed = True
+
+        if status_changed:
+            broadcast_payment_status(payment)
 
         return Response(PaymentSerializer(payment).data)
 
@@ -190,6 +224,7 @@ class CancelPaymentView(APIView):
                 order.payment_status = 'REFUNDED' if payment.status == 'REFUNDED' else 'UNPAID'
                 order.save(update_fields=['status', 'payment_status'])
 
+        broadcast_payment_status(payment)
         return Response({'message': f'Payment {payment.status.lower()} successfully.', 'payment': PaymentSerializer(payment).data})
 
 
@@ -216,6 +251,7 @@ class RefundPaymentView(APIView):
             order.payment_status = 'REFUNDED'
             order.save(update_fields=['status', 'payment_status'])
 
+        broadcast_payment_status(payment)
         return Response({
             'message': 'Payment refunded successfully.',
             'payment': PaymentSerializer(payment).data,
@@ -317,6 +353,7 @@ class BaseCallbackView(APIView):
             order.status = 'confirmed' # Payment satisfied, order confirmed for restaurant!
             order.save(update_fields=['payment_status', 'status'])
 
+        broadcast_payment_status(payment)
         return Response({'status': 'SUCCESS', 'message': 'Payment verified and order confirmed.'}, status=status.HTTP_200_OK)
 
 

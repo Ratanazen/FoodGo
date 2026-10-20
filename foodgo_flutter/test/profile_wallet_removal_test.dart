@@ -30,18 +30,12 @@ void main() {
   Widget buildTestableWidget(Map<String, dynamic>? userData) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthProvider>(
-          create: (_) => TestAuthProvider(),
-        ),
+        ChangeNotifierProvider<AuthProvider>(create: (_) => TestAuthProvider()),
         ChangeNotifierProvider<UserProvider>(
           create: (_) => TestUserProvider(userData),
         ),
       ],
-      child: const MaterialApp(
-        home: Scaffold(
-          body: ProfileScreen(),
-        ),
-      ),
+      child: const MaterialApp(home: Scaffold(body: ProfileScreen())),
     );
   }
 

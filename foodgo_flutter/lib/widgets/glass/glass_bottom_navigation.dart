@@ -20,8 +20,10 @@ class GlassBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartCount = context.watch<CartProvider>().itemCount;
 
-    return SafeArea(
-      child: Center(
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: SafeArea(
+        top: false,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 550),
           child: Padding(

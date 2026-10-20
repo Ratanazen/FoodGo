@@ -2,7 +2,7 @@ import os
 from unittest import mock
 from decimal import Decimal
 from django.core.exceptions import ImproperlyConfigured
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -383,5 +383,83 @@ class PaymentIntegrationTests(TestCase):
         res = self.client.post(url, {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('already paid', res.data['detail'])
+
+    def test_payment_serializer_includes_order_summary(self):
+        from core.models import FoodCategory, FoodItem, OrderItem
+        cat = FoodCategory.objects.create(restaurant=self.restaurant, name='Snacks')
+        item = FoodItem.objects.create(category=cat, name='Spring Rolls', price=Decimal('5.50'), is_available=True)
+        OrderItem.objects.create(order=self.order, food_item=item, quantity=2, price=Decimal('5.50'))
+
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'BAKONG', 'currency': 'USD'}, format='json')
+        self.assertEqual(create_res.status_code, status.HTTP_201_CREATED)
+        self.assertIn('order_summary', create_res.data)
+        summary = create_res.data['order_summary']
+        self.assertEqual(summary['restaurant'], self.restaurant.name)
+        self.assertEqual(len(summary['items']), 1)
+        self.assertEqual(summary['items'][0]['name'], 'Spring Rolls')
+
+    def test_callback_currency_mismatch_rejected(self):
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'BAKONG', 'currency': 'USD'}, format='json')
+        merchant_ref = create_res.data['merchant_reference']
+
+        callback_url = reverse('payment_bakong_callback')
+        bad_currency_data = {
+            'merchant_reference': merchant_ref,
+            'amount': '15.50',
+            'currency': 'KHR',  # Mismatch! Order was USD
+            'transaction_id': 'BKG-FAKE-123'
+        }
+        res = self.client.post(callback_url, bad_currency_data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        payment = Payment.objects.get(merchant_reference=merchant_ref)
+        self.assertEqual(payment.status, 'PENDING')
+
+class PaymentWebSocketConsumerTests(TransactionTestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='ws_user', email='ws@test.com', password='password123', role='customer')
+        self.owner = User.objects.create_user(username='ws_owner', email='wsowner@test.com', password='password123', role='restaurant_owner')
+        self.restaurant = Restaurant.objects.create(owner=self.owner, name='WS Rest', address='123 St', phone='012345678')
+        self.order = Order.objects.create(customer=self.user, restaurant=self.restaurant, total_amount=Decimal('20.00'), status='pending', payment_status='UNPAID')
+        self.client.force_authenticate(user=self.user)
+
+    def test_payment_websocket_push_broadcast(self):
+        import asyncio
+        from core.consumers import PaymentConsumer
+        from channels.testing import WebsocketCommunicator
+        from asgiref.sync import sync_to_async
+
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+        merchant_ref = create_res.data['merchant_reference']
+
+        async def run_ws_check():
+            comm = WebsocketCommunicator(PaymentConsumer.as_asgi(), f'/ws/payments/{payment_id}/?token=simulator-token')
+            connected, _ = await comm.connect()
+            self.assertTrue(connected)
+
+            # Receive initial snapshot
+            initial_msg = await comm.receive_json_from()
+            self.assertEqual(initial_msg['type'], 'payment_status_update')
+            self.assertEqual(initial_msg['status'], 'PENDING')
+
+            # Trigger callback confirming payment
+            callback_data = {
+                'merchant_reference': merchant_ref,
+                'amount': '20.00',
+                'currency': 'USD',
+                'transaction_id': 'ABA-TXN-WS-TEST',
+                'status': 'PAID'
+            }
+            await sync_to_async(self.client.post)(reverse('payment_aba_callback'), callback_data, format='json')
+
+            # WebSocket should receive push notification with PAID status
+            push_msg = await comm.receive_json_from()
+            self.assertEqual(push_msg['type'], 'payment_status_update')
+            self.assertEqual(push_msg['status'], 'PAID')
+
+            await comm.disconnect()
+
+        asyncio.run(run_ws_check())
 
 

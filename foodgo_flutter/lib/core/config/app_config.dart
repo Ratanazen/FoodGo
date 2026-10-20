@@ -37,6 +37,23 @@ class AppConfig {
     );
   }
 
+  /// WebSocket URL for live real-time payment status updates
+  static String get wsPaymentBaseUrl {
+    if (_customWsUrl.isNotEmpty) {
+      return _customWsUrl.replaceAll('/tracking/', '/payments/');
+    }
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return 'ws://$host:8000/ws/payments/';
+      }
+    }
+    return const String.fromEnvironment(
+      'FOODGO_PAYMENT_WS_URL',
+      defaultValue: 'wss://foodgo-53pl.onrender.com/ws/payments/',
+    );
+  }
+
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _customApiUrl = prefs.getString('custom_api_url') ?? '';

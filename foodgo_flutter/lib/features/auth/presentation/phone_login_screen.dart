@@ -8,6 +8,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../widgets/svg_icon.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
@@ -100,11 +101,29 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Icon(
-                        Icons.phone_iphone,
-                        size: 80,
-                        color: GlassTheme.primaryGreen,
-                      ).animate().fade(duration: 500.ms).scale(delay: 200.ms),
+                      Center(
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF13231B),
+                            border: Border.all(
+                              color: GlassTheme.primaryGreen.withValues(alpha: 0.55),
+                              width: 2.0,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: GlassTheme.primaryGreen.withValues(alpha: 0.25),
+                                blurRadius: 22,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          child: const FoodGoLogo(size: 60),
+                        ),
+                      ).animate().fade(duration: 400.ms).scale(begin: const Offset(0.9, 0.9), end: const Offset(1, 1), curve: Curves.easeOutBack),
                       const SizedBox(height: 16),
                       Text(
                         _otpSent ? 'Enter OTP' : 'Enter Mobile Number',

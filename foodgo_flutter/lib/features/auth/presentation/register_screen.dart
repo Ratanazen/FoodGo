@@ -7,7 +7,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../services/google_auth_service.dart';
-import 'widgets/auth_illustration.dart';
+import '../../../widgets/svg_icon.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -138,13 +138,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Top Illustration matching Reference Screen 2
-                    const AuthIllustration(
-                      type: AuthIllustrationType.signUp,
-                      size: 135,
-                    ).animate().fade(duration: 400.ms).scale(),
+                    // FoodGo Brand Logo Emblem
+                    Center(
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isDark ? const Color(0xFF13231B) : const Color(0xFFE8F7EE),
+                          border: Border.all(
+                            color: GlassTheme.primaryGreen.withValues(alpha: 0.55),
+                            width: 2.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: GlassTheme.primaryGreen.withValues(alpha: 0.25),
+                              blurRadius: 22,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        child: const FoodGoLogo(size: 60),
+                      ),
+                    ).animate().fade(duration: 400.ms).scale(begin: const Offset(0.9, 0.9), end: const Offset(1, 1), curve: Curves.easeOutBack),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
                     // Title: Sign Up
                     Text(

@@ -6,7 +6,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-162%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-182%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
 ![Zero Emoji](https://img.shields.io/badge/Zero--Emoji-100%25%20Vector-success)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -268,6 +268,8 @@ flutter build web --release
 ## Technical Documentation
 
 Comprehensive documentation is provided in the `docs/` directory:
+- [**Authentication & Authorization Specification**](docs/authentication.md) — JWT lifecycle, role-based access control, Remember Me security, and endpoint contracts.
+- [**Login, Auth & QR Payment Audit**](docs/login-payment-audit.md) — Comprehensive audit covering mock token elimination, host routing, and registration validation.
 - [**Payment Flow & EMVCo KHQR Architecture**](docs/payment-flow.md) — Dynamic KHQR flow, CRC16 mathematical verification, state transitions, and responsive layout.
 - [**Payment Provider Integration Guide**](docs/payment-provider-setup.md) — Credentials, webhook security, sandbox testing, and refund operations.
 - [**Web Payment Integration Audit**](docs/web-payment-audit.md) — Complete audit of payment endpoints, data models, error handling, and security.

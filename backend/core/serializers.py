@@ -237,24 +237,46 @@ class CartSerializer(serializers.ModelSerializer):
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    email = serializers.EmailField(required=True)
     
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'first_name', 'last_name', 'phone', 'role']
         read_only_fields = ['role']
+
+    def validate_username(self, value):
+        norm = value.strip()
+        if len(norm) < 3:
+            raise serializers.ValidationError("Username must be at least 3 characters long.")
+        if ' ' in norm:
+            raise serializers.ValidationError("Username cannot contain spaces.")
+        if User.objects.filter(username__iexact=norm).exists():
+            raise serializers.ValidationError("This username is already taken. Please choose another.")
+        return norm
+
+    def validate_email(self, value):
+        norm = value.strip().lower()
+        if User.objects.filter(email__iexact=norm).exists():
+            raise serializers.ValidationError("An account with this email address already exists.")
+        return norm
+
+    def validate_password(self, value):
+        if len(value) < 6:
+            raise serializers.ValidationError("Password must be at least 6 characters.")
+        return value
         
     def create(self, validated_data):
         user = User.objects.create_user(
             username=validated_data['username'],
-            email=validated_data.get('email', ''),
+            email=validated_data.get('email', '').lower(),
             password=validated_data['password'],
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
             role='customer'
         )
-        if 'phone' in validated_data:
+        if 'phone' in validated_data and validated_data['phone']:
             user.phone = validated_data['phone']
-            user.save()
+            user.save(update_fields=['phone'])
         return user
 
 class LiveItemSerializer(serializers.ModelSerializer):

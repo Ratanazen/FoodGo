@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfig {
@@ -12,10 +13,17 @@ class AppConfig {
     if (_customApiUrl.isNotEmpty) {
       return _customApiUrl.endsWith('/') ? _customApiUrl : '$_customApiUrl/';
     }
-    return const String.fromEnvironment(
-      'FOODGO_API_URL',
-      defaultValue: '$defaultLiveUrl/api/',
-    );
+    const envUrl = String.fromEnvironment('FOODGO_API_URL');
+    if (envUrl.isNotEmpty) {
+      return envUrl.endsWith('/') ? envUrl : '$envUrl/';
+    }
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return 'http://$host:8000/api/';
+      }
+    }
+    return '$defaultLiveUrl/api/';
   }
 
   /// WebSocket URL for live driver & order delivery tracking (Render ASGI container)

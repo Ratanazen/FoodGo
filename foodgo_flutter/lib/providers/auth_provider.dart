@@ -5,10 +5,12 @@ import '../services/api_service.dart';
 
 class AuthProvider with ChangeNotifier {
   bool _isAuthenticated = false;
+  String? _lastAuthError;
   final ApiService _apiService = ApiService();
   final SecureStorage _secureStorage = SecureStorage();
 
   bool get isAuthenticated => _isAuthenticated;
+  String? get lastAuthError => _lastAuthError;
 
   AuthProvider() {
     _checkAuth();
@@ -23,29 +25,47 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> login(String username, String password) async {
-    final success = await _apiService.login(username, password);
-    if (success) {
+    _lastAuthError = null;
+    final result = await _apiService.login(username, password);
+    if (result.isSuccess) {
       _isAuthenticated = true;
+      _lastAuthError = null;
       notifyListeners();
+      return true;
+    } else {
+      _lastAuthError = result.errorMessage;
+      notifyListeners();
+      return false;
     }
-    return success;
   }
 
   Future<bool> register({
     required String username,
     required String email,
     required String password,
+    String? firstName,
+    String? lastName,
+    String? phone,
   }) async {
-    final success = await _apiService.register(
+    _lastAuthError = null;
+    final result = await _apiService.register(
       username: username,
       email: email,
       password: password,
+      firstName: firstName,
+      lastName: lastName,
+      phone: phone,
     );
-    if (success) {
+    if (result.isSuccess) {
       _isAuthenticated = true;
+      _lastAuthError = null;
       notifyListeners();
+      return true;
+    } else {
+      _lastAuthError = result.errorMessage;
+      notifyListeners();
+      return false;
     }
-    return success;
   }
 
   Future<bool> requestOTP(String phone) async {

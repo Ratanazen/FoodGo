@@ -33,26 +33,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _register() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    final success = await context.read<AuthProvider>().register(
-      username: _fullNameController.text.trim(),
+    final rawName = _fullNameController.text.trim();
+    final parts = rawName.split(' ').where((s) => s.isNotEmpty).toList();
+    final firstName = parts.isNotEmpty ? parts.first : '';
+    final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    // Sanitize username by replacing spaces with underscores and filtering special characters
+    String cleanUsername = rawName
+        .replaceAll(RegExp(r'\s+'), '_')
+        .toLowerCase();
+    if (cleanUsername.isEmpty || cleanUsername.length < 3) {
+      final emailPrefix = _emailController.text
+          .split('@')
+          .first
+          .trim()
+          .toLowerCase();
+      cleanUsername = emailPrefix.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
+    }
+
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.register(
+      username: cleanUsername,
       email: _emailController.text.trim(),
       password: _passwordController.text,
+      firstName: firstName,
+      lastName: lastName,
     );
 
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
-        context.read<UserProvider>().fetchUser();
+        await context.read<UserProvider>().fetchUser();
+        if (!mounted) return;
         context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Registration failed. Username or email may already be taken.',
+              authProvider.lastAuthError ??
+                  'Registration failed. Username or email may already be taken.',
             ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,

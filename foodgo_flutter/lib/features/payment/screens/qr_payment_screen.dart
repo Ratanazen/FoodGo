@@ -19,15 +19,20 @@ import '../services/payment_service.dart';
 
 class QRPaymentScreen extends StatefulWidget {
   final PaymentModel payment;
+  final FlutterPaymentService? paymentService;
 
-  const QRPaymentScreen({super.key, required this.payment});
+  const QRPaymentScreen({
+    super.key,
+    required this.payment,
+    this.paymentService,
+  });
 
   @override
   State<QRPaymentScreen> createState() => _QRPaymentScreenState();
 }
 
 class _QRPaymentScreenState extends State<QRPaymentScreen> {
-  final FlutterPaymentService _paymentService = FlutterPaymentService();
+  late final FlutterPaymentService _paymentService;
   late PaymentModel _currentPayment;
   Timer? _pollingTimer;
   Timer? _countdownTimer;
@@ -38,6 +43,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
   @override
   void initState() {
     super.initState();
+    _paymentService = widget.paymentService ?? FlutterPaymentService();
     _currentPayment = widget.payment;
     _initCountdown();
     _startPolling();
@@ -126,7 +132,20 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         );
       }
     } catch (e) {
-      if (mounted) setState(() => _isVerifying = false);
+      if (mounted) {
+        setState(() => _isVerifying = false);
+        if (!isBackground) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Unable to check payment status due to network error. You can retry safely.',
+              ),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     }
   }
 

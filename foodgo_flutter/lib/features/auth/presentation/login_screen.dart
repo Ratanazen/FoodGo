@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/config/app_config.dart';
+import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
-import '../../../core/theme/glass_theme.dart';
-import '../../../core/config/app_config.dart';
 import '../../../services/google_auth_service.dart';
 import 'widgets/auth_illustration.dart';
 
@@ -23,6 +24,34 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
+  String? _loginErrorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUser = prefs.getString('saved_login_identifier');
+    if (savedUser != null && savedUser.isNotEmpty && mounted) {
+      setState(() {
+        _usernameController.text = savedUser;
+        _rememberMe = true;
+      });
+    }
+  }
+
+  Future<void> _persistRememberMe(String identifier) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString('saved_login_identifier', identifier);
+    } else {
+      await prefs.remove('saved_login_identifier');
+    }
+  }
 
   @override
   void dispose() {
@@ -32,51 +61,61 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    final identifier = _usernameController.text.trim();
+    final password = _passwordController.text;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.login(
-      _usernameController.text.trim(),
-      _passwordController.text,
-    );
+    setState(() {
+      _isLoading = true;
+      _loginErrorMessage = null;
+    });
 
-    setState(() => _isLoading = false);
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.login(identifier, password);
 
-    if (mounted) {
-      if (success) {
-        final userProvider = context.read<UserProvider>();
-        await userProvider.fetchUser();
-        if (!mounted) return;
-        final role = userProvider.user?['role']?.toString().toLowerCase();
-        if (role == 'driver') {
-          context.go('/driver-dashboard');
-        } else if (role == 'restaurant_owner') {
-          context.go('/restaurant-dashboard');
-        } else {
-          context.go('/home');
-        }
+    if (!mounted) return;
+
+    if (success) {
+      await _persistRememberMe(identifier);
+      if (!mounted) return;
+      final userProvider = context.read<UserProvider>();
+      await userProvider.fetchUser();
+      if (!mounted) return;
+
+      final role = userProvider.user?['role']?.toString().toLowerCase();
+      if (role == 'admin') {
+        context.go('/admin-dashboard');
+      } else if (role == 'driver') {
+        context.go('/driver-dashboard');
+      } else if (role == 'restaurant_owner') {
+        context.go('/restaurant-dashboard');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login failed. Check your credentials.'),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.go('/home');
       }
+    } else {
+      setState(() {
+        _isLoading = false;
+        _loginErrorMessage =
+            authProvider.lastAuthError ??
+            'Login failed. Please check your credentials and try again.';
+      });
     }
   }
 
   void _loginWithGoogle() async {
+    if (_isLoading) return;
     final googleResult = await GoogleAuthService.signIn(context);
     if (googleResult == null) return;
 
     if (!mounted) return;
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loginErrorMessage = null;
+    });
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = context.read<AuthProvider>();
     final success = await authProvider.loginWithGoogle(
       idToken: googleResult.idToken,
       email: googleResult.email,
@@ -85,19 +124,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (success) {
-      context.read<UserProvider>().fetchUser();
+      await context.read<UserProvider>().fetchUser();
+      if (!mounted) return;
       context.go('/home');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Google Sign-In failed. Please try again.'),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      setState(() {
+        _isLoading = false;
+        _loginErrorMessage =
+            'Google Sign-In could not be completed. Please try again.';
+      });
     }
   }
 
@@ -156,6 +193,14 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 ActionChip(
                   label: const Text(
+                    'Localhost (Port 8000)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () =>
+                      controller.text = 'http://127.0.0.1:8000/api/',
+                ),
+                ActionChip(
+                  label: const Text(
                     'Vercel (Live)',
                     style: TextStyle(fontSize: 11),
                   ),
@@ -164,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 ActionChip(
                   label: const Text(
-                    'Local (10.0.2.2)',
+                    'Android Emulator (10.0.2.2)',
                     style: TextStyle(fontSize: 11),
                   ),
                   onPressed: () =>
@@ -198,6 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SnackBar(
                   content: Text('Server URL updated successfully!'),
                   backgroundColor: GlassTheme.authBlue,
+                  behavior: SnackBarBehavior.floating,
                 ),
               );
             },
@@ -220,492 +266,640 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 28.0,
-              vertical: 20.0,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Server Settings',
+            icon: Icon(
+              Icons.settings_ethernet_rounded,
+              color: isDark ? Colors.white60 : Colors.black45,
+              size: 20,
             ),
+            onPressed: _showServerDialog,
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Top illustration matching Reference Screen 1
-                    GestureDetector(
-                      onLongPress: _showServerDialog,
-                      child: const AuthIllustration(
-                        type: AuthIllustrationType.signIn,
-                        size: 135,
-                      ),
-                    ).animate().fade(duration: 400.ms).scale(),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28.0,
+                  vertical: 12.0,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // FoodGo Brand Logo Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: GlassTheme.primaryGreen,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: GlassTheme.primaryGreen.withValues(
+                                    alpha: 0.35,
+                                  ),
+                                  blurRadius: 10,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.restaurant_menu_rounded,
+                              color: Colors.black87,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                color: isDark
+                                    ? Colors.white
+                                    : GlassTheme.authTitleDark,
+                                letterSpacing: -0.5,
+                              ),
+                              children: const [
+                                TextSpan(text: 'Food'),
+                                TextSpan(
+                                  text: 'Go',
+                                  style: TextStyle(
+                                    color: GlassTheme.primaryGreen,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ).animate().fade(duration: 350.ms),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 18),
 
-                    // Title: Sign In
-                    Text(
-                      'Sign In',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : GlassTheme.authTitleDark,
-                      ),
-                      textAlign: TextAlign.center,
-                    ).animate().fade(delay: 150.ms),
+                      // Sign In Vector Illustration
+                      GestureDetector(
+                        onLongPress: _showServerDialog,
+                        child: const AuthIllustration(
+                          type: AuthIllustrationType.signIn,
+                          size: 130,
+                        ),
+                      ).animate().fade(duration: 400.ms).scale(),
 
-                    const SizedBox(height: 6),
+                      const SizedBox(height: 16),
 
-                    // Subtitle
-                    Text(
-                      'Enter valid user name & password to continue',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: isDark
-                            ? Colors.grey[400]
-                            : GlassTheme.authSubtitle,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ).animate().fade(delay: 200.ms),
-
-                    const SizedBox(height: 26),
-
-                    // Input 1: User name
-                    TextFormField(
-                      controller: _usernameController,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        fontSize: 14,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'User name',
-                        hintStyle: TextStyle(
+                      // Welcome Heading
+                      Text(
+                        'Welcome Back',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
                           color: isDark
-                              ? Colors.white38
-                              : const Color(0xFF94A3B8),
+                              ? Colors.white
+                              : GlassTheme.authTitleDark,
+                        ),
+                        textAlign: TextAlign.center,
+                      ).animate().fade(delay: 150.ms),
+
+                      const SizedBox(height: 6),
+
+                      // Supporting Subtitle
+                      Text(
+                        'Sign in with your username or email to continue',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark
+                              ? Colors.grey[400]
+                              : GlassTheme.authSubtitle,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ).animate().fade(delay: 200.ms),
+
+                      const SizedBox(height: 22),
+
+                      // Error Notification Banner
+                      if (_loginErrorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.redAccent.withValues(alpha: 0.35),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
+                                child: Icon(
+                                  Icons.error_outline_rounded,
+                                  color: Colors.redAccent,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _loginErrorMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fade(duration: 250.ms).slideY(begin: -0.1),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Input 1: Username or Email
+                      TextFormField(
+                        controller: _usernameController,
+                        textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType.emailAddress,
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1E293B),
                           fontSize: 14,
                         ),
-                        prefixIcon: Icon(
-                          Icons.person_outline_rounded,
-                          color: isDark
-                              ? Colors.white54
-                              : GlassTheme.authSubtitle,
-                          size: 20,
-                        ),
-                        filled: true,
-                        fillColor: isDark
-                            ? const Color(0xFF1E293B)
-                            : GlassTheme.authInputFill,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 15,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
+                        decoration: InputDecoration(
+                          labelText: 'Username or Email',
+                          hintText: 'e.g. customer1 or user@foodgo.com',
+                          labelStyle: TextStyle(
                             color: isDark
-                                ? Colors.white12
-                                : GlassTheme.authInputBorder,
+                                ? Colors.white70
+                                : const Color(0xFF64748B),
+                            fontSize: 13,
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(
-                            color: GlassTheme.authBlue,
-                            width: 1.5,
+                          hintStyle: TextStyle(
+                            color: isDark
+                                ? Colors.white38
+                                : const Color(0xFF94A3B8),
+                            fontSize: 13,
                           ),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.redAccent),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(
-                            color: Colors.redAccent,
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your username';
-                        }
-                        return null;
-                      },
-                    ).animate().fade(delay: 250.ms),
-
-                    const SizedBox(height: 14),
-
-                    // Input 2: Password
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        fontSize: 14,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        hintStyle: TextStyle(
-                          color: isDark
-                              ? Colors.white38
-                              : const Color(0xFF94A3B8),
-                          fontSize: 14,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.lock_outline_rounded,
-                          color: isDark
-                              ? Colors.white54
-                              : GlassTheme.authSubtitle,
-                          size: 20,
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
+                          prefixIcon: Icon(
+                            Icons.person_outline_rounded,
                             color: isDark
                                 ? Colors.white54
                                 : GlassTheme.authSubtitle,
                             size: 20,
                           ),
-                          onPressed: () {
-                            setState(
-                              () => _obscurePassword = !_obscurePassword,
-                            );
-                          },
-                        ),
-                        filled: true,
-                        fillColor: isDark
-                            ? const Color(0xFF1E293B)
-                            : GlassTheme.authInputFill,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 15,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: isDark
-                                ? Colors.white12
-                                : GlassTheme.authInputBorder,
+                          filled: true,
+                          fillColor: isDark
+                              ? const Color(0xFF1E293B)
+                              : GlassTheme.authInputFill,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 15,
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(
-                            color: GlassTheme.authBlue,
-                            width: 1.5,
-                          ),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.redAccent),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(
-                            color: Colors.redAccent,
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        return null;
-                      },
-                    ).animate().fade(delay: 300.ms),
-
-                    // Right-aligned "Forget password" link
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => context.push('/forgot-password'),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 6,
-                            horizontal: 4,
-                          ),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: const Text(
-                          'Forget password',
-                          style: TextStyle(
-                            color: GlassTheme.authBlue,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ).animate().fade(delay: 350.ms),
-
-                    const SizedBox(height: 16),
-
-                    // Primary Button: Login
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: GlassTheme.authBlue,
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
+                          enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.white12
+                                  : GlassTheme.authInputBorder,
+                            ),
                           ),
-                          shadowColor: GlassTheme.authBlue.withValues(
-                            alpha: 0.4,
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: GlassTheme.authBlue,
+                              width: 1.5,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Colors.redAccent,
+                              width: 1.5,
+                            ),
                           ),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.2,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your username or email';
+                          }
+                          return null;
+                        },
+                      ).animate().fade(delay: 250.ms),
+
+                      const SizedBox(height: 14),
+
+                      // Input 2: Password
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _login(),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1E293B),
+                          fontSize: 14,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          hintText: 'Enter your password',
+                          labelStyle: TextStyle(
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF64748B),
+                            fontSize: 13,
+                          ),
+                          hintStyle: TextStyle(
+                            color: isDark
+                                ? Colors.white38
+                                : const Color(0xFF94A3B8),
+                            fontSize: 13,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.lock_outline_rounded,
+                            color: isDark
+                                ? Colors.white54
+                                : GlassTheme.authSubtitle,
+                            size: 20,
+                          ),
+                          suffixIcon: IconButton(
+                            tooltip: _obscurePassword
+                                ? 'Show password'
+                                : 'Hide password',
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: isDark
+                                  ? Colors.white54
+                                  : GlassTheme.authSubtitle,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              );
+                            },
+                          ),
+                          filled: true,
+                          fillColor: isDark
+                              ? const Color(0xFF1E293B)
+                              : GlassTheme.authInputFill,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 15,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.white12
+                                  : GlassTheme.authInputBorder,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: GlassTheme.authBlue,
+                              width: 1.5,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Colors.redAccent,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
+                        },
+                      ).animate().fade(delay: 300.ms),
+
+                      const SizedBox(height: 10),
+
+                      // Remember Me & Forgot Password Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() => _rememberMe = !_rememberMe);
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: Checkbox(
+                                      value: _rememberMe,
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                      activeColor: GlassTheme.authBlue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      onChanged: (val) {
+                                        setState(
+                                          () => _rememberMe = val ?? false,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'Remember me',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white70
+                                            : const Color(0xFF475569),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () => context.push('/forgot-password'),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'Forgot password?',
+                              style: TextStyle(
+                                color: GlassTheme.authBlue,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ).animate().fade(delay: 350.ms),
+
+                      const SizedBox(height: 18),
+
+                      // Primary Button: Login
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _login,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlassTheme.authBlue,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: GlassTheme.authBlue
+                                .withValues(alpha: 0.5),
+                            disabledForegroundColor: Colors.white70,
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            shadowColor: GlassTheme.authBlue.withValues(
+                              alpha: 0.4,
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Sign In',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                              )
-                            : const Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
+                        ),
+                      ).animate().fade(delay: 400.ms).scale(),
+
+                      const SizedBox(height: 22),
+
+                      // "Or Continue with" Divider
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: isDark
+                                  ? Colors.white12
+                                  : const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(
+                              'Or Continue with',
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.grey[400]
+                                    : const Color(0xFF94A3B8),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: isDark
+                                  ? Colors.white12
+                                  : const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                        ],
+                      ).animate().fade(delay: 450.ms),
+
+                      const SizedBox(height: 16),
+
+                      // Social Login Buttons: Google & Phone
+                      Row(
+                        children: [
+                          // Google Button
+                          Expanded(
+                            child: SizedBox(
+                              height: 44,
+                              child: OutlinedButton(
+                                onPressed: _isLoading ? null : _loginWithGoogle,
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: isDark
+                                      ? const Color(0xFF1E293B)
+                                      : Colors.white,
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? Colors.white12
+                                        : const Color(0xFFE2E8F0),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: const Text(
+                                        'G',
+                                        style: TextStyle(
+                                          color: Color(0xFF4285F4),
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Google',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : const Color(0xFF1E293B),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                      ),
-                    ).animate().fade(delay: 400.ms).scale(),
-
-                    const SizedBox(height: 22),
-
-                    // "Or Continue with" Divider
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Divider(
-                            color: isDark
-                                ? Colors.white12
-                                : const Color(0xFFE2E8F0),
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            'Or Continue with',
+                          const SizedBox(width: 12),
+
+                          // Phone Login Alternative Button
+                          Expanded(
+                            child: SizedBox(
+                              height: 44,
+                              child: OutlinedButton.icon(
+                                onPressed: _isLoading
+                                    ? null
+                                    : () => context.push('/phone-login'),
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: isDark
+                                      ? const Color(0xFF1E293B)
+                                      : Colors.white,
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? Colors.white12
+                                        : const Color(0xFFE2E8F0),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.phone_iphone_rounded,
+                                  size: 18,
+                                  color: GlassTheme.authBlue,
+                                ),
+                                label: Text(
+                                  'Phone OTP',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1E293B),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ).animate().fade(delay: 500.ms),
+
+                      const SizedBox(height: 20),
+
+                      // Bottom Link: Haven't any account? Sign up
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Don\'t have an account? ',
                             style: TextStyle(
                               color: isDark
                                   ? Colors.grey[400]
-                                  : const Color(0xFF94A3B8),
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(
-                            color: isDark
-                                ? Colors.white12
-                                : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                      ],
-                    ).animate().fade(delay: 450.ms),
-
-                    const SizedBox(height: 16),
-
-                    // Social Login Buttons: Google & Facebook & Mobile
-                    Row(
-                      children: [
-                        // Google Button
-                        Expanded(
-                          child: SizedBox(
-                            height: 44,
-                            child: OutlinedButton(
-                              onPressed: _isLoading ? null : _loginWithGoogle,
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: isDark
-                                    ? const Color(0xFF1E293B)
-                                    : Colors.white,
-                                side: BorderSide(
-                                  color: isDark
-                                      ? Colors.white12
-                                      : const Color(0xFFE2E8F0),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      'G',
-                                      style: TextStyle(
-                                        color: Color(0xFF4285F4),
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Google',
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF1E293B),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-
-                        // Facebook Button
-                        Expanded(
-                          child: SizedBox(
-                            height: 44,
-                            child: OutlinedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Facebook login coming soon! Use Google or Email.',
-                                    ),
-                                    duration: Duration(seconds: 2),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: isDark
-                                    ? const Color(0xFF1E293B)
-                                    : Colors.white,
-                                side: BorderSide(
-                                  color: isDark
-                                      ? Colors.white12
-                                      : const Color(0xFFE2E8F0),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF1877F2),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      'f',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Facebook',
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF1E293B),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ).animate().fade(delay: 500.ms),
-
-                    const SizedBox(height: 12),
-
-                    // Quick Mobile Login Alternative
-                    Center(
-                      child: TextButton.icon(
-                        onPressed: () => context.push('/phone-login'),
-                        icon: const Icon(
-                          Icons.phone_iphone_rounded,
-                          size: 16,
-                          color: GlassTheme.authBlue,
-                        ),
-                        label: const Text(
-                          'Login with Phone Number',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: GlassTheme.authBlue,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Bottom Link: Haven't any account? Sign up
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Haven\'t any account? ',
-                          style: TextStyle(
-                            color: isDark
-                                ? Colors.grey[400]
-                                : GlassTheme.authSubtitle,
-                            fontSize: 13,
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () => context.push('/register'),
-                          child: const Text(
-                            'Sign up',
-                            style: TextStyle(
-                              color: GlassTheme.authBlue,
+                                  : GlassTheme.authSubtitle,
                               fontSize: 13,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
-                    ).animate().fade(delay: 550.ms),
-                  ],
+                          InkWell(
+                            onTap: () => context.push('/register'),
+                            child: const Text(
+                              'Sign up',
+                              style: TextStyle(
+                                color: GlassTheme.authBlue,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ).animate().fade(delay: 550.ms),
+                    ],
+                  ),
                 ),
               ),
             ),

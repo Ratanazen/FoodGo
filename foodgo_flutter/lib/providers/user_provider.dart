@@ -12,26 +12,23 @@ class UserProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isAdmin => _user?['role'] == 'admin' || _user?['is_staff'] == true;
 
+  void clearUser() {
+    _user = null;
+    notifyListeners();
+  }
+
   Future<void> fetchUser() async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final data = await _apiService.get('me/');
-      _user = data;
+      if (data is Map<String, dynamic>) {
+        _user = data;
+      }
     } catch (e) {
-      debugPrint('Error fetching user: $e');
-      _user ??= {
-        'id': 1,
-        'username': 'customer1',
-        'email': 'customer@foodgo.com',
-        'first_name': 'Alice',
-        'last_name': 'Smith',
-        'role': 'customer',
-        'phone': '+855 12 345 678',
-        'avatar_url':
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80',
-      };
+      debugPrint('Error fetching user profile: $e');
+      _user = null;
     } finally {
       _isLoading = false;
       notifyListeners();

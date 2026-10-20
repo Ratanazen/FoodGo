@@ -4,6 +4,20 @@ import 'package:flutter/foundation.dart';
 import '../core/network/api_client.dart';
 import '../core/storage/secure_storage.dart';
 
+class AuthResult {
+  final bool isSuccess;
+  final String? errorMessage;
+  final bool isNetworkError;
+
+  const AuthResult.success()
+    : isSuccess = true,
+      errorMessage = null,
+      isNetworkError = false;
+
+  const AuthResult.failure(this.errorMessage, {this.isNetworkError = false})
+    : isSuccess = false;
+}
+
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -61,7 +75,7 @@ class ApiService {
     }
   }
 
-  Future<bool> login(String username, String password) async {
+  Future<AuthResult> login(String username, String password) async {
     final cleanUser = username.trim();
     try {
       final response = await _apiClient.dio.post(
@@ -75,32 +89,37 @@ class ApiService {
           accessToken: data['access'],
           refreshToken: data['refresh'],
         );
-        return true;
+        return const AuthResult.success();
       }
-      return false;
+      return const AuthResult.failure(
+        'Authentication failed. Please check your credentials.',
+      );
+    } on DioException catch (e) {
+      if (kDebugMode) debugPrint('Login DioException: $e');
+      if (e.response?.statusCode == 401) {
+        return const AuthResult.failure(
+          'Incorrect username/email or password.',
+        );
+      }
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        return const AuthResult.failure(
+          'Unable to connect to server. Please check your network connection.',
+          isNetworkError: true,
+        );
+      }
+      final serverDetail = e.response?.data is Map
+          ? (e.response?.data['detail'] ?? e.response?.data['error'])
+          : null;
+      return AuthResult.failure(
+        serverDetail?.toString() ?? 'Login failed. Please try again.',
+      );
     } catch (e) {
-      debugPrint('Login error: $e');
-      final lower = cleanUser.toLowerCase();
-      // Reliable offline / fallback demo credentials so testing never blocks
-      if ((lower == 'admin' || lower == 'admin@foodgo.com') &&
-          password == 'admin123') {
-        debugPrint('Demo login allowed for admin');
-        await SecureStorage().saveTokens(
-          accessToken: 'mock-admin-access-token',
-          refreshToken: 'mock-admin-refresh-token',
-        );
-        return true;
-      }
-      if ((lower == 'customer1' || lower == 'customer@foodgo.com') &&
-          password == 'customer123') {
-        debugPrint('Demo login allowed for customer1');
-        await SecureStorage().saveTokens(
-          accessToken: 'mock-customer-access-token',
-          refreshToken: 'mock-customer-refresh-token',
-        );
-        return true;
-      }
-      return false;
+      if (kDebugMode) debugPrint('Login error: $e');
+      return const AuthResult.failure(
+        'An unexpected error occurred during login.',
+      );
     }
   }
 
@@ -129,30 +148,57 @@ class ApiService {
       return false;
     } catch (e) {
       if (kDebugMode) debugPrint('Google login error: $e');
-      // Offline / demo fallback for Google Sign-in testing
-      await SecureStorage().saveTokens(
-        accessToken: 'mock-google-access-token',
-        refreshToken: 'mock-google-refresh-token',
-      );
-      return true;
+      return false;
     }
   }
 
-  Future<bool> register({
+  Future<AuthResult> register({
     required String username,
     required String email,
     required String password,
+    String? firstName,
+    String? lastName,
+    String? phone,
   }) async {
     try {
-      final response = await _apiClient.dio.post(
-        'register/',
-        data: {'username': username, 'email': email, 'password': password},
-      );
-      if (response.statusCode != 201) return false;
-      return await login(username, password);
+      final payload = <String, dynamic>{
+        'username': username.trim(),
+        'email': email.trim().toLowerCase(),
+        'password': password,
+      };
+      if (firstName != null && firstName.isNotEmpty) {
+        payload['first_name'] = firstName;
+      }
+      if (lastName != null && lastName.isNotEmpty) {
+        payload['last_name'] = lastName;
+      }
+      if (phone != null && phone.isNotEmpty) {
+        payload['phone'] = phone;
+      }
+
+      final response = await _apiClient.dio.post('register/', data: payload);
+      if (response.statusCode == 201) {
+        return await login(username, password);
+      }
+      return const AuthResult.failure('Registration failed. Please try again.');
     } on DioException catch (e) {
       if (kDebugMode) debugPrint('Registration error: ${e.message}');
-      return false;
+      if (e.response?.data is Map) {
+        final errMap = e.response!.data as Map;
+        final firstKey = errMap.keys.firstOrNull;
+        if (firstKey != null) {
+          final val = errMap[firstKey];
+          final msg = val is List ? val.firstOrNull : val;
+          return AuthResult.failure('$firstKey: $msg');
+        }
+      }
+      return const AuthResult.failure(
+        'Registration failed. Please check your input.',
+      );
+    } catch (e) {
+      return const AuthResult.failure(
+        'An unexpected error occurred during registration.',
+      );
     }
   }
 

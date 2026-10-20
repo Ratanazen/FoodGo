@@ -29,33 +29,15 @@ class _HomeScreenState extends State<HomeScreen> {
   int _activeOrderEta = 11;
   Timer? _etaUpdateTimer;
 
-  // Reference Mockup (Naperville) 4 Quick Categories & Recommended Dishes
+  // TikTok Reference 5 Quick Categories & Recommended Dishes
   final List<Map<String, dynamic>> _quickCategories = [
+    {'name': 'All', 'icon': Icons.restaurant_rounded},
     {'name': 'Burger', 'icon': Icons.lunch_dining_rounded},
+    {'name': 'Pizza', 'icon': Icons.local_pizza_rounded},
+    {'name': 'Sushi', 'icon': Icons.set_meal_rounded},
     {'name': 'Chicken', 'icon': Icons.kebab_dining_rounded},
-    {'name': 'Fries', 'icon': Icons.fastfood_rounded},
-    {'name': 'Drink', 'icon': Icons.local_drink_rounded},
   ];
-  int? _selectedQuickCategoryIndex;
-
-  final Map<String, dynamic> _spaghettiPromoItem = {
-    'id': 99,
-    'name': 'Free Delivery Spaghetti',
-    'subtitle': 'Classic Italian Spaghetti Bolognese',
-    'price': 8.50,
-    'image':
-        'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=600&q=80',
-    'category': 'Pasta',
-    'calories': '240',
-    'proteins': '18.5',
-    'fats': '11.2',
-    'carbo': '38.0',
-    'location': 'Naperville, Illinois',
-    'description':
-        'Slow-simmered artisanal spaghetti tossed with savory bolognese sauce, vine-ripened San Marzano tomatoes, fresh Italian basil, and generous shavings of aged Parmigiano-Reggiano.',
-    'restaurantId': 105,
-    'restaurantName': 'Naperville Pasta Co.',
-  };
+  int _selectedQuickCategoryIndex = 0;
 
   final List<Map<String, dynamic>> _recommendedDishes = [
     {
@@ -263,10 +245,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
 
-                      // ── Hero Promo: "Free Delivery For Spaghetti" ───
-                      _buildSpaghettiHeroPromo(context, isDark)
+                      // ── Hero Promo: "FAST & FREE DELIVERY!" (TikTok Reference) ───
+                      _buildFastAndFreeHeroPromo(context, isDark)
                           .animate()
                           .fadeIn(duration: 450.ms, delay: 100.ms)
                           .slideY(
@@ -274,9 +256,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             end: 0,
                             curve: Curves.easeOutCubic,
                           ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 22),
 
-                      // ── 4 Modern Quick Categories: Burger, Chicken, Fries, Drink ──
+                      // ── Categories Section Header ("Categories" | "See All") ──
+                      _buildSectionHeader(
+                        'Categories',
+                        () => context.push('/explore'),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // ── 5 Modern Categories: All, Burger, Pizza, Sushi, Chicken ──
                       _buildModernFourCategories(isDark)
                           .animate()
                           .fadeIn(duration: 450.ms, delay: 180.ms)
@@ -357,7 +346,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 1. Modern Minimalist Location Header (Matching Reference Screen 1)
+  // ──────────────────────────────────────────────────────────────────────────
+  // 1. Lush Green Delivery Curved Header & Search Bar (TikTok Reference Style)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildModernLocationHeader(BuildContext context, bool isDark) {
     final topPadding = MediaQuery.of(context).padding.top;
@@ -368,169 +358,263 @@ class _HomeScreenState extends State<HomeScreen> {
         ? '${activeAddress!.street}, ${activeAddress.city}'
         : (activeAddress?.city.isNotEmpty == true
               ? activeAddress!.city
-              : 'Naperville, Illinois');
+              : 'Home 12 Jalan Ampang, Kuala L...');
 
-    return Padding(
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: GlassTheme.headerGradient,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x33236E31),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
       padding: EdgeInsets.only(
         top: topPadding + 10,
         left: 16,
         right: 16,
-        bottom: 8,
+        bottom: 20,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          // Left: Search Circular Button
-          InkWell(
-            onTap: () => context.push('/search'),
-            borderRadius: BorderRadius.circular(24),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? Colors.white12 : const Color(0xFFEEEEEE),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.search_rounded,
-                color: isDark ? Colors.white70 : const Color(0xFF555555),
-                size: 22,
-              ),
-            ),
-          ),
-
-          // Center: Location & City with Chevron
-          InkWell(
-            onTap: () => context.push('/addresses'),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Location',
-                    style: TextStyle(
-                      color: isDark
-                          ? Colors.grey[400]
-                          : const Color(0xFF8E8E93),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        color: Color(0xFF8CD802), // Vibrant lime green pin
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        locationName,
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(width: 2),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: isDark ? Colors.white70 : Colors.black87,
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Right: Notification Bell with Dynamic Unread Badge
-          Consumer<NotificationProvider>(
-            builder: (context, notifProvider, child) {
-              final unread = notifProvider.unreadCount;
-              return InkWell(
-                onTap: () => context.push('/notifications'),
-                borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isDark ? Colors.white12 : const Color(0xFFEEEEEE),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: isDark ? 0.2 : 0.04,
-                        ),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(
-                        Icons.notifications_none_rounded,
-                        color: isDark
-                            ? Colors.white70
-                            : const Color(0xFF555555),
-                        size: 22,
-                      ),
-                      if (unread > 0)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 2,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFF4842),
+          // Top Row: Avatar + Deliver-To + Notification Bell
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Left: Avatar with green active dot + Deliver to dropdown
+              Expanded(
+                child: Row(
+                  children: [
+                    // Circular Avatar with online dot
+                    InkWell(
+                      onTap: () => context.push('/profile'),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              unread > 9 ? '9+' : '$unread',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                height: 1.0,
+                              border: Border.all(
+                                color: Colors.white70,
+                                width: 1.5,
+                              ),
+                              image: const DecorationImage(
+                                image: CachedNetworkImageProvider(
+                                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
+                                ),
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFCCFF00),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFF236E31),
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Deliver To Column
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => context.push('/addresses'),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFCCFF00),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    'Deliver to',
+                                    style: TextStyle(
+                                      color: Color(0xFFC8E6C9),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      locationName,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  const Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
+              ),
+
+              // Right: Notification Bell in Translucent Circle Button
+              Consumer<NotificationProvider>(
+                builder: (context, notifProvider, child) {
+                  final unread = notifProvider.unreadCount;
+                  return InkWell(
+                    onTap: () => context.push('/notifications'),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Icon(
+                            Icons.notifications_none_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          if (unread > 0)
+                            Positioned(
+                              top: 6,
+                              right: 6,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFFF4842),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  unread > 9 ? '9+' : '$unread',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // Second Row: Full-width Rounded White Pill Search Bar
+          InkWell(
+            onTap: () => context.push('/search'),
+            borderRadius: BorderRadius.circular(30),
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.search_rounded,
+                    color: Color(0xFF757575),
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Search restaurants or dishes',
+                      style: TextStyle(
+                        color: Color(0xFF757575),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.tune_rounded,
+                      color: Color(0xFF757575),
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -538,18 +622,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 2. Spaghetti Dark Hero Card Promo (Matching Reference Screen 1)
+  // 2. Fast & Free Delivery Promo Hero Card (TikTok Reference Style)
   // ──────────────────────────────────────────────────────────────────────────
-  Widget _buildSpaghettiHeroPromo(BuildContext context, bool isDark) {
+  Widget _buildFastAndFreeHeroPromo(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
-      height: 155,
+      height: 152,
       decoration: BoxDecoration(
-        color: GlassTheme.heroDarkCard,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF236E31), Color(0xFF388E3C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.18),
+            color: const Color(0xFF236E31).withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -558,110 +646,151 @@ class _HomeScreenState extends State<HomeScreen> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Left Content
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 20.0,
-              top: 18.0,
-              bottom: 18.0,
-              right: 130.0,
+          // Decorative background circles
+          Positioned(
+            left: -20,
+            top: -20,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
             ),
+          ),
+          Positioned(
+            right: -30,
+            bottom: -30,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+
+          // Left: Delivery Courier on Scooter Illustration
+          Positioned(
+            left: 14,
+            top: 14,
+            bottom: 14,
+            child: SizedBox(
+              width: 110,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.two_wheeler_rounded,
+                    size: 64,
+                    color: Colors.white,
+                  ),
+                  Positioned(
+                    top: 22,
+                    left: 20,
+                    child: Container(
+                      width: 16,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF4B26),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.white, width: 1.2),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.flash_on,
+                          color: Colors.white,
+                          size: 10,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Right: Bold Display Text & Order Now Button
+          Positioned(
+            left: 136,
+            top: 16,
+            bottom: 16,
+            right: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'Free Delivery For',
+                  'FAST & FREE',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const Text(
-                  'Spaghetti',
-                  style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFFFFDE00),
                     fontWeight: FontWeight.w900,
-                    fontSize: 22,
-                    height: 1.15,
+                    fontSize: 19,
+                    height: 1.1,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 5),
                 const Text(
-                  'Up to 3 times per day',
+                  'DELIVERY!',
                   style: TextStyle(
-                    color: Color(0xFF9E9EA7),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
+                    color: Color(0xFFFFDE00),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 19,
+                    height: 1.1,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 4),
+                const Text(
+                  'On all orders this week!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
                 InkWell(
-                  onTap: () {
-                    context.push('/food-details', extra: _spaghettiPromoItem);
-                  },
+                  onTap: () => _claimCoupon('FREESHIP'),
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                      horizontal: 18,
+                      vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: GlassTheme.limeAccent,
+                      color: const Color(0xFFFF4B26),
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
-                          color: GlassTheme.limeAccent.withValues(alpha: 0.4),
+                          color: Color(0x66FF4B26),
                           blurRadius: 8,
-                          offset: const Offset(0, 3),
+                          offset: Offset(0, 3),
                         ),
                       ],
                     ),
                     child: const Text(
-                      'Order Now',
+                      'ORDER NOW',
                       style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
                 ),
               ],
-            ),
-          ),
-
-          // Right Dish Image (round bowl of spaghetti bolognese)
-          Positioned(
-            right: -15,
-            top: 8,
-            bottom: 8,
-            child: Container(
-              width: 145,
-              height: 145,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 14,
-                    offset: const Offset(-4, 6),
-                  ),
-                ],
-              ),
-              child: ClipOval(
-                child: CachedNetworkImage(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=400&q=80',
-                  fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => const Icon(
-                    Icons.restaurant,
-                    color: Colors.white54,
-                    size: 40,
-                  ),
-                ),
-              ),
             ),
           ),
         ],
@@ -670,92 +799,86 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 3. Four Modern Categories (Burger, Chicken, Fries, Drink)
+  // 3. Categories Horizontal Carousel (All, Burger, Pizza, Sushi, Chicken)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildModernFourCategories(bool isDark) {
-    return Row(
-      children: List.generate(_quickCategories.length, (index) {
-        final cat = _quickCategories[index];
-        final isSelected = _selectedQuickCategoryIndex == index;
+    return SizedBox(
+      height: 86,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _quickCategories.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final cat = _quickCategories[index];
+          final isSelected = _selectedQuickCategoryIndex == index;
 
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: index == 0 ? 0 : 5,
-              right: index == _quickCategories.length - 1 ? 0 : 5,
-            ),
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  if (_selectedQuickCategoryIndex == index) {
-                    _selectedQuickCategoryIndex = null;
-                  } else {
-                    _selectedQuickCategoryIndex = index;
-                  }
-                });
-              },
-              borderRadius: BorderRadius.circular(18),
-              child: Container(
-                height: 84,
-                decoration: BoxDecoration(
+          return InkWell(
+            onTap: () {
+              setState(() {
+                if (_selectedQuickCategoryIndex == index) {
+                  _selectedQuickCategoryIndex = 0;
+                } else {
+                  _selectedQuickCategoryIndex = index;
+                }
+              });
+            },
+            borderRadius: BorderRadius.circular(18),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 74,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF43A047)
+                    : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
                   color: isSelected
-                      ? (isDark
-                            ? const Color(0xFF263320)
-                            : const Color(0xFFF3FAD5))
-                      : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
+                      ? const Color(0xFF43A047)
+                      : (isDark ? Colors.white10 : const Color(0xFFEEEEEE)),
+                  width: isSelected ? 1.5 : 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
                     color: isSelected
-                        ? const Color(0xFF8CD802)
-                        : (isDark ? Colors.white10 : const Color(0xFFEEEEEE)),
-                    width: isSelected ? 1.5 : 1,
+                        ? const Color(0x4043A047)
+                        : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                    blurRadius: isSelected ? 10 : 8,
+                    offset: const Offset(0, 3),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(
-                        alpha: isDark ? 0.2 : 0.04,
-                      ),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      cat['icon'] as IconData,
-                      size: 28,
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    cat['icon'] as IconData,
+                    size: 28,
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    cat['name'] as String,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected
+                          ? FontWeight.w800
+                          : FontWeight.w600,
                       color: isSelected
-                          ? (isDark
-                                ? GlassTheme.limeAccent
-                                : const Color(0xFF4D7C0F))
-                          : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : const Color(0xFF616161)),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      cat['name'] as String,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: isSelected
-                            ? (isDark ? Colors.white : Colors.black)
-                            : (isDark
-                                  ? Colors.white70
-                                  : const Color(0xFF757575)),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
     );
   }
 
@@ -798,9 +921,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildRecommendedGrid(BuildContext context, bool isDark) {
     var list = _recommendedDishes;
-    if (_selectedQuickCategoryIndex != null) {
-      final selectedCat =
-          _quickCategories[_selectedQuickCategoryIndex!]['name'] as String;
+    final selectedCat =
+        _quickCategories[_selectedQuickCategoryIndex]['name'] as String;
+    if (selectedCat != 'All') {
       final filtered = list.where((d) => d['category'] == selectedCat).toList();
       if (filtered.isNotEmpty) {
         list = filtered;

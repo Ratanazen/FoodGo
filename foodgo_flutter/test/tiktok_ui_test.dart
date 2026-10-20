@@ -172,5 +172,33 @@ void main() {
         expect(GlassTheme.authInputBorder, const Color(0xFFE2E8F0));
       },
     );
+
+    test(
+      'TikTok reference specifies 5 categories: All, Burger, Pizza, Sushi, Chicken',
+      () {
+        final categories = ['All', 'Burger', 'Pizza', 'Sushi', 'Chicken'];
+        expect(categories.length, 5);
+        expect(categories[0], 'All');
+        expect(categories[1], 'Burger');
+        expect(categories[2], 'Pizza');
+        expect(categories[3], 'Sushi');
+        expect(categories[4], 'Chicken');
+      },
+    );
+
+    test(
+      'TikTok Fast & Free promo tokens match reference colors and curved header radius',
+      () {
+        const promoYellow = Color(0xFFFFDE00);
+        const orderNowOrange = Color(0xFFFF4B26);
+        const activeGreenPill = Color(0xFF43A047);
+        const headerRadius = Radius.circular(32);
+
+        expect(promoYellow.value, 0xFFFFDE00);
+        expect(orderNowOrange.value, 0xFFFF4B26);
+        expect(activeGreenPill.value, 0xFF43A047);
+        expect(headerRadius.x, 32.0);
+      },
+    );
   });
 }

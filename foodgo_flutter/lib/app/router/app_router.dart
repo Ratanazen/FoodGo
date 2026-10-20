@@ -28,7 +28,6 @@ import '../../features/profile/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/edit_profile_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/addresses/presentation/addresses_screen.dart';
-import '../../features/wallet/presentation/wallet_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../screens/map_screen.dart';
 import '../../features/dashboard/presentation/restaurant_dashboard_screen.dart';
@@ -287,22 +286,8 @@ final GoRouter appRouter = GoRouter(
         type: PageTransitionType.slideUp,
       ),
     ),
-    GoRoute(
-      path: '/wallet',
-      pageBuilder: (context, state) => _buildPage(
-        state: state,
-        child: const WalletScreen(),
-        type: PageTransitionType.slideUp,
-      ),
-    ),
-    GoRoute(
-      path: '/payments',
-      pageBuilder: (context, state) => _buildPage(
-        state: state,
-        child: const WalletScreen(),
-        type: PageTransitionType.slideUp,
-      ),
-    ),
+    GoRoute(path: '/wallet', redirect: (context, state) => '/profile'),
+    GoRoute(path: '/payments', redirect: (context, state) => '/orders'),
     GoRoute(
       path: '/settings',
       pageBuilder: (context, state) => _buildPage(

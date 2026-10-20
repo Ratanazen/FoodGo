@@ -266,7 +266,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: const Icon(
-                                Icons.account_balance_wallet,
+                                Icons.payments_outlined,
                                 color: GlassTheme.primaryGreen,
                                 size: 28,
                               ),

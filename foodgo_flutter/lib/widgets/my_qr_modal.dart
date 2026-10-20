@@ -478,7 +478,7 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'FoodGo Digital Wallet · $_userName',
+                            'FoodGo KHQR Pay Me · $_userName',
                             style: const TextStyle(
                               color: Colors.black54,
                               fontSize: 11,
@@ -550,7 +550,7 @@ class _MyQrSheetState extends State<_MyQrSheet> {
                               messenger.showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '+\$${amtToCredit.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(amtToCredit)}) credited to wallet!',
+                                    '+\$${amtToCredit.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(amtToCredit)}) received successfully!',
                                   ),
                                   backgroundColor: GlassTheme.primaryGreen,
                                   behavior: SnackBarBehavior.floating,

@@ -61,6 +61,224 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  void _showPaymentMethodsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SafeArea(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.88,
+          ),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: GlassTheme.dialogDark,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.payment_outlined,
+                    color: GlassTheme.primaryGreen,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Payment Methods',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'FoodGo supports secure banking rails and cash on delivery in Cambodia.',
+              style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.qr_code_2,
+                  color: Colors.redAccent,
+                  size: 22,
+                ),
+              ),
+              title: const Text(
+                'Bakong KHQR (National Bank of Cambodia)',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              subtitle: const Text(
+                'Universal QR in USD & KHR across all member banks',
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.cyanAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.account_balance,
+                  color: Colors.cyanAccent,
+                  size: 20,
+                ),
+              ),
+              title: const Text(
+                'ABA Mobile KHQR / PayWay',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              subtitle: const Text(
+                'Direct scan-to-pay via ABA Mobile app',
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.credit_card,
+                  color: Colors.blueAccent,
+                  size: 20,
+                ),
+              ),
+              title: const Text(
+                'ACLEDA Bank KHQR / x-Pay',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              subtitle: const Text(
+                'Instant payment via ACLEDA Mobile banking',
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.amberAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.payments_outlined,
+                  color: Colors.amberAccent,
+                  size: 22,
+                ),
+              ),
+              title: const Text(
+                'Cash on Delivery (COD)',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              subtitle: const Text(
+                'Pay cash directly to driver upon order arrival',
+                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      context.push('/orders');
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('View Orders & Receipts'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlassTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Close'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -202,12 +420,12 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               ],
                               const SizedBox(height: 18),
-                              // Quick Action Shortcuts: Wallet, Orders, KHQR
+                              // Quick Action Shortcuts: Addresses, Orders, KHQR
                               Row(
                                 children: [
                                   Expanded(
                                     child: InkWell(
-                                      onTap: () => context.push('/wallet'),
+                                      onTap: () => context.push('/addresses'),
                                       borderRadius: BorderRadius.circular(16),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
@@ -229,14 +447,13 @@ class ProfileScreen extends StatelessWidget {
                                         child: const Column(
                                           children: [
                                             Icon(
-                                              Icons
-                                                  .account_balance_wallet_outlined,
+                                              Icons.location_on_outlined,
                                               color: GlassTheme.limeAccent,
                                               size: 22,
                                             ),
                                             SizedBox(height: 6),
                                             Text(
-                                              'Wallet',
+                                              'Addresses',
                                               style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 12,
@@ -447,9 +664,24 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _ProfileOption(
-              icon: Icons.account_balance_wallet_outlined,
-              title: 'Digital Wallet & KHQR Top-Up',
-              onTap: () => context.push('/wallet'),
+              icon: Icons.person_outline,
+              title: 'Edit Profile',
+              onTap: () => context.push('/edit-profile'),
+            ),
+            _ProfileOption(
+              icon: Icons.receipt_long_outlined,
+              title: 'My Orders',
+              onTap: () => context.push('/orders'),
+            ),
+            _ProfileOption(
+              icon: Icons.payment_outlined,
+              title: 'Payment Methods',
+              onTap: () => _showPaymentMethodsModal(context),
+            ),
+            _ProfileOption(
+              icon: Icons.location_on_outlined,
+              title: 'Saved Addresses',
+              onTap: () => context.push('/addresses'),
             ),
             _ProfileOption(
               icon: Icons.qr_code_2,
@@ -461,19 +693,9 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
             _ProfileOption(
-              icon: Icons.person_outline,
-              title: 'Edit Profile',
-              onTap: () => context.push('/edit-profile'),
-            ),
-            _ProfileOption(
               icon: Icons.notifications_outlined,
               title: 'Notifications',
               onTap: () => context.push('/notifications'),
-            ),
-            _ProfileOption(
-              icon: Icons.location_on_outlined,
-              title: 'Saved Addresses',
-              onTap: () => context.push('/addresses'),
             ),
             _ProfileOption(
               icon: Icons.favorite_outline,

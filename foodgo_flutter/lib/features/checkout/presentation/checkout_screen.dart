@@ -24,7 +24,7 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedProvider =
-      'WALLET'; // 'WALLET', 'BAKONG', 'ABA', 'ACLEDA', 'COD'
+      'BAKONG'; // 'BAKONG', 'ABA', 'ACLEDA', 'COD', 'WALLET'
   bool _isProcessing = false;
   int? _selectedDriverId; // null = Auto-assign fastest driver
   List<Map<String, dynamic>> _availableDrivers = [];
@@ -310,24 +310,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Your digital wallet balance is \$${_walletBalance.toStringAsFixed(2)}, but order total is \$${total.toStringAsFixed(2)}.',
+              'Your account balance is \$${_walletBalance.toStringAsFixed(2)}, but order total is \$${total.toStringAsFixed(2)}.',
               style: TextStyle(color: GlassTheme.textMuted, fontSize: 14),
             ),
             const SizedBox(height: 12),
             const Text(
-              'Would you like to top up your account balance or select another payment method?',
+              'Please select another payment method such as Bakong KHQR, ABA, ACLEDA, or Cash on Delivery.',
               style: TextStyle(color: Colors.white70, fontSize: 13),
             ),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              setState(() => _selectedProvider = 'BAKONG');
-            },
+            onPressed: () => Navigator.pop(ctx),
             child: const Text(
-              'Pay via KHQR',
+              'Cancel',
               style: TextStyle(color: Colors.white70),
             ),
           ),
@@ -337,10 +334,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             onPressed: () {
               Navigator.pop(ctx);
-              context.push('/wallet');
+              setState(() => _selectedProvider = 'BAKONG');
             },
             child: const Text(
-              'Top Up Wallet',
+              'Pay via Bakong KHQR',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -990,8 +987,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 12),
 
               // 1. FoodGo Digital Wallet (Integrated Fintech)
+              // 1. FoodGo Account Balance (Direct Instant Pay)
               _PaymentOptionTile(
-                title: 'FoodGo Digital Wallet (កាបូបលុយ)',
+                title: 'FoodGo Balance (សមតុល្យគណនី)',
                 subtitle: _isLoadingWallet
                     ? 'Checking account balance...'
                     : 'Balance: \$${_walletBalance.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(_walletBalance)}) • 1-Tap Pay',
@@ -1000,36 +998,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 isSelected: _selectedProvider == 'WALLET',
                 badge: _walletBalance >= cart.grandTotal
                     ? 'INSTANT PAY'
-                    : 'TOP UP',
+                    : 'LOW BALANCE',
                 badgeColor: _walletBalance >= cart.grandTotal
                     ? GlassTheme.primaryGreen
-                    : Colors.amber,
+                    : Colors.white24,
                 onTap: () => setState(() => _selectedProvider = 'WALLET'),
-                trailingAction: _walletBalance < cart.grandTotal
-                    ? InkWell(
-                        onTap: () => context.push('/wallet'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.2,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Top Up',
-                            style: TextStyle(
-                              color: GlassTheme.primaryGreen,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      )
-                    : null,
               ),
               const SizedBox(height: 10),
 
@@ -1094,7 +1067,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 buttonIcon = Icons.hourglass_empty;
               } else if (_selectedProvider == 'WALLET') {
                 buttonText =
-                    'Pay \$${total.toStringAsFixed(2)} with FoodGo Wallet';
+                    'Pay \$${total.toStringAsFixed(2)} with FoodGo Balance';
                 buttonIcon = Icons.flash_on;
               } else if (_selectedProvider == 'COD') {
                 buttonText = 'Place Cash on Delivery Order';
@@ -1204,7 +1177,6 @@ class _PaymentOptionTile extends StatelessWidget {
   final bool isSelected;
   final String? badge;
   final Color? badgeColor;
-  final Widget? trailingAction;
   final VoidCallback onTap;
 
   const _PaymentOptionTile({
@@ -1216,7 +1188,6 @@ class _PaymentOptionTile extends StatelessWidget {
     required this.isSelected,
     this.badge,
     this.badgeColor,
-    this.trailingAction,
     required this.onTap,
   });
 
@@ -1291,10 +1262,6 @@ class _PaymentOptionTile extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailingAction != null) ...[
-                trailingAction!,
-                const SizedBox(width: 8),
-              ],
               Icon(
                 isSelected
                     ? Icons.radio_button_checked

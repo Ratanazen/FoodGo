@@ -1095,7 +1095,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
               SizedBox(height: 4),
               Text(
-                'Cancelled orders or reported missing items are refunded back to your FoodGo Wallet or original payment method within 2-4 business hours.',
+                'Cancelled orders or reported missing items are refunded back to your original payment method within 2-4 business hours.',
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               SizedBox(height: 14),

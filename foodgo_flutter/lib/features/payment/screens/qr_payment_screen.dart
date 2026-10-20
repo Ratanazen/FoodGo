@@ -675,6 +675,287 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     );
   }
 
+  Widget _buildLiveTimeCard() {
+    final isLowTime = _secondsRemaining < 120;
+    final progress = (_secondsRemaining / 900.0).clamp(0.0, 1.0);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isLowTime
+            ? Colors.redAccent.withValues(alpha: 0.12)
+            : GlassTheme.primaryGreen.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isLowTime
+              ? Colors.redAccent.withValues(alpha: 0.45)
+              : GlassTheme.primaryGreen.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        color: isLowTime
+                            ? Colors.redAccent
+                            : GlassTheme.primaryGreen,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isLowTime
+                                    ? Colors.redAccent
+                                    : GlassTheme.primaryGreen)
+                                .withValues(alpha: 0.6),
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'LIVE TIME',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: isLowTime
+                              ? Colors.redAccent
+                              : GlassTheme.primaryGreen,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.sensors,
+                      size: 13,
+                      color: GlassTheme.primaryGreen,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'Live WebSocket',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.timer_outlined,
+                color: isLowTime ? Colors.redAccent : Colors.white,
+                size: 26,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _formatTimer(_secondsRemaining),
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  color: isLowTime ? Colors.redAccent : Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 5,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isLowTime ? Colors.redAccent : GlassTheme.primaryGreen,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isLowTime
+                ? 'Session expiring soon. Please confirm in your mobile banking app.'
+                : 'Scanned payment is verified automatically in real time.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isLowTime ? Colors.redAccent : Colors.white70,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSupportedBanksCard() {
+    const banks = [
+      {
+        'name': 'Bakong',
+        'sub': 'NBC Rail',
+        'color': Color(0xFFE12326),
+        'icon': Icons.account_balance,
+      },
+      {
+        'name': 'ABA Bank',
+        'sub': 'ABA Mobile',
+        'color': Color(0xFF004B87),
+        'icon': Icons.account_balance_rounded,
+      },
+      {
+        'name': 'ACLEDA',
+        'sub': 'ACLEDA Mobile',
+        'color': Color(0xFF1E3A8A),
+        'icon': Icons.account_balance_outlined,
+      },
+      {
+        'name': 'Wing Bank',
+        'sub': 'Wing App',
+        'color': Color(0xFF00A859),
+        'icon': Icons.payments_rounded,
+      },
+      {
+        'name': 'Canadia',
+        'sub': 'Canadia App',
+        'color': Color(0xFFC8102E),
+        'icon': Icons.account_balance,
+      },
+      {
+        'name': 'Sathapana',
+        'sub': 'Mobile',
+        'color': Color(0xFF003366),
+        'icon': Icons.savings_outlined,
+      },
+      {
+        'name': 'TrueMoney',
+        'sub': 'Wallet',
+        'color': Color(0xFFFF6600),
+        'icon': Icons.account_balance_wallet_outlined,
+      },
+      {
+        'name': 'Prince Bank',
+        'sub': 'Mobile',
+        'color': Color(0xFF1A2B4C),
+        'icon': Icons.account_balance_outlined,
+      },
+    ];
+
+    return GlassContainer(
+      padding: const EdgeInsets.all(16),
+      borderRadius: GlassTheme.borderRadiusSmall,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(
+                Icons.account_balance_rounded,
+                size: 18,
+                color: GlassTheme.primaryGreen,
+              ),
+              SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Supported Banks & Apps (ធនាគារស្កេនបាន)',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Scan this KHQR with any Cambodian mobile banking app:',
+            style: TextStyle(color: Colors.white70, fontSize: 11),
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: banks.map((b) {
+                final Color bColor = b['color'] as Color;
+                return Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: bColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: bColor.withValues(alpha: 0.45)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(b['icon'] as IconData, size: 16, color: bColor),
+                      const SizedBox(width: 6),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            b['name'] as String,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            b['sub'] as String,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 9,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSuccessCard(PaymentModel payment) {
     return GlassContainer(
       padding: const EdgeInsets.all(24),
@@ -1120,33 +1401,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                               ),
                               const SizedBox(height: 16),
 
-                              // Countdown Timer
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.timer_outlined,
-                                    color: _secondsRemaining < 120
-                                        ? Colors.redAccent
-                                        : Colors.orangeAccent,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Text(
-                                      'Payment expires in: ${_formatTimer(_secondsRemaining)}',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: _secondsRemaining < 120
-                                            ? Colors.redAccent
-                                            : Colors.orangeAccent,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              // Live Time Real-Time Status & Countdown
+                              _buildLiveTimeCard(),
                               const SizedBox(height: 16),
 
                               // Copy KHQR Payload Button
@@ -1296,6 +1552,14 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         ),
                       ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
                       const SizedBox(height: 16),
+
+                      // Supported Banks Showcase (Active State)
+                      if (isSessionActive) ...[
+                        _buildSupportedBanksCard()
+                            .animate()
+                            .fadeIn(duration: 400.ms, delay: 100.ms),
+                        const SizedBox(height: 16),
+                      ],
 
                       // 3-Step Instruction Card (Active State)
                       if (isSessionActive) ...[

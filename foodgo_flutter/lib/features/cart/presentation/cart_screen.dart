@@ -625,13 +625,17 @@ class _CartScreenState extends State<CartScreen> {
                 },
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Proceed to Checkout',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
+                    Flexible(
+                      child: Text(
+                        'Proceed to Checkout',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                     SizedBox(width: 8),

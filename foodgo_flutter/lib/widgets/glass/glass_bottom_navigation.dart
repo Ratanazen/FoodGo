@@ -22,6 +22,7 @@ class GlassBottomNavigation extends StatelessWidget {
 
     return Align(
       alignment: Alignment.bottomCenter,
+      heightFactor: 1.0,
       child: SafeArea(
         top: false,
         child: ConstrainedBox(

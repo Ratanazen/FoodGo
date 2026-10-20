@@ -200,6 +200,20 @@ void main() {
         // QR Code widget verification
         expect(find.byType(QrImageView), findsOneWidget);
 
+        // Live Time Card verification
+        expect(find.text('LIVE TIME'), findsOneWidget);
+        expect(find.text('Live WebSocket'), findsOneWidget);
+
+        // Supported Banks Showcase verification
+        expect(
+          find.text('Supported Banks & Apps (ធនាគារស្កេនបាន)'),
+          findsOneWidget,
+        );
+        expect(find.text('Bakong'), findsOneWidget);
+        expect(find.text('ABA Bank'), findsOneWidget);
+        expect(find.text('ACLEDA'), findsOneWidget);
+        expect(find.text('Wing Bank'), findsOneWidget);
+
         // Action buttons
         expect(find.text('Check Payment Status'), findsOneWidget);
         expect(find.text('Simulate Webhook Pay (Test Mode)'), findsOneWidget);

@@ -581,12 +581,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       size: 18,
                     ),
                     SizedBox(width: 8),
-                    Text(
-                      'Estimated Delivery Time: 25 - 35 mins',
-                      style: TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        'Estimated Delivery Time: 25 - 35 mins',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: GlassTheme.primaryGreen,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -626,9 +629,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Choose Delivery Driver',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  const Flexible(
+                    child: Text(
+                      'Choose Delivery Driver',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   if (_selectedDriverId != null)
                     TextButton(
@@ -674,11 +680,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           children: [
                             Row(
                               children: [
-                                const Text(
-                                  'Fastest Available Driver',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                const Flexible(
+                                  child: Text(
+                                    'Fastest Available Driver',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -1048,12 +1057,108 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 isSelected: _selectedProvider == 'COD',
                 onTap: () => setState(() => _selectedProvider = 'COD'),
               ),
+              if (_selectedProvider == 'BAKONG' ||
+                  _selectedProvider == 'ABA' ||
+                  _selectedProvider == 'ACLEDA') ...[
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: GlassTheme.primaryGreen,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Flexible(
+                            child: Text(
+                              'Live Real-Time KHQR Active',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: GlassTheme.primaryGreen,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.timer_outlined,
+                                  size: 12,
+                                  color: Colors.white70,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  '15m Session',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Generates a dynamic KHQR code with live WebSocket status. Supported by all Cambodian banking apps:',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                      const SizedBox(height: 10),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildCheckoutBankChip('Bakong', const Color(0xFFE12326)),
+                            _buildCheckoutBankChip('ABA Bank', const Color(0xFF004B87)),
+                            _buildCheckoutBankChip('ACLEDA', const Color(0xFF1E3A8A)),
+                            _buildCheckoutBankChip('Wing', const Color(0xFF00A859)),
+                            _buildCheckoutBankChip('Canadia', const Color(0xFFC8102E)),
+                            _buildCheckoutBankChip('Sathapana', const Color(0xFF003366)),
+                            _buildCheckoutBankChip('TrueMoney', const Color(0xFFFF6600)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 80),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: Center(
+      bottomNavigationBar: Align(
+        alignment: Alignment.bottomCenter,
+        heightFactor: 1.0,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
           child: Consumer<CartProvider>(
@@ -1073,13 +1178,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 buttonText = 'Place Cash on Delivery Order';
                 buttonIcon = Icons.delivery_dining;
               } else if (_selectedProvider == 'BAKONG') {
-                buttonText = 'Proceed to Pay with Bakong KHQR';
+                buttonText = 'Proceed to Pay with Bakong KHQR (Live)';
                 buttonIcon = Icons.qr_code_2;
               } else if (_selectedProvider == 'ABA') {
-                buttonText = 'Proceed to Pay with ABA KHQR';
+                buttonText = 'Proceed to Pay with ABA KHQR (Live)';
                 buttonIcon = Icons.qr_code_2;
               } else {
-                buttonText = 'Proceed to Pay with ACLEDA KHQR';
+                buttonText = 'Proceed to Pay with ACLEDA KHQR (Live)';
                 buttonIcon = Icons.qr_code_scanner;
               }
 
@@ -1166,6 +1271,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
     );
   }
+
+  Widget _buildCheckoutBankChip(String name, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        name,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
 }
 
 class _PaymentOptionTile extends StatelessWidget {
@@ -1220,11 +1345,14 @@ class _PaymentOptionTile extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                        Flexible(
+                          child: Text(
+                            title,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         if (badge != null) ...[

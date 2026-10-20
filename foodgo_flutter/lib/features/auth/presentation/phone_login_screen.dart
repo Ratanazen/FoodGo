@@ -102,28 +102,39 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Center(
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFF13231B),
-                            border: Border.all(
-                              color: GlassTheme.primaryGreen.withValues(alpha: 0.55),
-                              width: 2.0,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: GlassTheme.primaryGreen.withValues(alpha: 0.25),
-                                blurRadius: 22,
-                                spreadRadius: 2,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF13231B),
+                                border: Border.all(
+                                  color: GlassTheme.primaryGreen.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                  width: 2.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: GlassTheme.primaryGreen.withValues(
+                                      alpha: 0.25,
+                                    ),
+                                    blurRadius: 22,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
                               ),
-                            ],
+                              padding: const EdgeInsets.all(10),
+                              child: const FoodGoLogo(size: 60),
+                            ),
+                          )
+                          .animate()
+                          .fade(duration: 400.ms)
+                          .scale(
+                            begin: const Offset(0.9, 0.9),
+                            end: const Offset(1, 1),
+                            curve: Curves.easeOutBack,
                           ),
-                          padding: const EdgeInsets.all(10),
-                          child: const FoodGoLogo(size: 60),
-                        ),
-                      ).animate().fade(duration: 400.ms).scale(begin: const Offset(0.9, 0.9), end: const Offset(1, 1), curve: Curves.easeOutBack),
                       const SizedBox(height: 16),
                       Text(
                         _otpSent ? 'Enter OTP' : 'Enter Mobile Number',

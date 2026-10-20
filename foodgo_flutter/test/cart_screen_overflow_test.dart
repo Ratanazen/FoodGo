@@ -10,7 +10,9 @@ import 'package:foodgo_flutter/providers/user_provider.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
-  testWidgets('CartScreen renders on compact mobile without overflow', (tester) async {
+  testWidgets('CartScreen renders on compact mobile without overflow', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(360, 640);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -19,7 +21,14 @@ void main() {
     });
 
     final cartProvider = CartProvider();
-    cartProvider.addItem(1, 'Cheeseburger Deluxe', 10.0, '', restaurantId: 1, restaurantName: 'Burger Joint');
+    cartProvider.addItem(
+      1,
+      'Cheeseburger Deluxe',
+      10.0,
+      '',
+      restaurantId: 1,
+      restaurantName: 'Burger Joint',
+    );
 
     final router = GoRouter(
       initialLocation: '/cart',
@@ -27,11 +36,26 @@ void main() {
         ShellRoute(
           builder: (context, state, child) => MainScreenShell(child: child),
           routes: [
-            GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
-            GoRoute(path: '/home', builder: (context, state) => const Scaffold()),
-            GoRoute(path: '/favorites', builder: (context, state) => const Scaffold()),
-            GoRoute(path: '/explore', builder: (context, state) => const Scaffold()),
-            GoRoute(path: '/profile', builder: (context, state) => const Scaffold()),
+            GoRoute(
+              path: '/cart',
+              builder: (context, state) => const CartScreen(),
+            ),
+            GoRoute(
+              path: '/home',
+              builder: (context, state) => const Scaffold(),
+            ),
+            GoRoute(
+              path: '/favorites',
+              builder: (context, state) => const Scaffold(),
+            ),
+            GoRoute(
+              path: '/explore',
+              builder: (context, state) => const Scaffold(),
+            ),
+            GoRoute(
+              path: '/profile',
+              builder: (context, state) => const Scaffold(),
+            ),
           ],
         ),
       ],
@@ -41,13 +65,13 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<CartProvider>.value(value: cartProvider),
-          ChangeNotifierProvider<CurrencyProvider>(create: (_) => CurrencyProvider()),
+          ChangeNotifierProvider<CurrencyProvider>(
+            create: (_) => CurrencyProvider(),
+          ),
           ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
           ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
         ],
-        child: MaterialApp.router(
-          routerConfig: router,
-        ),
+        child: MaterialApp.router(routerConfig: router),
       ),
     );
 

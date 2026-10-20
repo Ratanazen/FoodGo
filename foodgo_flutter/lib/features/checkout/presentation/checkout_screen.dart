@@ -633,7 +633,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Text(
                       'Choose Delivery Driver',
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   if (_selectedDriverId != null)
@@ -1137,13 +1140,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildCheckoutBankChip('Bakong', const Color(0xFFE12326)),
-                            _buildCheckoutBankChip('ABA Bank', const Color(0xFF004B87)),
-                            _buildCheckoutBankChip('ACLEDA', const Color(0xFF1E3A8A)),
-                            _buildCheckoutBankChip('Wing', const Color(0xFF00A859)),
-                            _buildCheckoutBankChip('Canadia', const Color(0xFFC8102E)),
-                            _buildCheckoutBankChip('Sathapana', const Color(0xFF003366)),
-                            _buildCheckoutBankChip('TrueMoney', const Color(0xFFFF6600)),
+                            _buildCheckoutBankChip(
+                              'Bakong',
+                              const Color(0xFFE12326),
+                            ),
+                            _buildCheckoutBankChip(
+                              'ABA Bank',
+                              const Color(0xFF004B87),
+                            ),
+                            _buildCheckoutBankChip(
+                              'ACLEDA',
+                              const Color(0xFF1E3A8A),
+                            ),
+                            _buildCheckoutBankChip(
+                              'Wing',
+                              const Color(0xFF00A859),
+                            ),
+                            _buildCheckoutBankChip(
+                              'Canadia',
+                              const Color(0xFFC8102E),
+                            ),
+                            _buildCheckoutBankChip(
+                              'Sathapana',
+                              const Color(0xFF003366),
+                            ),
+                            _buildCheckoutBankChip(
+                              'TrueMoney',
+                              const Color(0xFFFF6600),
+                            ),
                           ],
                         ),
                       ),

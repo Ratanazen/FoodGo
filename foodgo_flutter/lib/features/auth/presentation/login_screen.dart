@@ -28,7 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _loginErrorMessage;
   String? _selectedAccountRole;
 
-
   @override
   void initState() {
     super.initState();
@@ -389,7 +388,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white70 : const Color(0xFF334155),
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF334155),
                         ),
                       ),
                     ),
@@ -410,31 +411,19 @@ class _LoginScreenState extends State<LoginScreen> {
           Row(
             children: [
               Expanded(
-                child: _buildDemoAccountChip(
-                  acc: accounts[0],
-                  isDark: isDark,
-                ),
+                child: _buildDemoAccountChip(acc: accounts[0], isDark: isDark),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: _buildDemoAccountChip(
-                  acc: accounts[1],
-                  isDark: isDark,
-                ),
+                child: _buildDemoAccountChip(acc: accounts[1], isDark: isDark),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: _buildDemoAccountChip(
-                  acc: accounts[2],
-                  isDark: isDark,
-                ),
+                child: _buildDemoAccountChip(acc: accounts[2], isDark: isDark),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: _buildDemoAccountChip(
-                  acc: accounts[3],
-                  isDark: isDark,
-                ),
+                child: _buildDemoAccountChip(acc: accounts[3], isDark: isDark),
               ),
             ],
           ),
@@ -461,9 +450,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Loaded ${acc['role']} account: ${acc['username']}',
-            ),
+            content: Text('Loaded ${acc['role']} account: ${acc['username']}'),
             duration: const Duration(seconds: 2),
             backgroundColor: accColor,
             behavior: SnackBarBehavior.floating,
@@ -588,9 +575,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 10),
 
                       // Quick Demo Accounts Card (Tap to Autofill)
-                      _buildQuickAccountsCard(isDark)
-                          .animate()
-                          .fade(delay: 220.ms),
+                      _buildQuickAccountsCard(
+                        isDark,
+                      ).animate().fade(delay: 220.ms),
 
                       const SizedBox(height: 10),
 

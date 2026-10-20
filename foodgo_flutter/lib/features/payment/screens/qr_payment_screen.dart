@@ -711,10 +711,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: (isLowTime
-                                    ? Colors.redAccent
-                                    : GlassTheme.primaryGreen)
-                                .withValues(alpha: 0.6),
+                            color:
+                                (isLowTime
+                                        ? Colors.redAccent
+                                        : GlassTheme.primaryGreen)
+                                    .withValues(alpha: 0.6),
                             blurRadius: 6,
                             spreadRadius: 1,
                           ),
@@ -1555,9 +1556,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
 
                       // Supported Banks Showcase (Active State)
                       if (isSessionActive) ...[
-                        _buildSupportedBanksCard()
-                            .animate()
-                            .fadeIn(duration: 400.ms, delay: 100.ms),
+                        _buildSupportedBanksCard().animate().fadeIn(
+                          duration: 400.ms,
+                          delay: 100.ms,
+                        ),
                         const SizedBox(height: 16),
                       ],
 

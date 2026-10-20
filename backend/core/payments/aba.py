@@ -8,6 +8,7 @@ import logging
 from datetime import timedelta
 from django.utils import timezone
 from .base import PaymentProvider
+from .utils import build_emvco_khqr
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,8 @@ class ABAKHQRProvider(PaymentProvider):
         self.enabled = os.environ.get("ABA_ENABLED", "True").lower() in ("true", "1", "yes")
         self.payment_env = os.environ.get("PAYMENT_ENV", "sandbox")
         self.merchant_id = os.environ.get("ABA_MERCHANT_ID", "foodgo_merchant_01")
+        self.merchant_name = os.environ.get("ABA_MERCHANT_NAME", "FoodGo Restaurant")
+        self.merchant_city = os.environ.get("ABA_MERCHANT_CITY", "Phnom Penh")
         self.api_key = os.environ.get("ABA_API_KEY", "mock_aba_api_key")
         self.api_secret = os.environ.get("ABA_API_SECRET", "mock_aba_secret_key")
         self.api_url = os.environ.get("ABA_API_URL", "https://checkout-sandbox.payway.com.kh/api/payment-gateway/v1/payments/purchase")
@@ -30,17 +33,24 @@ class ABAKHQRProvider(PaymentProvider):
         ).digest()
         return base64.b64encode(signature).decode('utf-8')
 
-    def generate_khqr(self, merchant_ref: str, amount, currency: str = "USD") -> str:
-        currency_code = "840" if currency.upper() == "USD" else "116"
-        formatted_amount = f"{int(float(amount))}" if currency.upper() == "KHR" else f"{float(amount):.2f}"
-        return f"00020101021229380016abaakhppxxx@abaa0110{self.merchant_id}520458125303{currency_code}54{len(formatted_amount):02d}{formatted_amount}5802KH5912FoodGo_Order6010Phnom_Penh62{len(merchant_ref):02d}{merchant_ref}6304ABCD"
+    def generate_khqr(self, merchant_ref: str, amount, currency: str = "USD") -> tuple[str, str]:
+        return build_emvco_khqr(
+            account_id=self.merchant_id,
+            merchant_name=self.merchant_name,
+            merchant_city=self.merchant_city,
+            merchant_ref=merchant_ref,
+            amount=amount,
+            currency=currency,
+            acquiring_bank_guid="abaakhppxxx@abaa",
+            merchant_category_code="5812"
+        )
 
     def create_payment(self, order, amount, currency: str = "USD", **kwargs):
         merchant_ref = f"FG-ABA-{order.id}-{int(time.time())}"
         expires_at = timezone.now() + timedelta(minutes=5)
         
         # Bakong / ABA Dynamic KHQR payload structure according to NBC KHQR standard
-        qr_string = self.generate_khqr(merchant_ref=merchant_ref, amount=amount, currency=currency)
+        qr_string, md5_hash = self.generate_khqr(merchant_ref=merchant_ref, amount=amount, currency=currency)
 
         provider_response = {
             "merchant_id": self.merchant_id,
@@ -48,6 +58,7 @@ class ABAKHQRProvider(PaymentProvider):
             "amount": str(amount),
             "currency": currency,
             "qr_string": qr_string,
+            "md5": md5_hash,
             "environment": self.payment_env,
             "status": "PENDING"
         }

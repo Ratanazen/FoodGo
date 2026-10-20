@@ -5,6 +5,8 @@ import 'package:foodgo_flutter/providers/admin_provider.dart';
 import 'package:foodgo_flutter/providers/cart_provider.dart';
 import 'package:foodgo_flutter/providers/user_provider.dart';
 import 'package:foodgo_flutter/features/admin/presentation/admin_dashboard_screen.dart';
+import 'package:foodgo_flutter/features/payment/models/payment_model.dart';
+import 'package:foodgo_flutter/features/payment/screens/qr_payment_screen.dart';
 
 class MockAdminProvider extends AdminProvider {
   @override
@@ -12,6 +14,9 @@ class MockAdminProvider extends AdminProvider {
 
   @override
   Future<void> fetchOrders({String? status, String? search}) async {}
+
+  @override
+  Future<void> fetchPayments({String? status, String? search}) async {}
 
   @override
   Future<void> fetchUsers({String? role, String? search}) async {}
@@ -35,6 +40,7 @@ void main() {
       expect(admin.orderStatusFilter, 'all');
       expect(admin.userRoleFilter, 'all');
       expect(admin.orders, isEmpty);
+      expect(admin.payments, isEmpty);
       expect(admin.users, isEmpty);
       expect(admin.restaurants, isEmpty);
       expect(admin.auditLogs, isEmpty);
@@ -66,7 +72,7 @@ void main() {
   });
 
   group('AdminDashboardScreen Widget Tests', () {
-    testWidgets('Renders Admin Dashboard with 5 tabs', (tester) async {
+    testWidgets('Renders Admin Dashboard with 6 tabs', (tester) async {
       final mockAdmin = MockAdminProvider();
       await tester.pumpWidget(
         MultiProvider(
@@ -77,14 +83,16 @@ void main() {
           child: const MaterialApp(home: AdminDashboardScreen()),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // Verify the screen title
       expect(find.text('Admin Console'), findsOneWidget);
 
-      // Verify all 5 tab labels are rendered
+      // Verify all 6 tab labels are rendered
       expect(find.text('Overview'), findsOneWidget);
       expect(find.text('Orders'), findsOneWidget);
+      expect(find.text('Payments'), findsOneWidget);
       expect(find.text('Users'), findsOneWidget);
       expect(find.text('Restaurants'), findsOneWidget);
       expect(find.text('Audit Logs'), findsOneWidget);
@@ -94,6 +102,44 @@ void main() {
       expect(find.text('7 Days'), findsOneWidget);
       expect(find.text('30 Days'), findsOneWidget);
       expect(find.text('All Time'), findsOneWidget);
+    });
+  });
+
+  group('QRPaymentScreen Widget Tests', () {
+    testWidgets('Renders Scan to Pay title, summary, and 3-step instructions', (
+      tester,
+    ) async {
+      final payment = PaymentModel(
+        id: 101,
+        orderId: 42,
+        amount: 25.50,
+        currency: 'USD',
+        provider: 'ABA',
+        method: 'KHQR',
+        status: 'PENDING',
+        qrPayload:
+            '00020101021229300016abaakhppxxx@abaa5802KH5303840540525.505802KH5916FoodGo Restaurant6010Phnom Penh630429B1',
+        expiresAt: DateTime.now().add(const Duration(minutes: 5)),
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<CartProvider>(create: (_) => CartProvider()),
+          ],
+          child: MaterialApp(home: QRPaymentScreen(payment: payment)),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Scan to Pay'), findsOneWidget);
+      expect(find.text('Order #42'), findsOneWidget);
+      expect(find.text('USD 25.50'), findsOneWidget);
+      expect(find.text('How to pay with KHQR'), findsOneWidget);
+      expect(find.text('Check Payment Status'), findsOneWidget);
+      expect(find.text('Cancel Payment'), findsOneWidget);
+      expect(find.text('Copy KHQR Payload'), findsOneWidget);
     });
   });
 }

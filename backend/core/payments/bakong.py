@@ -6,6 +6,7 @@ import requests
 from datetime import timedelta
 from django.utils import timezone
 from .base import PaymentProvider
+from .utils import build_emvco_khqr, crc16_ccitt, tlv
 
 logger = logging.getLogger(__name__)
 
@@ -29,54 +30,26 @@ class BakongKHQRProvider(PaymentProvider):
 
     @staticmethod
     def _crc16_ccitt(data: str) -> str:
-        crc = 0xFFFF
-        for ch in data.encode('ascii'):
-            crc ^= (ch << 8)
-            for _ in range(8):
-                if crc & 0x8000:
-                    crc = ((crc << 1) ^ 0x1021) & 0xFFFF
-                else:
-                    crc = (crc << 1) & 0xFFFF
-        return f"{crc:04X}"
+        return crc16_ccitt(data)
 
     @staticmethod
     def _tlv(tag: str, value: str) -> str:
-        return f"{tag}{len(value):02d}{value}"
+        return tlv(tag, value)
 
     def generate_khqr(self, merchant_ref: str, amount, currency: str = "USD") -> tuple[str, str]:
         """
         Builds a compliant EMVCo Dynamic KHQR string and computes its 32-char MD5 tracking hash.
         """
-        currency_code = "840" if currency.upper() == "USD" else "116"
-        formatted_amount = f"{int(float(amount))}" if currency.upper() == "KHR" else f"{float(amount):.2f}"
-
-        # Tag 29: Merchant Account Information
-        tag_29_val = self._tlv("00", "bakong@khqr") + self._tlv("01", self.account_id)
-        tag_29 = self._tlv("29", tag_29_val)
-
-        # Tag 62: Additional Data (Bill/Ref Number)
-        tag_62_val = self._tlv("01", merchant_ref)
-        tag_62 = self._tlv("62", tag_62_val)
-
-        raw = (
-            self._tlv("00", "01") +             # Format Indicator
-            self._tlv("01", "12") +             # Dynamic QR
-            tag_29 +                            # Merchant Account
-            self._tlv("52", "5812") +           # Category Code: Food / Restaurant
-            self._tlv("53", currency_code) +    # Currency: 840 (USD) or 116 (KHR)
-            self._tlv("54", formatted_amount) + # Amount
-            self._tlv("58", "KH") +             # Country Code
-            self._tlv("59", self.merchant_name) + # Merchant Name
-            self._tlv("60", self.merchant_city) + # Merchant City
-            tag_62 +                            # Additional Info
-            "6304"                              # CRC Placeholder
+        return build_emvco_khqr(
+            account_id=self.account_id,
+            merchant_name=self.merchant_name,
+            merchant_city=self.merchant_city,
+            merchant_ref=merchant_ref,
+            amount=amount,
+            currency=currency,
+            acquiring_bank_guid="bakong@khqr",
+            merchant_category_code="5812"
         )
-
-        crc = self._crc16_ccitt(raw)
-        qr_string = raw + crc
-        md5_hash = hashlib.md5(qr_string.encode('utf-8')).hexdigest()
-
-        return qr_string, md5_hash
 
     def create_payment(self, order, amount, currency: str = "USD", **kwargs):
         merchant_ref = f"FG-BK-{order.id}-{int(time.time())}"

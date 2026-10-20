@@ -69,13 +69,13 @@ class AdminFeatureTestCase(APITestCase):
         )
 
         # Create Payment
-        Payment.objects.create(
+        self.payment1 = Payment.objects.create(
             order=self.order1,
             amount=Decimal('25.00'),
             currency='USD',
             provider='BAKONG',
             method='KHQR',
-            status='COMPLETED'
+            status='PAID'
         )
 
     def test_admin_analytics_requires_admin(self):
@@ -174,3 +174,58 @@ class AdminFeatureTestCase(APITestCase):
         # Check result is a list or paginated results
         results = res.data if isinstance(res.data, list) else res.data.get('results', [])
         self.assertGreaterEqual(len(results), 1)
+
+    def test_admin_payments_list_and_filters(self):
+        # Customer access rejected
+        self.client.force_authenticate(user=self.customer)
+        res = self.client.get('/api/admin/payments/')
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Admin access accepted
+        self.client.force_authenticate(user=self.admin)
+        res = self.client.get('/api/admin/payments/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        results = res.data if isinstance(res.data, list) else res.data.get('results', [])
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['provider'], 'BAKONG')
+        self.assertEqual(results[0]['status'], 'PAID')
+
+        # Filter by status
+        res_filter = self.client.get('/api/admin/payments/?status=PAID')
+        self.assertEqual(res_filter.status_code, status.HTTP_200_OK)
+        results_filter = res_filter.data if isinstance(res_filter.data, list) else res_filter.data.get('results', [])
+        self.assertEqual(len(results_filter), 1)
+
+        # Filter by empty status
+        res_empty = self.client.get('/api/admin/payments/?status=FAILED')
+        self.assertEqual(res_empty.status_code, status.HTTP_200_OK)
+        results_empty = res_empty.data if isinstance(res_empty.data, list) else res_empty.data.get('results', [])
+        self.assertEqual(len(results_empty), 0)
+
+    def test_admin_payment_refund_and_audit_log(self):
+        self.client.force_authenticate(user=self.admin)
+        url = f"/api/admin/payments/{self.payment1.id}/refund/"
+        res = self.client.post(url, {'reason': 'Customer requested refund via phone'}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['payment']['status'], 'REFUNDED')
+
+        self.payment1.refresh_from_db()
+        self.assertEqual(self.payment1.status, 'REFUNDED')
+
+        self.order1.refresh_from_db()
+        self.assertEqual(self.order1.payment_status, 'REFUNDED')
+        self.assertEqual(self.order1.status, 'cancelled')
+
+        # Verify audit log
+        log = AuditLog.objects.filter(action='REFUND_PAYMENT', target_id=str(self.payment1.id)).first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.admin_user, self.admin)
+        self.assertIn('Customer requested refund', log.details.get('reason', ''))
+
+    def test_admin_analytics_revenue_tracking(self):
+        self.client.force_authenticate(user=self.admin)
+        url = reverse('admin_analytics')
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        # Total revenue reflects the $25.00 payment with status='PAID'
+        self.assertEqual(float(res.data['metrics']['total_revenue']), 25.0)

@@ -26,46 +26,48 @@ class CreatePaymentView(APIView):
         if not order_id:
             return Response({'detail': 'order_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            order = Order.objects.select_related('customer').get(id=order_id, customer=request.user)
-        except Order.DoesNotExist:
-            return Response({'detail': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        if order.payment_status == 'PAID':
-            return Response({'detail': 'Order is already paid.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            provider = payment_service.get_provider(provider_name)
-            result = provider.create_payment(
-                order=order,
-                amount=order.total_amount,
-                currency=currency
-            )
-        except ValueError as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        method = 'WALLET' if provider_name == 'WALLET' else ('COD' if provider_name == 'COD' else 'KHQR')
-
-        payment_status = result.get('status', 'PENDING')
-
         with transaction.atomic():
-            # Clear any previous payment for this order to satisfy OneToOne constraint and allow re-generating QR
-            Payment.objects.filter(order=order).delete()
+            try:
+                order = Order.objects.select_for_update().select_related('customer').get(id=order_id, customer=request.user)
+            except Order.DoesNotExist:
+                return Response({'detail': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-            payment = Payment.objects.create(
+            if order.payment_status == 'PAID':
+                return Response({'detail': 'Order is already paid.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if order.status == 'cancelled':
+                return Response({'detail': 'Cannot create payment for a cancelled order.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                provider = payment_service.get_provider(provider_name)
+                result = provider.create_payment(
+                    order=order,
+                    amount=order.total_amount,
+                    currency=currency
+                )
+            except ValueError as e:
+                return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            method = 'WALLET' if provider_name == 'WALLET' else ('COD' if provider_name == 'COD' else 'KHQR')
+            payment_status = result.get('status', 'PENDING')
+
+            # Atomically update existing payment or create fresh record without hard deleting audit history
+            payment, _ = Payment.objects.update_or_create(
                 order=order,
-                provider=provider_name,
-                method=method,
-                merchant_reference=result['merchant_reference'],
-                transaction_id=result.get('transaction_id'),
-                amount=order.total_amount,
-                currency=currency,
-                qr_payload=result.get('qr_payload'),
-                qr_image=result.get('qr_image'),
-                expires_at=result.get('expires_at'),
-                paid_at=result.get('paid_at'),
-                provider_response=result.get('provider_response', {}),
-                status=payment_status
+                defaults={
+                    'provider': provider_name,
+                    'method': method,
+                    'merchant_reference': result['merchant_reference'],
+                    'transaction_id': result.get('transaction_id'),
+                    'amount': order.total_amount,
+                    'currency': currency,
+                    'qr_payload': result.get('qr_payload'),
+                    'qr_image': result.get('qr_image'),
+                    'expires_at': result.get('expires_at'),
+                    'paid_at': result.get('paid_at'),
+                    'provider_response': result.get('provider_response', {}),
+                    'status': payment_status,
+                }
             )
 
             if payment_status == 'PAID':
@@ -118,7 +120,8 @@ class PaymentStatusView(APIView):
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # Status transitions
-        if status_info.get('status') == 'PAID' and payment.status != 'PAID':
+        new_status = status_info.get('status')
+        if new_status == 'PAID' and payment.status != 'PAID':
             with transaction.atomic():
                 payment.status = 'PAID'
                 payment.transaction_id = status_info.get('transaction_id') or payment.transaction_id
@@ -131,9 +134,22 @@ class PaymentStatusView(APIView):
                 order.payment_status = 'PAID'
                 order.status = 'confirmed'
                 order.save(update_fields=['payment_status', 'status'])
-        elif status_info.get('status') == 'EXPIRED' and payment.status == 'PENDING':
-            payment.status = 'EXPIRED'
-            payment.save(update_fields=['status'])
+        elif new_status == 'FAILED' and payment.status != 'FAILED':
+            with transaction.atomic():
+                payment.status = 'FAILED'
+                payment.save(update_fields=['status'])
+                order = payment.order
+                if order.payment_status != 'PAID':
+                    order.payment_status = 'FAILED'
+                    order.save(update_fields=['payment_status'])
+        elif new_status == 'EXPIRED' and payment.status == 'PENDING':
+            with transaction.atomic():
+                payment.status = 'EXPIRED'
+                payment.save(update_fields=['status'])
+                order = payment.order
+                if order.payment_status != 'PAID':
+                    order.payment_status = 'FAILED'
+                    order.save(update_fields=['payment_status'])
 
         return Response(PaymentSerializer(payment).data)
 
@@ -273,23 +289,23 @@ class BaseCallbackView(APIView):
                 logger.error(f"Error handling topup callback: {e}")
                 return Response({'detail': f'Failed to process topup: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            payment = Payment.objects.select_related('order').get(merchant_reference=merchant_ref)
-        except Payment.DoesNotExist:
-            return Response({'detail': 'Payment record not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Idempotency check: if already paid, return 200 immediately
-        if payment.status == 'PAID':
-            return Response({'detail': 'Payment already processed.'}, status=status.HTTP_200_OK)
-
-        provider = payment_service.get_provider(self.provider_name)
-
-        if not provider.verify_payment(payment, request.data):
-            return Response({'detail': 'Payment verification failed.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        parsed = provider.handle_callback(request.data)
-
         with transaction.atomic():
+            try:
+                payment = Payment.objects.select_for_update().select_related('order').get(merchant_reference=merchant_ref)
+            except Payment.DoesNotExist:
+                return Response({'detail': 'Payment record not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Idempotency check: if already paid, return 200 immediately
+            if payment.status == 'PAID':
+                return Response({'detail': 'Payment already processed.'}, status=status.HTTP_200_OK)
+
+            provider = payment_service.get_provider(self.provider_name)
+
+            if not provider.verify_payment(payment, request.data):
+                return Response({'detail': 'Payment verification failed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            parsed = provider.handle_callback(request.data)
+
             payment.status = 'PAID'
             payment.transaction_id = parsed.get('transaction_id')
             payment.paid_at = timezone.now()

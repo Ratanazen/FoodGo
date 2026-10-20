@@ -1,6 +1,6 @@
 from decimal import Decimal
 from datetime import timedelta
-from django.db import models, connection
+from django.db import models, connection, transaction
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from rest_framework import viewsets, status, generics
@@ -11,7 +11,7 @@ from rest_framework.decorators import action
 from .models import User, Order, Payment, Driver, Delivery, Restaurant, FoodItem, AuditLog
 from .serializers import (
     OrderSerializer, AdminUserSerializer, RestaurantSerializer,
-    AuditLogSerializer
+    AuditLogSerializer, PaymentSerializer
 )
 from .permissions import IsAdminOrStaff
 from .notifications import dispatch_order_notification
@@ -30,7 +30,7 @@ class AdminAnalyticsView(APIView):
         now = timezone.now()
 
         orders_qs = Order.objects.all()
-        payments_qs = Payment.objects.filter(status='COMPLETED')
+        payments_qs = Payment.objects.filter(status='PAID')
 
         if period == 'today':
             start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -110,6 +110,7 @@ class AdminAnalyticsView(APIView):
                 'active_orders': active_orders,
                 'completed_orders': completed_orders,
                 'cancelled_orders': cancelled_orders,
+                'total_revenue': float(rev_agg),
                 'total_revenue_usd': revenue_usd,
                 'total_revenue_khr': revenue_khr,
                 'active_customers': active_customers,
@@ -307,3 +308,77 @@ class AdminAuditLogViewSet(viewsets.ReadOnlyModelViewSet):
         if target_param:
             qs = qs.filter(target_type=target_param)
         return qs
+
+class AdminPaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAdminOrStaff]
+    serializer_class = PaymentSerializer
+    queryset = Payment.objects.all().select_related('order', 'order__customer').order_by('-created_at')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        status_param = self.request.query_params.get('status')
+        if status_param and status_param != 'all':
+            qs = qs.filter(status=status_param.upper())
+        provider_param = self.request.query_params.get('provider')
+        if provider_param and provider_param != 'all':
+            qs = qs.filter(provider=provider_param.upper())
+        search_query = self.request.query_params.get('search')
+        if search_query:
+            qs = qs.filter(
+                Q(merchant_reference__icontains=search_query) |
+                Q(transaction_id__icontains=search_query) |
+                Q(order__order_reference__icontains=search_query) |
+                Q(order__customer__username__icontains=search_query)
+            )
+        return qs
+
+    @action(detail=True, methods=['post'])
+    def refund(self, request, pk=None):
+        payment = self.get_object()
+        if payment.status != 'PAID':
+            return Response(
+                {'error': f'Cannot refund payment in {payment.status} status. Only PAID transactions are eligible for refund.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reason = request.data.get('reason', 'Administrative refund')
+        from .payments.service import payment_service
+        try:
+            provider = payment_service.get_provider(payment.provider)
+            refund_result = provider.refund(payment)
+        except Exception as e:
+            return Response({'error': f'Provider refund failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            payment.status = 'REFUNDED'
+            payment.save(update_fields=['status'])
+            order = payment.order
+            order.payment_status = 'REFUNDED'
+            if order.status not in ['delivered', 'cancelled']:
+                order.status = 'cancelled'
+                order.cancellation_reason = reason
+                order.save(update_fields=['payment_status', 'status', 'cancellation_reason'])
+            else:
+                order.save(update_fields=['payment_status'])
+
+            AuditLog.objects.create(
+                admin_user=request.user,
+                action='REFUND_PAYMENT',
+                target_type='Payment',
+                target_id=str(payment.id),
+                details={
+                    'amount': str(payment.amount),
+                    'currency': payment.currency,
+                    'order_id': order.id,
+                    'order_reference': order.order_reference,
+                    'reason': reason,
+                    'provider': payment.provider
+                },
+                ip_address=_get_client_ip(request)
+            )
+
+        return Response({
+            'message': f'Payment #{payment.id} refunded successfully.',
+            'payment': PaymentSerializer(payment, context={'request': request}).data,
+            'result': refund_result
+        })

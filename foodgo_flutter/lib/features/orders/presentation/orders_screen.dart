@@ -17,6 +17,7 @@ import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/delivery_scanner_modal.dart';
 import '../../../core/utils/khmer_currency.dart';
+import '../../payment/services/payment_service.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -58,6 +59,33 @@ class _OrdersScreenState extends State<OrdersScreen> {
         _orders = orders;
       });
     } catch (_) {}
+  }
+
+  Future<void> _resumeKhqrPayment(Map<String, dynamic> order) async {
+    try {
+      final paymentService = FlutterPaymentService();
+      final orderId = order['id'] is int
+          ? order['id'] as int
+          : int.parse(order['id'].toString());
+      final payment = await paymentService.createPayment(
+        orderId: orderId,
+        provider: 'ABA',
+        currency: 'USD',
+      );
+      if (mounted) {
+        context.push('/qr-payment', extra: payment);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to initiate KHQR payment: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   List<dynamic> get _filteredOrders {
@@ -516,6 +544,33 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     onPressed: () => _showOrderBillDialog(order),
                   ),
                 ),
+                if ((order['payment_status'] as String? ?? 'UNPAID') !=
+                        'PAID' &&
+                    status != 'cancelled') ...[
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlassTheme.primaryGreen,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                    ),
+                    icon: const Icon(Icons.qr_code_2, size: 16),
+                    label: const Text(
+                      'Pay KHQR',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () => _resumeKhqrPayment(order),
+                  ),
+                ],
                 if (_isInProgress(status) ||
                     status == 'on_delivery' ||
                     status == 'picked_up' ||
@@ -1403,6 +1458,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ],
               ),
               const SizedBox(height: 20),
+              if (paymentStatus != 'PAID' &&
+                  (order['status'] as String? ?? '') != 'cancelled') ...[
+                GlassButton(
+                  text: 'Pay Now with KHQR',
+                  icon: Icons.qr_code_2,
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _resumeKhqrPayment(order);
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
               GlassButton(text: 'Close', onPressed: () => Navigator.pop(ctx)),
             ],
           ),

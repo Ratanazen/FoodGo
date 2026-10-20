@@ -282,16 +282,19 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PaymentSerializer(serializers.ModelSerializer):
+    customer_username = serializers.CharField(source='order.customer.username', read_only=True)
+    order_reference = serializers.CharField(source='order.order_reference', read_only=True)
+
     class Meta:
         model = Payment
         fields = [
-            'id', 'order', 'provider', 'method', 'transaction_id',
+            'id', 'order', 'customer_username', 'order_reference', 'provider', 'method', 'transaction_id',
             'merchant_reference', 'amount', 'currency', 'qr_payload',
             'qr_image', 'status', 'provider_response', 'created_at',
             'updated_at', 'paid_at', 'expires_at'
         ]
         read_only_fields = [
-            'id', 'transaction_id', 'merchant_reference', 'qr_payload',
+            'id', 'customer_username', 'order_reference', 'transaction_id', 'merchant_reference', 'qr_payload',
             'qr_image', 'status', 'provider_response', 'created_at',
             'updated_at', 'paid_at', 'expires_at'
         ]

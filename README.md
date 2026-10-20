@@ -6,7 +6,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-155%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-162%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
 ![Zero Emoji](https://img.shields.io/badge/Zero--Emoji-100%25%20Vector-success)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -253,10 +253,10 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test core`)** | **74** | **74 Passed (100%)** | ~64s |
-| **Flutter Frontend (`foodgo_flutter/test/`)** | **81** | **81 Passed (100%)** | ~4.1s |
-| **Total Automated Tests** | **155** | **155 Passed (100%)** | ~68s |
-| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **70+ Files** | **0 Errors, 0 Warnings** | ~2.7s |
+| **Django Backend (`backend/manage.py test core`)** | **80** | **80 Passed (100%)** | ~5.5s |
+| **Flutter Frontend (`foodgo_flutter/test/`)** | **82** | **82 Passed (100%)** | ~3.5s |
+| **Total Automated Tests** | **162** | **162 Passed (100%)** | ~9.0s |
+| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **78 Files** | **0 Errors, 0 Warnings** | ~3.1s |
 | **Zero-Emoji Policy Verification** | **All Repo Files** | **100% Vector Icon Compliant** | ~1.1s |
 | **Multi-Cloud Health Checks (`/api/health/`)** | **Endpoints** | **Operational (Vercel, Render, Docker)** | <10ms |
 | **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |
@@ -268,15 +268,19 @@ flutter build web --release
 ## Technical Documentation
 
 Comprehensive documentation is provided in the `docs/` directory:
+- [**Payment Flow & EMVCo KHQR Architecture**](docs/payment-flow.md) — Dynamic KHQR flow, CRC16 mathematical verification, state transitions, and responsive layout.
+- [**Payment Provider Integration Guide**](docs/payment-provider-setup.md) — Credentials, webhook security, sandbox testing, and refund operations.
+- [**Web Payment Integration Audit**](docs/web-payment-audit.md) — Complete audit of payment endpoints, data models, error handling, and security.
+- [**UI/UX Comprehensive Audit**](docs/ui-ux-audit.md) — Audit across responsive layouts, navigation, accessibility, and visual consistency.
+- [**Implementation Roadmap**](docs/implementation-roadmap.md) — Detailed 14-phase implementation plan and task breakdown.
+- [**User Flows Specification**](docs/user-flows.md) — Detailed flow diagrams for customer, driver, and admin personas.
 - [**Project Audit Report**](docs/project-audit.md) — Comprehensive architecture, defect findings, root causes, and remediation.
 - [**Form Audit & Validation Guide**](docs/form-fixes.md) — Screen-by-screen form audit, validation rules, and double-submit prevention.
 - [**CI/CD Pipeline Operations**](docs/cicd.md) — GitHub Actions 4-stage pipeline topology, secrets, and local execution.
 - [**Production Hosting & Deployment**](docs/deployment.md) — Vercel serverless WSGI and Render container deployment guide.
 - [**Troubleshooting & Diagnostics**](docs/troubleshooting.md) — Step-by-step diagnostics for Flutter, Django, Docker, and Vercel.
 - [**TikTok Reference UI/UX Analysis**](docs/reference-analysis.md) — Comprehensive visual breakdown of TikTok reference video frames and component specs.
-- [**Modernization Implementation Plan**](docs/implementation-plan.md) — Roadmap for modern delivery experience.
 - [**API Documentation**](docs/API_DOCUMENTATION.md) — Full REST API reference with JSON request/response payloads.
-- [**Payment Setup Guide**](docs/PAYMENT_SETUP.md) — Merchant onboarding for Bakong, ABA PayWay, and ACLEDA.
 - [**Delivery Confirmation Guide**](docs/DELIVERY_QR.md) — Cryptographic delivery confirmation and security guarantees.
 - [**Testing Guide**](docs/TESTING.md) — Step-by-step instructions for running test suites in dev and CI.
 

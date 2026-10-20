@@ -20,6 +20,9 @@ class AdminProvider with ChangeNotifier {
 
   List<dynamic> _restaurants = [];
   List<dynamic> _auditLogs = [];
+  List<dynamic> _payments = [];
+  String _paymentStatusFilter = 'all';
+  String _paymentSearchQuery = '';
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -37,6 +40,10 @@ class AdminProvider with ChangeNotifier {
 
   List<dynamic> get restaurants => _restaurants;
   List<dynamic> get auditLogs => _auditLogs;
+
+  List<dynamic> get payments => _payments;
+  String get paymentStatusFilter => _paymentStatusFilter;
+  String get paymentSearchQuery => _paymentSearchQuery;
 
   Future<void> fetchAnalytics({String? period}) async {
     if (period != null) _selectedPeriod = period;
@@ -225,6 +232,56 @@ class AdminProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('Admin fetch audit logs error: $e');
       _errorMessage = 'Failed to load audit logs: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchPayments({String? status, String? search}) async {
+    if (status != null) _paymentStatusFilter = status;
+    if (search != null) _paymentSearchQuery = search;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      String endpoint = 'admin/payments/?status=$_paymentStatusFilter';
+      if (_paymentSearchQuery.isNotEmpty) {
+        endpoint += '&search=${Uri.encodeComponent(_paymentSearchQuery)}';
+      }
+      final res = await _apiService.get(endpoint);
+      if (res is List) {
+        _payments = res;
+      } else if (res is Map && res['results'] is List) {
+        _payments = res['results'];
+      }
+    } catch (e) {
+      debugPrint('Admin fetch payments error: $e');
+      _errorMessage = 'Failed to load payments: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> refundPayment(int paymentId, {String? reason}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _apiService.post('admin/payments/$paymentId/refund/', {
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+      });
+      await fetchPayments();
+      await fetchAnalytics();
+      return true;
+    } catch (e) {
+      debugPrint('Admin refund payment error: $e');
+      _errorMessage = 'Failed to process refund: $e';
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();

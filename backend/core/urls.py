@@ -5,7 +5,7 @@ from .payment_views import (
 )
 from .admin_views import (
     AdminAnalyticsView, AdminOrderViewSet, AdminUserViewSet,
-    AdminRestaurantViewSet, AdminAuditLogViewSet
+    AdminRestaurantViewSet, AdminAuditLogViewSet, AdminPaymentViewSet
 )
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -29,6 +29,7 @@ router.register(r'live-items', LiveItemViewSet)
 router.register(r'drivers', DriverViewSet, basename='driver')
 router.register(r'addresses', AddressViewSet, basename='address')
 router.register(r'admin/orders', AdminOrderViewSet, basename='admin-orders')
+router.register(r'admin/payments', AdminPaymentViewSet, basename='admin-payments')
 router.register(r'admin/users', AdminUserViewSet, basename='admin-users')
 router.register(r'admin/restaurants', AdminRestaurantViewSet, basename='admin-restaurants')
 router.register(r'admin/audit-logs', AdminAuditLogViewSet, basename='admin-audit-logs')

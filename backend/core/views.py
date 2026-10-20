@@ -1022,7 +1022,7 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
         from .payments.aba import ABAKHQRProvider
         aba = ABAKHQRProvider()
         merchant_ref = f"TOPUP-{request.user.id}-{int(timezone.now().timestamp())}"
-        qr_string = aba.generate_khqr(merchant_ref=merchant_ref, amount=val, currency=currency)
+        qr_string, _ = aba.generate_khqr(merchant_ref=merchant_ref, amount=val, currency=currency)
 
         return Response({
             'merchant_reference': merchant_ref,

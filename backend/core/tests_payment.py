@@ -338,4 +338,50 @@ class PaymentIntegrationTests(TestCase):
             with self.assertRaises(ImproperlyConfigured):
                 anon_client.post(callback_url, callback_data, format='json')
 
+    def test_emvco_khqr_crc16_validation(self):
+        from core.payments.utils import crc16_ccitt, build_emvco_khqr
+        # 1. Test crc16_ccitt mathematical correctness
+        # Known test vector: "123456789" with CCITT (poly 0x1021, init 0xFFFF) -> 0x29B1
+        self.assertEqual(crc16_ccitt("123456789"), "29B1")
+
+        # 2. Test generated KHQR string format and checksum validity
+        qr_str, md5_val = build_emvco_khqr(
+            account_id="test_merchant_id",
+            merchant_name="FoodGo Restaurant",
+            merchant_city="Phnom Penh",
+            merchant_ref="FG-TEST-REF-001",
+            amount=Decimal("12.50"),
+            currency="USD",
+            acquiring_bank_guid="abaakhppxxx@abaa",
+        )
+        self.assertTrue(qr_str.startswith("000201010212"))
+        self.assertTrue(qr_str.endswith(crc16_ccitt(qr_str[:-4])))
+        self.assertEqual(len(md5_val), 32)
+
+    def test_payment_creation_concurrency_update_or_create(self):
+        url = reverse('payment_create')
+        # First creation
+        res1 = self.client.post(url, {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        self.assertEqual(res1.status_code, status.HTTP_201_CREATED)
+        payment_id_1 = res1.data['id']
+
+        # Second creation for same order updates existing payment record rather than duplicating
+        res2 = self.client.post(url, {'order_id': self.order.id, 'provider': 'ACLEDA', 'currency': 'USD'}, format='json')
+        self.assertEqual(res2.status_code, status.HTTP_201_CREATED)
+        payment_id_2 = res2.data['id']
+
+        self.assertEqual(payment_id_1, payment_id_2)
+        payment = Payment.objects.get(order=self.order)
+        self.assertEqual(payment.provider, 'ACLEDA')
+        self.assertEqual(Payment.objects.filter(order=self.order).count(), 1)
+
+    def test_payment_create_rejects_already_paid_order(self):
+        self.order.payment_status = 'PAID'
+        self.order.save(update_fields=['payment_status'])
+
+        url = reverse('payment_create')
+        res = self.client.post(url, {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('already paid', res.data['detail'])
+
 

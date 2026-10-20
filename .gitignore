@@ -46,3 +46,4 @@ frontend/dist/
 frontend/npm-debug.log
 frontend/.eslintcache
 .vscode/
+.idea/

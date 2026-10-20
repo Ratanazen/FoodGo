@@ -6,7 +6,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-182%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-198%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
 ![Zero Emoji](https://img.shields.io/badge/Zero--Emoji-100%25%20Vector-success)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -230,7 +230,7 @@ FoodGo maintains an enterprise-grade test verification suite and hardened contin
 ### Running Test Commands Locally
 
 ```bash
-# 1. Django Backend Test Suite (57 tests — 100% Passing)
+# 1. Django Backend Test Suite (98 tests — 100% Passing)
 cd backend
 ./venv/bin/python manage.py test
 
@@ -238,11 +238,11 @@ cd backend
 python manage.py check
 python manage.py collectstatic --noinput
 
-# 3. Flutter Static Code Analysis (0 issues across 69+ files)
+# 3. Flutter Static Code Analysis (0 issues across 84 files)
 cd ../foodgo_flutter
 flutter analyze --no-pub
 
-# 4. Flutter Unit & Widget Tests (57 tests — 100% Passing)
+# 4. Flutter Unit & Widget Tests (100 tests — 100% Passing)
 flutter test
 
 # 5. Flutter Web Release Compilation
@@ -253,10 +253,10 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test core`)** | **80** | **80 Passed (100%)** | ~5.5s |
-| **Flutter Frontend (`foodgo_flutter/test/`)** | **82** | **82 Passed (100%)** | ~3.5s |
-| **Total Automated Tests** | **162** | **162 Passed (100%)** | ~9.0s |
-| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **78 Files** | **0 Errors, 0 Warnings** | ~3.1s |
+| **Django Backend (`backend/manage.py test core`)** | **98** | **98 Passed (100%)** | ~4.7s |
+| **Flutter Frontend (`foodgo_flutter/test/`)** | **100** | **100 Passed (100%)** | ~9.0s |
+| **Total Automated Tests** | **198** | **198 Passed (100%)** | ~13.7s |
+| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **84 Files** | **0 Errors, 0 Warnings** | ~2.2s |
 | **Zero-Emoji Policy Verification** | **All Repo Files** | **100% Vector Icon Compliant** | ~1.1s |
 | **Multi-Cloud Health Checks (`/api/health/`)** | **Endpoints** | **Operational (Vercel, Render, Docker)** | <10ms |
 | **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |

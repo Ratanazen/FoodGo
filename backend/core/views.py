@@ -822,48 +822,409 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(is_online=True)
         return qs
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
-    def location(self, request):
-        user = request.user
+    def _get_driver(self, user):
+        if not user or not user.is_authenticated:
+            return None, Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
         driver = getattr(user, 'driver_profile', None)
         if not driver:
-            if user.is_staff or user.role == 'driver':
+            if user.is_staff or getattr(user, 'role', '') == 'driver':
                 driver, _ = Driver.objects.get_or_create(
                     user=user,
-                    defaults={'vehicle_type': 'Motorcycle (Honda Wave)', 'license_plate': 'PP-2026', 'is_online': True}
+                    defaults={
+                        'vehicle_type': 'Motorcycle (Honda Wave)',
+                        'license_plate': 'PP-2026',
+                        'is_online': True,
+                        'is_approved': True,
+                    }
                 )
             else:
-                return Response({'error': 'User is not registered as a driver'}, status=403)
+                return None, Response({'error': 'User is not registered as a driver'}, status=status.HTTP_403_FORBIDDEN)
+        if not driver.is_approved and not user.is_staff:
+            return None, Response({'error': 'Driver account is pending administrator approval.'}, status=status.HTTP_403_FORBIDDEN)
+        return driver, None
 
+    @action(detail=False, methods=['get', 'patch'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        if request.method == 'PATCH':
+            data = request.data
+            if 'vehicle_type' in data:
+                driver.vehicle_type = data['vehicle_type']
+            if 'license_plate' in data:
+                driver.license_plate = data['license_plate']
+            if 'is_online' in data:
+                driver.is_online = bool(data['is_online'])
+            driver.save()
+            if 'phone' in data:
+                request.user.phone = data['phone']
+                request.user.save(update_fields=['phone'])
+        serializer = DriverSerializer(driver, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], url_path='register')
+    def register_driver(self, request):
+        serializer = DriverRegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        driver = user.driver_profile
+        driver_data = DriverSerializer(driver, context={'request': request}).data
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Driver registered successfully.',
+            'driver': driver_data,
+        }, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def location(self, request):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
         lat = request.data.get('lat')
         lng = request.data.get('lng')
         if lat is not None and lng is not None:
             driver.current_lat = Decimal(str(lat))
             driver.current_lng = Decimal(str(lng))
-            driver.save(update_fields=['current_lat', 'current_lng'])
-            return Response({'status': 'Location updated', 'lat': float(driver.current_lat), 'lng': float(driver.current_lng)})
-        return Response({'error': 'lat and lng required'}, status=400)
+            driver.last_location_update = timezone.now()
+            driver.save(update_fields=['current_lat', 'current_lng', 'last_location_update'])
+            return Response({
+                'status': 'Location updated',
+                'lat': float(driver.current_lat),
+                'lng': float(driver.current_lng),
+            })
+        return Response({'error': 'lat and lng required'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='toggle-online')
     def toggle_online(self, request):
-        user = request.user
-        driver = getattr(user, 'driver_profile', None)
-        if not driver:
-            if user.is_staff or user.role == 'driver':
-                driver, _ = Driver.objects.get_or_create(
-                    user=user,
-                    defaults={'vehicle_type': 'Motorcycle (Honda Wave)', 'license_plate': 'PP-2026', 'is_online': True}
-                )
-            else:
-                return Response({'error': 'User is not registered as a driver'}, status=403)
-
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
         is_online = request.data.get('is_online')
         if is_online is not None:
-            driver.is_online = bool(is_online)
+            if isinstance(is_online, str):
+                driver.is_online = is_online.strip().lower() in ('true', '1', 'yes')
+            else:
+                driver.is_online = bool(is_online)
         else:
             driver.is_online = not driver.is_online
         driver.save(update_fields=['is_online'])
         return Response({'status': 'Status updated', 'is_online': driver.is_online})
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='available-orders')
+    def available_orders(self, request):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        orders = Order.objects.filter(
+            models.Q(delivery__isnull=True) | models.Q(delivery__driver__isnull=True),
+            status__in=['confirmed', 'preparing', 'ready', 'ready_for_pickup']
+        ).select_related('restaurant', 'address', 'customer', 'delivery').order_by('-created_at')
+        serializer = OrderSerializer(orders, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='active-deliveries')
+    def active_deliveries(self, request):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        orders = Order.objects.filter(
+            delivery__driver=driver,
+            delivery__status__in=['assigned', 'accepted', 'arrived_at_restaurant', 'picked_up', 'on_the_way', 'arrived']
+        ).exclude(status__in=['delivered', 'cancelled']).select_related(
+            'restaurant', 'address', 'customer', 'delivery', 'payment', 'delivery_token'
+        ).order_by('-created_at')
+        serializer = OrderSerializer(orders, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='history')
+    def history(self, request):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        orders = Order.objects.filter(
+            delivery__driver=driver,
+            delivery__status='delivered'
+        ).select_related('restaurant', 'address', 'customer', 'delivery').order_by('-delivery__delivery_time')[:50]
+        serializer = OrderSerializer(orders, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='earnings')
+    def earnings(self, request):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        today = timezone.now().date()
+        week_ago = timezone.now() - timezone.timedelta(days=7)
+        delivered_qs = Delivery.objects.filter(driver=driver, status='delivered')
+        total_count = delivered_qs.count()
+
+        today_fees = delivered_qs.filter(delivery_time__date=today).values_list('order__delivery_fee_charged', flat=True)
+        today_total = float(sum(today_fees)) if today_fees else 0.0
+
+        week_fees = delivered_qs.filter(delivery_time__gte=week_ago).values_list('order__delivery_fee_charged', flat=True)
+        week_total = float(sum(week_fees)) if week_fees else 0.0
+
+        all_fees = delivered_qs.values_list('order__delivery_fee_charged', flat=True)
+        all_total = float(sum(all_fees)) if all_fees else float(driver.total_earnings)
+
+        recent = Order.objects.filter(delivery__driver=driver, delivery__status='delivered').select_related('restaurant', 'address').order_by('-delivery__delivery_time')[:15]
+        recent_list = []
+        for o in recent:
+            recent_list.append({
+                'order_id': o.id,
+                'order_reference': o.order_reference or f"#{o.id}",
+                'restaurant': o.restaurant.name if o.restaurant else 'Restaurant',
+                'delivery_fee': float(o.delivery_fee_charged or Decimal('2.00')),
+                'delivered_at': o.delivered_at.isoformat() if o.delivered_at else None,
+                'payment_status': o.payment_status,
+            })
+
+        return Response({
+            'today_earnings_usd': today_total,
+            'today_earnings_khr': int(today_total * 4100),
+            'week_earnings_usd': week_total,
+            'total_earnings_usd': all_total,
+            'total_earnings_khr': int(all_total * 4100),
+            'completed_trips': total_count,
+            'recent_deliveries': recent_list,
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/accept')
+    def accept_order(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        if not driver.is_online:
+            return Response({'error': 'You must be online to accept delivery requests.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            order = Order.objects.select_for_update().filter(id=order_id).first()
+            if not order:
+                return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+            if order.status in ('delivered', 'cancelled'):
+                return Response({'error': f'Order cannot be accepted in {order.status} state.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            delivery, created = Delivery.objects.select_for_update().get_or_create(
+                order=order,
+                defaults={'driver': driver, 'status': 'accepted'}
+            )
+            if not created:
+                if delivery.driver and delivery.driver != driver and delivery.status != 'assigned':
+                    return Response({'error': 'This order has already been accepted by another driver.'}, status=status.HTTP_409_CONFLICT)
+                delivery.driver = driver
+                delivery.status = 'accepted'
+                delivery.save(update_fields=['driver', 'status', 'updated_at'])
+
+            if order.status == 'pending':
+                order.status = 'confirmed'
+                order.confirmed_at = timezone.now()
+                order.save(update_fields=['status', 'confirmed_at', 'updated_at'])
+
+            driver_name = driver.user.get_full_name() or driver.user.username
+            dispatch_order_notification(
+                order,
+                status_key='driver_assigned',
+                custom_message=f"Driver {driver_name} has accepted your order delivery."
+            )
+
+        serializer = OrderSerializer(order, context={'request': request})
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Order accepted successfully.',
+            'order': serializer.data,
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/decline')
+    def decline_order(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        with transaction.atomic():
+            delivery = Delivery.objects.select_for_update().filter(order_id=order_id, driver=driver).first()
+            if delivery and delivery.status in ('assigned', 'accepted'):
+                delivery.driver = None
+                delivery.status = 'assigned'
+                delivery.save(update_fields=['driver', 'status', 'updated_at'])
+        return Response({'status': 'SUCCESS', 'message': 'Order declined.'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/arrive-restaurant')
+    def arrive_restaurant(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        delivery = Delivery.objects.filter(order_id=order_id, driver=driver).first()
+        if not delivery:
+            return Response({'error': 'Delivery assignment not found for this driver.'}, status=status.HTTP_404_NOT_FOUND)
+        delivery.status = 'arrived_at_restaurant'
+        delivery.save(update_fields=['status', 'updated_at'])
+        order = delivery.order
+        dispatch_order_notification(
+            order,
+            status_key='arrived_restaurant',
+            custom_message=f"Driver has arrived at {order.restaurant.name if order.restaurant else 'restaurant'} to pick up your order."
+        )
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Arrived at restaurant recorded.',
+            'delivery_status': delivery.status,
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/pickup')
+    def pickup_order(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        delivery = Delivery.objects.filter(order_id=order_id, driver=driver).first()
+        if not delivery:
+            return Response({'error': 'Delivery assignment not found for this driver.'}, status=status.HTTP_404_NOT_FOUND)
+        now = timezone.now()
+        delivery.status = 'picked_up'
+        delivery.pickup_time = now
+        delivery.save(update_fields=['status', 'pickup_time', 'updated_at'])
+        order = delivery.order
+        order.status = 'on_the_way'
+        order.picked_up_at = now
+        order.save(update_fields=['status', 'picked_up_at', 'updated_at'])
+        dispatch_order_notification(
+            order,
+            status_key='on_the_way',
+            custom_message=f"Your order has been picked up from {order.restaurant.name if order.restaurant else 'restaurant'} and is on the way!"
+        )
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Order marked as picked up and on the way.',
+            'order_status': order.status,
+            'pickup_time': now.isoformat(),
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/arrive-customer')
+    def arrive_customer(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        delivery = Delivery.objects.filter(order_id=order_id, driver=driver).first()
+        if not delivery:
+            return Response({'error': 'Delivery assignment not found for this driver.'}, status=status.HTTP_404_NOT_FOUND)
+        delivery.status = 'arrived'
+        delivery.save(update_fields=['status', 'updated_at'])
+        order = delivery.order
+        order.status = 'driver_arrived'
+        order.save(update_fields=['status', 'updated_at'])
+        dispatch_order_notification(
+            order,
+            status_key='driver_arrived',
+            custom_message="Your driver has arrived outside with your order!"
+        )
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Arrival at customer recorded.',
+            'order_status': order.status,
+            'delivery_status': delivery.status,
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/deliver')
+    def deliver_order(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        delivery = Delivery.objects.filter(order_id=order_id, driver=driver).first()
+        if not delivery:
+            return Response({'error': 'Delivery assignment not found for this driver.'}, status=status.HTTP_404_NOT_FOUND)
+
+        now = timezone.now()
+        order = delivery.order
+
+        payment_collected = request.data.get('payment_collected', False)
+        if payment_collected or order.payment_status == 'UNPAID':
+            order.payment_status = 'PAID'
+
+        delivery.status = 'delivered'
+        delivery.delivery_time = now
+        delivery.save(update_fields=['status', 'delivery_time', 'updated_at'])
+
+        order.status = 'delivered'
+        order.delivered_at = now
+        order.save(update_fields=['status', 'payment_status', 'delivered_at', 'updated_at'])
+
+        fee = order.delivery_fee_charged if order.delivery_fee_charged else Decimal('2.00')
+        driver.total_deliveries += 1
+        driver.total_earnings += fee
+        driver.save(update_fields=['total_deliveries', 'total_earnings'])
+
+        dispatch_order_notification(
+            order,
+            status_key='delivered',
+            custom_message=f"Order #{order.id} has been successfully delivered. Thank you for using FoodGo!"
+        )
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Order delivered successfully.',
+            'order_id': order.id,
+            'delivery_time': now.isoformat(),
+            'fee_earned': float(fee),
+            'total_earnings': float(driver.total_earnings),
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/cancel')
+    def cancel_delivery(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        reason = request.data.get('reason', 'Driver reported unexpected issue')
+        delivery = Delivery.objects.filter(order_id=order_id, driver=driver).first()
+        if not delivery:
+            return Response({'error': 'Delivery assignment not found for this driver.'}, status=status.HTTP_404_NOT_FOUND)
+        order = delivery.order
+        if delivery.status in ('assigned', 'accepted', 'arrived_at_restaurant'):
+            delivery.driver = None
+            delivery.status = 'assigned'
+            delivery.save(update_fields=['driver', 'status', 'updated_at'])
+            return Response({
+                'status': 'SUCCESS',
+                'message': 'Delivery released back to available orders queue.',
+                'reassigned': True,
+            })
+        else:
+            delivery.status = 'cancelled'
+            delivery.save(update_fields=['status', 'updated_at'])
+            order.status = 'cancelled'
+            order.cancelled_at = timezone.now()
+            order.cancellation_reason = f"Driver cancellation: {reason}"
+            order.save(update_fields=['status', 'cancelled_at', 'cancellation_reason', 'updated_at'])
+            dispatch_order_notification(
+                order,
+                status_key='cancelled',
+                custom_message=f"Order #{order.id} delivery cancelled: {reason}"
+            )
+            return Response({
+                'status': 'SUCCESS',
+                'message': 'Delivery cancelled.',
+                'reassigned': False,
+            })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/verify-payment')
+    def verify_payment(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        order = Order.objects.filter(id=order_id, delivery__driver=driver).first()
+        if not order:
+            return Response({'error': 'Order not found for this driver'}, status=status.HTTP_404_NOT_FOUND)
+
+        payment = getattr(order, 'payment', None)
+        if payment:
+            payment.status = 'PAID'
+            payment.paid_at = timezone.now()
+            payment.save(update_fields=['status', 'paid_at'])
+        order.payment_status = 'PAID'
+        order.save(update_fields=['payment_status', 'updated_at'])
+
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Payment confirmed.',
+            'payment_status': order.payment_status,
+        })
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()

@@ -404,7 +404,6 @@ class FoodItemAdmin(admin.ModelAdmin):
     list_per_page = 25
     save_on_top = True
     save_as = True
-    autocomplete_fields = ['category']
     actions = ['duplicate_items', 'make_available', 'make_unavailable']
 
     @admin.action(description='Duplicate Selected Food Items')
@@ -465,7 +464,7 @@ class FoodItemAdmin(admin.ModelAdmin):
 
     @admin.display(description='Price', ordering='price')
     def price_display(self, obj):
-        return format_html('<span style="font-weight:700;color:#27ae60;">${:.2f}</span>', obj.price)
+        return format_html('<span style="font-weight:700;color:#27ae60;">${}</span>', f"{float(obj.price):.2f}")
 
 
 
@@ -675,10 +674,11 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
-    list_display = ['user', 'driver_phone', 'vehicle_type', 'license_plate', 'is_online', 'deliveries_count']
-    list_filter = ['is_online', 'vehicle_type']
+    list_display = ['user', 'driver_phone', 'vehicle_type', 'license_plate', 'is_approved', 'is_online', 'deliveries_count', 'earnings_display']
+    list_filter = ['is_approved', 'is_online', 'vehicle_type']
     search_fields = ['user__username', 'user__first_name', 'user__last_name', 'license_plate', 'user__phone']
-    actions = ['make_online', 'make_offline']
+    list_editable = ['is_approved', 'is_online']
+    actions = ['approve_drivers', 'suspend_drivers', 'make_online', 'make_offline']
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'user':
@@ -709,6 +709,7 @@ class DriverAdmin(admin.ModelAdmin):
                 existing.vehicle_type = obj.vehicle_type or existing.vehicle_type
                 existing.license_plate = obj.license_plate or existing.license_plate
                 existing.is_online = obj.is_online
+                existing.is_approved = obj.is_approved
                 if obj.current_lat is not None:
                     existing.current_lat = obj.current_lat
                 if obj.current_lng is not None:
@@ -731,6 +732,20 @@ class DriverAdmin(admin.ModelAdmin):
         count = obj.deliveries.count()
         return format_html('<span style="background:#34495e;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">{}</span>', count)
 
+    @admin.display(description='Earnings', ordering='total_earnings')
+    def earnings_display(self, obj):
+        return format_html('<span style="font-weight:700;color:#27ae60;">${}</span>', f"{float(obj.total_earnings):.2f}")
+
+    @admin.action(description='Approve Selected Drivers')
+    def approve_drivers(self, request, queryset):
+        count = queryset.update(is_approved=True)
+        self.message_user(request, f'Approved {count} driver(s).')
+
+    @admin.action(description='Suspend Selected Drivers')
+    def suspend_drivers(self, request, queryset):
+        count = queryset.update(is_approved=False, is_online=False)
+        self.message_user(request, f'Suspended {count} driver(s).')
+
     @admin.action(description='Set Selected Drivers Online')
     def make_online(self, request, queryset):
         count = queryset.update(is_online=True)
@@ -744,9 +759,53 @@ class DriverAdmin(admin.ModelAdmin):
 
 @admin.register(Delivery)
 class DeliveryAdmin(admin.ModelAdmin):
-    list_display = ['order', 'driver', 'status', 'pickup_time', 'delivery_time']
-    list_filter = ['status']
-    search_fields = ['order__id', 'driver__user__username']
+    list_display = ['id', 'order', 'driver', 'status_badge', 'pickup_time', 'delivery_time', 'created_at']
+    list_filter = ['status', 'created_at']
+    search_fields = ['order__id', 'order__order_reference', 'driver__user__username']
+    actions = ['release_assignment', 'mark_delivered']
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        colors = {
+            'assigned': '#f39c12',
+            'accepted': '#3498db',
+            'arrived_at_restaurant': '#9b59b6',
+            'picked_up': '#2980b9',
+            'on_the_way': '#e67e22',
+            'arrived': '#1abc9c',
+            'delivered': '#27ae60',
+            'cancelled': '#e74c3c',
+        }
+        color = colors.get(obj.status, '#95a5a6')
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{}</span>',
+            color, obj.get_status_display()
+        )
+
+    @admin.action(description='Release Selected Deliveries for Reassignment')
+    def release_assignment(self, request, queryset):
+        count = queryset.update(driver=None, status='assigned')
+        self.message_user(request, f'Released {count} delivery assignment(s) for reassignment.')
+
+    @admin.action(description='Mark Selected Deliveries as Delivered')
+    def mark_delivered(self, request, queryset):
+        now = timezone.now()
+        count = 0
+        for delivery in queryset:
+            delivery.status = 'delivered'
+            delivery.delivery_time = now
+            delivery.save(update_fields=['status', 'delivery_time'])
+            order = delivery.order
+            order.status = 'delivered'
+            order.delivered_at = now
+            order.save(update_fields=['status', 'delivered_at'])
+            if delivery.driver:
+                fee = order.delivery_fee_charged if order.delivery_fee_charged else Decimal('2.00')
+                delivery.driver.total_deliveries += 1
+                delivery.driver.total_earnings += fee
+                delivery.driver.save(update_fields=['total_deliveries', 'total_earnings'])
+            count += 1
+        self.message_user(request, f'Marked {count} delivery/order(s) as Delivered.')
 
 
 @admin.register(Review)
@@ -824,10 +883,11 @@ class WalletAdmin(admin.ModelAdmin):
 
     @admin.display(description='Balance (USD & KHR)')
     def balance_display(self, obj):
-        khr = int(float(obj.balance) * 4100)
+        usd_str = f"${float(obj.balance):.2f}"
+        khr_str = f"៛{int(float(obj.balance) * 4100):,} KHR"
         return format_html(
-            '<strong style="color:#27ae60;font-size:14px;">${:.2f}</strong> <span style="color:#888;font-size:11px;">(≈ ៛{:,} KHR)</span>',
-            obj.balance, khr
+            '<strong style="color:#27ae60;font-size:14px;">{}</strong> <span style="color:#888;font-size:11px;">(≈ {})</span>',
+            usd_str, khr_str
         )
 
     @admin.display(description='Transactions')
@@ -841,7 +901,11 @@ class WalletTransactionAdmin(admin.ModelAdmin):
     list_display = ['wallet_user', 'transaction_type_badge', 'amount_display', 'description', 'created_at']
     list_filter = ['transaction_type', 'created_at']
     search_fields = ['wallet__user__username', 'description']
-    readonly_fields = ['wallet', 'amount', 'transaction_type', 'description', 'created_at']
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return ['created_at']
+        return ['wallet', 'amount', 'transaction_type', 'description', 'created_at']
 
     @admin.display(description='User')
     def wallet_user(self, obj):
@@ -866,7 +930,8 @@ class WalletTransactionAdmin(admin.ModelAdmin):
         is_pos = obj.transaction_type in ('deposit', 'refund')
         sign = '+' if is_pos else '-'
         color = '#27ae60' if is_pos else '#e74c3c'
-        return format_html('<strong style="color:{};">{}${:.2f}</strong>', color, sign, obj.amount)
+        amt_str = f"{float(obj.amount):.2f}"
+        return format_html('<strong style="color:{};">{}${}</strong>', color, sign, amt_str)
 
 
 @admin.register(DeliveryConfirmationToken)

@@ -84,15 +84,17 @@ class DriverSerializer(serializers.ModelSerializer):
     phone = serializers.SerializerMethodField()
     email = serializers.CharField(source='user.email', read_only=True)
     rating = serializers.FloatField(default=4.9, read_only=True)
+    today_earnings = serializers.SerializerMethodField()
 
     class Meta:
         model = Driver
         fields = [
             'id', 'user_id', 'username', 'full_name', 'phone', 'email',
-            'vehicle_type', 'license_plate', 'is_online',
-            'current_lat', 'current_lng', 'rating',
+            'vehicle_type', 'license_plate', 'is_online', 'is_approved',
+            'operational_status', 'total_deliveries', 'total_earnings',
+            'today_earnings', 'current_lat', 'current_lng', 'rating',
         ]
-        read_only_fields = ['id', 'user_id', 'username', 'email']
+        read_only_fields = ['id', 'user_id', 'username', 'email', 'is_approved', 'total_deliveries', 'total_earnings', 'today_earnings']
 
     def get_full_name(self, obj):
         name = obj.user.get_full_name()
@@ -101,13 +103,29 @@ class DriverSerializer(serializers.ModelSerializer):
     def get_phone(self, obj):
         return obj.user.phone or '+855 12 888 999'
 
+    def get_today_earnings(self, obj):
+        from django.utils import timezone
+        today = timezone.now().date()
+        from .models import Delivery
+        fees = Delivery.objects.filter(
+            driver=obj,
+            status='delivered',
+            delivery_time__date=today
+        ).values_list('order__delivery_fee_charged', flat=True)
+        return float(sum(fees)) if fees else 0.0
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
-        is_staff = bool(request and request.user and request.user.is_authenticated and request.user.is_staff)
-        if not is_staff:
+        is_staff_or_self = bool(
+            request and request.user and request.user.is_authenticated and
+            (request.user.is_staff or request.user.id == instance.user_id)
+        )
+        if not is_staff_or_self:
             data.pop('phone', None)
             data.pop('license_plate', None)
+            data.pop('total_earnings', None)
+            data.pop('today_earnings', None)
         return data
 
 
@@ -214,6 +232,41 @@ class OrderSerializer(serializers.ModelSerializer):
             }
         return None
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.restaurant:
+            data['restaurant'] = {
+                'id': instance.restaurant.id,
+                'name': instance.restaurant.name,
+                'address': instance.restaurant.address,
+                'phone': instance.restaurant.phone,
+                'lat': float(instance.restaurant.lat) if instance.restaurant.lat else 11.5564,
+                'lng': float(instance.restaurant.lng) if instance.restaurant.lng else 104.9282,
+            }
+        if instance.address:
+            data['address'] = {
+                'id': instance.address.id,
+                'street': instance.address.street,
+                'city': instance.address.city,
+                'state': instance.address.state,
+                'zip_code': instance.address.zip_code,
+                'lat': float(instance.address.lat) if instance.address.lat else 11.5621,
+                'lng': float(instance.address.lng) if instance.address.lng else 104.9160,
+                'delivery_instructions': instance.address.delivery_instructions or instance.special_instructions or '',
+            }
+        elif instance.delivery_address_snapshot:
+            data['address'] = {
+                'id': None,
+                'street': instance.delivery_address_snapshot,
+                'city': 'Phnom Penh',
+                'state': 'Phnom Penh',
+                'zip_code': '12000',
+                'lat': 11.5621,
+                'lng': 104.9160,
+                'delivery_instructions': instance.special_instructions or '',
+            }
+        return data
+
 
 class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -278,6 +331,61 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             user.phone = validated_data['phone']
             user.save(update_fields=['phone'])
         return user
+
+
+class DriverRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    email = serializers.EmailField(required=True)
+    vehicle_type = serializers.CharField(required=False, default='Motorcycle (Honda Wave)')
+    license_plate = serializers.CharField(required=False, default='PP-2026')
+    phone = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'phone', 'vehicle_type', 'license_plate']
+
+    def validate_username(self, value):
+        norm = value.strip()
+        if len(norm) < 3:
+            raise serializers.ValidationError("Username must be at least 3 characters long.")
+        if ' ' in norm:
+            raise serializers.ValidationError("Username cannot contain spaces.")
+        if User.objects.filter(username__iexact=norm).exists():
+            raise serializers.ValidationError("This username is already taken. Please choose another.")
+        return norm
+
+    def validate_email(self, value):
+        norm = value.strip().lower()
+        if User.objects.filter(email__iexact=norm).exists():
+            raise serializers.ValidationError("An account with this email address already exists.")
+        return norm
+
+    def validate_password(self, value):
+        if len(value) < 6:
+            raise serializers.ValidationError("Password must be at least 6 characters.")
+        return value
+
+    def create(self, validated_data):
+        vehicle_type = validated_data.pop('vehicle_type', 'Motorcycle (Honda Wave)')
+        license_plate = validated_data.pop('license_plate', 'PP-2026')
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data.get('email', '').lower(),
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            phone=validated_data.get('phone', ''),
+            role='driver'
+        )
+        Driver.objects.create(
+            user=user,
+            vehicle_type=vehicle_type,
+            license_plate=license_plate,
+            is_approved=True,
+            is_online=False
+        )
+        return user
+
 
 class LiveItemSerializer(serializers.ModelSerializer):
     class Meta:

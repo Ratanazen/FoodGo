@@ -1,11 +1,12 @@
 from decimal import Decimal
+from django.utils import timezone
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from core.models import (
     User, Restaurant, FoodCategory, FoodItem, Order, OrderItem,
-    Cart, CartItem, Wallet, Review, Driver, Delivery, Notification
+    Cart, CartItem, Wallet, Review, Driver, Delivery, Notification, Address
 )
 from core.tests_admin import AdminFeatureTestCase
 
@@ -414,6 +415,262 @@ class FoodGoCoreAPITests(TestCase):
         res_h = self.client.get('/health/')
         self.assertEqual(res_h.status_code, status.HTTP_200_OK)
         self.assertEqual(res_h.data['status'], 'healthy')
+
+
+class DriverModuleTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.customer = User.objects.create_user(
+            username='somnang_cust',
+            email='somnang@foodgo.kh',
+            password='Customer123!',
+            role='customer',
+            phone='+855 12 111 222'
+        )
+        self.address = Address.objects.create(
+            user=self.customer,
+            street='Street 271, Boeng Tumpun',
+            city='Phnom Penh',
+            state='Phnom Penh',
+            zip_code='12000',
+            lat=Decimal('11.5420'),
+            lng=Decimal('104.9120')
+        )
+        self.owner = User.objects.create_user(
+            username='chef_dara',
+            email='dara@foodgo.kh',
+            password='Owner123!',
+            role='restaurant_owner'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.owner,
+            name='Kravanh Bistro',
+            address='St 240, Daun Penh, Phnom Penh',
+            phone='+855 23 888 777',
+            delivery_fee=Decimal('2.50'),
+            lat=Decimal('11.5580'),
+            lng=Decimal('104.9280')
+        )
+        self.category = FoodCategory.objects.create(
+            restaurant=self.restaurant,
+            name='Khmer Specialties'
+        )
+        self.food_item = FoodItem.objects.create(
+            category=self.category,
+            name='Fish Amok Royal',
+            price=Decimal('7.50'),
+            is_available=True
+        )
+
+        # Drivers
+        self.driver_user1 = User.objects.create_user(
+            username='rider_borey',
+            email='borey@foodgo.kh',
+            password='Driver123!',
+            role='driver',
+            phone='+855 77 333 444'
+        )
+        self.driver1 = Driver.objects.create(
+            user=self.driver_user1,
+            vehicle_type='Honda Click 125i',
+            license_plate='PP-1AA-1234',
+            is_online=True,
+            is_approved=True
+        )
+
+        self.driver_user2 = User.objects.create_user(
+            username='rider_chhaya',
+            email='chhaya@foodgo.kh',
+            password='Driver123!',
+            role='driver',
+            phone='+855 77 555 666'
+        )
+        self.driver2 = Driver.objects.create(
+            user=self.driver_user2,
+            vehicle_type='Yamaha Scoopy',
+            license_plate='PP-1BB-5678',
+            is_online=True,
+            is_approved=True
+        )
+
+    def _create_sample_order(self, payment_status='PAID'):
+        order = Order.objects.create(
+            customer=self.customer,
+            restaurant=self.restaurant,
+            address=self.address,
+            status='confirmed',
+            payment_status=payment_status,
+            subtotal=Decimal('15.00'),
+            delivery_fee_charged=Decimal('2.50'),
+            total_amount=Decimal('17.50')
+        )
+        OrderItem.objects.create(
+            order=order,
+            food_item=self.food_item,
+            quantity=2,
+            price=Decimal('7.50')
+        )
+        return order
+
+    def test_driver_registration(self):
+        data = {
+            'username': 'new_rider_rith',
+            'email': 'rith@foodgo.kh',
+            'password': 'DriverPass123!',
+            'first_name': 'Rith',
+            'last_name': 'Sok',
+            'phone': '+855 92 999 888',
+            'vehicle_type': 'Honda Dream 125',
+            'license_plate': 'PP-1CC-9999',
+        }
+        res = self.client.post('/api/drivers/register/', data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['status'], 'SUCCESS')
+        created_user = User.objects.get(username='new_rider_rith')
+        self.assertEqual(created_user.role, 'driver')
+        self.assertTrue(hasattr(created_user, 'driver_profile'))
+        self.assertEqual(created_user.driver_profile.license_plate, 'PP-1CC-9999')
+
+    def test_driver_me_profile_and_toggle_online(self):
+        self.client.force_authenticate(user=self.driver_user1)
+        res = self.client.get('/api/drivers/me/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['username'], 'rider_borey')
+        self.assertEqual(res.data['vehicle_type'], 'Honda Click 125i')
+        self.assertTrue(res.data['is_online'])
+
+        # Toggle offline
+        toggle_res = self.client.post('/api/drivers/toggle-online/', {'is_online': False})
+        self.assertEqual(toggle_res.status_code, status.HTTP_200_OK)
+        self.assertFalse(toggle_res.data['is_online'])
+        self.driver1.refresh_from_db()
+        self.assertFalse(self.driver1.is_online)
+
+    def test_atomic_delivery_acceptance_concurrency(self):
+        order = self._create_sample_order()
+
+        # Driver 1 accepts
+        self.client.force_authenticate(user=self.driver_user1)
+        res1 = self.client.post(f'/api/drivers/orders/{order.id}/accept/')
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        self.assertEqual(res1.data['status'], 'SUCCESS')
+
+        # Driver 2 tries to accept the same order -> 409 Conflict
+        self.client.force_authenticate(user=self.driver_user2)
+        res2 = self.client.post(f'/api/drivers/orders/{order.id}/accept/')
+        self.assertEqual(res2.status_code, status.HTTP_409_CONFLICT)
+        self.assertIn('already been accepted', res2.data['error'])
+
+    def test_driver_pickup_and_delivery_lifecycle(self):
+        order = self._create_sample_order()
+        self.client.force_authenticate(user=self.driver_user1)
+
+        # 1. Accept
+        res_accept = self.client.post(f'/api/drivers/orders/{order.id}/accept/')
+        self.assertEqual(res_accept.status_code, status.HTTP_200_OK)
+
+        # 2. Arrive at restaurant
+        res_arrive_rest = self.client.post(f'/api/drivers/orders/{order.id}/arrive-restaurant/')
+        self.assertEqual(res_arrive_rest.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.delivery.status, 'arrived_at_restaurant')
+
+        # 3. Pickup food
+        res_pickup = self.client.post(f'/api/drivers/orders/{order.id}/pickup/')
+        self.assertEqual(res_pickup.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.delivery.status, 'picked_up')
+        self.assertEqual(order.status, 'on_the_way')
+        self.assertIsNotNone(order.picked_up_at)
+
+        # 4. Arrive at customer
+        res_arrive_cust = self.client.post(f'/api/drivers/orders/{order.id}/arrive-customer/')
+        self.assertEqual(res_arrive_cust.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.delivery.status, 'arrived')
+        self.assertEqual(order.status, 'driver_arrived')
+
+        # 5. Deliver
+        res_deliver = self.client.post(f'/api/drivers/orders/{order.id}/deliver/', {'payment_collected': True})
+        self.assertEqual(res_deliver.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.delivery.status, 'delivered')
+        self.assertEqual(order.status, 'delivered')
+        self.assertEqual(order.payment_status, 'PAID')
+
+        # Check driver stats & verified earnings
+        self.driver1.refresh_from_db()
+        self.assertEqual(self.driver1.total_deliveries, 1)
+        self.assertEqual(self.driver1.total_earnings, Decimal('2.50'))
+
+    def test_driver_earnings_and_history_api(self):
+        order = self._create_sample_order()
+        Delivery.objects.create(
+            order=order,
+            driver=self.driver1,
+            status='delivered',
+            delivery_time=timezone.now()
+        )
+        order.status = 'delivered'
+        order.delivered_at = timezone.now()
+        order.save()
+        self.driver1.total_deliveries = 1
+        self.driver1.total_earnings = Decimal('2.50')
+        self.driver1.save()
+
+        self.client.force_authenticate(user=self.driver_user1)
+
+        # Test /api/drivers/earnings/
+        res_earnings = self.client.get('/api/drivers/earnings/')
+        self.assertEqual(res_earnings.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(res_earnings.data['today_earnings_usd'], 2.50)
+        self.assertEqual(res_earnings.data['completed_trips'], 1)
+
+        # Test /api/drivers/history/
+        res_history = self.client.get('/api/drivers/history/')
+        self.assertEqual(res_history.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res_history.data), 1)
+        self.assertEqual(res_history.data[0]['id'], order.id)
+
+    def test_unapproved_driver_cannot_accept_orders(self):
+        self.driver2.is_approved = False
+        self.driver2.save()
+
+        order = self._create_sample_order()
+        self.client.force_authenticate(user=self.driver_user2)
+        res = self.client.post(f'/api/drivers/orders/{order.id}/accept/')
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('pending administrator approval', res.data['error'])
+
+    def test_driver_cancellation_releases_order(self):
+        order = self._create_sample_order()
+        self.client.force_authenticate(user=self.driver_user1)
+
+        # Accept order
+        self.client.post(f'/api/drivers/orders/{order.id}/accept/')
+
+        # Cancel before pickup
+        res_cancel = self.client.post(f'/api/drivers/orders/{order.id}/cancel/', {
+            'reason': 'Flat tire on the way to restaurant'
+        })
+        self.assertEqual(res_cancel.status_code, status.HTTP_200_OK)
+        self.assertTrue(res_cancel.data['reassigned'])
+
+        order.refresh_from_db()
+        self.assertIsNone(order.delivery.driver)
+        self.assertEqual(order.delivery.status, 'assigned')
+
+    def test_driver_verify_cod_payment(self):
+        order = self._create_sample_order(payment_status='UNPAID')
+        Delivery.objects.create(order=order, driver=self.driver1, status='arrived')
+        self.client.force_authenticate(user=self.driver_user1)
+
+        res = self.client.post(f'/api/drivers/orders/{order.id}/verify-payment/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['payment_status'], 'PAID')
+        order.refresh_from_db()
+        self.assertEqual(order.payment_status, 'PAID')
+
 
 
 

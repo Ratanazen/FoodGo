@@ -234,11 +234,13 @@ class Driver(models.Model):
     vehicle_type = models.CharField(max_length=50)
     license_plate = models.CharField(max_length=50)
     is_online = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=True, db_index=True)
     current_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     current_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     operational_status = models.CharField(max_length=30, default='available')
     last_location_update = models.DateTimeField(null=True, blank=True)
     total_deliveries = models.IntegerField(default=0)
+    total_earnings = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
     def __str__(self):
         return f"Driver: {self.user.username} ({self.vehicle_type})"

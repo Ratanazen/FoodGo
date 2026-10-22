@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../core/theme/glass_theme.dart';
 import '../services/api_service.dart';
 import 'glass_container.dart';
+import 'responsive_layout.dart';
 
 class DeliveryScannerModal extends StatefulWidget {
   final String orderId;
@@ -220,10 +221,12 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
-      child: GlassContainer(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: _isDelivered ? _buildSuccessView() : _buildFormView(),
+      child: ResponsiveBottomSheet(
+        child: GlassContainer(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: _isDelivered ? _buildSuccessView() : _buildFormView(),
+        ),
       ),
     );
   }

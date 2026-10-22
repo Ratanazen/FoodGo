@@ -11,6 +11,7 @@ import '../../../providers/currency_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/responsive_layout.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -61,61 +62,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: GlassTheme.dialogDark,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Select Language / ជ្រើសរើសភាសា',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...[
-              {'label': 'English (US)', 'name': 'English'},
-              {'label': 'ភាសាខ្មែរ (Khmer)', 'name': 'Khmer'},
-              {'label': 'Français (French)', 'name': 'French'},
-            ].map((lang) {
-              final isSel = _selectedLanguage == lang['name'];
-              return Material(
-                color: Colors.transparent,
-                child: ListTile(
-                  title: Text(
-                    lang['label']!,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  trailing: isSel
-                      ? const Icon(Icons.check, color: GlassTheme.primaryGreen)
-                      : null,
-                  onTap: () {
-                    setState(() => _selectedLanguage = lang['name']!);
-                    _saveSetting('settings_language', lang['name']!);
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Language switched to ${lang['label']}'),
-                        duration: const Duration(seconds: 1),
-                        backgroundColor: GlassTheme.primaryGreen,
-                      ),
-                    );
-                  },
+      builder: (ctx) => ResponsiveBottomSheet(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: GlassTheme.dialogDark,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Select Language / ជ្រើសរើសភាសា',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            }),
-          ],
+              ),
+              const SizedBox(height: 16),
+              ...[
+                {'label': 'English (US)', 'name': 'English'},
+                {'label': 'ភាសាខ្មែរ (Khmer)', 'name': 'Khmer'},
+                {'label': 'Français (French)', 'name': 'French'},
+              ].map((lang) {
+                final isSel = _selectedLanguage == lang['name'];
+                return Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    title: Text(
+                      lang['label']!,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    trailing: isSel
+                        ? const Icon(Icons.check, color: GlassTheme.primaryGreen)
+                        : null,
+                    onTap: () {
+                      setState(() => _selectedLanguage = lang['name']!);
+                      _saveSetting('settings_language', lang['name']!);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Language switched to ${lang['label']}'),
+                          duration: const Duration(seconds: 1),
+                          backgroundColor: GlassTheme.primaryGreen,
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );
@@ -126,7 +129,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
+      builder: (ctx) => ResponsiveBottomSheet(
+        child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: GlassTheme.dialogDark,
@@ -231,8 +235,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showFontSizeDialog() {
     showDialog(
@@ -296,8 +301,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
           ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
+          child: ResponsiveBottomSheet(
+            child: Container(
+              padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: GlassTheme.dialogDark,
               borderRadius: const BorderRadius.vertical(
@@ -456,8 +462,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showDeleteAccountDialog() {
     final confirmController = TextEditingController();
@@ -697,8 +704,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: ResponsiveWebContainer(
+        maxWidth: 800,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
         children: [
           // ── Appearance ──────────────────────
           _SectionHeader(title: 'Appearance'),
@@ -911,8 +920,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 100),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _SectionHeader extends StatelessWidget {

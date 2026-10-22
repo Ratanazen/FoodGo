@@ -868,9 +868,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
+      builder: (ctx) => ResponsiveBottomSheet(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
           color: isDark ? GlassTheme.surfaceDark : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           border: Border.all(
@@ -991,8 +992,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSupportTile({
     required IconData icon,
@@ -1353,12 +1355,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: GlassTheme.surfaceDark,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
+      builder: (ctx) => ResponsiveBottomSheet(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: GlassTheme.surfaceDark,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1573,8 +1576,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildFilterChips() {
     const filters = ['All', 'Active', 'Delivered', 'Cancelled'];

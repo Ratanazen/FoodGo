@@ -33,6 +33,8 @@ backups/
 
 # Flutter & Dart
 foodgo_flutter/build/
+foodgo_flutter/android/build/
+foodgo_flutter/android/.gradle/
 foodgo_flutter/.dart_tool/
 foodgo_flutter/.flutter-plugins
 foodgo_flutter/.flutter-plugins-dependencies

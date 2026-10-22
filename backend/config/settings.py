@@ -174,7 +174,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
-    for origin in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+    for origin in os.environ.get(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:3000,http://localhost:8080,http://localhost:5000,http://localhost:53538'
+    ).split(',')
     if origin.strip()
 ]
 CSRF_TRUSTED_ORIGINS = [
@@ -285,8 +288,8 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '120/minute',
-        'user': '600/minute',
+        'anon': '200/minute',
+        'user': '1000/minute',
     },
 }
 
@@ -306,9 +309,11 @@ JAZZMIN_SETTINGS = {
     "site_header": "FoodGo",
     "site_brand": "FoodGo",
     "site_logo": None,
+    "login_logo": None,
+    "login_logo_dark": None,
     "site_logo_classes": "img-circle",
     "site_icon": None,
-    "welcome_sign": "Welcome back! FoodGo Admin Panel",
+    "welcome_sign": "Welcome to FoodGo Admin Console",
     "copyright": "FoodGo Ltd (c) 2026",
     "search_model": ["core.User", "core.Order", "core.Restaurant", "core.FoodItem"],
     "user_avatar": None,
@@ -399,22 +404,23 @@ JAZZMIN_UI_TWEAKS = {
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-success",
-    "accent": "accent-success",
+    "brand_colour": "navbar-dark",
+    "accent": "accent-lime",
     "navbar": "navbar-success navbar-dark",
     "no_navbar_border": True,
     "navbar_fixed": True,
     "layout_boxed": False,
     "footer_fixed": False,
     "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-success",
+    "sidebar": "sidebar-dark-primary",
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
     "sidebar_nav_child_indent": True,
     "sidebar_nav_compact_style": True,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": True,
-    "theme": "flatly",
+    "theme": "darkly",
+    "dark_mode_theme": "darkly",
     "button_classes": {
         "primary":   "btn-outline-primary",
         "secondary": "btn-outline-secondary",

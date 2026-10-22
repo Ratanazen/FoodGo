@@ -6,6 +6,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../core/theme/glass_theme.dart';
 import '../services/api_service.dart';
 import 'glass_container.dart';
+import 'responsive_layout.dart';
 
 class DeliveryQrModal extends StatefulWidget {
   final String orderId;
@@ -183,10 +184,12 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: _isDelivered ? _buildSuccessView() : _buildActiveQrView(),
+    return ResponsiveBottomSheet(
+      child: GlassContainer(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: _isDelivered ? _buildSuccessView() : _buildActiveQrView(),
+      ),
     );
   }
 

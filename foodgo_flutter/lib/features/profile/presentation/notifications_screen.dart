@@ -8,6 +8,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/responsive_layout.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -85,13 +86,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       Clipboard.setData(ClipboardData(text: code));
       showModalBottomSheet(
         context: context,
-        backgroundColor: const Color(0xFF161622),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        builder: (ctx) => Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => ResponsiveBottomSheet(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Color(0xFF161622),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
@@ -172,7 +175,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ],
           ),
         ),
-      );
+      ),
+    );
     } else if (type == 'order') {
       final orderId = notif.orderId;
       final restName =
@@ -181,13 +185,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
       showModalBottomSheet(
         context: context,
-        backgroundColor: const Color(0xFF161622),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        builder: (ctx) => Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => ResponsiveBottomSheet(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Color(0xFF161622),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
@@ -313,7 +319,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ],
           ),
         ),
-      );
+      ),
+    );
     } else if (type == 'rate') {
       int rating = 5;
       final feedbackController = TextEditingController();
@@ -445,13 +452,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
             ],
           ),
-          body: notifProvider.isLoading && allItems.isEmpty
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: GlassTheme.primaryGreen,
-                  ),
-                )
-              : Column(
+          body: ResponsiveWebContainer(
+            maxWidth: 800,
+            child: notifProvider.isLoading && allItems.isEmpty
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: GlassTheme.primaryGreen,
+                    ),
+                  )
+                : Column(
                   children: [
                     // Segmented Filter Bar
                     Padding(
@@ -751,6 +760,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                   ],
                 ),
+          ),
         );
       },
     );

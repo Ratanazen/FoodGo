@@ -67,7 +67,8 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => SafeArea(
+      builder: (ctx) => ResponsiveBottomSheet(
+        child: SafeArea(
         child: Container(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(ctx).size.height * 0.88,
@@ -277,8 +278,9 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -844,7 +846,8 @@ class ProfileScreen extends StatelessWidget {
                 showModalBottomSheet(
                   context: context,
                   backgroundColor: Colors.transparent,
-                  builder: (ctx) => Container(
+                  builder: (ctx) => ResponsiveBottomSheet(
+                    child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: GlassTheme.dialogDark,
@@ -915,8 +918,9 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                );
-              },
+                ),
+              );
+            },
             ),
             _ProfileOption(
               icon: Icons.help_outline,
@@ -925,7 +929,8 @@ class ProfileScreen extends StatelessWidget {
                 showModalBottomSheet(
                   context: context,
                   backgroundColor: Colors.transparent,
-                  builder: (ctx) => Container(
+                  builder: (ctx) => ResponsiveBottomSheet(
+                    child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: GlassTheme.dialogDark,
@@ -1002,8 +1007,9 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                );
-              },
+                ),
+              );
+            },
             ),
             Consumer<AuthProvider>(
               builder: (context, auth, child) {

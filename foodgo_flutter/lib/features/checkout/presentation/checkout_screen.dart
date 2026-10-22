@@ -121,7 +121,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
+      builder: (ctx) => ResponsiveBottomSheet(
+        child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: GlassTheme.dialogDark,
@@ -286,8 +287,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showInsufficientBalanceDialog(double total) {
     showDialog(

@@ -14,6 +14,7 @@ import '../../../providers/notification_provider.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/shimmer_widgets.dart';
+import '../../../widgets/responsive_layout.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -223,124 +224,133 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: isDark
           ? GlassTheme.backgroundDark
           : const Color(0xFFFBFBFD),
-      body: Stack(
-        children: [
-          RefreshIndicator(
-            color: GlassTheme.primaryGreen,
-            onRefresh: () =>
-                context.read<RestaurantProvider>().fetchRestaurants(),
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // ── 1. Top Modern Location Header (Search | Location | Notification) ──
-                SliverToBoxAdapter(
-                  child: _buildModernLocationHeader(context, isDark)
-                      .animate()
-                      .fadeIn(duration: 400.ms)
-                      .slideY(begin: -0.08, end: 0, curve: Curves.easeOutCubic),
-                ),
-
-                // ── 2. Content Body with Hero & Categories ─────────────
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      const SizedBox(height: 16),
-
-                      // ── Hero Promo: "FAST & FREE DELIVERY!" (TikTok Reference) ───
-                      _buildFastAndFreeHeroPromo(context, isDark)
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Stack(
+            children: [
+              RefreshIndicator(
+                color: GlassTheme.primaryGreen,
+                onRefresh: () =>
+                    context.read<RestaurantProvider>().fetchRestaurants(),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // ── 1. Top Modern Location Header (Search | Location | Notification) ──
+                    SliverToBoxAdapter(
+                      child: _buildModernLocationHeader(context, isDark)
                           .animate()
-                          .fadeIn(duration: 450.ms, delay: 100.ms)
-                          .slideY(
-                            begin: 0.08,
-                            end: 0,
-                            curve: Curves.easeOutCubic,
+                          .fadeIn(duration: 400.ms)
+                          .slideY(begin: -0.08, end: 0, curve: Curves.easeOutCubic),
+                    ),
+
+                    // ── 2. Content Body with Hero & Categories ─────────────
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          const SizedBox(height: 16),
+
+                          // ── Hero Promo: "FAST & FREE DELIVERY!" (TikTok Reference) ───
+                          _buildFastAndFreeHeroPromo(context, isDark)
+                              .animate()
+                              .fadeIn(duration: 450.ms, delay: 100.ms)
+                              .slideY(
+                                begin: 0.08,
+                                end: 0,
+                                curve: Curves.easeOutCubic,
+                              ),
+                          const SizedBox(height: 22),
+
+                          // ── Categories Section Header ("Categories" | "See All") ──
+                          _buildSectionHeader(
+                            'Categories',
+                            () => context.push('/explore'),
                           ),
-                      const SizedBox(height: 22),
+                          const SizedBox(height: 12),
 
-                      // ── Categories Section Header ("Categories" | "See All") ──
-                      _buildSectionHeader(
-                        'Categories',
-                        () => context.push('/explore'),
+                          // ── 5 Modern Categories: All, Burger, Pizza, Sushi, Chicken ──
+                          _buildModernFourCategories(isDark)
+                              .animate()
+                              .fadeIn(duration: 450.ms, delay: 180.ms)
+                              .slideX(
+                                begin: 0.05,
+                                end: 0,
+                                curve: Curves.easeOutCubic,
+                              ),
+                          const SizedBox(height: 24),
+
+                          // ── "Recommended for you" Section Header ─────────
+                          _buildRecommendedHeader(
+                            context,
+                            isDark,
+                          ).animate().fadeIn(duration: 400.ms, delay: 240.ms),
+                          const SizedBox(height: 14),
+                        ]),
                       ),
-                      const SizedBox(height: 12),
+                    ),
 
-                      // ── 5 Modern Categories: All, Burger, Pizza, Sushi, Chicken ──
-                      _buildModernFourCategories(isDark)
-                          .animate()
-                          .fadeIn(duration: 450.ms, delay: 180.ms)
-                          .slideX(
-                            begin: 0.05,
-                            end: 0,
-                            curve: Curves.easeOutCubic,
+                    // ── 3. 2-Column Recommended Dishes Grid ────────────────
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      sliver: _buildRecommendedGrid(context, isDark),
+                    ),
+
+                    // ── 4. Deals For You & Fast Delivery ───────────────────
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          const SizedBox(height: 28),
+                          _buildSectionHeader(
+                            'Deals for you',
+                            () => context.push('/explore'),
                           ),
-                      const SizedBox(height: 24),
+                          const SizedBox(height: 12),
+                          _buildDealsList(isDark),
+                          const SizedBox(height: 24),
 
-                      // ── "Recommended for you" Section Header ─────────
-                      _buildRecommendedHeader(
-                        context,
-                        isDark,
-                      ).animate().fadeIn(duration: 400.ms, delay: 240.ms),
-                      const SizedBox(height: 14),
-                    ]),
-                  ),
-                ),
+                          _buildFastDeliverySection(isDark),
+                          const SizedBox(height: 24),
 
-                // ── 3. 2-Column Recommended Dishes Grid ────────────────
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: _buildRecommendedGrid(context, isDark),
-                ),
+                          _buildSectionHeader(
+                            'Restaurants near you',
+                            () => context.push('/explore'),
+                          ),
+                          const SizedBox(height: 8),
 
-                // ── 4. Deals For You & Fast Delivery ───────────────────
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      const SizedBox(height: 28),
-                      _buildSectionHeader(
-                        'Deals for you',
-                        () => context.push('/explore'),
+                          // Sorting filter chips
+                          _buildSortingChips(isDark),
+                          const SizedBox(height: 14),
+                        ]),
                       ),
-                      const SizedBox(height: 12),
-                      _buildDealsList(isDark),
-                      const SizedBox(height: 24),
+                    ),
 
-                      _buildFastDeliverySection(isDark),
-                      const SizedBox(height: 24),
+                    // ── 5. Full Restaurant Catalog Grid ────────────────────
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      sliver: _buildRestaurantGrid(context, isDark),
+                    ),
 
-                      _buildSectionHeader(
-                        'Restaurants near you',
-                        () => context.push('/explore'),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Sorting filter chips
-                      _buildSortingChips(isDark),
-                      const SizedBox(height: 14),
-                    ]),
-                  ),
+                    // Bottom footer on web or spacer on mobile
+                    if (ResponsiveBreakpoints.isWide(context))
+                      const SliverToBoxAdapter(child: WebFooter())
+                    else
+                      const SliverToBoxAdapter(child: SizedBox(height: 140)),
+                  ],
                 ),
+              ),
 
-                // ── 5. Full Restaurant Catalog Grid ────────────────────
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: _buildRestaurantGrid(context, isDark),
-                ),
-
-                // Bottom padding to clear floating elements
-                const SliverToBoxAdapter(child: SizedBox(height: 140)),
-              ],
-            ),
+              // ── Sticky Floating Active Order Floater ──
+              if (_showActiveOrderFloater)
+                _buildFloatingActiveOrder(context, isDark)
+                    .animate()
+                    .fadeIn(duration: 450.ms, delay: 350.ms)
+                    .slideY(begin: 0.1, end: 0, curve: Curves.easeOutBack),
+            ],
           ),
-
-          // ── Sticky Floating Active Order Floater ──
-          if (_showActiveOrderFloater)
-            _buildFloatingActiveOrder(context, isDark)
-                .animate()
-                .fadeIn(duration: 450.ms, delay: 350.ms)
-                .slideY(begin: 0.1, end: 0, curve: Curves.easeOutBack),
-        ],
+        ),
       ),
     );
   }
@@ -950,10 +960,18 @@ class _HomeScreenState extends State<HomeScreen> {
       if (priceFiltered.isNotEmpty) list = priceFiltered;
     }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final int crossAxisCount = screenWidth >= 1100
+        ? 4
+        : (screenWidth >= 700 ? 3 : 2);
+    final double childAspectRatio = screenWidth >= 1100
+        ? 0.80
+        : (screenWidth >= 700 ? 0.78 : (screenWidth < 370 ? 0.70 : 0.72));
+
     return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.72,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: childAspectRatio,
         crossAxisSpacing: 12,
         mainAxisSpacing: 14,
       ),
@@ -1364,11 +1382,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 size: 12,
                               ),
                               const SizedBox(width: 2),
-                              Text(
-                                '${item['rating']} · ${item['timeMin']} min · ${item['distanceKm']} km',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: GlassTheme.textMuted,
+                              Flexible(
+                                child: Text(
+                                  '${item['rating']} · ${item['timeMin']} min · ${item['distanceKm']} km',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: GlassTheme.textMuted,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -1451,17 +1473,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRestaurantGrid(BuildContext context, bool isDark) {
     return Consumer<RestaurantProvider>(
       builder: (context, provider, child) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final int crossAxisCount = screenWidth >= 1100
+            ? 4
+            : (screenWidth >= 700 ? 3 : 2);
+        final double childAspectRatio = screenWidth >= 1100
+            ? 0.84
+            : (screenWidth >= 700 ? 0.80 : (screenWidth < 370 ? 0.70 : 0.74));
+
         if (provider.isLoading) {
           return SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.74,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              childAspectRatio: childAspectRatio,
               crossAxisSpacing: 12,
               mainAxisSpacing: 14,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) => const ShimmerFoodCard(isHorizontal: false),
-              childCount: 4,
+              childCount: crossAxisCount * 2,
             ),
           );
         }
@@ -1577,9 +1607,9 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         return SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.74,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
             crossAxisSpacing: 12,
             mainAxisSpacing: 14,
           ),
@@ -1766,13 +1796,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               : const Color(0xFF444444),
                         ),
                       ),
-                      Text(
-                        ' • ${timeMin}m • ${distanceKm.toStringAsFixed(1)}km',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark
-                              ? Colors.white54
-                              : const Color(0xFF757575),
+                      Flexible(
+                        child: Text(
+                          ' • ${timeMin}m • ${distanceKm.toStringAsFixed(1)}km',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark
+                                ? Colors.white54
+                                : const Color(0xFF757575),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -1877,10 +1911,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final courierSub =
         '${activeNotif.data['restaurant_name'] ?? 'FoodGo'} • Arriving in ${_activeOrderEta}m';
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= 800;
+
     return Positioned(
-      bottom: 96,
-      left: 16,
-      right: 16,
+      bottom: isWide ? 32 : 96,
+      left: isWide ? null : 16,
+      right: isWide ? 24 : 16,
+      width: isWide ? 420 : null,
       child: InkWell(
         onTap: () => context.push('/map/$activeOrderId'),
         borderRadius: BorderRadius.circular(20),

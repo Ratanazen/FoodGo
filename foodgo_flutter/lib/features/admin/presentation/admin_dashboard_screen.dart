@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/admin_provider.dart';
+// ignore: unused_import
+import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/responsive_layout.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -51,20 +54,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     return Scaffold(
       backgroundColor: GlassTheme.backgroundDark,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF1A3A2A),
+        surfaceTintColor: Colors.transparent,
+        shape: Border(
+          bottom: BorderSide(
+            color: GlassTheme.limeAccent.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
         elevation: 0,
         leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.arrow_back_ios_new,
-              size: 16,
-              color: Colors.white,
-            ),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 18,
+            color: GlassTheme.limeAccent,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
@@ -99,6 +102,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          dividerColor: Colors.transparent,
+          splashBorderRadius: BorderRadius.circular(12),
+          indicatorSize: TabBarIndicatorSize.tab,
           indicatorColor: GlassTheme.limeAccent,
           indicatorWeight: 3,
           labelColor: GlassTheme.limeAccent,
@@ -113,16 +120,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildOverviewTab(),
-          _buildOrdersTab(),
-          _buildPaymentsTab(),
-          _buildUsersTab(),
-          _buildRestaurantsTab(),
-          _buildAuditLogsTab(),
-        ],
+      body: ResponsiveWebContainer(
+        maxWidth: 1200,
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildOverviewTab(),
+            _buildOrdersTab(),
+            _buildPaymentsTab(),
+            _buildUsersTab(),
+            _buildRestaurantsTab(),
+            _buildAuditLogsTab(),
+          ],
+        ),
       ),
     );
   }

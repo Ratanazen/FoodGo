@@ -409,8 +409,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) {
-        return GlassContainer(
+      builder: (ctx) => ResponsiveBottomSheet(
+        child: GlassContainer(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -548,8 +548,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               const SizedBox(height: 16),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -680,7 +680,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         ),
         child: SafeArea(
           child: ResponsiveWebContainer(
-            maxWidth: 1000,
+            maxWidth: 900,
             child: Column(
               children: [
                 // ── Status & Navigation Header ──

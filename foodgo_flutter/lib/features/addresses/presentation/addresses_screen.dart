@@ -28,8 +28,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetCtx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
+      builder: (sheetCtx) => ResponsiveBottomSheet(
+        child: StatefulBuilder(
+          builder: (ctx, setSheetState) => Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(ctx).viewInsets.bottom,
           ),
@@ -235,8 +236,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {

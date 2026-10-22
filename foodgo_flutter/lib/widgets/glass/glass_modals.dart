@@ -14,15 +14,21 @@ class GlassModals {
       backgroundColor: Colors.transparent,
       elevation: 0,
       isScrollControlled: true,
-      builder: (context) => GlassContainer(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-          left: 24,
-          right: 24,
-          top: 24,
+      builder: (context) => Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540),
+          child: GlassContainer(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              left: 24,
+              right: 24,
+              top: 24,
+            ),
+            child: child,
+          ),
         ),
-        child: child,
       ),
     );
   }
@@ -41,7 +47,9 @@ class GlassModals {
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
         elevation: 0,
-        child: GlassContainer(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: GlassContainer(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -86,6 +94,7 @@ class GlassModals {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

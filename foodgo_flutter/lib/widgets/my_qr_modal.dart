@@ -7,6 +7,7 @@ import '../core/utils/khmer_currency.dart';
 import 'glass/glass_widgets.dart';
 import 'glass_container.dart';
 import 'svg_icon.dart';
+import 'responsive_layout.dart';
 
 class MyQrModal {
   static void show(
@@ -125,10 +126,11 @@ class _MyQrSheetState extends State<_MyQrSheet> {
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
-      child: GlassContainer(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: SingleChildScrollView(
+      child: ResponsiveBottomSheet(
+        child: GlassContainer(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -565,8 +567,9 @@ class _MyQrSheetState extends State<_MyQrSheet> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _PresetChip extends StatelessWidget {

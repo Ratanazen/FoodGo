@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../core/theme/glass_theme.dart';
 import '../providers/user_provider.dart';
 import '../services/api_service.dart';
+import 'responsive_layout.dart';
 
 class PhoneVerificationModal {
   static Future<bool?> show(
@@ -210,7 +211,8 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
-      child: Container(
+      child: ResponsiveBottomSheet(
+        child: Container(
         decoration: BoxDecoration(
           color: GlassTheme.dialogDark,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -560,6 +562,7 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

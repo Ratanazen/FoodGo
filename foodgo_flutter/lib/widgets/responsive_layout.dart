@@ -61,6 +61,31 @@ class ResponsiveWebContainer extends StatelessWidget {
   }
 }
 
+/// A responsive bottom sheet wrapper that centers its content and constrains
+/// its maximum width on wide viewports (tablets, desktops, ultra-wide) while
+/// filling full-width on mobile screens.
+class ResponsiveBottomSheet extends StatelessWidget {
+  final Widget child;
+  final double maxWidth;
+
+  const ResponsiveBottomSheet({
+    super.key,
+    required this.child,
+    this.maxWidth = 540,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: child,
+      ),
+    );
+  }
+}
+
 /// A responsive grid that automatically lays out cards in 1, 2, 3, or 4 columns
 /// based on available width.
 class ResponsiveCardGrid extends StatelessWidget {

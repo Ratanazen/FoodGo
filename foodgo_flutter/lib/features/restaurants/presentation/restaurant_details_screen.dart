@@ -82,8 +82,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Container(
-          padding: const EdgeInsets.all(24),
+        builder: (ctx, setSheetState) => ResponsiveBottomSheet(
+          child: Container(
+            padding: const EdgeInsets.all(24),
           decoration: const BoxDecoration(
             color: GlassTheme.dialogDark,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -287,8 +288,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   void initState() {

@@ -14,6 +14,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../services/api_service.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../widgets/responsive_layout.dart';
 
 enum SearchScope { all, dishes, restaurants }
 
@@ -245,8 +246,9 @@ class _SearchScreenState extends State<SearchScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (modalCtx, setModalState) {
-          return Container(
-            decoration: BoxDecoration(
+          return ResponsiveBottomSheet(
+            child: Container(
+              decoration: BoxDecoration(
               color: GlassTheme.dialogDark,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(28),
@@ -526,8 +528,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 ],
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }
@@ -602,8 +605,9 @@ class _SearchScreenState extends State<SearchScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Container(
-          decoration: BoxDecoration(
+        builder: (ctx, setSheetState) => ResponsiveBottomSheet(
+          child: Container(
+            decoration: BoxDecoration(
             color: GlassTheme.dialogDark,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
@@ -828,8 +832,9 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildScopePill(String title, SearchScope scope, int count) {
     final isSelected = _selectedScope == scope;
@@ -1305,8 +1310,10 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: ResponsiveWebContainer(
+          maxWidth: 1000,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1698,6 +1705,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

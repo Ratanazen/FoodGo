@@ -329,47 +329,68 @@ class ProfileScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(32),
                           child: Column(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: GlassTheme.limeAccent,
-                                    width: 2.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: GlassTheme.limeAccent.withValues(
-                                        alpha: 0.25,
-                                      ),
-                                      blurRadius: 16,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                                child: avatarUrl != null && avatarUrl.isNotEmpty
-                                    ? CachedNetworkImage(
-                                        imageUrl: avatarUrl,
-                                        imageBuilder: (ctx, imageProvider) =>
-                                            CircleAvatar(
-                                              radius: 40,
-                                              backgroundImage: imageProvider,
-                                            ),
-                                        placeholder: (ctx, url) => CircleAvatar(
-                                          radius: 40,
-                                          backgroundColor: GlassTheme.limeAccent
-                                              .withValues(alpha: 0.15),
-                                          child:
-                                              const CircularProgressIndicator(
-                                                color: GlassTheme.limeAccent,
-                                                strokeWidth: 2,
-                                              ),
+                              InkWell(
+                                onTap: () => context.push('/edit-profile'),
+                                borderRadius: BorderRadius.circular(45),
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(3),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: GlassTheme.limeAccent,
+                                          width: 2.5,
                                         ),
-                                        errorWidget: (ctx, url, err) =>
-                                            CircleAvatar(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: GlassTheme.limeAccent.withValues(
+                                              alpha: 0.25,
+                                            ),
+                                            blurRadius: 16,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                      child: avatarUrl != null && avatarUrl.isNotEmpty
+                                          ? CachedNetworkImage(
+                                              imageUrl: avatarUrl,
+                                              imageBuilder: (ctx, imageProvider) =>
+                                                  CircleAvatar(
+                                                    radius: 40,
+                                                    backgroundImage: imageProvider,
+                                                  ),
+                                              placeholder: (ctx, url) => CircleAvatar(
+                                                radius: 40,
+                                                backgroundColor: GlassTheme.limeAccent
+                                                    .withValues(alpha: 0.15),
+                                                child:
+                                                    const CircularProgressIndicator(
+                                                      color: GlassTheme.limeAccent,
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
+                                              errorWidget: (ctx, url, err) =>
+                                                  CircleAvatar(
+                                                    radius: 40,
+                                                    backgroundColor: GlassTheme
+                                                        .limeAccent
+                                                        .withValues(alpha: 0.15),
+                                                    child: Text(
+                                                      username.isNotEmpty
+                                                          ? username[0].toUpperCase()
+                                                          : 'G',
+                                                      style: const TextStyle(
+                                                        fontSize: 32,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: GlassTheme.limeAccent,
+                                                      ),
+                                                    ),
+                                                  ),
+                                            )
+                                          : CircleAvatar(
                                               radius: 40,
-                                              backgroundColor: GlassTheme
-                                                  .limeAccent
+                                              backgroundColor: GlassTheme.limeAccent
                                                   .withValues(alpha: 0.15),
                                               child: Text(
                                                 username.isNotEmpty
@@ -382,22 +403,35 @@ class ProfileScreen extends StatelessWidget {
                                                 ),
                                               ),
                                             ),
-                                      )
-                                    : CircleAvatar(
-                                        radius: 40,
-                                        backgroundColor: GlassTheme.limeAccent
-                                            .withValues(alpha: 0.15),
-                                        child: Text(
-                                          username.isNotEmpty
-                                              ? username[0].toUpperCase()
-                                              : 'G',
-                                          style: const TextStyle(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.bold,
-                                            color: GlassTheme.limeAccent,
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: GlassTheme.limeAccent,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: GlassTheme.dialogDark,
+                                            width: 2,
                                           ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(alpha: 0.35),
+                                              blurRadius: 6,
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Icon(
+                                          Icons.edit,
+                                          size: 13,
+                                          color: Colors.black,
                                         ),
                                       ),
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 14),
                               Text(
@@ -521,7 +555,38 @@ class ProfileScreen extends StatelessWidget {
                                     ),
                                 ],
                               ),
-                              const SizedBox(height: 18),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: () => context.push('/edit-profile'),
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  size: 14,
+                                  color: GlassTheme.limeAccent,
+                                ),
+                                label: const Text(
+                                  'Edit Profile',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: GlassTheme.limeAccent.withValues(alpha: 0.5),
+                                    width: 1.2,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 8,
+                                  ),
+                                  backgroundColor: GlassTheme.limeAccent.withValues(alpha: 0.08),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
                               // Quick Action Shortcuts: Addresses, Orders, KHQR
                               Row(
                                 children: [

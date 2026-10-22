@@ -8,7 +8,7 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 
 [vars]
-BACKEND_A_URL = "https://foodgo-backend-a.vercel.app"
+BACKEND_A_URL = "https://food-go-app.vercel.app"
 BACKEND_B_URL = "https://foodgo-backend-b.vercel.app"
 BACKEND_URL = "https://food-go-app.vercel.app"
 TRAFFIC_SPLIT_RATIO = "50:50"

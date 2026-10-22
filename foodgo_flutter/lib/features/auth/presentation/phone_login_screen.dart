@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../providers/auth_provider.dart';
+import '../../../providers/user_provider.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
@@ -72,7 +73,17 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
     if (mounted) {
       if (success) {
-        context.go('/home');
+        final userProvider = context.read<UserProvider>();
+        final role = userProvider.user?['role']?.toString().toLowerCase();
+        if (role == 'admin') {
+          context.go('/admin-dashboard');
+        } else if (role == 'driver') {
+          context.go('/driver-dashboard');
+        } else if (role == 'restaurant_owner') {
+          context.go('/restaurant-dashboard');
+        } else {
+          context.go('/home');
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -11,6 +11,7 @@ import '../../../providers/address_provider.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../providers/notification_provider.dart';
+import '../../../providers/user_provider.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/shimmer_widgets.dart';
@@ -366,6 +367,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildModernLocationHeader(BuildContext context, bool isDark) {
     final topPadding = MediaQuery.of(context).padding.top;
     final activeAddress = context.watch<AddressProvider>().selectedAddress;
+    final userProvider = context.watch<UserProvider>();
+    final user = userProvider.user;
+    final avatarUrl = user?['avatar_url'] ?? user?['avatar'];
+    final username = (user?['first_name'] as String?)?.isNotEmpty == true
+        ? user!['first_name'] as String
+        : (user?['username'] as String? ?? 'Foodie');
     final String locationName =
         (activeAddress?.city.isNotEmpty == true &&
             activeAddress?.street.isNotEmpty == true)
@@ -402,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    // Circular Avatar with online dot
+                    // Circular Avatar with online dot & profile link
                     InkWell(
                       onTap: () => context.push('/profile'),
                       borderRadius: BorderRadius.circular(20),
@@ -414,15 +421,57 @@ class _HomeScreenState extends State<HomeScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Colors.white70,
-                                width: 1.5,
+                                color: const Color(0xFFCCFF00),
+                                width: 1.8,
                               ),
-                              image: const DecorationImage(
-                                image: CachedNetworkImageProvider(
-                                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
-                                ),
-                                fit: BoxFit.cover,
-                              ),
+                            ),
+                            child: ClipOval(
+                              child: avatarUrl != null &&
+                                      avatarUrl.toString().isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl: avatarUrl.toString(),
+                                      fit: BoxFit.cover,
+                                      placeholder: (ctx, url) => Container(
+                                        color: Colors.white12,
+                                        alignment: Alignment.center,
+                                        child: const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Color(0xFFCCFF00),
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (ctx, url, err) => Container(
+                                        color: const Color(0xFF236E31),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          username.isNotEmpty
+                                              ? username[0].toUpperCase()
+                                              : 'F',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      color: const Color(0xFF236E31),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        username.isNotEmpty
+                                            ? username[0].toUpperCase()
+                                            : 'F',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
                             ),
                           ),
                           Positioned(
@@ -435,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: const Color(0xFFCCFF00),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: const Color(0xFF236E31),
+                                  color: const Color(0xFF1B5E20),
                                   width: 1.5,
                                 ),
                               ),
@@ -471,9 +520,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Text(
-                                    'Deliver to',
-                                    style: TextStyle(
+                                  Text(
+                                    'Hi, $username - Deliver to',
+                                    style: const TextStyle(
                                       color: Color(0xFFC8E6C9),
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,

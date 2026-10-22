@@ -86,7 +86,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Edit Profile'), findsOneWidget);
+        expect(find.text('Edit Profile'), findsNWidgets(2));
         expect(find.text('My Orders'), findsOneWidget);
         expect(find.text('Payment Methods'), findsOneWidget);
         expect(find.text('Saved Addresses'), findsOneWidget);

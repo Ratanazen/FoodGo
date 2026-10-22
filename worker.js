@@ -4,7 +4,7 @@ export default {
 
     // Proxy API and Health endpoints with 50/50 dual-backend load balancing and active failover
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz')) {
-      const backendA = env.BACKEND_A_URL || 'https://foodgo-backend-a.vercel.app';
+      const backendA = env.BACKEND_A_URL || 'https://food-go-app.vercel.app';
       const backendB = env.BACKEND_B_URL || 'https://foodgo-backend-b.vercel.app';
       const legacyBackend = env.BACKEND_URL || 'https://food-go-app.vercel.app';
 

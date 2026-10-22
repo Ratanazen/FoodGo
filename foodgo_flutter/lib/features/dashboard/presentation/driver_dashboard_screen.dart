@@ -2372,88 +2372,314 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       text: _driverProfile?['phone'] ?? '+855 12 888 999',
     );
 
-    showDialog(
+    final vehicleOptions = [
+      {'name': 'Motorcycle', 'icon': Icons.two_wheeler_rounded},
+      {'name': 'Scooter', 'icon': Icons.electric_moped_rounded},
+      {'name': 'Car', 'icon': Icons.directions_car_rounded},
+      {'name': 'Bicycle', 'icon': Icons.pedal_bike_rounded},
+    ];
+
+    String selectedVehicle = vehicleCtrl.text.trim();
+    bool isSaving = false;
+
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1E242B),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            'Update Profile',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: vehicleCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Vehicle Type',
-                  labelStyle: const TextStyle(color: Colors.white60),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: plateCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'License Plate',
-                  labelStyle: const TextStyle(color: Colors.white60),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: phoneCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Phone',
-                  labelStyle: const TextStyle(color: Colors.white60),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white60),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: GlassTheme.primaryGreen,
-              ),
-              onPressed: () async {
-                Navigator.pop(ctx);
-                try {
-                  await _api.patch('drivers/me/', {
-                    'vehicle_type': vehicleCtrl.text.trim(),
-                    'license_plate': plateCtrl.text.trim(),
-                    'phone': phoneCtrl.text.trim(),
-                  });
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Driver profile updated.'),
-                      backgroundColor: GlassTheme.primaryGreen,
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            return ResponsiveBottomSheet(
+              child: SafeArea(
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(modalCtx).size.height * 0.90,
+                  ),
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 16,
+                    bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 20,
+                  ),
+                  decoration: BoxDecoration(
+                    color: GlassTheme.dialogDark,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(28),
                     ),
-                  );
-                  _fetchDashboardData();
-                } catch (_) {}
-              },
-              child: const Text('Save', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 44,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.white24,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: GlassTheme.limeAccent.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.badge_outlined,
+                                color: GlassTheme.limeAccent,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Edit Driver Profile',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Update vehicle specifications and contact info',
+                                    style: TextStyle(
+                                      color: GlassTheme.textMuted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => Navigator.pop(modalCtx),
+                              icon: const Icon(Icons.close, color: Colors.white60),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Vehicle Type',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: vehicleOptions.map((opt) {
+                            final name = opt['name'] as String;
+                            final icon = opt['icon'] as IconData;
+                            final isSel = selectedVehicle.toLowerCase() == name.toLowerCase();
+                            return ChoiceChip(
+                              avatar: Icon(
+                                icon,
+                                size: 16,
+                                color: isSel ? Colors.black : Colors.white70,
+                              ),
+                              label: Text(
+                                name,
+                                style: TextStyle(
+                                  color: isSel ? Colors.black : Colors.white70,
+                                  fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              selected: isSel,
+                              selectedColor: GlassTheme.limeAccent,
+                              backgroundColor: Colors.white.withValues(alpha: 0.05),
+                              side: BorderSide(
+                                color: isSel
+                                    ? GlassTheme.limeAccent
+                                    : Colors.white.withValues(alpha: 0.12),
+                              ),
+                              onSelected: (val) {
+                                if (val) {
+                                  setModalState(() {
+                                    selectedVehicle = name;
+                                    vehicleCtrl.text = name;
+                                  });
+                                }
+                              },
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 14),
+                        TextField(
+                          controller: vehicleCtrl,
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          onChanged: (text) {
+                            setModalState(() {
+                              selectedVehicle = text.trim();
+                            });
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Vehicle Specification',
+                            labelStyle: const TextStyle(color: Colors.white60, fontSize: 13),
+                            prefixIcon: const Icon(Icons.directions_bike, color: GlassTheme.limeAccent, size: 20),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: GlassTheme.limeAccent),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        TextField(
+                          controller: plateCtrl,
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          decoration: InputDecoration(
+                            labelText: 'License Plate Number',
+                            labelStyle: const TextStyle(color: Colors.white60, fontSize: 13),
+                            prefixIcon: const Icon(Icons.pin, color: GlassTheme.limeAccent, size: 20),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: GlassTheme.limeAccent),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        TextField(
+                          controller: phoneCtrl,
+                          keyboardType: TextInputType.phone,
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          decoration: InputDecoration(
+                            labelText: 'Contact Phone Number',
+                            labelStyle: const TextStyle(color: Colors.white60, fontSize: 13),
+                            prefixIcon: const Icon(Icons.phone_outlined, color: GlassTheme.limeAccent, size: 20),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: GlassTheme.limeAccent),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: isSaving ? null : () => Navigator.pop(modalCtx),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton(
+                                onPressed: isSaving
+                                    ? null
+                                    : () async {
+                                        setModalState(() {
+                                          isSaving = true;
+                                        });
+                                        try {
+                                          await _api.patch('drivers/me/', {
+                                            'vehicle_type': vehicleCtrl.text.trim(),
+                                            'license_plate': plateCtrl.text.trim(),
+                                            'phone': phoneCtrl.text.trim(),
+                                          });
+                                          if (!modalCtx.mounted) return;
+                                          Navigator.pop(modalCtx);
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Driver profile updated successfully.'),
+                                              backgroundColor: GlassTheme.primaryGreen,
+                                            ),
+                                          );
+                                          _fetchDashboardData();
+                                        } catch (e) {
+                                          if (modalCtx.mounted) {
+                                            setModalState(() {
+                                              isSaving = false;
+                                            });
+                                          }
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Failed to update driver profile: $e'),
+                                              backgroundColor: Colors.redAccent,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: GlassTheme.primaryGreen,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: isSaving
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Save Changes',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );

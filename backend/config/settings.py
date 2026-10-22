@@ -38,6 +38,11 @@ if not DEBUG:
         SECURE_HSTS_INCLUDE_SUBDOMAINS = True
         SECURE_HSTS_PRELOAD = True
 
+# Cloudflare & Vercel Edge Reverse Proxy Header Normalization
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 
 
 INSTALLED_APPS = [
@@ -139,6 +144,22 @@ elif os.environ.get('DB_NAME') and os.environ.get('DB_HOST'):
 
 AUTH_USER_MODEL = 'core.User'
 
+# Shared Cache Configuration for Dual-Backend Hosting & Idempotency
+if os.environ.get('REDIS_URL'):
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': os.environ['REDIS_URL'],
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'foodgo-shared-cache',
+        }
+    }
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -181,6 +202,10 @@ CORS_ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 CSRF_TRUSTED_ORIGINS = [
+    'https://api.foodgo.app',
+    'https://*.foodgo.app',
+    'https://foodgo-backend-a.vercel.app',
+    'https://foodgo-backend-b.vercel.app',
     'https://food-go-app.vercel.app',
     'https://*.vercel.app',
     'https://foodgo-53pl.onrender.com',

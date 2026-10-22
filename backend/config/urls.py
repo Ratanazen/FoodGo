@@ -13,10 +13,14 @@ def profile_redirect(request):
         return redirect('/admin/')
     return redirect('/')
 
-from core.views import HealthCheckView
+from core.views import HealthCheckView, HealthLiveView, HealthReadyView
 
 urlpatterns = [
     path('', api_root, name='api-root'),
+    path('health/live', HealthLiveView.as_view(), name='health-live-no-slash'),
+    path('health/live/', HealthLiveView.as_view(), name='health-live'),
+    path('health/ready', HealthReadyView.as_view(), name='health-ready-no-slash'),
+    path('health/ready/', HealthReadyView.as_view(), name='health-ready'),
     path('health/', HealthCheckView.as_view(), name='root-health'),
     path('healthz/', HealthCheckView.as_view(), name='root-healthz'),
     path('accounts/profile/', profile_redirect, name='profile-redirect'),

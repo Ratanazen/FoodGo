@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfig {
-  /// Default hosted Vercel backend URL (active & live)
-  static const String defaultLiveUrl = 'https://food-go-app.vercel.app';
+  /// Production Cloudflare Load Balanced dual-backend API domain
+  static const String defaultLiveUrl = 'https://api.foodgo.app';
 
   static String _customApiUrl = '';
   static String _customWsUrl = '';

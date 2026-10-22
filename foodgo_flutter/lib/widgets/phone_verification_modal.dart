@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../core/theme/glass_theme.dart';
 import '../providers/user_provider.dart';
 import '../services/api_service.dart';
+import 'modern_otp_input.dart';
 import 'responsive_layout.dart';
 
 class PhoneVerificationModal {
@@ -489,42 +490,11 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                     ),
                   ),
                 ] else ...[
-                  // Step 2: 6-Digit OTP Code Entry
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.12),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: TextField(
-                      controller: _otpController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 10,
-                      ),
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(
-                        hintText: '000000',
-                        hintStyle: TextStyle(
-                          color: Colors.white24,
-                          letterSpacing: 10,
-                        ),
-                        counterText: '',
-                        border: InputBorder.none,
-                      ),
-                      onSubmitted: (_) => _verifyOTP(),
-                    ),
+                  // Step 2: Modern 6-Digit Glass OTP Code Entry
+                  ModernOtpInput(
+                    controller: _otpController,
+                    length: 6,
+                    onCompleted: (_) => _verifyOTP(),
                   ),
                   const SizedBox(height: 14),
 

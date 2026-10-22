@@ -9,6 +9,7 @@ import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/svg_icon.dart';
+import '../../../widgets/modern_otp_input.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
@@ -218,41 +219,12 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           ),
                         ).animate().fade().scale(),
                       ] else ...[
-                        TextFormField(
+                        ModernOtpInput(
                           controller: _otpController,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            letterSpacing: 6,
-                          ),
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            labelText: '6-Digit SMS Code',
-                            labelStyle: const TextStyle(
-                              color: GlassTheme.textMuted,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.password,
-                              color: GlassTheme.primaryGreen,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.1),
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: GlassTheme.primaryGreen,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                          ),
-                          keyboardType: TextInputType.number,
-                          maxLength: 6,
+                          length: 6,
+                          onCompleted: (_) => _verifyOTP(),
                         ).animate().fade().slideX(),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

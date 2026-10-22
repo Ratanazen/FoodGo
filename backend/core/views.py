@@ -524,6 +524,33 @@ class OrderViewSet(viewsets.ModelViewSet):
             'cart': CartSerializer(cart).data
         })
 
+    def create(self, request, *args, **kwargs):
+        idempotency_key = (
+            request.headers.get('Idempotency-Key') or
+            request.headers.get('X-Idempotency-Key') or
+            request.data.get('idempotency_key')
+        )
+        if idempotency_key and request.user.is_authenticated:
+            from django.core.cache import cache
+            cache_key = f"order_idempotency_{request.user.id}_{str(idempotency_key).strip()}"
+            cached_order_id = cache.get(cache_key)
+            if cached_order_id:
+                try:
+                    existing_order = Order.objects.get(id=cached_order_id)
+                    serializer = self.get_serializer(existing_order)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                except Order.DoesNotExist:
+                    pass
+
+        response = super().create(request, *args, **kwargs)
+        if idempotency_key and request.user.is_authenticated and response.status_code == status.HTTP_201_CREATED:
+            order_id = response.data.get('id')
+            if order_id:
+                from django.core.cache import cache
+                cache_key = f"order_idempotency_{request.user.id}_{str(idempotency_key).strip()}"
+                cache.set(cache_key, order_id, timeout=600)
+        return response
+
     @transaction.atomic
     def perform_create(self, serializer):
         user = self.request.user
@@ -1947,6 +1974,35 @@ class CurrencyRateView(APIView):
         })
 
 
+class HealthLiveView(APIView):
+    """
+    Lightweight liveness probe for Cloudflare Load Balancing and Vercel functions.
+    Verifies that the server process is responsive without hitting external resources.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({'status': 'live'}, status=status.HTTP_200_OK)
+
+
+class HealthReadyView(APIView):
+    """
+    Readiness probe for Cloudflare Load Balancing.
+    Verifies database connectivity before directing production traffic.
+    Returns generic status to prevent leaking internal database info or credentials.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        try:
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT 1')
+            return Response({'status': 'ready'}, status=status.HTTP_200_OK)
+        except Exception:
+            return Response({'status': 'unavailable'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
 class HealthCheckView(APIView):
     """
     Production health check and telemetry probe for load balancers and orchestrators
@@ -1959,8 +2015,7 @@ class HealthCheckView(APIView):
         status_data = {
             'status': 'healthy',
             'service': 'foodgo-backend',
-            'version': '4.5.0',
-            'database': 'unknown',
+            'database': 'connected',
             'timestamp': now.isoformat(),
         }
 
@@ -1969,18 +2024,9 @@ class HealthCheckView(APIView):
             from django.db import connection
             with connection.cursor() as cursor:
                 cursor.execute('SELECT 1')
-            status_data['database'] = 'connected'
-        except Exception as e:
-            status_data['database'] = f'error: {str(e)}'
-            status_data['status'] = 'degraded'
-
-        # Inspect channel layer status
-        try:
-            from channels.layers import get_channel_layer
-            layer = get_channel_layer()
-            status_data['channel_layer'] = type(layer).__name__ if layer else 'none'
         except Exception:
-            status_data['channel_layer'] = 'unavailable'
+            status_data['database'] = 'unavailable'
+            status_data['status'] = 'degraded'
 
         http_status = status.HTTP_200_OK if status_data['status'] == 'healthy' else status.HTTP_503_SERVICE_UNAVAILABLE
         return Response(status_data, status=http_status)

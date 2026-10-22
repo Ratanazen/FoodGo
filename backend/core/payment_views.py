@@ -295,11 +295,19 @@ class BaseCallbackView(APIView):
             return Response({'detail': 'merchant_reference is missing.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if merchant_ref.startswith('TOPUP-'):
+            from .models import Wallet, WalletTransaction, User
+            existing_tx = WalletTransaction.objects.filter(description__contains=merchant_ref).first()
+            if existing_tx:
+                return Response({
+                    'status': 'SUCCESS',
+                    'message': 'Wallet top-up already processed.',
+                    'new_balance': str(existing_tx.wallet.balance)
+                }, status=status.HTTP_200_OK)
+
             parts = merchant_ref.split('-')
             try:
                 user_id = int(parts[1])
                 from decimal import Decimal
-                from .models import Wallet, WalletTransaction, User
                 user = User.objects.get(id=user_id)
                 wallet, _ = Wallet.objects.get_or_create(user=user)
                 amt_str = request.data.get('amount', '10.00')

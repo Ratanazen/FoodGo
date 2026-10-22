@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -372,6 +373,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final restaurantProvider = context.read<RestaurantProvider>();
       final int restaurantId =
           cart.restaurantId ??
+          (cart.items.isNotEmpty
+              ? cart.items.values.first.restaurantId
+              : null) ??
           (restaurantProvider.restaurants.isNotEmpty
               ? restaurantProvider.restaurants.first['id']
               : 1);
@@ -399,6 +403,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (selectedAddr != null) {
         orderPayload['address'] = selectedAddr.id;
+        orderPayload['delivery_address_snapshot'] = selectedAddr.fullAddress;
       }
       if (_selectedDriverId != null) {
         orderPayload['driver_id'] = _selectedDriverId;
@@ -434,9 +439,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);
+        String errorMsg = e.toString();
+        if (e is DioException) {
+          final resData = e.response?.data;
+          if (resData is Map) {
+            final parts = <String>[];
+            resData.forEach((key, val) {
+              if (val is List) {
+                parts.add('$key: ${val.join(", ")}');
+              } else {
+                parts.add('$key: $val');
+              }
+            });
+            if (parts.isNotEmpty) {
+              errorMsg = parts.join(' | ');
+            }
+          } else if (resData is String && resData.isNotEmpty) {
+            errorMsg = resData;
+          }
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Order placement failed: $e'),
+            content: Text('Order placement failed: $errorMsg'),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),

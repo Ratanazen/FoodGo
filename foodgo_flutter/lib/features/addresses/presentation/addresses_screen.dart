@@ -7,6 +7,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../providers/address_provider.dart';
+import '../../../../screens/map_screen_location.dart';
 
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({super.key});
@@ -23,6 +24,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
     final zipController = TextEditingController(text: '12000');
     bool isDefault = false;
     bool isSaving = false;
+    bool isLocating = false;
 
     showModalBottomSheet(
       context: context,
@@ -82,6 +84,91 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
+
+                      InkWell(
+                        onTap: isLocating
+                            ? null
+                            : () async {
+                                setSheetState(() => isLocating = true);
+                                final loc = await getDeviceLocation();
+                                setSheetState(() => isLocating = false);
+                                if (loc != null) {
+                                  streetController.text =
+                                      'Location (${loc.latitude.toStringAsFixed(4)}, ${loc.longitude.toStringAsFixed(4)})';
+                                  cityController.text = 'Phnom Penh';
+                                  if (ctx.mounted) {
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Auto-detected GPS location coordinates',
+                                        ),
+                                        duration: Duration(seconds: 1),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                } else if (ctx.mounted) {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Could not get GPS location. Please enter address manually.',
+                                      ),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.12,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: GlassTheme.primaryGreen.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (isLocating)
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: GlassTheme.primaryGreen,
+                                  ),
+                                )
+                              else
+                                const Icon(
+                                  Icons.my_location,
+                                  size: 18,
+                                  color: GlassTheme.primaryGreen,
+                                ),
+                              const SizedBox(width: 8),
+                              Text(
+                                isLocating
+                                    ? 'Detecting Location...'
+                                    : 'Use Current GPS Location',
+                                style: const TextStyle(
+                                  color: GlassTheme.primaryGreen,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
 
                       // Street address
                       TextFormField(

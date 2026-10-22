@@ -3,14 +3,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:provider/provider.dart';
 
 import '../../../core/theme/glass_theme.dart';
-import '../../../providers/user_provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/svg_icon.dart';
-import '../../../widgets/my_qr_modal.dart';
 import '../../../services/api_service.dart';
 import '../../../core/utils/khmer_currency.dart';
 
@@ -467,63 +464,6 @@ class _WalletScreenState extends State<WalletScreen> {
                                   style: TextStyle(
                                     color: GlassTheme.textMuted,
                                     fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                InkWell(
-                                  onTap: () {
-                                    final user = context
-                                        .read<UserProvider>()
-                                        .user;
-                                    MyQrModal.show(
-                                      context,
-                                      user: user,
-                                      initialAmount:
-                                          double.tryParse(
-                                            _amountController.text.trim(),
-                                          ) ??
-                                          0.0,
-                                      onReceivePayment: (amt) async {
-                                        await _instantTopUp(amt);
-                                      },
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 18,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: GlassTheme.bakongRed.withValues(
-                                        alpha: 0.16,
-                                      ),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: GlassTheme.bakongRed.withValues(
-                                          alpha: 0.45,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Icon(
-                                          Icons.qr_code_2,
-                                          size: 20,
-                                          color: Colors.redAccent,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'My QR (Pay Me / ទទួលប្រាក់)',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                   ),
                                 ),
                               ],

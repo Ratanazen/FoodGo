@@ -71,6 +71,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       _startLiveDriverMovementSimulation();
     } else {
       _fetchNearbyRestaurants();
+      _autoInitLocation();
     }
   }
 
@@ -267,6 +268,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _autoInitLocation() async {
+    final loc = await getDeviceLocation();
+    if (loc != null && mounted) {
+      setState(() => _myLocation = loc);
+      _animatedMapMove(loc, 15.0);
+    }
+  }
+
   Future<void> _fetchCurrentLocation() async {
     final loc = await getDeviceLocation();
     if (loc != null && mounted) {
@@ -280,9 +289,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         ),
       );
     } else if (mounted) {
+      _animatedMapMove(MapConfig.defaultCenter, 14.5);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Location permission required or unavailable'),
+          content: Text('Centered on Phnom Penh default location'),
           behavior: SnackBarBehavior.floating,
         ),
       );

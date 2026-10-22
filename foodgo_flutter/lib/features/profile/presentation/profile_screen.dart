@@ -9,7 +9,6 @@ import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
-import '../../../widgets/my_qr_modal.dart';
 import '../../../widgets/phone_verification_modal.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -611,54 +610,6 @@ class ProfileScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: InkWell(
-                                      onTap: () {
-                                        final u = context
-                                            .read<UserProvider>()
-                                            .user;
-                                        MyQrModal.show(context, user: u);
-                                      },
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 12,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.05,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.08,
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Column(
-                                          children: [
-                                            Icon(
-                                              Icons.qr_code_2,
-                                              color: Colors.redAccent,
-                                              size: 22,
-                                            ),
-                                            SizedBox(height: 6),
-                                            Text(
-                                              'My KHQR',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                                 ],
                               ),
                             ],
@@ -830,15 +781,6 @@ class ProfileScreen extends StatelessWidget {
               icon: Icons.location_on_outlined,
               title: 'Saved Addresses',
               onTap: () => context.push('/addresses'),
-            ),
-            _ProfileOption(
-              icon: Icons.qr_code_2,
-              title: 'My KHQR (Pay Me / ទទួលប្រាក់)',
-              iconColor: Colors.redAccent,
-              onTap: () {
-                final user = context.read<UserProvider>().user;
-                MyQrModal.show(context, user: user);
-              },
             ),
             _ProfileOption(
               icon: Icons.notifications_outlined,

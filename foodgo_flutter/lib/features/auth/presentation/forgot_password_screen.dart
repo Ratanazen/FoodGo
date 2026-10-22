@@ -1,8 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/glass_theme.dart';
+import '../../../services/api_service.dart';
+import '../../../widgets/responsive_layout.dart';
 import 'widgets/auth_illustration.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -14,6 +17,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
+  final ApiService _api = ApiService();
   bool _isLoading = false;
 
   @override
@@ -22,7 +26,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _sendOTP() async {
+  Future<void> _sendOTP() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -36,22 +40,54 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
-    setState(() => _isLoading = false);
 
-    if (mounted) {
+    try {
+      final res = await _api.post('forgot-password/', {'email': email});
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      String message =
+          'OTP code and reset instructions sent! Please check your email inbox.';
+      if (res is Map && res['message'] != null) {
+        message = res['message'].toString();
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('OTP code sent! Please check your email inbox.'),
-          backgroundColor: Color(0xFF2E7D32),
+        SnackBar(
+          content: Text(message),
+          backgroundColor: const Color(0xFF2E7D32),
           behavior: SnackBarBehavior.floating,
         ),
       );
+
       if (context.canPop()) {
         context.pop();
       } else {
         context.go('/login');
       }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      String errorMsg = 'Failed to send reset link. Please try again.';
+      if (e is DioException) {
+        final data = e.response?.data;
+        if (data is Map) {
+          if (data['error'] != null) {
+            errorMsg = data['error'].toString();
+          } else if (data['detail'] != null) {
+            errorMsg = data['detail'].toString();
+          }
+        }
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -80,119 +116,137 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 28.0,
-              vertical: 10.0,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+        child: ResponsiveWebContainer(
+          maxWidth: 460,
+          child: Center(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 28.0,
+                vertical: 16.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Top Illustration matching Reference Screen 3
-                  const AuthIllustration(
-                    type: AuthIllustrationType.forgotPassword,
-                    size: 135,
+                  Center(
+                    child: Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.12),
+                        border: Border.all(
+                          color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.2,
+                            ),
+                            blurRadius: 24,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: AuthIllustration(
+                          type: AuthIllustrationType.forgotPassword,
+                          size: 72,
+                        ),
+                      ),
+                    ),
                   ).animate().fade(duration: 400.ms).scale(),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // Title: Forget Password
                   Text(
-                    'Forget Password',
+                    'Forgot Password',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                       color: isDark ? Colors.white : GlassTheme.authTitleDark,
+                      letterSpacing: -0.5,
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fade(delay: 150.ms),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
 
-                  // Subtitle
                   Text(
-                    'Don\'t worry it happens. Please enter the address associated with your account.',
+                    'Enter your registered email address and we will send you a reset code to recover your account.',
                     style: TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       color: isDark
                           ? Colors.grey[400]
                           : GlassTheme.authSubtitle,
                       fontWeight: FontWeight.w400,
-                      height: 1.4,
+                      height: 1.45,
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fade(delay: 200.ms),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 32),
 
-                  // Input: Email address
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
-                      fontSize: 14,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Email address',
-                      hintStyle: TextStyle(
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF1E293B).withValues(alpha: 0.6)
+                          : GlassTheme.authInputFill,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
                         color: isDark
-                            ? Colors.white38
-                            : const Color(0xFF94A3B8),
+                            ? Colors.white12
+                            : GlassTheme.authInputBorder,
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _sendOTP(),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
                         fontSize: 14,
                       ),
-                      prefixIcon: Icon(
-                        Icons.mail_outline_rounded,
-                        color: isDark
-                            ? Colors.white54
-                            : GlassTheme.authSubtitle,
-                        size: 20,
-                      ),
-                      filled: true,
-                      fillColor: isDark
-                          ? const Color(0xFF1E293B)
-                          : GlassTheme.authInputFill,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 15,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
+                      decoration: InputDecoration(
+                        hintText: 'Email address',
+                        hintStyle: TextStyle(
                           color: isDark
-                              ? Colors.white12
-                              : GlassTheme.authInputBorder,
+                              ? Colors.white38
+                              : const Color(0xFF94A3B8),
+                          fontSize: 14,
                         ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(
-                          color: GlassTheme.authBlue,
-                          width: 1.5,
+                        prefixIcon: const Icon(
+                          Icons.mail_outline_rounded,
+                          color: GlassTheme.primaryGreen,
+                          size: 20,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
                         ),
                       ),
                     ),
                   ).animate().fade(delay: 250.ms),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 26),
 
-                  // Primary Button: Send OTP
                   SizedBox(
-                    height: 50,
+                    height: 52,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _sendOTP,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.authBlue,
+                        backgroundColor: GlassTheme.primaryGreen,
                         foregroundColor: Colors.white,
-                        elevation: 2,
+                        elevation: 3,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        shadowColor: GlassTheme.authBlue.withValues(alpha: 0.4),
+                        shadowColor: GlassTheme.primaryGreen.withValues(
+                          alpha: 0.4,
+                        ),
                       ),
                       child: _isLoading
                           ? const SizedBox(
@@ -204,23 +258,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ),
                             )
                           : const Text(
-                              'Send OTP',
+                              'Send Reset Link',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
                               ),
                             ),
                     ),
                   ).animate().fade(delay: 300.ms).scale(),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
 
-                  // Bottom Link: You remember your password? Sign in
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'You remember your password? ',
+                        'Remember your password? ',
                         style: TextStyle(
                           color: isDark
                               ? Colors.grey[400]
@@ -239,7 +293,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         child: const Text(
                           'Sign in',
                           style: TextStyle(
-                            color: GlassTheme.authBlue,
+                            color: GlassTheme.primaryGreen,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),

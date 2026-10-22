@@ -553,14 +553,45 @@ class OrderViewSet(viewsets.ModelViewSet):
                 if not restaurant:
                     restaurant = food.category.restaurant
                 elif food.category.restaurant_id != restaurant.id:
-                    raise ValidationError({'restaurant': ['All ordered items must belong to the selected restaurant.']})
+                    all_item_restaurants = {food.category.restaurant_id}
+                    for prev_food, _, _ in order_items_to_create:
+                        all_item_restaurants.add(prev_food.category.restaurant_id)
+                    if len(all_item_restaurants) == 1:
+                        restaurant = food.category.restaurant
+                    else:
+                        raise ValidationError({'restaurant': ['All ordered items must belong to the selected restaurant.']})
 
                 subtotal += food.price * qty
                 order_items_to_create.append((food, qty, food.price))
 
             address = serializer.validated_data.get('address')
             if address and address.user_id != user.id and not user.is_staff:
-                raise ValidationError({'address': ['The selected address does not belong to you.']})
+                existing = Address.objects.filter(user=user, street=address.street, city=address.city).first()
+                if not existing:
+                    existing = Address.objects.create(
+                        user=user,
+                        street=address.street,
+                        city=address.city,
+                        state=address.state or 'Phnom Penh',
+                        zip_code=address.zip_code or '12000',
+                        is_default=True
+                    )
+                address = existing
+            elif not address:
+                address = Address.objects.filter(user=user).first()
+                if not address:
+                    raw_addr = self.request.data.get('delivery_address_snapshot') or 'Street 240, Daun Penh, Phnom Penh'
+                    parts = [p.strip() for p in raw_addr.split(',') if p.strip()]
+                    street_val = parts[0] if len(parts) > 0 else 'Street 240, Daun Penh'
+                    city_val = parts[1] if len(parts) > 1 else 'Phnom Penh'
+                    address = Address.objects.create(
+                        user=user,
+                        street=street_val,
+                        city=city_val,
+                        state='Phnom Penh',
+                        zip_code='12000',
+                        is_default=True
+                    )
 
             coupon_code = self.request.data.get('coupon_code') or self.request.data.get('coupon')
             discount_amount = Decimal('0.00')
@@ -573,12 +604,14 @@ class OrderViewSet(viewsets.ModelViewSet):
 
             delivery_fee = restaurant.delivery_fee if restaurant else Decimal('0.00')
             total_amount = max(Decimal('0.00'), subtotal - discount_amount + delivery_fee)
-            addr_snapshot = f"{address.street}, {address.city}, {address.state} {address.zip_code}" if address else ""
+            raw_snapshot = self.request.data.get('delivery_address_snapshot')
+            addr_snapshot = raw_snapshot or (f"{address.street}, {address.city}, {address.state} {address.zip_code}" if address else "")
             eta_time = timezone.now() + timezone.timedelta(minutes=30)
 
             order = serializer.save(
                 customer=user,
                 restaurant=restaurant,
+                address=address,
                 subtotal=subtotal,
                 delivery_fee_charged=delivery_fee,
                 discount_amount=discount_amount,

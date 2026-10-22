@@ -39,9 +39,9 @@ void main() {
     );
   }
 
-  group('ProfileScreen Wallet Removal & Payment Methods Tests', () {
+  group('ProfileScreen Wallet & Pay Me Removal Tests', () {
     testWidgets(
-      'Profile header card displays Addresses, Orders, and My KHQR quick actions',
+      'Profile header card displays Addresses and Orders, and zero My KHQR quick actions',
       (tester) async {
         await tester.pumpWidget(
           buildTestableWidget({
@@ -57,7 +57,7 @@ void main() {
         // Quick action shortcuts
         expect(find.text('Addresses'), findsOneWidget);
         expect(find.text('Orders'), findsOneWidget);
-        expect(find.text('My KHQR'), findsOneWidget);
+        expect(find.text('My KHQR'), findsNothing);
 
         // Verify Wallet is NOT present in shortcuts or options
         expect(find.text('Wallet'), findsNothing);
@@ -66,7 +66,7 @@ void main() {
     );
 
     testWidgets(
-      'Account options list renders My Orders and Payment Methods, with zero wallet options',
+      'Account options list renders My Orders and Payment Methods, with zero wallet and zero pay me options',
       (tester) async {
         tester.view.physicalSize = const Size(800, 1400);
         tester.view.devicePixelRatio = 1.0;
@@ -90,7 +90,8 @@ void main() {
         expect(find.text('My Orders'), findsOneWidget);
         expect(find.text('Payment Methods'), findsOneWidget);
         expect(find.text('Saved Addresses'), findsOneWidget);
-        expect(find.text('My KHQR (Pay Me / ទទួលប្រាក់)'), findsOneWidget);
+        expect(find.text('My KHQR (Pay Me / ទទួលប្រាក់)'), findsNothing);
+        expect(find.textContaining('Pay Me'), findsNothing);
         expect(find.text('Notifications'), findsOneWidget);
         expect(find.text('Favorites'), findsOneWidget);
 

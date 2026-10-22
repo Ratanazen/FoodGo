@@ -15,6 +15,7 @@ class DeliveryQrModal extends StatefulWidget {
   final String? restaurantName;
   final double? totalAmount;
   final bool isDriver;
+  final bool autoFetch;
   final VoidCallback? onDelivered;
 
   const DeliveryQrModal({
@@ -25,6 +26,7 @@ class DeliveryQrModal extends StatefulWidget {
     this.restaurantName,
     this.totalAmount,
     this.isDriver = true,
+    this.autoFetch = true,
     this.onDelivered,
   });
 
@@ -75,13 +77,22 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
   @override
   void initState() {
     super.initState();
-    _fetchOrInitToken();
+    if (widget.autoFetch) {
+      _fetchOrInitToken();
+    } else {
+      _isLoading = false;
+      _verificationPin = widget.initialPin ?? '123456';
+      _qrPayload =
+          'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}&token=test-token';
+    }
   }
 
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _countdownTimer = null;
     _pollingTimer?.cancel();
+    _pollingTimer = null;
     super.dispose();
   }
 
@@ -91,7 +102,10 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
     });
 
     try {
-      final data = await _api.post('orders/${widget.orderId}/delivery_qr/', {});
+      final endpoint = widget.isDriver
+          ? 'orders/${widget.orderId}/delivery_qr/'
+          : 'orders/${widget.orderId}/customer_delivery_qr/';
+      final data = await _api.post(endpoint, {});
       if (!mounted) return;
 
       final payload =
@@ -112,8 +126,10 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
         _verificationPin = pin;
         _expiresAt = exp;
         _isLoading = false;
+        _secondsRemaining = 900;
       });
 
+      if (!mounted) return;
       _startCountdown();
       _startPollingConfirmation();
     } catch (e) {
@@ -132,22 +148,67 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
         _isLoading = false;
       });
 
+      if (!mounted) return;
       _startCountdown();
       _startPollingConfirmation();
     }
   }
 
+  Future<void> _regenerateToken() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final endpoint = widget.isDriver
+          ? 'orders/${widget.orderId}/delivery_qr/'
+          : 'orders/${widget.orderId}/customer_regenerate_delivery_qr/';
+      final data = await _api.post(endpoint, {});
+      if (!mounted) return;
+
+      final payload =
+          data['qr_payload']?.toString() ??
+          'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}&token=${data['token']}';
+      final pin = data['verification_pin']?.toString() ?? widget.initialPin;
+
+      DateTime? exp;
+      if (data['expires_at'] != null) {
+        exp = DateTime.tryParse(data['expires_at'].toString())?.toLocal();
+      }
+
+      setState(() {
+        _qrPayload = payload;
+        _verificationPin = pin;
+        _expiresAt = exp;
+        _isLoading = false;
+        _secondsRemaining = 900;
+      });
+
+      if (!mounted) return;
+      _startCountdown();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   void _startCountdown() {
+    if (!mounted) return;
     _countdownTimer?.cancel();
     _updateRemainingSeconds();
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       _updateRemainingSeconds();
     });
   }
 
   void _updateRemainingSeconds() {
-    if (_expiresAt == null) return;
+    if (!mounted || _expiresAt == null) return;
     final diff = _expiresAt!.difference(DateTime.now()).inSeconds;
     setState(() {
       _secondsRemaining = diff > 0 ? diff : 0;
@@ -155,6 +216,7 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
   }
 
   void _startPollingConfirmation() {
+    if (!mounted) return;
     _pollingTimer?.cancel();
     _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (!mounted || _isDelivered) {
@@ -188,7 +250,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
       child: GlassContainer(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: _isDelivered ? _buildSuccessView() : _buildActiveQrView(),
+        child: SingleChildScrollView(
+          child: _isDelivered ? _buildSuccessView() : _buildActiveQrView(),
+        ),
       ),
     );
   }
@@ -243,7 +307,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Customer scanned QR code. Order #${widget.orderId} is complete.',
+          widget.isDriver
+              ? 'Customer scanned QR code. Order #${widget.orderId} is complete.'
+              : 'Driver verified QR code. Order #${widget.orderId} is confirmed delivered.',
           textAlign: TextAlign.center,
           style: const TextStyle(color: Colors.white70, fontSize: 14),
         ),
@@ -270,9 +336,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
-            'Back to Dashboard',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          child: Text(
+            widget.isDriver ? 'Back to Dashboard' : 'Done',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
         const SizedBox(height: 8),
@@ -301,42 +367,52 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.qr_code_2,
-                    color: GlassTheme.primaryGreen,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Delivery Handover QR',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+            Expanded(
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    Text(
-                      'Order #${widget.orderId} • Show to customer',
-                      style: const TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 12,
-                      ),
+                    child: const Icon(
+                      Icons.qr_code_2,
+                      color: GlassTheme.primaryGreen,
+                      size: 22,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.isDriver
+                              ? 'Delivery Handover QR'
+                              : 'Delivery Confirmation QR',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          widget.isDriver
+                              ? 'Order #${widget.orderId} • Show to customer'
+                              : 'Order #${widget.orderId} • Show to driver',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: GlassTheme.textMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.close, color: Colors.white60),
@@ -344,6 +420,32 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
             ),
           ],
         ),
+        if (!widget.isDriver) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.info_outline, color: Colors.amber, size: 14),
+                SizedBox(width: 6),
+                Text(
+                  'Delivery Confirmation (Not Payment)',
+                  style: TextStyle(
+                    color: Colors.amber,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
 
         if (_isLoading)
@@ -424,9 +526,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                                     vertical: 6,
                                   ),
                                 ),
-                                onPressed: _fetchOrInitToken,
+                                onPressed: _regenerateToken,
                                 child: const Text(
-                                  'Refresh',
+                                  'Regenerate',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -474,14 +576,17 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                 size: 16,
               ),
               const SizedBox(width: 6),
-              Text(
-                isExpired
-                    ? 'Token expired. Tap refresh.'
-                    : 'Valid for ${_formatTimer(_secondsRemaining)} • Auto-verifies upon scan',
-                style: TextStyle(
-                  color: isExpired ? Colors.redAccent : Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  isExpired
+                      ? 'Token expired. Tap regenerate.'
+                      : 'Valid for ${_formatTimer(_secondsRemaining)} • Auto-verifies upon scan',
+                  style: TextStyle(
+                    color: isExpired ? Colors.redAccent : Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (!isExpired) ...[
@@ -493,7 +598,7 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                     color: Colors.white60,
                   ),
                   tooltip: 'Regenerate QR',
-                  onPressed: _fetchOrInitToken,
+                  onPressed: _regenerateToken,
                 ),
               ],
             ],
@@ -508,18 +613,20 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.shield_outlined,
                 color: GlassTheme.primaryGreen,
                 size: 20,
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Present this code at customer doorstep. Customer will scan with FoodGo app to confirm handover.',
-                  style: TextStyle(
+                  widget.isDriver
+                      ? 'Present this code at customer doorstep. Customer will scan with FoodGo app to confirm handover.'
+                      : 'Show this QR code to your assigned FoodGo delivery driver upon arrival. The driver will scan it to verify and complete your delivery.',
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 12,
                     height: 1.4,

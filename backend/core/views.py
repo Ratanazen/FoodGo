@@ -235,7 +235,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             'delivery__driver__user', 'payment', 'delivery_token'
         ).prefetch_related('items__food_item')
 
-        if self.action in ('confirm_delivery', 'delivery_qr', 'track'):
+        if self.action in (
+            'confirm_delivery', 'delivery_qr', 'track',
+            'customer_delivery_qr', 'customer_regenerate_delivery_qr',
+            'driver_validate_qr'
+        ):
             pass
         elif user.is_staff or user.is_superuser:
             pass
@@ -882,6 +886,233 @@ class OrderViewSet(viewsets.ModelViewSet):
             'arrived_at': now.isoformat(),
         }, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get', 'post'], url_path='customer-delivery-qr', permission_classes=[IsAuthenticated])
+    def customer_delivery_qr(self, request, pk=None):
+        """
+        Customer retrieves the delivery confirmation QR code for their eligible order.
+        Show this QR code to the assigned driver upon arrival to confirm delivery.
+        """
+        order = self.get_object()
+        user = request.user
+
+        # 1. Permission check: Customer owner, assigned driver, or staff/admin
+        is_customer = (order.customer_id == user.id)
+        delivery = getattr(order, 'delivery', None)
+        is_assigned_driver = (delivery and delivery.driver and delivery.driver.user_id == user.id)
+        if not (is_customer or is_assigned_driver or user.is_staff or getattr(user, 'role', '') == 'admin'):
+            raise PermissionDenied('You do not have permission to view the delivery QR for this order.')
+
+        # 2. Preconditions: Order must have assigned driver and be in eligible delivery state
+        if not delivery or not delivery.driver:
+            raise ValidationError({'detail': 'No driver assigned to this order yet. QR will be available once driver is assigned.'})
+
+        if order.status in ('delivered', 'cancelled'):
+            raise ValidationError({'detail': f'Cannot view delivery QR for order in {order.status} status.'})
+
+        eligible_statuses = (
+            'driver_assigned', 'driver_accepted', 'preparing',
+            'ready_for_pickup', 'picked_up', 'on_the_way',
+            'out_for_delivery', 'driver_arrived', 'ready', 'arrived'
+        )
+        if order.status not in eligible_statuses:
+            raise ValidationError({'detail': f'Order status ({order.status}) is not yet eligible for delivery confirmation.'})
+
+        # 3. Create or reuse unexpired token
+        import secrets
+        from datetime import timedelta
+        from core.mongodb import save_delivery_token_mongo
+
+        now = timezone.now()
+        token_obj = DeliveryConfirmationToken.objects.filter(order=order).first()
+
+        if token_obj and not token_obj.is_used and token_obj.expires_at > now + timedelta(minutes=2):
+            pass
+        else:
+            secure_token = secrets.token_urlsafe(32)
+            pin = f"{secrets.randbelow(900000) + 100000}"
+            expires_at = now + timedelta(minutes=15)
+
+            if token_obj:
+                token_obj.token = secure_token
+                token_obj.token_hash = ''
+                token_obj.verification_pin = pin
+                token_obj.driver = delivery.driver
+                token_obj.expires_at = expires_at
+                token_obj.is_used = False
+                token_obj.used_at = None
+                token_obj.save()
+            else:
+                token_obj = DeliveryConfirmationToken.objects.create(
+                    order=order,
+                    driver=delivery.driver,
+                    token=secure_token,
+                    verification_pin=pin,
+                    expires_at=expires_at,
+                    is_used=False
+                )
+
+        save_delivery_token_mongo(
+            order_id=order.id,
+            order_reference=order.order_reference or f"FG-{order.id}",
+            token_hash=token_obj.token_hash,
+            driver_id=delivery.driver_id,
+            customer_id=order.customer_id,
+            expires_at=token_obj.expires_at,
+            status='ACTIVE'
+        )
+
+        qr_payload = f"FOODGO:DELIVERY:CONFIRM:v1?order_id={order.id}&token={token_obj.token}"
+
+        return Response({
+            'order_id': order.id,
+            'order_reference': order.order_reference,
+            'token': token_obj.token,
+            'verification_pin': token_obj.verification_pin,
+            'qr_payload': qr_payload,
+            'expires_at': token_obj.expires_at.isoformat(),
+            'status': 'ACTIVE',
+            'order_status': order.status,
+            'delivery_status': delivery.status,
+            'driver_name': delivery.driver.user.get_full_name() or delivery.driver.user.username,
+            'vehicle_type': delivery.driver.vehicle_type,
+            'license_plate': delivery.driver.license_plate,
+            'instructions': 'Show this QR to your assigned driver when your order arrives.'
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='customer-regenerate-delivery-qr', permission_classes=[IsAuthenticated])
+    def customer_regenerate_delivery_qr(self, request, pk=None):
+        """
+        Customer rotates or regenerates an expired/invalid delivery QR token.
+        """
+        order = self.get_object()
+        user = request.user
+
+        is_customer = (order.customer_id == user.id)
+        delivery = getattr(order, 'delivery', None)
+        is_assigned_driver = (delivery and delivery.driver and delivery.driver.user_id == user.id)
+        if not (is_customer or is_assigned_driver or user.is_staff or getattr(user, 'role', '') == 'admin'):
+            raise PermissionDenied('You do not have permission to regenerate delivery QR for this order.')
+
+        if not delivery or not delivery.driver:
+            raise ValidationError({'detail': 'No driver assigned to this order.'})
+
+        if order.status in ('delivered', 'cancelled'):
+            raise ValidationError({'detail': f'Cannot regenerate delivery QR for order in {order.status} status.'})
+
+        import secrets
+        from datetime import timedelta
+        from core.mongodb import save_delivery_token_mongo, record_delivery_event_mongo
+
+        now = timezone.now()
+        secure_token = secrets.token_urlsafe(32)
+        pin = f"{secrets.randbelow(900000) + 100000}"
+        expires_at = now + timedelta(minutes=15)
+
+        token_obj = DeliveryConfirmationToken.objects.filter(order=order).first()
+        if token_obj:
+            token_obj.token = secure_token
+            token_obj.token_hash = ''
+            token_obj.verification_pin = pin
+            token_obj.driver = delivery.driver
+            token_obj.expires_at = expires_at
+            token_obj.is_used = False
+            token_obj.used_at = None
+            token_obj.rotation_count += 1
+            token_obj.save()
+        else:
+            token_obj = DeliveryConfirmationToken.objects.create(
+                order=order,
+                driver=delivery.driver,
+                token=secure_token,
+                verification_pin=pin,
+                expires_at=expires_at,
+                is_used=False,
+                rotation_count=1
+            )
+
+        save_delivery_token_mongo(
+            order_id=order.id,
+            order_reference=order.order_reference or f"FG-{order.id}",
+            token_hash=token_obj.token_hash,
+            driver_id=delivery.driver_id,
+            customer_id=order.customer_id,
+            expires_at=token_obj.expires_at,
+            status='ACTIVE'
+        )
+
+        record_delivery_event_mongo(
+            order_id=order.id,
+            event_type='TOKEN_ROTATED',
+            actor_id=user.id,
+            actor_role='customer' if is_customer else 'driver',
+            metadata={'rotation_count': token_obj.rotation_count}
+        )
+
+        qr_payload = f"FOODGO:DELIVERY:CONFIRM:v1?order_id={order.id}&token={token_obj.token}"
+
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Delivery confirmation QR regenerated successfully.',
+            'order_id': order.id,
+            'token': token_obj.token,
+            'verification_pin': token_obj.verification_pin,
+            'qr_payload': qr_payload,
+            'expires_at': token_obj.expires_at.isoformat(),
+            'rotation_count': token_obj.rotation_count,
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='driver-validate-qr', permission_classes=[IsAuthenticated])
+    def driver_validate_qr(self, request, pk=None):
+        """
+        Assigned driver validates scanned customer QR token before submitting final confirmation.
+        """
+        order = self.get_object()
+        user = request.user
+
+        delivery = getattr(order, 'delivery', None)
+        is_assigned_driver = (delivery and delivery.driver and delivery.driver.user_id == user.id)
+        if not (is_assigned_driver or user.is_staff or getattr(user, 'role', '') == 'admin'):
+            raise PermissionDenied('Only the assigned driver can validate this delivery QR.')
+
+        if order.status == 'delivered':
+            return Response({'status': 'ALREADY_DELIVERED', 'message': 'Order has already been confirmed as delivered.'}, status=status.HTTP_200_OK)
+
+        if order.status == 'cancelled':
+            raise ValidationError({'detail': 'Order has been cancelled.'})
+
+        submitted_token = request.data.get('token', '').strip()
+        if 'token=' in submitted_token:
+            try:
+                submitted_token = submitted_token.split('token=')[1].split('&')[0]
+            except Exception:
+                pass
+        submitted_pin = str(request.data.get('verification_pin', '') or request.data.get('pin', '')).strip()
+
+        token_obj = DeliveryConfirmationToken.objects.filter(order=order).first()
+        if not token_obj:
+            raise ValidationError({'detail': 'No active delivery confirmation token found for this order.'})
+
+        is_token_match = (submitted_token and token_obj.token == submitted_token)
+        is_pin_match = (submitted_pin and token_obj.verification_pin == submitted_pin)
+
+        if not (is_token_match or is_pin_match):
+            raise ValidationError({'detail': 'Invalid delivery confirmation QR token or PIN.'})
+
+        if token_obj.is_used:
+            raise ValidationError({'detail': 'This delivery QR token has already been used.'})
+
+        if token_obj.is_expired():
+            raise ValidationError({'detail': 'This delivery QR code has expired.'})
+
+        return Response({
+            'status': 'VALID',
+            'message': 'Delivery QR is valid and ready for confirmation.',
+            'order_id': order.id,
+            'customer_name': order.customer.get_full_name() or order.customer.username,
+            'total_amount': str(order.total_amount),
+            'payment_status': order.payment_status,
+        }, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def delivery_qr(self, request, pk=None):
         """
@@ -906,6 +1137,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         # 3. Create or refresh unexpired token
         import secrets
         from datetime import timedelta
+        from core.mongodb import save_delivery_token_mongo
 
         now = timezone.now()
         token_obj = DeliveryConfirmationToken.objects.filter(order=order).first()
@@ -921,6 +1153,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
             if token_obj:
                 token_obj.token = secure_token
+                token_obj.token_hash = ''
                 token_obj.verification_pin = pin
                 token_obj.driver = delivery.driver
                 token_obj.expires_at = expires_at
@@ -936,6 +1169,16 @@ class OrderViewSet(viewsets.ModelViewSet):
                     expires_at=expires_at,
                     is_used=False
                 )
+
+        save_delivery_token_mongo(
+            order_id=order.id,
+            order_reference=order.order_reference or f"FG-{order.id}",
+            token_hash=token_obj.token_hash,
+            driver_id=delivery.driver_id,
+            customer_id=order.customer_id,
+            expires_at=token_obj.expires_at,
+            status='ACTIVE'
+        )
 
         # Update delivery status to indicate driver arrival
         if delivery.status != 'delivered':
@@ -1033,6 +1276,18 @@ class OrderViewSet(viewsets.ModelViewSet):
             token_obj.ip_address = request.META.get('REMOTE_ADDR')
             token_obj.user_agent = request.META.get('HTTP_USER_AGENT', '')[:255]
             token_obj.save(update_fields=['is_used', 'used_at', 'confirmed_by', 'ip_address', 'user_agent'])
+
+            # Synchronize atomic confirmation to MongoDB Atlas
+            from core.mongodb import confirm_delivery_token_mongo
+            confirm_delivery_token_mongo(
+                order_id=order.id,
+                token_hash=token_obj.token_hash,
+                driver_id=delivery.driver_id,
+                confirmed_by_id=user.id,
+                confirmed_by_role='customer' if is_customer else 'driver',
+                completed_at=now,
+                notes='Delivery confirmed via QR / PIN verification'
+            )
 
             # Transition order status to delivered with audit history
             record_order_status_transition(

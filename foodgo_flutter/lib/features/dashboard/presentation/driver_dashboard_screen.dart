@@ -501,20 +501,57 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               ),
               const SizedBox(height: 14),
               ListTile(
+                tileColor: GlassTheme.primaryGreen.withValues(alpha: 0.12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.4),
+                  ),
+                ),
+                leading: const Icon(
+                  Icons.qr_code_scanner,
+                  color: GlassTheme.primaryGreen,
+                  size: 26,
+                ),
+                title: const Text(
+                  'Scan Customer Delivery QR Code',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Scan QR from customer\'s FoodGo app or enter PIN',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: GlassTheme.primaryGreen,
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  DeliveryScannerModal.show(
+                    context,
+                    orderId: orderId,
+                    isDriver: true,
+                    onConfirmed: () => _fetchDashboardData(),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              ListTile(
                 tileColor: Colors.white.withValues(alpha: 0.05),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                leading: const Icon(
-                  Icons.qr_code_2,
-                  color: GlassTheme.primaryGreen,
-                ),
+                leading: const Icon(Icons.qr_code_2, color: Colors.white70),
                 title: const Text(
-                  'Show Handover QR Code',
+                  'Show Driver Handover QR',
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
                 subtitle: const Text(
-                  'Customer scans code on your screen',
+                  'Customer scans code displayed on your screen',
                   style: TextStyle(color: Colors.white54, fontSize: 12),
                 ),
                 trailing: const Icon(
@@ -528,37 +565,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     orderId: orderId,
                     isDriver: true,
                     onDelivered: () => _fetchDashboardData(),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-              ListTile(
-                tileColor: Colors.white.withValues(alpha: 0.05),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                leading: const Icon(
-                  Icons.pin_outlined,
-                  color: Colors.blueAccent,
-                ),
-                title: const Text(
-                  'Enter Customer 4-Digit PIN',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-                subtitle: const Text(
-                  'Customer provides PIN shown in their app',
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
-                ),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  color: Colors.white30,
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  DeliveryScannerModal.show(
-                    context,
-                    orderId: orderId,
-                    onConfirmed: () => _fetchDashboardData(),
                   );
                 },
               ),

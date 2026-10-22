@@ -18,6 +18,7 @@ import '../widgets/glass/glass_widgets.dart';
 import '../widgets/glass_container.dart';
 import '../services/api_service.dart';
 import '../widgets/delivery_scanner_modal.dart';
+import '../widgets/delivery_qr_modal.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -1343,26 +1344,52 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               _buildItemizedOrderSection(isDark),
               const SizedBox(height: 24),
 
-              // Action Buttons: Scan Driver QR / Confirm Delivery
+              // Action Buttons: Show Delivery Confirmation QR / Scan Driver QR
               ElevatedButton.icon(
-                onPressed: () => DeliveryScannerModal.show(
+                onPressed: () => DeliveryQrModal.show(
                   context,
                   orderId: widget.orderId.toString(),
-                  onConfirmed: () => _fetchOrderTrackingData(),
+                  isDriver: false,
+                  onDelivered: () => _fetchOrderTrackingData(),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: GlassTheme.primaryGreen,
-                  foregroundColor: Colors.white,
+                  foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 2,
                 ),
-                icon: const Icon(Icons.qr_code_scanner, size: 20),
+                icon: const Icon(Icons.qr_code_2, size: 22),
                 label: const Text(
-                  'Scan Driver QR to Confirm Delivery',
+                  'Show Delivery Confirmation QR',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              OutlinedButton.icon(
+                onPressed: () => DeliveryScannerModal.show(
+                  context,
+                  orderId: widget.orderId.toString(),
+                  isDriver: false,
+                  onConfirmed: () => _fetchOrderTrackingData(),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: isDark ? Colors.white : Colors.black87,
+                  side: BorderSide(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.6),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                icon: const Icon(Icons.qr_code_scanner, size: 18),
+                label: const Text(
+                  'Scan Driver Handover QR',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                 ),
               ),
               const SizedBox(height: 10),

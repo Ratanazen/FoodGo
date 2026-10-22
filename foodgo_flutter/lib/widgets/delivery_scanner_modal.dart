@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../core/theme/glass_theme.dart';
 import '../services/api_service.dart';
@@ -11,12 +12,14 @@ import 'responsive_layout.dart';
 
 class DeliveryScannerModal extends StatefulWidget {
   final String orderId;
+  final bool isDriver;
   final VoidCallback? onConfirmed;
   final ValueChanged<String>? onDeliveryTimeConfirmed;
 
   const DeliveryScannerModal({
     super.key,
     required this.orderId,
+    this.isDriver = true,
     this.onConfirmed,
     this.onDeliveryTimeConfirmed,
   });
@@ -24,6 +27,7 @@ class DeliveryScannerModal extends StatefulWidget {
   static void show(
     BuildContext context, {
     required String orderId,
+    bool isDriver = true,
     VoidCallback? onConfirmed,
     ValueChanged<String>? onDeliveryTimeConfirmed,
   }) {
@@ -33,6 +37,7 @@ class DeliveryScannerModal extends StatefulWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => DeliveryScannerModal(
         orderId: orderId,
+        isDriver: isDriver,
         onConfirmed: onConfirmed,
         onDeliveryTimeConfirmed: onDeliveryTimeConfirmed,
       ),
@@ -49,6 +54,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
   final TextEditingController _pinController = TextEditingController();
   final TextEditingController _tokenController = TextEditingController();
 
+  MobileScannerController? _scannerController;
+  bool _isTorchOn = false;
+
   int _selectedTab = 0; // 0: Camera / QR, 1: 6-Digit PIN
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -62,6 +70,11 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
   @override
   void initState() {
     super.initState();
+    _scannerController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+      facing: CameraFacing.back,
+    );
+
     _laserController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -74,6 +87,7 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
 
   @override
   void dispose() {
+    _scannerController?.dispose();
     _laserController.dispose();
     _pinController.dispose();
     _tokenController.dispose();
@@ -394,16 +408,18 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Confirm Delivery',
-                      style: TextStyle(
+                    Text(
+                      widget.isDriver ? 'Scan Customer QR' : 'Confirm Delivery',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      'Order #${widget.orderId} • Customer Verification',
+                      widget.isDriver
+                          ? 'Order #${widget.orderId} • Customer QR Verification'
+                          : 'Order #${widget.orderId} • Customer Verification',
                       style: const TextStyle(
                         color: GlassTheme.textMuted,
                         fontSize: 12,
@@ -442,7 +458,7 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      'Scan Driver QR',
+                      widget.isDriver ? 'Camera Scanner' : 'Scan Driver QR',
                       style: TextStyle(
                         color: _selectedTab == 0
                             ? Colors.black
@@ -467,7 +483,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      'Enter 6-Digit PIN',
+                      widget.isDriver
+                          ? 'Enter Customer PIN'
+                          : 'Enter 6-Digit PIN',
                       style: TextStyle(
                         color: _selectedTab == 1
                             ? Colors.black
@@ -559,105 +577,219 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
     );
   }
 
+  void _handleDetectedBarcode(String raw) {
+    if (_isSubmitting || _isDelivered) return;
+
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return;
+
+    // Reject Bakong payment QR from being scanned as delivery confirmation
+    if (trimmed.toLowerCase().contains('bakong') ||
+        trimmed.toLowerCase().contains('khqr') ||
+        trimmed.startsWith('00020101')) {
+      setState(() {
+        _errorMessage =
+            'Bakong Payment QR detected. Please scan the customer\'s Delivery Confirmation QR.';
+      });
+      return;
+    }
+
+    String token = trimmed;
+    if (token.contains('token=')) {
+      try {
+        token = token.split('token=')[1].split('&')[0];
+      } catch (_) {}
+    }
+
+    _tokenController.text = token;
+    _submitConfirmation(directToken: token);
+  }
+
   Widget _buildCameraViewfinder() {
     return Column(
       children: [
         Container(
-          width: 220,
-          height: 200,
+          width: 260,
+          height: 230,
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.7),
+            color: Colors.black,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: GlassTheme.primaryGreen.withValues(alpha: 0.8),
               width: 2,
             ),
           ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Positioned(
-                top: 8,
-                left: 8,
-                child: _corner(isTop: true, isLeft: true),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: _corner(isTop: true, isLeft: false),
-              ),
-              Positioned(
-                bottom: 8,
-                left: 8,
-                child: _corner(isTop: false, isLeft: true),
-              ),
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: _corner(isTop: false, isLeft: false),
-              ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                MobileScanner(
+                  controller: _scannerController,
+                  fit: BoxFit.cover,
+                  onDetect: (capture) {
+                    for (final barcode in capture.barcodes) {
+                      final val = barcode.rawValue;
+                      if (val != null && val.isNotEmpty) {
+                        _handleDetectedBarcode(val);
+                        break;
+                      }
+                    }
+                  },
+                  errorBuilder: (context, error) {
+                    return _buildCameraErrorView(error);
+                  },
+                ),
 
-              Icon(
-                Icons.qr_code_2,
-                size: 84,
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: _corner(isTop: true, isLeft: true),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: _corner(isTop: true, isLeft: false),
+                ),
+                Positioned(
+                  bottom: 8,
+                  left: 8,
+                  child: _corner(isTop: false, isLeft: true),
+                ),
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: _corner(isTop: false, isLeft: false),
+                ),
 
-              AnimatedBuilder(
-                animation: _laserAnimation,
-                builder: (context, child) {
-                  return Positioned(
-                    top: _laserAnimation.value * 180,
-                    left: 20,
-                    right: 20,
-                    child: Container(
-                      height: 2,
-                      decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen,
-                        boxShadow: [
-                          BoxShadow(
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.9,
+                AnimatedBuilder(
+                  animation: _laserAnimation,
+                  builder: (context, child) {
+                    return Positioned(
+                      top: _laserAnimation.value * 210,
+                      left: 20,
+                      right: 20,
+                      child: Container(
+                        height: 2,
+                        decoration: BoxDecoration(
+                          color: GlassTheme.primaryGreen,
+                          boxShadow: [
+                            BoxShadow(
+                              color: GlassTheme.primaryGreen.withValues(
+                                alpha: 0.9,
+                              ),
+                              blurRadius: 8,
+                              spreadRadius: 2,
                             ),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
 
-              Positioned(
-                bottom: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: IconButton(
+                          iconSize: 18,
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            _isTorchOn ? Icons.flash_on : Icons.flash_off,
+                            color: _isTorchOn ? Colors.amber : Colors.white,
+                          ),
+                          onPressed: () async {
+                            await _scannerController?.toggleTorch();
+                            setState(() => _isTorchOn = !_isTorchOn);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: IconButton(
+                          iconSize: 18,
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(
+                            Icons.flip_camera_ios,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => _scannerController?.switchCamera(),
+                        ),
+                      ),
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'ALIGN DRIVER QR',
-                    style: TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
+                ),
+
+                Positioned(
+                  bottom: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      widget.isDriver
+                          ? 'ALIGN CUSTOMER DELIVERY QR'
+                          : 'ALIGN DRIVER QR',
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+
+                if (_isSubmitting)
+                  Container(
+                    color: Colors.black87,
+                    alignment: Alignment.center,
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(
+                          color: GlassTheme.primaryGreen,
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Verifying delivery with backend...',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
-          'Scan the delivery QR code displayed on your driver\'s screen.',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+        Text(
+          widget.isDriver
+              ? 'Scan the Delivery Confirmation QR displayed on customer\'s screen.'
+              : 'Scan the delivery QR code displayed on your driver\'s screen.',
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
@@ -681,13 +813,69 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
     );
   }
 
+  Widget _buildCameraErrorView(MobileScannerException error) {
+    final isPermission =
+        error.errorCode == MobileScannerErrorCode.permissionDenied;
+    return Container(
+      color: Colors.black87,
+      padding: const EdgeInsets.all(14),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.camera_alt_outlined, color: Colors.amber, size: 32),
+          const SizedBox(height: 8),
+          Text(
+            isPermission ? 'Camera Permission Denied' : 'Camera Unavailable',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isPermission
+                ? 'Camera access is disabled. Please enter the 6-digit confirmation PIN.'
+                : 'Could not access device camera: ${error.errorCode.name}',
+            style: const TextStyle(color: Colors.white70, fontSize: 11),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: GlassTheme.primaryGreen,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            icon: const Icon(Icons.pin, size: 16),
+            label: const Text(
+              'Enter PIN Instead',
+              style: TextStyle(fontSize: 12),
+            ),
+            onPressed: () => setState(() => _selectedTab = 1),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPinEntryView() {
     return Column(
       children: [
         const SizedBox(height: 6),
-        const Text(
-          'Ask your driver for the 6-digit confirmation PIN shown on their FoodGo driver app:',
-          style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+        Text(
+          widget.isDriver
+              ? 'Ask customer for the 6-digit confirmation PIN displayed on their FoodGo order tracking screen:'
+              : 'Ask your driver for the 6-digit confirmation PIN shown on their FoodGo driver app:',
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 13,
+            height: 1.4,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 18),

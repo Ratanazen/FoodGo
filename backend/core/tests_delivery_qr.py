@@ -373,3 +373,143 @@ class DeliveryConfirmationQRTests(TestCase):
         self.assertEqual(resp_track.status_code, status.HTTP_200_OK)
         self.assertEqual(resp_track.data['order_id'], self.order.id)
 
+    def test_customer_can_retrieve_customer_delivery_qr(self):
+        """Customer who owns the order can retrieve their delivery confirmation QR and PIN."""
+        self.client.force_authenticate(user=self.customer)
+        url = reverse('order-customer-delivery-qr', args=[self.order.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('token', response.data)
+        self.assertIn('verification_pin', response.data)
+        self.assertIn('qr_payload', response.data)
+        self.assertEqual(len(response.data['verification_pin']), 6)
+        self.assertTrue(response.data['qr_payload'].startswith('FOODGO:DELIVERY:CONFIRM:v1'))
+        self.assertEqual(response.data['order_id'], self.order.id)
+
+    def test_unauthorized_customer_cannot_retrieve_customer_delivery_qr(self):
+        """A customer who does NOT own the order cannot retrieve its delivery QR."""
+        self.client.force_authenticate(user=self.other_customer)
+        url = reverse('order-customer-delivery-qr', args=[self.order.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_customer_can_regenerate_expired_delivery_qr(self):
+        """Customer can rotate/regenerate delivery QR, invalidating previous token."""
+        self.client.force_authenticate(user=self.customer)
+        # 1. Retrieve initial token
+        url = reverse('order-customer-delivery-qr', args=[self.order.id])
+        resp1 = self.client.get(url)
+        old_token = resp1.data['token']
+
+        # 2. Regenerate
+        regen_url = reverse('order-customer-regenerate-delivery-qr', args=[self.order.id])
+        resp2 = self.client.post(regen_url, {}, format='json')
+        self.assertEqual(resp2.status_code, status.HTTP_200_OK)
+        new_token = resp2.data['token']
+        self.assertNotEqual(old_token, new_token)
+        self.assertEqual(resp2.data['rotation_count'], 1)
+
+        # 3. Old token cannot confirm delivery
+        self.client.force_authenticate(user=self.driver_user1)
+        confirm_url = reverse('order-confirm-delivery', args=[self.order.id])
+        res_old = self.client.post(confirm_url, {'token': old_token}, format='json')
+        self.assertEqual(res_old.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # 4. New token successfully confirms delivery
+        res_new = self.client.post(confirm_url, {'token': new_token}, format='json')
+        self.assertEqual(res_new.status_code, status.HTTP_200_OK)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'delivered')
+
+    def test_driver_can_validate_customer_qr_before_confirming(self):
+        """Assigned driver can pre-validate customer's QR before completing handover."""
+        self.client.force_authenticate(user=self.customer)
+        qr_resp = self.client.get(reverse('order-customer-delivery-qr', args=[self.order.id]))
+        token = qr_resp.data['token']
+
+        # Driver validates
+        self.client.force_authenticate(user=self.driver_user1)
+        val_url = reverse('order-driver-validate-qr', args=[self.order.id])
+        resp = self.client.post(val_url, {'token': token}, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data['status'], 'VALID')
+
+        # Order must still remain in transit until confirmation
+        self.order.refresh_from_db()
+        self.assertNotEqual(self.order.status, 'delivered')
+
+    def test_unassigned_driver_cannot_validate_qr(self):
+        """Unassigned driver is rejected when attempting to validate QR."""
+        self.client.force_authenticate(user=self.customer)
+        qr_resp = self.client.get(reverse('order-customer-delivery-qr', args=[self.order.id]))
+        token = qr_resp.data['token']
+
+        self.client.force_authenticate(user=self.driver_user2)
+        val_url = reverse('order-driver-validate-qr', args=[self.order.id])
+        resp = self.client.post(val_url, {'token': token}, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_driver_scans_and_confirms_customer_qr(self):
+        """Primary flow: Customer displays QR, driver scans and confirms delivery atomically."""
+        # 1. Customer retrieves delivery QR
+        self.client.force_authenticate(user=self.customer)
+        qr_resp = self.client.get(reverse('order-customer-delivery-qr', args=[self.order.id]))
+        token = qr_resp.data['token']
+
+        # 2. Driver scans customer QR
+        self.client.force_authenticate(user=self.driver_user1)
+        confirm_url = reverse('order-confirm-delivery', args=[self.order.id])
+        confirm_resp = self.client.post(confirm_url, {'token': token}, format='json')
+
+        self.assertEqual(confirm_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(confirm_resp.data['status'], 'SUCCESS')
+        self.assertEqual(confirm_resp.data['order_status'], 'delivered')
+
+        # Check DB states
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'delivered')
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, 'delivered')
+
+        # Driver deliveries and earnings incremented
+        self.driver1.refresh_from_db()
+        self.assertEqual(self.driver1.total_deliveries, 1)
+
+    def test_payment_qr_cannot_confirm_delivery(self):
+        """Bakong payment QR or random string cannot be accepted as delivery confirmation QR."""
+        self.client.force_authenticate(user=self.customer)
+        self.client.get(reverse('order-customer-delivery-qr', args=[self.order.id]))
+
+        self.client.force_authenticate(user=self.driver_user1)
+        confirm_url = reverse('order-confirm-delivery', args=[self.order.id])
+        # Try passing a Bakong KHQR payload or random payment string
+        bakong_qr = "00020101021229300016aba.khqr@bakong520459995802KH5915PhnomPenhKitchen"
+        resp = self.client.post(confirm_url, {'token': bakong_qr}, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.order.refresh_from_db()
+        self.assertNotEqual(self.order.status, 'delivered')
+
+    def test_delivery_qr_does_not_mark_order_paid(self):
+        """Delivery confirmation via delivery QR does NOT alter payment status to PAID."""
+        self.assertEqual(self.order.payment_status, 'UNPAID')
+
+        self.client.force_authenticate(user=self.customer)
+        qr_resp = self.client.get(reverse('order-customer-delivery-qr', args=[self.order.id]))
+        token = qr_resp.data['token']
+
+        self.client.force_authenticate(user=self.driver_user1)
+        confirm_url = reverse('order-confirm-delivery', args=[self.order.id])
+        resp = self.client.post(confirm_url, {'token': token}, format='json')
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'delivered')
+        # Crucial: Delivery confirmation strictly separates from payment
+        self.assertEqual(self.order.payment_status, 'UNPAID')
+
+

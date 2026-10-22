@@ -312,7 +312,9 @@ class DeliveryConfirmationToken(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='delivery_token')
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='delivery_tokens')
     token = models.CharField(max_length=64, unique=True, db_index=True)
+    token_hash = models.CharField(max_length=64, blank=True, default='', db_index=True)
     verification_pin = models.CharField(max_length=6, db_index=True)
+    rotation_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(db_index=True)
     is_used = models.BooleanField(default=False, db_index=True)
@@ -326,6 +328,12 @@ class DeliveryConfirmationToken(models.Model):
         verbose_name = 'Delivery Confirmation Token'
         verbose_name_plural = 'Delivery Confirmation Tokens'
 
+    def save(self, *args, **kwargs):
+        if self.token and not self.token_hash:
+            import hashlib
+            self.token_hash = hashlib.sha256(self.token.encode('utf-8')).hexdigest()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         status = 'USED' if self.is_used else ('EXPIRED' if self.is_expired() else 'ACTIVE')
         return f"Delivery Token for Order #{self.order_id} ({status})"
@@ -335,6 +343,7 @@ class DeliveryConfirmationToken(models.Model):
 
     def is_valid(self):
         return not self.is_used and not self.is_expired()
+
 
 
 class Review(models.Model):

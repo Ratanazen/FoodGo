@@ -15,7 +15,7 @@ import '../../../widgets/lottie_assets.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
-import '../../../widgets/delivery_scanner_modal.dart';
+import '../../../widgets/delivery_qr_modal.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../payment/services/payment_service.dart';
 
@@ -715,18 +715,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         vertical: 10,
                       ),
                     ),
-                    icon: const Icon(Icons.qr_code_scanner, size: 16),
+                    icon: const Icon(Icons.qr_code_2, size: 16),
                     label: const Text(
-                      'Confirm',
+                      'Delivery QR',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    onPressed: () => DeliveryScannerModal.show(
+                    onPressed: () => DeliveryQrModal.show(
                       context,
                       orderId: order['id'].toString(),
-                      onConfirmed: () => _fetchOrders(),
+                      isDriver: false,
+                      onDelivered: () => _fetchOrders(),
                     ),
                   ),
                   const SizedBox(width: 8),

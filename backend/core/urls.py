@@ -15,6 +15,7 @@ from .admin_views import (
     AdminDriverViewSet
 )
 from django.urls import path, include
+from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
 from .views import *
 
@@ -48,9 +49,13 @@ urlpatterns = [
     path('auth/phone/verify-otp/', VerifyPhoneOTPView.as_view(), name='phone_verify_otp'),
     path('auth/phone/status/', PhoneStatusView.as_view(), name='phone_status'),
     path('auth/phone/change/', ChangePhoneView.as_view(), name='phone_change'),
-    # Aliases for phone login
+    # Aliases for phone login and standard OTP endpoints
     path('auth/phone-login/request/', SendPhoneOTPView.as_view(), name='otp_request'),
     path('auth/phone-login/verify/', VerifyPhoneOTPView.as_view(), name='otp_verify'),
+    path('auth/otp/request/', SendPhoneOTPView.as_view(), name='auth_otp_request'),
+    path('auth/otp/verify/', VerifyPhoneOTPView.as_view(), name='auth_otp_verify'),
+    path('auth/refresh/', TokenRefreshView.as_view(), name='auth_refresh'),
+    path('auth/me/', UserMeView.as_view(), name='auth_me'),
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
     path('auth/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('auth/logout/', LogoutView.as_view(), name='auth_logout'),

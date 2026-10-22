@@ -507,3 +507,102 @@ class _WebNavLink extends StatelessWidget {
     );
   }
 }
+
+/// Responsive Web Footer with links to legal, support, and public tracking
+class WebFooter extends StatelessWidget {
+  const WebFooter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0C120F),
+        border: Border(
+          top: BorderSide(
+            color: Colors.white.withValues(alpha: 0.08),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            children: [
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 24,
+                runSpacing: 12,
+                children: [
+                  _FooterLink(
+                    label: 'Track Order',
+                    onTap: () => context.push('/track'),
+                  ),
+                  _FooterLink(
+                    label: 'Help & Support',
+                    onTap: () => context.push('/support'),
+                  ),
+                  _FooterLink(
+                    label: 'Terms of Service',
+                    onTap: () => context.push('/terms'),
+                  ),
+                  _FooterLink(
+                    label: 'Privacy Policy',
+                    onTap: () => context.push('/privacy'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'FoodGo Delivery Ecosystem • Kingdom of Cambodia',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Powered by National Bank of Cambodia Bakong KHQR & Real Cambodian SMS OTP',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.4),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FooterLink extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _FooterLink({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

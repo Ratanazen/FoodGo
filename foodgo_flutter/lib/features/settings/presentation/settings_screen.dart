@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -592,58 +591,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showPolicySheet(String title, String content) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(ctx).size.height * 0.7,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: GlassTheme.dialogDark,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white60),
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ],
-            ),
-            const Divider(color: Colors.white12),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(
-                  content,
-                  style: TextStyle(
-                    color: GlassTheme.textMuted,
-                    fontSize: 14,
-                    height: 1.6,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showRateUsDialog() {
     int rating = 5;
     showDialog(
@@ -730,121 +677,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showSupportSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: GlassTheme.dialogDark,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'FoodGo Help & Support',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'We are here to assist you 24/7 with your food orders.',
-              style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(
-                Icons.chat_bubble_outline,
-                color: GlassTheme.primaryGreen,
-              ),
-              title: const Text(
-                'Live Chat Support',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                'Instant replies within 2 minutes',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Connecting to FoodGo Support Agent...'),
-                    backgroundColor: GlassTheme.primaryGreen,
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.send_rounded, color: Colors.blueAccent),
-              title: const Text(
-                'Telegram Official Channel',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                '@foodgocambodia',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Telegram channel: @foodgocambodia'),
-                    backgroundColor: Colors.blueAccent,
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.phone_outlined, color: Colors.amber),
-              title: const Text(
-                'Customer Care Hotline',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                '+855 23 999 888 (Toll-Free Phnom Penh)',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-              ),
-              onTap: () {
-                Clipboard.setData(const ClipboardData(text: '+85523999888'));
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Row(
-                      children: [
-                        Icon(Icons.phone, color: Colors.white, size: 20),
-                        SizedBox(width: 8),
-                        Text('Hotline copied to clipboard: +855 23 999 888'),
-                      ],
-                    ),
-                    backgroundColor: Colors.amber,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
             ),
           ],
         ),
@@ -998,14 +830,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   iconColor: Colors.teal,
                   title: 'Privacy Policy',
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showPolicySheet(
-                    'Privacy Policy',
-                    'At FoodGo, your privacy is our core priority.\n\n'
-                        '1. Data Collection: We collect only essential contact, location, and payment details necessary for order dispatch.\n\n'
-                        '2. Payment Security: Banking credentials, KHQR payload tokens, and wallet secrets are encrypted via end-to-end HTTPS/TLS protocols and never stored in plain text.\n\n'
-                        '3. Location Privacy: Driver and customer coordinates are used strictly for in-transit live order routing.\n\n'
-                        'For inquiries, reach out to security@foodgo.com.',
-                  ),
+                  onTap: () => context.push('/privacy'),
                 ),
                 _Divider(),
                 _SettingsTile(
@@ -1013,14 +838,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   iconColor: Colors.blue,
                   title: 'Terms of Service',
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showPolicySheet(
-                    'Terms of Service',
-                    'Welcome to FoodGo Platform Terms.\n\n'
-                        '1. Acceptance: By placing an order, you agree to comply with FoodGo policies.\n\n'
-                        '2. Orders & Cancellations: Once preparation starts, cancellation requests may incur restaurant processing fees.\n\n'
-                        '3. Payments: All digital KHQR and Wallet payments are debited in real-time.\n\n'
-                        '4. Conduct: Respectful communication between drivers, customers, and restaurant staff is mandatory.',
-                  ),
+                  onTap: () => context.push('/terms'),
                 ),
               ],
             ),
@@ -1056,7 +874,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       iconColor: Colors.cyan,
                       title: 'Help & Support',
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: _showSupportSheet,
+                      onTap: () => context.push('/support'),
                     ),
                   ],
                 ),

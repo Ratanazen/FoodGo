@@ -6,6 +6,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User, Driver, Restaurant, FoodItem, Order, Delivery, PhoneOTPChallenge
 from .sms_service import (
@@ -567,3 +568,85 @@ class SMSProvidersIntegrationTests(TestCase):
             self.assertTrue(success)
             self.assertEqual(msg_id, 'WEUMS-MSG-112233')
             self.assertEqual(meta['status'], 'ACCEPTED')
+
+
+@override_settings(SMS_PROVIDER='test')
+class StandardAuthRoutesTests(TestCase):
+    """
+    Test suite verifying Section 3 standard auth endpoints:
+    POST /api/auth/otp/request
+    POST /api/auth/otp/verify
+    POST /api/auth/refresh
+    GET  /api/auth/me
+    POST /api/auth/logout
+    """
+
+    def setUp(self):
+        TestConsoleSMSProvider.reset()
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='auth_standard_user',
+            email='auth_standard@foodgo.kh',
+            password='TestPassword123!',
+            role='customer',
+            phone='+85512888999'
+        )
+
+    def test_standard_otp_request_endpoint(self):
+        response = self.client.post('/api/auth/otp/request/', {
+            'phone': '012 888 999',
+            'purpose': 'customer_verification'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'SUCCESS')
+        self.assertIn('phone_masked', response.data)
+        self.assertEqual(len(TestConsoleSMSProvider.delivered_messages), 1)
+
+    def test_standard_otp_verify_endpoint(self):
+        # 1. Request OTP
+        self.client.post('/api/auth/otp/request/', {
+            'phone': '012 888 999',
+            'purpose': 'customer_verification'
+        })
+        sent_otp = TestConsoleSMSProvider.delivered_messages[0]['otp']
+
+        # 2. Verify OTP
+        response = self.client.post('/api/auth/otp/verify/', {
+            'phone': '012 888 999',
+            'otp': sent_otp,
+            'purpose': 'customer_verification'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'SUCCESS')
+        self.assertTrue(response.data['is_phone_verified'])
+
+        # Reload user
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_phone_verified)
+        self.assertEqual(self.user.phone_normalized, '+85512888999')
+
+    def test_standard_auth_me_endpoint(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/api/auth/me/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], 'auth_standard_user')
+        self.assertEqual(response.data['email'], 'auth_standard@foodgo.kh')
+        self.assertIn('is_phone_verified', response.data)
+        self.assertIn('phone_normalized', response.data)
+
+    def test_standard_token_refresh_endpoint(self):
+        refresh = RefreshToken.for_user(self.user)
+        response = self.client.post('/api/auth/refresh/', {
+            'refresh': str(refresh)
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+
+    def test_standard_logout_endpoint(self):
+        self.client.force_authenticate(user=self.user)
+        refresh = RefreshToken.for_user(self.user)
+        response = self.client.post('/api/auth/logout/', {
+            'refresh': str(refresh)
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+

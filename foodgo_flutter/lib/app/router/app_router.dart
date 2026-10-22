@@ -33,6 +33,9 @@ import '../../screens/map_screen.dart';
 import '../../features/dashboard/presentation/restaurant_dashboard_screen.dart';
 import '../../features/dashboard/presentation/driver_dashboard_screen.dart';
 import '../../features/admin/presentation/admin_dashboard_screen.dart';
+import '../../features/support/presentation/support_screen.dart';
+import '../../features/legal/presentation/legal_screen.dart';
+import '../../features/tracking/presentation/public_tracking_screen.dart';
 
 // Widgets
 import '../../widgets/glass/glass_bottom_navigation.dart';
@@ -308,6 +311,52 @@ final GoRouter appRouter = GoRouter(
         child: const SearchScreen(),
         type: PageTransitionType.slideRight,
       ),
+    ),
+    GoRoute(
+      path: '/support',
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const SupportScreen(),
+        type: PageTransitionType.slideRight,
+      ),
+    ),
+    GoRoute(
+      path: '/terms',
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const LegalScreen(initialTabIndex: 0),
+        type: PageTransitionType.slideRight,
+      ),
+    ),
+    GoRoute(
+      path: '/privacy',
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const LegalScreen(initialTabIndex: 1),
+        type: PageTransitionType.slideRight,
+      ),
+    ),
+    GoRoute(
+      path: '/track',
+      pageBuilder: (context, state) {
+        final orderId = state.uri.queryParameters['orderId'];
+        return _buildPage(
+          state: state,
+          child: PublicTrackingScreen(initialOrderId: orderId),
+          type: PageTransitionType.slideRight,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/track/:orderId',
+      pageBuilder: (context, state) {
+        final orderId = state.pathParameters['orderId'];
+        return _buildPage(
+          state: state,
+          child: PublicTrackingScreen(initialOrderId: orderId),
+          type: PageTransitionType.slideRight,
+        );
+      },
     ),
 
     ShellRoute(

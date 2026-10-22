@@ -53,7 +53,7 @@
   ```
 
 ### 1.3 Current User Profile
-- **Endpoint:** `GET /api/me/`
+- **Endpoint:** `GET /api/me/` or `GET /api/auth/me/`
 - **Permissions:** Authenticated
 - **Response (200 OK):**
   ```json
@@ -61,9 +61,90 @@
     "id": 14,
     "username": "channa_sok",
     "email": "channa@example.com",
+    "first_name": "Channa",
+    "last_name": "Sok",
     "role": "customer",
     "phone": "+85512888999",
-    "wallet_balance": "25.00"
+    "phone_normalized": "+85512888999",
+    "is_phone_verified": true,
+    "phone_verified_at": "2026-10-22T08:30:00Z"
+  }
+  ```
+
+### 1.4 Request Cambodian SMS OTP
+- **Endpoint:** `POST /api/auth/otp/request/` (Alias: `POST /api/auth/phone/send-otp/`)
+- **Permissions:** Public
+- **Request:**
+  ```json
+  {
+    "phone": "012 888 999",
+    "purpose": "customer_verification"
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "status": "SUCCESS",
+    "message": "Verification code dispatched successfully via SMS.",
+    "phone_masked": "+855 12 *** 999",
+    "cooldown_seconds": 60,
+    "expires_in_seconds": 300,
+    "challenge_id": 42
+  }
+  ```
+
+### 1.5 Verify SMS OTP
+- **Endpoint:** `POST /api/auth/otp/verify/` (Alias: `POST /api/auth/phone/verify-otp/`)
+- **Permissions:** Public
+- **Request:**
+  ```json
+  {
+    "phone": "012 888 999",
+    "otp": "123456",
+    "purpose": "customer_verification"
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "status": "SUCCESS",
+    "message": "Phone number verified successfully.",
+    "phone_normalized": "+85512888999",
+    "is_phone_verified": true,
+    "verified_at": "2026-10-22T08:31:00Z"
+  }
+  ```
+
+### 1.6 Refresh JWT Token
+- **Endpoint:** `POST /api/auth/refresh/` (Alias: `POST /api/token/refresh/`)
+- **Permissions:** Public
+- **Request:**
+  ```json
+  {
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+  ```
+
+### 1.7 Logout & Revoke Refresh Token
+- **Endpoint:** `POST /api/auth/logout/`
+- **Permissions:** Authenticated
+- **Request:**
+  ```json
+  {
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "status": "SUCCESS",
+    "message": "Successfully logged out."
   }
   ```
 
@@ -296,3 +377,81 @@
     "payment_id": 105
   }
   ```
+
+---
+
+## 5. Public Order Tracking
+
+### 5.1 Public Live Tracking Lookup
+- **Endpoint:** `GET /api/orders/<id>/tracking/`
+- **Permissions:** Public (`AllowAny`)
+- **Response (200 OK):**
+  ```json
+  {
+    "order_id": 42,
+    "status": "on_the_way",
+    "restaurant_name": "Phnom Penh Kitchen",
+    "delivery_address": "Street 240, Daun Penh, Phnom Penh",
+    "restaurant_location": {
+      "lat": 11.5564,
+      "lng": 104.9282
+    },
+    "customer_location": {
+      "lat": 11.5621,
+      "lng": 104.9160
+    },
+    "driver_location": {
+      "lat": 11.5589,
+      "lng": 104.9227
+    },
+    "driver": {
+      "id": 7,
+      "name": "Dara Chan",
+      "phone": "+85512888999",
+      "vehicle_type": "Motorcycle (Honda Wave)",
+      "license_plate": "PP-1AB-2026",
+      "is_online": true,
+      "rating": 4.9
+    }
+  }
+  ```
+
+---
+
+## 6. Android Emulator & Network Security Configuration
+
+Android API 28+ blocks cleartext HTTP traffic by default. FoodGo includes a configured `network_security_config.xml` to allow cleartext communication between Android emulators and local development hosts.
+
+### 6.1 Network Security Config File
+Location: `foodgo_flutter/android/app/src/main/res/xml/network_security_config.xml`
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+```
+
+### 6.2 AndroidManifest.xml Integration
+The configuration is linked in `foodgo_flutter/android/app/src/main/AndroidManifest.xml`:
+```xml
+<application
+    android:label="FoodGo"
+    android:name="${applicationName}"
+    android:icon="@mipmap/launcher_icon"
+    android:networkSecurityConfig="@xml/network_security_config">
+```
+
+### 6.3 Local Development Target URLs
+- **Web:** `http://127.0.0.1:8000/api/` (Auto-detected when host is `localhost` or `127.0.0.1`)
+- **Android Emulator:** `http://10.0.2.2:8000/api/` (Selectable from the login screen Server Dialog)
+- **Production:** `https://food-go-app.vercel.app/api/`

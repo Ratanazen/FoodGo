@@ -296,13 +296,14 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test core`)** | **151** | **151 Passed (100%)** | ~6.4s |
-| **Flutter Frontend (`foodgo_flutter/test/`)** | **112** | **112 Passed (100%)** | ~9.2s |
-| **Total Automated Tests** | **263** | **263 Passed (100%)** | ~15.6s |
-| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **85 Files** | **0 Errors, 0 Warnings** | ~2.3s |
+| **Django Backend (`backend/manage.py test core`)** | **156** | **156 Passed (100%)** | ~6.5s |
+| **Flutter Frontend (`foodgo_flutter/test/`)** | **115** | **115 Passed (100%)** | ~10.4s |
+| **Total Automated Tests** | **271** | **271 Passed (100%)** | ~16.9s |
+| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **88 Files** | **0 Errors, 0 Warnings** | ~2.4s |
 | **Zero-Emoji Policy Verification** | **All Repo Files** | **100% Vector Icon Compliant** | ~1.1s |
 | **Multi-Cloud Health Checks (`/api/health/`)** | **Endpoints** | **Operational (Vercel, Render, Docker)** | <10ms |
-| **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |
+| **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`Built build/web`)** | ~75s |
+| **Android Network Security** | **Cleartext 10.0.2.2** | **Configured (`network_security_config.xml`)** | Verified |
 | **Django Static Collection (`collectstatic`)** | **249 Files** | **Success** | ~1.2s |
 | **Database Backup & DR (`backup_db.sh`)** | **Automated Script** | **Verified (PostgreSQL & SQLite)** | <1s |
 

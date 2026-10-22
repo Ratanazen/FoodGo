@@ -222,6 +222,8 @@ class VerifyPhoneOTPView(APIView):
                 target_user = challenge.user
             else:
                 target_user = User.objects.filter(phone_normalized=phone_normalized).first()
+                if not target_user:
+                    target_user = User.objects.filter(phone=raw_phone).first()
                 if not target_user and challenge.purpose == 'phone_login':
                     # Create new customer account for phone login
                     base_username = f"user_{phone_normalized.replace('+', '')}"

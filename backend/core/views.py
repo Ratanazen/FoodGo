@@ -717,7 +717,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         cart.save(update_fields=['restaurant'])
         dispatch_order_notification(order, status_key='pending')
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], permission_classes=[AllowAny])
     def track(self, request, pk=None):
         order = self.get_object()
         

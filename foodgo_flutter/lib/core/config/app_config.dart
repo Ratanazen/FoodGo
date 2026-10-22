@@ -31,6 +31,15 @@ class AppConfig {
     if (_customWsUrl.isNotEmpty) {
       return _customWsUrl;
     }
+    if (_customApiUrl.contains('10.0.2.2')) {
+      return 'ws://10.0.2.2:8000/ws/tracking/';
+    }
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return 'ws://$host:8000/ws/tracking/';
+      }
+    }
     return const String.fromEnvironment(
       'FOODGO_WS_URL',
       defaultValue: 'wss://foodgo-53pl.onrender.com/ws/tracking/',
@@ -41,6 +50,9 @@ class AppConfig {
   static String get wsPaymentBaseUrl {
     if (_customWsUrl.isNotEmpty) {
       return _customWsUrl.replaceAll('/tracking/', '/payments/');
+    }
+    if (_customApiUrl.contains('10.0.2.2')) {
+      return 'ws://10.0.2.2:8000/ws/payments/';
     }
     if (kIsWeb) {
       final host = Uri.base.host;

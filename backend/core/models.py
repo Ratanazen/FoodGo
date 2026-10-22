@@ -18,6 +18,15 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     avatar_url = models.URLField(max_length=500, blank=True, null=True, help_text="Direct web link or Google profile photo")
 
+    def save(self, *args, **kwargs):
+        if self.phone and not self.phone_normalized:
+            from .sms_service import normalize_cambodia_phone
+            norm, valid, _ = normalize_cambodia_phone(self.phone)
+            if valid:
+                self.phone_normalized = norm
+        super().save(*args, **kwargs)
+
+
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
     street = models.CharField(max_length=255)

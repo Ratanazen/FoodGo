@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../providers/auth_provider.dart';
+import '../../../../providers/user_provider.dart';
 import '../../../../widgets/svg_icon.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -33,14 +34,25 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 2400), () {
-      if (mounted) {
-        final auth = context.read<AuthProvider>();
-        if (auth.isAuthenticated) {
-          context.go('/home');
+    Future.delayed(const Duration(milliseconds: 2400), () async {
+      if (!mounted) return;
+      final auth = context.read<AuthProvider>();
+      if (auth.isAuthenticated) {
+        final userProvider = context.read<UserProvider>();
+        await userProvider.fetchUser();
+        if (!mounted) return;
+        final role = userProvider.user?['role']?.toString().toLowerCase();
+        if (role == 'admin') {
+          context.go('/admin-dashboard');
+        } else if (role == 'driver') {
+          context.go('/driver-dashboard');
+        } else if (role == 'restaurant_owner') {
+          context.go('/restaurant-dashboard');
         } else {
-          context.go('/login');
+          context.go('/home');
         }
+      } else {
+        context.go('/login');
       }
     });
   }

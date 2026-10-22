@@ -67,9 +67,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
-        await context.read<UserProvider>().fetchUser();
+        final userProvider = context.read<UserProvider>();
+        await userProvider.fetchUser();
         if (!mounted) return;
-        context.go('/home');
+        final role = userProvider.user?['role']?.toString().toLowerCase();
+        if (role == 'admin') {
+          context.go('/admin-dashboard');
+        } else if (role == 'driver') {
+          context.go('/driver-dashboard');
+        } else if (role == 'restaurant_owner') {
+          context.go('/restaurant-dashboard');
+        } else {
+          context.go('/home');
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -104,8 +114,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
-      context.read<UserProvider>().fetchUser();
-      context.go('/home');
+      final userProvider = context.read<UserProvider>();
+      await userProvider.fetchUser();
+      if (!mounted) return;
+      final role = userProvider.user?['role']?.toString().toLowerCase();
+      if (role == 'admin') {
+        context.go('/admin-dashboard');
+      } else if (role == 'driver') {
+        context.go('/driver-dashboard');
+      } else if (role == 'restaurant_owner') {
+        context.go('/restaurant-dashboard');
+      } else {
+        context.go('/home');
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

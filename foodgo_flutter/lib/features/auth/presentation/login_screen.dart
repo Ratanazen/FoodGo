@@ -126,9 +126,19 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      await context.read<UserProvider>().fetchUser();
+      final userProvider = context.read<UserProvider>();
+      await userProvider.fetchUser();
       if (!mounted) return;
-      context.go('/home');
+      final role = userProvider.user?['role']?.toString().toLowerCase();
+      if (role == 'admin') {
+        context.go('/admin-dashboard');
+      } else if (role == 'driver') {
+        context.go('/driver-dashboard');
+      } else if (role == 'restaurant_owner') {
+        context.go('/restaurant-dashboard');
+      } else {
+        context.go('/home');
+      }
     } else {
       setState(() {
         _isLoading = false;

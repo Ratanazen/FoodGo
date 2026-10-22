@@ -18,7 +18,8 @@ class FoodGoCoreAPITests(TestCase):
             username='khmer_foodie',
             email='foodie@foodgo.kh',
             password='Password123!',
-            role='customer'
+            role='customer',
+            phone='+85512888999'
         )
         self.owner = User.objects.create_user(
             username='chef_sok',
@@ -70,6 +71,44 @@ class FoodGoCoreAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn('access', res.data)
         self.assertIn('refresh', res.data)
+
+    def test_jwt_token_obtain_via_email(self):
+        url = reverse('token_obtain_pair')
+        data = {
+            'username': 'foodie@foodgo.kh',
+            'password': 'Password123!'
+        }
+        res = self.client.post(url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('access', res.data)
+
+    def test_jwt_token_obtain_via_phone(self):
+        url = reverse('token_obtain_pair')
+        data = {
+            'username': '+85512888999',
+            'password': 'Password123!'
+        }
+        res = self.client.post(url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('access', res.data)
+
+    def test_jwt_token_obtain_invalid_password(self):
+        url = reverse('token_obtain_pair')
+        data = {
+            'username': 'khmer_foodie',
+            'password': 'WrongPassword999!'
+        }
+        res = self.client.post(url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_jwt_token_obtain_nonexistent_user(self):
+        url = reverse('token_obtain_pair')
+        data = {
+            'username': 'does_not_exist_user',
+            'password': 'Password123!'
+        }
+        res = self.client.post(url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_user_me_endpoint(self):
         self.client.force_authenticate(user=self.customer)

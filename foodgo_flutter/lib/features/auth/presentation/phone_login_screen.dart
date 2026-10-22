@@ -74,6 +74,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     if (mounted) {
       if (success) {
         final userProvider = context.read<UserProvider>();
+        await userProvider.fetchUser();
+        if (!mounted) return;
         final role = userProvider.user?['role']?.toString().toLowerCase();
         if (role == 'admin') {
           context.go('/admin-dashboard');

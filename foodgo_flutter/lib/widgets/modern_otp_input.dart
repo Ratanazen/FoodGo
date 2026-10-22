@@ -23,7 +23,8 @@ class ModernOtpInput extends StatefulWidget {
   State<ModernOtpInput> createState() => _ModernOtpInputState();
 }
 
-class _ModernOtpInputState extends State<ModernOtpInput> with SingleTickerProviderStateMixin {
+class _ModernOtpInputState extends State<ModernOtpInput>
+    with SingleTickerProviderStateMixin {
   late FocusNode _focusNode;
   late AnimationController _cursorAnimController;
   Timer? _clipboardCheckTimer;
@@ -61,7 +62,8 @@ class _ModernOtpInputState extends State<ModernOtpInput> with SingleTickerProvid
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       final text = data?.text?.trim() ?? '';
-      if (text.isNotEmpty && RegExp(r'^\d{' + widget.length.toString() + r'}$').hasMatch(text)) {
+      if (text.isNotEmpty &&
+          RegExp(r'^\d{' + widget.length.toString() + r'}$').hasMatch(text)) {
         if (mounted) setState(() => _canPaste = true);
       }
     } catch (_) {}
@@ -73,7 +75,10 @@ class _ModernOtpInputState extends State<ModernOtpInput> with SingleTickerProvid
       final text = data?.text?.trim() ?? '';
       final digits = text.replaceAll(RegExp(r'\D'), '');
       if (digits.isNotEmpty) {
-        final code = digits.substring(0, digits.length > widget.length ? widget.length : digits.length);
+        final code = digits.substring(
+          0,
+          digits.length > widget.length ? widget.length : digits.length,
+        );
         widget.controller.text = code;
         HapticFeedback.mediumImpact();
       }
@@ -150,7 +155,9 @@ class _ModernOtpInputState extends State<ModernOtpInput> with SingleTickerProvid
                       ),
                     ];
                   } else if (isFilled) {
-                    borderColor = GlassTheme.primaryGreen.withValues(alpha: 0.65);
+                    borderColor = GlassTheme.primaryGreen.withValues(
+                      alpha: 0.65,
+                    );
                     boxColor = GlassTheme.primaryGreen.withValues(alpha: 0.08);
                   }
 
@@ -158,7 +165,9 @@ class _ModernOtpInputState extends State<ModernOtpInput> with SingleTickerProvid
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeOutCubic,
-                      margin: EdgeInsets.symmetric(horizontal: widget.length > 5 ? 3 : 5),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: widget.length > 5 ? 3 : 5,
+                      ),
                       height: 58,
                       decoration: BoxDecoration(
                         color: boxColor,
@@ -216,7 +225,11 @@ class _ModernOtpInputState extends State<ModernOtpInput> with SingleTickerProvid
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.content_paste_rounded, size: 14, color: GlassTheme.primaryGreen),
+                  Icon(
+                    Icons.content_paste_rounded,
+                    size: 14,
+                    color: GlassTheme.primaryGreen,
+                  ),
                   SizedBox(width: 6),
                   Text(
                     'Paste Code from Clipboard',

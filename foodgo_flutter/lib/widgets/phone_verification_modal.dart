@@ -104,9 +104,45 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
     if (clean.startsWith('+855')) clean = '0${clean.substring(4)}';
     if (clean.length < 3) return null;
     final p3 = clean.substring(0, 3);
-    const smart = ['010', '015', '016', '069', '070', '081', '086', '087', '093', '096', '098'];
-    const cellcard = ['011', '012', '014', '017', '061', '076', '077', '078', '079', '085', '089', '092'];
-    const metfone = ['023', '031', '060', '066', '067', '068', '071', '088', '090', '097'];
+    const smart = [
+      '010',
+      '015',
+      '016',
+      '069',
+      '070',
+      '081',
+      '086',
+      '087',
+      '093',
+      '096',
+      '098',
+    ];
+    const cellcard = [
+      '011',
+      '012',
+      '014',
+      '017',
+      '061',
+      '076',
+      '077',
+      '078',
+      '079',
+      '085',
+      '089',
+      '092',
+    ];
+    const metfone = [
+      '023',
+      '031',
+      '060',
+      '066',
+      '067',
+      '068',
+      '071',
+      '088',
+      '090',
+      '097',
+    ];
     if (smart.contains(p3)) return 'Smart';
     if (cellcard.contains(p3)) return 'Cellcard';
     if (metfone.contains(p3)) return 'Metfone';
@@ -403,7 +439,9 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                   // Step 1: Cambodian Phone Number Entry
                   Builder(
                     builder: (context) {
-                      final detectedCarrier = _detectCarrier(_phoneController.text);
+                      final detectedCarrier = _detectCarrier(
+                        _phoneController.text,
+                      );
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -413,7 +451,9 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: detectedCarrier != null
-                                    ? GlassTheme.primaryGreen.withValues(alpha: 0.5)
+                                    ? GlassTheme.primaryGreen.withValues(
+                                        alpha: 0.5,
+                                      )
                                     : Colors.white.withValues(alpha: 0.12),
                               ),
                             ),
@@ -480,10 +520,13 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                                      color: GlassTheme.primaryGreen.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                                        color: GlassTheme.primaryGreen
+                                            .withValues(alpha: 0.35),
                                       ),
                                     ),
                                     child: Text(
@@ -501,7 +544,10 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                           const SizedBox(height: 10),
                           const Text(
                             'Supported carriers: Smart, Cellcard, Metfone, Seatel, Cootel.',
-                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                            style: TextStyle(
+                              color: GlassTheme.textMuted,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       );
@@ -543,11 +589,16 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                 ] else ...[
                   // Step 2 Header summary: Phone target & Edit action
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -559,7 +610,9 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            _maskedPhone.isNotEmpty ? _maskedPhone : _phoneController.text,
+                            _maskedPhone.isNotEmpty
+                                ? _maskedPhone
+                                : _phoneController.text,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
@@ -577,11 +630,18 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                           },
                           borderRadius: BorderRadius.circular(6),
                           child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.edit_outlined, size: 13, color: GlassTheme.primaryGreen),
+                                Icon(
+                                  Icons.edit_outlined,
+                                  size: 13,
+                                  color: GlassTheme.primaryGreen,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   'Change',
@@ -614,7 +674,10 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                     children: [
                       if (_cooldownRemaining > 0)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(8),
@@ -622,7 +685,11 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.timer_outlined, size: 13, color: GlassTheme.textMuted),
+                              const Icon(
+                                Icons.timer_outlined,
+                                size: 13,
+                                color: GlassTheme.textMuted,
+                              ),
                               const SizedBox(width: 5),
                               Text(
                                 'Resend in ${_cooldownRemaining}s',
@@ -637,7 +704,11 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                         )
                       else
                         TextButton.icon(
-                          icon: const Icon(Icons.refresh_rounded, size: 15, color: GlassTheme.primaryGreen),
+                          icon: const Icon(
+                            Icons.refresh_rounded,
+                            size: 15,
+                            color: GlassTheme.primaryGreen,
+                          ),
                           label: const Text(
                             'Resend Code',
                             style: TextStyle(

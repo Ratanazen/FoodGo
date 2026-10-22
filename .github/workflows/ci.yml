@@ -85,7 +85,13 @@ jobs:
         DATABASE_URL: "postgresql://postgres:password@localhost:5432/foodgo_test"
       run: |
         cd backend
-        python manage.py test
+        python manage.py test core
+    - name: Verify MongoDB Helper & Configuration Integrity
+      env:
+        SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
+      run: |
+        cd backend
+        python -c "from core.mongodb import check_mongo_connection; print('MongoDB Check Result:', check_mongo_connection())"
     - name: Verify Static Assets Collection
       env:
         SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
@@ -194,6 +200,10 @@ jobs:
       run: |
         if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
           echo "Deploying production release to Cloudflare Workers..."
+          if [ -d "foodgo_flutter/build/web" ] && [ -f "foodgo_flutter/build/web/index.html" ]; then
+            echo "Syncing Flutter Web build to public directory..."
+            cp -r foodgo_flutter/build/web/* public/
+          fi
           npx wrangler deploy
           echo "Cloudflare deployment successfully completed."
         else

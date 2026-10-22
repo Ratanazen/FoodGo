@@ -2051,7 +2051,30 @@ class HealthCheckView(APIView):
             status_data['database'] = 'unavailable'
             status_data['status'] = 'degraded'
 
+        # Check MongoDB Atlas if configured
+        try:
+            from core.mongodb import check_mongo_connection
+            mongo_info = check_mongo_connection()
+            status_data['mongodb'] = mongo_info.get('status', 'not_configured')
+        except Exception:
+            status_data['mongodb'] = 'unavailable'
+
         http_status = status.HTTP_200_OK if status_data['status'] == 'healthy' else status.HTTP_503_SERVICE_UNAVAILABLE
         return Response(status_data, status=http_status)
+
+
+class MongoHealthCheckView(APIView):
+    """
+    Dedicated health check probe for MongoDB Atlas cluster verification.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from core.mongodb import check_mongo_connection
+        result = check_mongo_connection()
+        http_status = status.HTTP_200_OK if result.get('connected') else (
+            status.HTTP_200_OK if result.get('status') == 'not_configured' else status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+        return Response(result, status=http_status)
 
 

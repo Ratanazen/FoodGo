@@ -426,7 +426,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             child: ClipOval(
-                              child: avatarUrl != null &&
+                              child:
+                                  avatarUrl != null &&
                                       avatarUrl.toString().isNotEmpty
                                   ? CachedNetworkImage(
                                       imageUrl: avatarUrl.toString(),

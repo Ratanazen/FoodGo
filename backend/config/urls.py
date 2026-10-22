@@ -13,7 +13,7 @@ def profile_redirect(request):
         return redirect('/admin/')
     return redirect('/')
 
-from core.views import HealthCheckView, HealthLiveView, HealthReadyView
+from core.views import HealthCheckView, HealthLiveView, HealthReadyView, MongoHealthCheckView
 
 urlpatterns = [
     path('', api_root, name='api-root'),
@@ -21,6 +21,8 @@ urlpatterns = [
     path('health/live/', HealthLiveView.as_view(), name='health-live'),
     path('health/ready', HealthReadyView.as_view(), name='health-ready-no-slash'),
     path('health/ready/', HealthReadyView.as_view(), name='health-ready'),
+    path('health/mongodb', MongoHealthCheckView.as_view(), name='health-mongodb-no-slash'),
+    path('health/mongodb/', MongoHealthCheckView.as_view(), name='health-mongodb'),
     path('health/', HealthCheckView.as_view(), name='root-health'),
     path('healthz/', HealthCheckView.as_view(), name='root-healthz'),
     path('accounts/profile/', profile_redirect, name='profile-redirect'),

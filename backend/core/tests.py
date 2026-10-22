@@ -417,6 +417,11 @@ class FoodGoCoreAPITests(TestCase):
         self.assertEqual(res_h.status_code, status.HTTP_200_OK)
         self.assertEqual(res_h.data['status'], 'healthy')
 
+        # 4. Test MongoDB Health Probe
+        res_m = self.client.get('/health/mongodb/')
+        self.assertIn(res_m.status_code, [status.HTTP_200_OK, status.HTTP_503_SERVICE_UNAVAILABLE])
+        self.assertIn('status', res_m.data)
+
 
 class DriverModuleTestCase(TestCase):
     def setUp(self):

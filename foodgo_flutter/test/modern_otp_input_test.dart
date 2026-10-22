@@ -11,10 +11,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Center(
-              child: ModernOtpInput(
-                length: 6,
-                controller: controller,
-              ),
+              child: ModernOtpInput(length: 6, controller: controller),
             ),
           ),
         ),
@@ -36,7 +33,9 @@ void main() {
       expect(find.text('6'), findsOneWidget);
     });
 
-    testWidgets('Fires onCompleted callback when 6 digits are entered', (tester) async {
+    testWidgets('Fires onCompleted callback when 6 digits are entered', (
+      tester,
+    ) async {
       final controller = TextEditingController();
       String completedCode = '';
 

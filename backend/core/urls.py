@@ -88,6 +88,7 @@ urlpatterns = [
     path('currency/rates/', CurrencyRateView.as_view(), name='currency_rates'),
     # Multi-Cloud Uptime & Telemetry Health Checks
     path('health/', HealthCheckView.as_view(), name='api_health_check'),
+    path('health/mongodb/', MongoHealthCheckView.as_view(), name='api_health_mongodb'),
     path('health/live/', HealthLiveView.as_view(), name='api_health_live'),
     path('health/ready/', HealthReadyView.as_view(), name='api_health_ready'),
 ]

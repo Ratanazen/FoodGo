@@ -232,11 +232,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       ] else ...[
                         // Masked phone target & Change button
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.08),
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -265,11 +270,18 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                 },
                                 borderRadius: BorderRadius.circular(6),
                                 child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.edit_outlined, size: 13, color: GlassTheme.primaryGreen),
+                                      Icon(
+                                        Icons.edit_outlined,
+                                        size: 13,
+                                        color: GlassTheme.primaryGreen,
+                                      ),
                                       SizedBox(width: 4),
                                       Text(
                                         'Change',
@@ -298,7 +310,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           children: [
                             TextButton.icon(
                               onPressed: _isLoading ? null : _sendOTP,
-                              icon: const Icon(Icons.refresh_rounded, size: 15, color: GlassTheme.primaryGreen),
+                              icon: const Icon(
+                                Icons.refresh_rounded,
+                                size: 15,
+                                color: GlassTheme.primaryGreen,
+                              ),
                               label: const Text(
                                 'Resend SMS',
                                 style: TextStyle(

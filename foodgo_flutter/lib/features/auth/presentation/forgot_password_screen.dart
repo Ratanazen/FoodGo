@@ -36,7 +36,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   bool get _isPhone {
     final text = _identifierController.text.trim();
-    return !text.contains('@') && text.replaceAll(RegExp(r'[^0-9]'), '').length >= 4;
+    return !text.contains('@') &&
+        text.replaceAll(RegExp(r'[^0-9]'), '').length >= 4;
   }
 
   Future<void> _sendOTP() async {

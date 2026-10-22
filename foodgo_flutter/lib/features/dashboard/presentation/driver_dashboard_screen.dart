@@ -2431,7 +2431,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: GlassTheme.limeAccent.withValues(alpha: 0.15),
+                                color: GlassTheme.limeAccent.withValues(
+                                  alpha: 0.15,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
@@ -2466,7 +2468,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                             ),
                             IconButton(
                               onPressed: () => Navigator.pop(modalCtx),
-                              icon: const Icon(Icons.close, color: Colors.white60),
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white60,
+                              ),
                             ),
                           ],
                         ),
@@ -2486,7 +2491,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                           children: vehicleOptions.map((opt) {
                             final name = opt['name'] as String;
                             final icon = opt['icon'] as IconData;
-                            final isSel = selectedVehicle.toLowerCase() == name.toLowerCase();
+                            final isSel =
+                                selectedVehicle.toLowerCase() ==
+                                name.toLowerCase();
                             return ChoiceChip(
                               avatar: Icon(
                                 icon,
@@ -2497,13 +2504,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                                 name,
                                 style: TextStyle(
                                   color: isSel ? Colors.black : Colors.white70,
-                                  fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                                  fontWeight: isSel
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                   fontSize: 12,
                                 ),
                               ),
                               selected: isSel,
                               selectedColor: GlassTheme.limeAccent,
-                              backgroundColor: Colors.white.withValues(alpha: 0.05),
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.05,
+                              ),
                               side: BorderSide(
                                 color: isSel
                                     ? GlassTheme.limeAccent
@@ -2523,7 +2534,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         const SizedBox(height: 14),
                         TextField(
                           controller: vehicleCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
                           onChanged: (text) {
                             setModalState(() {
                               selectedVehicle = text.trim();
@@ -2531,37 +2545,62 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                           },
                           decoration: InputDecoration(
                             labelText: 'Vehicle Specification',
-                            labelStyle: const TextStyle(color: Colors.white60, fontSize: 13),
-                            prefixIcon: const Icon(Icons.directions_bike, color: GlassTheme.limeAccent, size: 20),
+                            labelStyle: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 13,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.directions_bike,
+                              color: GlassTheme.limeAccent,
+                              size: 20,
+                            ),
                             filled: true,
                             fillColor: Colors.white.withValues(alpha: 0.05),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                              borderSide: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: GlassTheme.limeAccent),
+                              borderSide: const BorderSide(
+                                color: GlassTheme.limeAccent,
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 14),
                         TextField(
                           controller: plateCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
                           decoration: InputDecoration(
                             labelText: 'License Plate Number',
-                            labelStyle: const TextStyle(color: Colors.white60, fontSize: 13),
-                            prefixIcon: const Icon(Icons.pin, color: GlassTheme.limeAccent, size: 20),
+                            labelStyle: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 13,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.pin,
+                              color: GlassTheme.limeAccent,
+                              size: 20,
+                            ),
                             filled: true,
                             fillColor: Colors.white.withValues(alpha: 0.05),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                              borderSide: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: GlassTheme.limeAccent),
+                              borderSide: const BorderSide(
+                                color: GlassTheme.limeAccent,
+                              ),
                             ),
                           ),
                         ),
@@ -2569,20 +2608,34 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         TextField(
                           controller: phoneCtrl,
                           keyboardType: TextInputType.phone,
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
                           decoration: InputDecoration(
                             labelText: 'Contact Phone Number',
-                            labelStyle: const TextStyle(color: Colors.white60, fontSize: 13),
-                            prefixIcon: const Icon(Icons.phone_outlined, color: GlassTheme.limeAccent, size: 20),
+                            labelStyle: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 13,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.phone_outlined,
+                              color: GlassTheme.limeAccent,
+                              size: 20,
+                            ),
                             filled: true,
                             fillColor: Colors.white.withValues(alpha: 0.05),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                              borderSide: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: GlassTheme.limeAccent),
+                              borderSide: const BorderSide(
+                                color: GlassTheme.limeAccent,
+                              ),
                             ),
                           ),
                         ),
@@ -2591,17 +2644,26 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: isSaving ? null : () => Navigator.pop(modalCtx),
+                                onPressed: isSaving
+                                    ? null
+                                    : () => Navigator.pop(modalCtx),
                                 style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  side: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
                                 child: const Text(
                                   'Cancel',
-                                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
@@ -2617,17 +2679,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                                         });
                                         try {
                                           await _api.patch('drivers/me/', {
-                                            'vehicle_type': vehicleCtrl.text.trim(),
-                                            'license_plate': plateCtrl.text.trim(),
+                                            'vehicle_type': vehicleCtrl.text
+                                                .trim(),
+                                            'license_plate': plateCtrl.text
+                                                .trim(),
                                             'phone': phoneCtrl.text.trim(),
                                           });
                                           if (!modalCtx.mounted) return;
                                           Navigator.pop(modalCtx);
                                           if (!mounted) return;
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             const SnackBar(
-                                              content: Text('Driver profile updated successfully.'),
-                                              backgroundColor: GlassTheme.primaryGreen,
+                                              content: Text(
+                                                'Driver profile updated successfully.',
+                                              ),
+                                              backgroundColor:
+                                                  GlassTheme.primaryGreen,
                                             ),
                                           );
                                           _fetchDashboardData();
@@ -2638,9 +2707,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                                             });
                                           }
                                           if (!mounted) return;
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             SnackBar(
-                                              content: Text('Failed to update driver profile: $e'),
+                                              content: Text(
+                                                'Failed to update driver profile: $e',
+                                              ),
                                               backgroundColor: Colors.redAccent,
                                             ),
                                           );
@@ -2648,7 +2721,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                                       },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: GlassTheme.primaryGreen,
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),

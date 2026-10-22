@@ -219,6 +219,63 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           ),
                         ).animate().fade().scale(),
                       ] else ...[
+                        // Masked phone target & Change button
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.mark_email_read_outlined,
+                                size: 16,
+                                color: GlassTheme.primaryGreen,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _phoneController.text,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _otpSent = false;
+                                    _otpController.clear();
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(6),
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.edit_outlined, size: 13, color: GlassTheme.primaryGreen),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Change',
+                                        style: TextStyle(
+                                          color: GlassTheme.primaryGreen,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         ModernOtpInput(
                           controller: _otpController,
                           length: 6,
@@ -226,26 +283,12 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         ).animate().fade().slideX(),
                         const SizedBox(height: 12),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _otpSent = false;
-                                  _otpController.clear();
-                                });
-                              },
-                              child: const Text(
-                                'Change Number',
-                                style: TextStyle(
-                                  color: Colors.white60,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            TextButton(
+                            TextButton.icon(
                               onPressed: _isLoading ? null : _sendOTP,
-                              child: const Text(
+                              icon: const Icon(Icons.refresh_rounded, size: 15, color: GlassTheme.primaryGreen),
+                              label: const Text(
                                 'Resend SMS',
                                 style: TextStyle(
                                   color: GlassTheme.primaryGreen,

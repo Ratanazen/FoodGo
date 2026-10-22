@@ -99,6 +99,22 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
     return input.replaceAll(RegExp(r'[\s\-\.\(\)]'), '');
   }
 
+  String? _detectCarrier(String input) {
+    String clean = _cleanPhoneInput(input);
+    if (clean.startsWith('+855')) clean = '0${clean.substring(4)}';
+    if (clean.length < 3) return null;
+    final p3 = clean.substring(0, 3);
+    const smart = ['010', '015', '016', '069', '070', '081', '086', '087', '093', '096', '098'];
+    const cellcard = ['011', '012', '014', '017', '061', '076', '077', '078', '079', '085', '089', '092'];
+    const metfone = ['023', '031', '060', '066', '067', '068', '071', '088', '090', '097'];
+    if (smart.contains(p3)) return 'Smart';
+    if (cellcard.contains(p3)) return 'Cellcard';
+    if (metfone.contains(p3)) return 'Metfone';
+    if (p3 == '018') return 'Seatel';
+    if (p3 == '038') return 'Cootel';
+    return null;
+  }
+
   Future<void> _sendOTP() async {
     final rawPhone = _cleanPhoneInput(_phoneController.text.trim());
     if (rawPhone.isEmpty) {
@@ -385,76 +401,111 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                   ),
                 ] else if (!_isCodeSent) ...[
                   // Step 1: Cambodian Phone Number Entry
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.12),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'KH +855',
-                                style: TextStyle(
-                                  color: GlassTheme.primaryGreen,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                  Builder(
+                    builder: (context) {
+                      final detectedCarrier = _detectCarrier(_phoneController.text);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: detectedCarrier != null
+                                    ? GlassTheme.primaryGreen.withValues(alpha: 0.5)
+                                    : Colors.white.withValues(alpha: 0.12),
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 4,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'KH +855',
+                                        style: TextStyle(
+                                          color: GlassTheme.primaryGreen,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _phoneController,
+                                    keyboardType: TextInputType.phone,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                        RegExp(r'[0-9\s\+\-]'),
+                                      ),
+                                    ],
+                                    decoration: const InputDecoration(
+                                      hintText: '012 345 678',
+                                      hintStyle: TextStyle(
+                                        color: Colors.white30,
+                                        fontSize: 15,
+                                      ),
+                                      border: InputBorder.none,
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                    onSubmitted: (_) => _sendOTP(),
+                                  ),
+                                ),
+                                if (detectedCarrier != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      detectedCarrier,
+                                      style: const TextStyle(
+                                        color: GlassTheme.primaryGreen,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9\s\+\-]'),
-                              ),
-                            ],
-                            decoration: const InputDecoration(
-                              hintText: '012 345 678',
-                              hintStyle: TextStyle(
-                                color: Colors.white30,
-                                fontSize: 15,
-                              ),
-                              border: InputBorder.none,
-                            ),
-                            onSubmitted: (_) => _sendOTP(),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Supported carriers: Smart, Cellcard, Metfone, Seatel, Cootel.',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Supported carriers: Smart, Cellcard, Metfone, Seatel, Cootel.',
+                            style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 22),
 
@@ -490,6 +541,65 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                     ),
                   ),
                 ] else ...[
+                  // Step 2 Header summary: Phone target & Edit action
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.mark_email_read_outlined,
+                          size: 16,
+                          color: GlassTheme.primaryGreen,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _maskedPhone.isNotEmpty ? _maskedPhone : _phoneController.text,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _isCodeSent = false;
+                              _errorMessage = null;
+                              _otpController.clear();
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.edit_outlined, size: 13, color: GlassTheme.primaryGreen),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Change',
+                                  style: TextStyle(
+                                    color: GlassTheme.primaryGreen,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
                   // Step 2: Modern 6-Digit Glass OTP Code Entry
                   ModernOtpInput(
                     controller: _otpController,
@@ -498,35 +608,37 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                   ),
                   const SizedBox(height: 14),
 
-                  // Resend / Change phone row
+                  // Resend countdown row
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _isCodeSent = false;
-                            _errorMessage = null;
-                            _otpController.clear();
-                          });
-                        },
-                        child: const Text(
-                          'Change Number',
-                          style: TextStyle(color: Colors.white60, fontSize: 13),
-                        ),
-                      ),
                       if (_cooldownRemaining > 0)
-                        Text(
-                          'Resend in ${_cooldownRemaining}s',
-                          style: const TextStyle(
-                            color: GlassTheme.textMuted,
-                            fontSize: 13,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.timer_outlined, size: 13, color: GlassTheme.textMuted),
+                              const SizedBox(width: 5),
+                              Text(
+                                'Resend in ${_cooldownRemaining}s',
+                                style: const TextStyle(
+                                  color: GlassTheme.textMuted,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         )
                       else
-                        TextButton(
-                          onPressed: _isLoading ? null : _sendOTP,
-                          child: const Text(
+                        TextButton.icon(
+                          icon: const Icon(Icons.refresh_rounded, size: 15, color: GlassTheme.primaryGreen),
+                          label: const Text(
                             'Resend Code',
                             style: TextStyle(
                               color: GlassTheme.primaryGreen,
@@ -534,10 +646,11 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                               fontSize: 13,
                             ),
                           ),
+                          onPressed: _isLoading ? null : _sendOTP,
                         ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 16),
 
                   // Verify Button
                   SizedBox(

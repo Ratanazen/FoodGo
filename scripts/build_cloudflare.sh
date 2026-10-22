@@ -17,4 +17,10 @@ cd foodgo_flutter
 flutter config --no-analytics
 flutter pub get
 flutter build web --release --base-href "/"
+cd ..
+
+echo "=== Ensuring Cloudflare SPA routing and headers ==="
+cp -f foodgo_flutter/web/_redirects foodgo_flutter/build/web/ 2>/dev/null || true
+cp -f foodgo_flutter/web/_headers foodgo_flutter/build/web/ 2>/dev/null || true
+
 echo "=== FoodGo Web Build Complete ==="

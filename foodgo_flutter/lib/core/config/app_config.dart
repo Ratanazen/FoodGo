@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfig {
-  /// Production Cloudflare Load Balanced dual-backend API domain
-  static const String defaultLiveUrl = 'https://api.foodgo.app';
+  /// Production live Vercel backend API domain
+  static const String defaultLiveUrl = 'https://food-go-app.vercel.app';
 
   static String _customApiUrl = '';
   static String _customWsUrl = '';
@@ -73,7 +73,8 @@ class AppConfig {
 
     // Auto-migrate away from decommissioned Render or incorrect Vercel URLs
     if (_customApiUrl.contains('onrender.com') ||
-        _customApiUrl.contains('food-go-backend.vercel.app')) {
+        _customApiUrl.contains('food-go-backend.vercel.app') ||
+        _customApiUrl.contains('api.foodgo.app')) {
       _customApiUrl = '';
       await prefs.remove('custom_api_url');
     }

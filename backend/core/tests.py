@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.utils import timezone
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -368,8 +368,7 @@ class FoodGoCoreAPITests(TestCase):
         self.assertEqual(res.data['status'], 'on_the_way')
 
     def test_websocket_check_order_access(self):
-        from asgiref.sync import async_to_sync
-        from core.consumers import check_order_access
+        from core.consumers import check_order_access_sync
 
         order = Order.objects.create(
             customer=self.customer,
@@ -379,14 +378,14 @@ class FoodGoCoreAPITests(TestCase):
         )
         other_user = User.objects.create_user('other_person', 'other@foodgo.kh', 'Pass123!')
 
-        can_connect_customer, _ = async_to_sync(check_order_access)(order.id, self.customer)
+        can_connect_customer, _ = check_order_access_sync(order.id, self.customer)
         self.assertTrue(can_connect_customer)
 
-        can_connect_other, _ = async_to_sync(check_order_access)(order.id, other_user)
+        can_connect_other, _ = check_order_access_sync(order.id, other_user)
         self.assertFalse(can_connect_other)
 
         staff_user = User.objects.create_superuser('boss', 'boss@foodgo.kh', 'Admin123!')
-        can_connect_staff, _ = async_to_sync(check_order_access)(order.id, staff_user)
+        can_connect_staff, _ = check_order_access_sync(order.id, staff_user)
         self.assertTrue(can_connect_staff)
 
     def test_currency_rates_api(self):
@@ -978,5 +977,38 @@ class DeliverySystemTests(TestCase):
         self.assertEqual(order.delivery.driver, self.driver2)
 
 
+class WebSocketAsyncAccessTests(TransactionTestCase):
+    def test_database_sync_to_async_order_access(self):
+        from asgiref.sync import async_to_sync
+        from core.consumers import check_order_access
 
+        customer = User.objects.create_user(
+            username='ws_cust_async',
+            email='ws_cust@foodgo.kh',
+            password='Password123!',
+            role='customer'
+        )
+        owner = User.objects.create_user(
+            username='ws_owner_async',
+            email='ws_owner@foodgo.kh',
+            password='Password123!',
+            role='restaurant_owner'
+        )
+        restaurant = Restaurant.objects.create(
+            owner=owner,
+            name='Async Delights',
+            address='Pub Street',
+            phone='012345678',
+            delivery_fee=Decimal('1.50')
+        )
+        order = Order.objects.create(
+            customer=customer,
+            restaurant=restaurant,
+            total_amount=Decimal('15.00'),
+            status='on_the_way'
+        )
+
+        can_connect, is_assigned = async_to_sync(check_order_access)(order.id, customer)
+        self.assertTrue(can_connect)
+        self.assertFalse(is_assigned)
 

@@ -4,9 +4,16 @@ export default {
 
     // Proxy API and Health endpoints with 50/50 dual-backend load balancing and active failover
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz')) {
-      const backendA = env.BACKEND_A_URL || 'https://food-go-app.vercel.app';
-      const backendB = env.BACKEND_B_URL || 'https://food-go-app.vercel.app';
-      const legacyBackend = env.BACKEND_URL || 'https://food-go-app.vercel.app';
+      const sanitizeOrigin = (urlStr) => {
+        if (!urlStr || urlStr.includes('foodgo-backend-b.vercel.app')) {
+          return 'https://food-go-app.vercel.app';
+        }
+        return urlStr;
+      };
+
+      const backendA = sanitizeOrigin(env.BACKEND_A_URL);
+      const backendB = sanitizeOrigin(env.BACKEND_B_URL);
+      const legacyBackend = sanitizeOrigin(env.BACKEND_URL);
 
       // 50/50 Traffic Split
       const pickA = Math.random() < 0.5;
@@ -43,7 +50,9 @@ export default {
       try {
         response = await fetch(createProxyRequest(primaryOrigin));
         // If primary instance returns server error or deployment not found, failover to secondary instance
-        if ([502, 503, 504].includes(response.status) && primaryOrigin !== secondaryOrigin) {
+        const isFailure = [500, 502, 503, 504].includes(response.status) ||
+          (response.status === 404 && response.headers.get('x-vercel-error') === 'DEPLOYMENT_NOT_FOUND');
+        if (isFailure && primaryOrigin !== secondaryOrigin) {
           try {
             const failoverResponse = await fetch(createProxyRequest(secondaryOrigin));
             if (failoverResponse.ok || failoverResponse.status < 500) {

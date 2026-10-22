@@ -21,8 +21,7 @@ def get_user_from_token(token):
         return None
 
 
-@database_sync_to_async
-def check_order_access(order_id, user):
+def check_order_access_sync(order_id, user):
     """
     Checks if user is allowed to connect to the order tracking WebSocket.
     Returns (can_connect: bool, is_assigned_driver: bool)
@@ -46,6 +45,14 @@ def check_order_access(order_id, user):
         return can_connect, is_assigned_driver
     except Exception:
         return False, False
+
+
+@database_sync_to_async
+def check_order_access(order_id, user):
+    """
+    Async wrapper for check_order_access_sync for Channels WebSocket consumer.
+    """
+    return check_order_access_sync(order_id, user)
 
 
 class OrderTrackingConsumer(AsyncWebsocketConsumer):

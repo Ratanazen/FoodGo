@@ -192,7 +192,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
@@ -201,9 +201,15 @@ CORS_ALLOWED_ORIGINS = [
     ).split(',')
     if origin.strip()
 ]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.workers\.dev$",
+    r"^https://.*\.vercel\.app$",
+    r"^https://.*\.foodgo\.app$",
+]
 CSRF_TRUSTED_ORIGINS = [
     'https://api.foodgo.app',
     'https://*.foodgo.app',
+    'https://*.workers.dev',
     'https://foodgo-backend-a.vercel.app',
     'https://foodgo-backend-b.vercel.app',
     'https://food-go-app.vercel.app',

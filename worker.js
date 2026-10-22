@@ -5,7 +5,7 @@ export default {
     // Proxy API and Health endpoints with 50/50 dual-backend load balancing and active failover
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz')) {
       const backendA = env.BACKEND_A_URL || 'https://food-go-app.vercel.app';
-      const backendB = env.BACKEND_B_URL || 'https://foodgo-backend-b.vercel.app';
+      const backendB = env.BACKEND_B_URL || 'https://food-go-app.vercel.app';
       const legacyBackend = env.BACKEND_URL || 'https://food-go-app.vercel.app';
 
       // 50/50 Traffic Split
@@ -42,7 +42,7 @@ export default {
 
       try {
         response = await fetch(createProxyRequest(primaryOrigin));
-        // If primary instance returns server error (502, 503, 504), failover to secondary instance
+        // If primary instance returns server error or deployment not found, failover to secondary instance
         if ([502, 503, 504].includes(response.status) && primaryOrigin !== secondaryOrigin) {
           try {
             const failoverResponse = await fetch(createProxyRequest(secondaryOrigin));

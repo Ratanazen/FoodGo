@@ -5,6 +5,10 @@ class AppConfig {
   /// Production live Vercel backend API domain
   static const String defaultLiveUrl = 'https://food-go-app.vercel.app';
 
+  /// Cloudflare Edge Gateway host (50% load balanced & failover protected)
+  static const String cloudflareEdgeUrl =
+      'https://foodgo.rtnaeam611.workers.dev';
+
   static String _customApiUrl = '';
   static String _customWsUrl = '';
 
@@ -71,9 +75,11 @@ class AppConfig {
     _customApiUrl = prefs.getString('custom_api_url') ?? '';
     _customWsUrl = prefs.getString('custom_ws_url') ?? '';
 
-    // Auto-migrate away from decommissioned Render or incorrect Vercel URLs
+    // Auto-migrate away from decommissioned or unresolved hosts
     if (_customApiUrl.contains('onrender.com') ||
         _customApiUrl.contains('food-go-backend.vercel.app') ||
+        _customApiUrl.contains('foodgo-backend-a.vercel.app') ||
+        _customApiUrl.contains('foodgo-backend-b.vercel.app') ||
         _customApiUrl.contains('api.foodgo.app')) {
       _customApiUrl = '';
       await prefs.remove('custom_api_url');

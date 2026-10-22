@@ -1158,6 +1158,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                     request.user.is_phone_verified = False
                     request.user.phone_verified_at = None
                     request.user.save(update_fields=['phone', 'phone_normalized', 'is_phone_verified', 'phone_verified_at'])
+            driver.save()
         serializer = DriverSerializer(driver, context={'request': request})
         return Response(serializer.data)
 

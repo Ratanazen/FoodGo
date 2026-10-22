@@ -11,6 +11,7 @@ function isAuthorizedOrigin(origin) {
     if (host.endsWith('.workers.dev')) return true;
     if (host.endsWith('.vercel.app')) return true;
     if (host.endsWith('foodgo.app')) return true;
+    if (host.endsWith('.onrender.com')) return true;
     if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') return true;
   } catch (_) {
     return false;

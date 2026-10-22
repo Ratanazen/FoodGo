@@ -197,7 +197,7 @@ CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
         'CORS_ALLOWED_ORIGINS',
-        'https://foodgo.rtnaeam611.workers.dev,https://food-go-app.vercel.app,http://localhost:3000,http://localhost:8080,http://localhost:5000,http://localhost:53538'
+        'https://foodgo.rtnaeam611.workers.dev,https://food-go-app.vercel.app,https://foodgo-backend-a.vercel.app,https://foodgo-backend-b.vercel.app,http://localhost:3000,http://localhost:8080,http://localhost:5000,http://localhost:53538'
     ).split(',')
     if origin.strip()
 ]
@@ -212,6 +212,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.foodgo.app',
     'https://*.workers.dev',
     'https://food-go-app.vercel.app',
+    'https://foodgo-backend-a.vercel.app',
+    'https://foodgo-backend-b.vercel.app',
     'https://*.vercel.app',
     'https://foodgo-53pl.onrender.com',
     'https://*.onrender.com',

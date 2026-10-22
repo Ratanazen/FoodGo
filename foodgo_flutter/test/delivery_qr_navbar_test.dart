@@ -83,64 +83,69 @@ void main() {
   });
 
   group('DeliveryQrModal Widget Tests', () {
-    testWidgets('Renders customer mode with confirmation title and payment warning badge', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: DeliveryQrModal(
-              orderId: '42',
-              isDriver: false,
-              autoFetch: false,
-              initialPin: '123456',
+    testWidgets(
+      'Renders customer mode with confirmation title and payment warning badge',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DeliveryQrModal(
+                orderId: '42',
+                isDriver: false,
+                autoFetch: false,
+                initialPin: '123456',
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pump();
+        await tester.pump();
 
-      // Verify customer delivery confirmation title and instruction
-      expect(find.text('Delivery Confirmation QR'), findsOneWidget);
-      expect(find.text('Order #42 • Show to driver'), findsOneWidget);
-      expect(find.text('Delivery Confirmation (Not Payment)'), findsOneWidget);
-      expect(
-        find.text(
-          'Show this QR code to your assigned FoodGo delivery driver upon arrival. The driver will scan it to verify and complete your delivery.',
-        ),
-        findsOneWidget,
-      );
-    });
+        // Verify customer delivery confirmation title and instruction
+        expect(find.text('Delivery Confirmation QR'), findsOneWidget);
+        expect(find.text('Order #42 • Show to driver'), findsOneWidget);
+        expect(
+          find.text('Delivery Confirmation (Not Payment)'),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            'Show this QR code to your assigned FoodGo delivery driver upon arrival. The driver will scan it to verify and complete your delivery.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
 
-    testWidgets('Renders driver mode with handover title and customer scan instruction', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: DeliveryQrModal(
-              orderId: '88',
-              isDriver: true,
-              autoFetch: false,
-              initialPin: '654321',
+    testWidgets(
+      'Renders driver mode with handover title and customer scan instruction',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DeliveryQrModal(
+                orderId: '88',
+                isDriver: true,
+                autoFetch: false,
+                initialPin: '654321',
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pump();
+        await tester.pump();
 
-      // Verify driver handover title and instruction
-      expect(find.text('Delivery Handover QR'), findsOneWidget);
-      expect(find.text('Order #88 • Show to customer'), findsOneWidget);
-      expect(find.text('Delivery Confirmation (Not Payment)'), findsNothing);
-      expect(
-        find.text(
-          'Present this code at customer doorstep. Customer will scan with FoodGo app to confirm handover.',
-        ),
-        findsOneWidget,
-      );
-    });
+        // Verify driver handover title and instruction
+        expect(find.text('Delivery Handover QR'), findsOneWidget);
+        expect(find.text('Order #88 • Show to customer'), findsOneWidget);
+        expect(find.text('Delivery Confirmation (Not Payment)'), findsNothing);
+        expect(
+          find.text(
+            'Present this code at customer doorstep. Customer will scan with FoodGo app to confirm handover.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

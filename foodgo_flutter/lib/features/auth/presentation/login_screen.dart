@@ -203,11 +203,11 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 ActionChip(
                   label: const Text(
-                    'Localhost (Port 8000)',
+                    'Cloudflare Edge (Dual Backend 50/50)',
                     style: TextStyle(fontSize: 11),
                   ),
-                  onPressed: () =>
-                      controller.text = 'http://127.0.0.1:8000/api/',
+                  onPressed: () => controller.text =
+                      'https://foodgo.rtnaeam611.workers.dev/api/',
                 ),
                 ActionChip(
                   label: const Text(
@@ -216,6 +216,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () =>
                       controller.text = 'https://food-go-app.vercel.app/api/',
+                ),
+                ActionChip(
+                  label: const Text(
+                    'Localhost (Port 8000)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () =>
+                      controller.text = 'http://127.0.0.1:8000/api/',
                 ),
                 ActionChip(
                   label: const Text(

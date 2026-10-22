@@ -26,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
   String? _loginErrorMessage;
-  String? _selectedAccountRole;
 
   @override
   void initState() {
@@ -320,179 +319,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildQuickAccountsCard(bool isDark) {
-    final accounts = [
-      {
-        'role': 'Customer',
-        'sub': 'Alice',
-        'username': 'customer1',
-        'password': 'customer123',
-        'icon': Icons.person_rounded,
-        'color': const Color(0xFF22C55E),
-      },
-      {
-        'role': 'Admin',
-        'sub': 'Super',
-        'username': 'admin',
-        'password': 'admin123',
-        'icon': Icons.admin_panel_settings_rounded,
-        'color': const Color(0xFFA855F7),
-      },
-      {
-        'role': 'Driver',
-        'sub': 'Rider',
-        'username': 'driver1',
-        'password': 'driver123',
-        'icon': Icons.two_wheeler_rounded,
-        'color': const Color(0xFF06B6D4),
-      },
-      {
-        'role': 'Owner',
-        'sub': 'Shop',
-        'username': 'owner',
-        'password': 'owner123',
-        'icon': Icons.storefront_rounded,
-        'color': const Color(0xFFF59E0B),
-      },
-    ];
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF131D24) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.bolt_rounded,
-                      size: 15,
-                      color: Colors.amber,
-                    ),
-                    const SizedBox(width: 5),
-                    Flexible(
-                      child: Text(
-                        'Quick Demo Accounts',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF334155),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Tap to autofill',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 7),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDemoAccountChip(acc: accounts[0], isDark: isDark),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: _buildDemoAccountChip(acc: accounts[1], isDark: isDark),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: _buildDemoAccountChip(acc: accounts[2], isDark: isDark),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: _buildDemoAccountChip(acc: accounts[3], isDark: isDark),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDemoAccountChip({
-    required Map<String, dynamic> acc,
-    required bool isDark,
-  }) {
-    final isSelected = _selectedAccountRole == acc['role'];
-    final accColor = acc['color'] as Color;
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () {
-        setState(() {
-          _selectedAccountRole = acc['role'] as String;
-          _usernameController.text = acc['username'] as String;
-          _passwordController.text = acc['password'] as String;
-          _loginErrorMessage = null;
-        });
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Loaded ${acc['role']} account: ${acc['username']}'),
-            duration: const Duration(seconds: 2),
-            backgroundColor: accColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? accColor.withValues(alpha: 0.22)
-              : (isDark ? const Color(0xFF1E293B) : Colors.white),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? accColor
-                : (isDark ? Colors.white12 : const Color(0xFFCBD5E1)),
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(acc['icon'] as IconData, size: 14, color: accColor),
-            const SizedBox(width: 3),
-            Flexible(
-              child: Text(
-                acc['role'] as String,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -572,14 +398,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                       ).animate().fade(delay: 200.ms),
 
-                      const SizedBox(height: 10),
-
-                      // Quick Demo Accounts Card (Tap to Autofill)
-                      _buildQuickAccountsCard(
-                        isDark,
-                      ).animate().fade(delay: 220.ms),
-
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 14),
 
                       // Error Notification Banner
                       if (_loginErrorMessage != null) ...[

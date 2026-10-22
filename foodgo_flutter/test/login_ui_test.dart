@@ -20,9 +20,9 @@ class MockAuthProviderForLogin extends AuthProvider {
 }
 
 void main() {
-  group('LoginScreen Brand Logo & Quick Demo Accounts Widget Tests', () {
+  group('LoginScreen Brand Logo & Clean Production Login Widget Tests', () {
     testWidgets(
-      'Renders FoodGo Brand Logo, Welcome Back, and Quick Demo Accounts',
+      'Renders FoodGo Brand Logo, Welcome Back, and Form Fields without Demo Accounts',
       (tester) async {
         final mockAuth = MockAuthProviderForLogin();
         final userProvider = UserProvider();
@@ -44,15 +44,11 @@ void main() {
         expect(find.text('Fast Delivery • Fresh Meals'), findsOneWidget);
         expect(find.text('Welcome Back'), findsOneWidget);
 
-        // 2. Verify Quick Demo Accounts section
-        expect(find.text('Quick Demo Accounts'), findsOneWidget);
-        expect(find.text('Tap to autofill'), findsOneWidget);
-        expect(find.text('Customer'), findsOneWidget);
-        expect(find.text('Admin'), findsOneWidget);
-        expect(find.text('Driver'), findsOneWidget);
-        expect(find.text('Owner'), findsOneWidget);
+        // 2. Verify Quick Demo Accounts section is removed
+        expect(find.text('Quick Demo Accounts'), findsNothing);
+        expect(find.text('Tap to autofill'), findsNothing);
 
-        // 3. Verify Form Fields
+        // 3. Verify Form Fields and Sign In Button
         expect(
           find.widgetWithText(TextFormField, 'Username or Email'),
           findsOneWidget,
@@ -63,7 +59,7 @@ void main() {
     );
 
     testWidgets(
-      'Tapping demo account chips autofills username and password fields',
+      'Submitting login form invokes auth provider with entered credentials',
       (tester) async {
         final mockAuth = MockAuthProviderForLogin();
         final userProvider = UserProvider();
@@ -80,37 +76,23 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 500));
 
-        // Tap 'Admin' demo chip
-        await tester.tap(find.text('Admin'));
+        // Enter username and password
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Username or Email'),
+          'myuser',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Password'),
+          'mypassword123',
+        );
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 300));
 
-        expect(find.text('admin'), findsWidgets);
-        expect(find.text('admin123'), findsOneWidget);
-
-        // Tap 'Customer' demo chip
-        await tester.tap(find.text('Customer'));
+        // Tap Sign In button
+        await tester.tap(find.text('Sign In'));
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 300));
 
-        expect(find.text('customer1'), findsWidgets);
-        expect(find.text('customer123'), findsOneWidget);
-
-        // Tap 'Driver' demo chip
-        await tester.tap(find.text('Driver'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 300));
-
-        expect(find.text('driver1'), findsWidgets);
-        expect(find.text('driver123'), findsOneWidget);
-
-        // Tap 'Owner' demo chip
-        await tester.tap(find.text('Owner'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 300));
-
-        expect(find.text('owner'), findsWidgets);
-        expect(find.text('owner123'), findsOneWidget);
+        expect(mockAuth.lastUsername, 'myuser');
+        expect(mockAuth.lastPassword, 'mypassword123');
       },
     );
   });

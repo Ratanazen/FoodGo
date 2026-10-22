@@ -546,11 +546,12 @@ class AuditLogSerializer(serializers.ModelSerializer):
 class AdminUserSerializer(serializers.ModelSerializer):
     order_count = serializers.SerializerMethodField()
     wallet_balance = serializers.SerializerMethodField()
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'role', 'phone', 'first_name', 'last_name',
+            'id', 'username', 'email', 'password', 'role', 'phone', 'first_name', 'last_name',
             'is_active', 'is_staff', 'is_superuser', 'date_joined', 'last_login',
             'avatar', 'avatar_url', 'order_count', 'wallet_balance'
         ]
@@ -563,5 +564,59 @@ class AdminUserSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'wallet') and obj.wallet:
             return str(obj.wallet.balance)
         return '0.00'
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        user = User.objects.create(**validated_data)
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
+
+        if user.role == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+        user.save()
+
+        if user.role == 'driver' and not hasattr(user, 'driver_profile'):
+            from decimal import Decimal
+            from .models import Driver
+            Driver.objects.get_or_create(
+                user=user,
+                defaults={
+                    'vehicle_type': 'Motorcycle (Honda Wave 125i)',
+                    'license_plate': 'PP-1AB-2026',
+                    'is_online': True,
+                    'current_lat': Decimal('11.5580'),
+                    'current_lng': Decimal('104.9210'),
+                }
+            )
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+        if user.role == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+        user.save()
+
+        if user.role == 'driver' and not hasattr(user, 'driver_profile'):
+            from decimal import Decimal
+            from .models import Driver
+            Driver.objects.get_or_create(
+                user=user,
+                defaults={
+                    'vehicle_type': 'Motorcycle (Honda Wave 125i)',
+                    'license_plate': 'PP-1AB-2026',
+                    'is_online': True,
+                    'current_lat': Decimal('11.5580'),
+                    'current_lng': Decimal('104.9210'),
+                }
+            )
+        return user
+
 
 

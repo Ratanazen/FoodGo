@@ -5,7 +5,8 @@ from .payment_views import (
 )
 from .admin_views import (
     AdminAnalyticsView, AdminOrderViewSet, AdminUserViewSet,
-    AdminRestaurantViewSet, AdminAuditLogViewSet, AdminPaymentViewSet
+    AdminRestaurantViewSet, AdminAuditLogViewSet, AdminPaymentViewSet,
+    AdminDriverViewSet
 )
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -33,6 +34,7 @@ router.register(r'admin/payments', AdminPaymentViewSet, basename='admin-payments
 router.register(r'admin/users', AdminUserViewSet, basename='admin-users')
 router.register(r'admin/restaurants', AdminRestaurantViewSet, basename='admin-restaurants')
 router.register(r'admin/audit-logs', AdminAuditLogViewSet, basename='admin-audit-logs')
+router.register(r'admin/drivers', AdminDriverViewSet, basename='admin-drivers')
 
 urlpatterns = [
     path('auth/phone-login/request/', RequestOTPView.as_view(), name='otp_request'),

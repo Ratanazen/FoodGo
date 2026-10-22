@@ -8,10 +8,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from .models import User, Order, Payment, Driver, Delivery, Restaurant, FoodItem, AuditLog
+from .models import User, Order, Payment, Driver, Delivery, Restaurant, FoodItem, AuditLog, OrderStatusHistory
 from .serializers import (
     OrderSerializer, AdminUserSerializer, RestaurantSerializer,
-    AuditLogSerializer, PaymentSerializer
+    AuditLogSerializer, PaymentSerializer, DriverSerializer
 )
 from .permissions import IsAdminOrStaff
 from .notifications import dispatch_order_notification
@@ -224,6 +224,111 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
 
         return Response(OrderSerializer(order, context={'request': request}).data)
 
+    @action(detail=True, methods=['post'])
+    def reassign_driver(self, request, pk=None):
+        order = self.get_object()
+        driver_id = request.data.get('driver_id')
+        reason = request.data.get('reason', 'Administrative reassignment')
+        if not driver_id:
+            return Response({'error': 'driver_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            driver = Driver.objects.select_related('user').get(id=driver_id)
+        except Driver.DoesNotExist:
+            return Response({'error': 'Driver not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        delivery, _ = Delivery.objects.get_or_create(order=order)
+        prev_driver_name = delivery.driver.user.username if delivery.driver else 'None'
+        delivery.driver = driver
+        delivery.status = 'assigned'
+        delivery.save(update_fields=['driver', 'status', 'updated_at'])
+
+        AuditLog.objects.create(
+            admin_user=request.user,
+            action='ASSIGN_DRIVER',
+            target_type='Order',
+            target_id=str(order.id),
+            details={
+                'driver_id': driver.id,
+                'driver_name': driver.user.get_full_name() or driver.user.username,
+                'previous_driver': prev_driver_name,
+                'reason': reason,
+                'order_reference': order.order_reference,
+            },
+            ip_address=_get_client_ip(request)
+        )
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            from_status=order.status,
+            to_status=order.status,
+            actor=request.user,
+            actor_role='admin',
+            notes=f"Reassigned from {prev_driver_name} to {driver.user.username}: {reason}"
+        )
+
+        dispatch_order_notification(
+            order,
+            status_key='driver_assigned',
+            custom_title='Delivery Reassigned',
+            custom_message=f"Courier {driver.user.get_full_name() or driver.user.username} has been assigned to your order #{order.id}."
+        )
+
+        return Response(OrderSerializer(order, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'])
+    def update_status(self, request, pk=None):
+        order = self.get_object()
+        new_status = request.data.get('status')
+        reason = request.data.get('reason', 'Administrative status update')
+        if not new_status:
+            return Response({'error': 'status is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        valid_choices = [c[0] for c in Order.STATUS_CHOICES]
+        if new_status not in valid_choices:
+            return Response({'error': f'Invalid status. Allowed choices: {valid_choices}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from_status = order.status
+        order.status = new_status
+        now = timezone.now()
+        update_fields = ['status']
+        if new_status == 'delivered':
+            order.delivered_at = now
+            update_fields.append('delivered_at')
+            if hasattr(order, 'delivery') and order.delivery:
+                order.delivery.status = 'delivered'
+                order.delivery.delivery_time = now
+                order.delivery.save(update_fields=['status', 'delivery_time'])
+        elif new_status == 'cancelled':
+            order.cancelled_at = now
+            order.cancellation_reason = reason
+            update_fields.extend(['cancelled_at', 'cancellation_reason'])
+            if hasattr(order, 'delivery') and order.delivery:
+                order.delivery.status = 'cancelled'
+                order.delivery.save(update_fields=['status'])
+
+        order.save(update_fields=update_fields)
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            from_status=from_status,
+            to_status=new_status,
+            actor=request.user,
+            actor_role='admin',
+            notes=reason
+        )
+
+        AuditLog.objects.create(
+            admin_user=request.user,
+            action='SYSTEM_CONFIG',
+            target_type='Order',
+            target_id=str(order.id),
+            details={'from_status': from_status, 'to_status': new_status, 'reason': reason},
+            ip_address=_get_client_ip(request)
+        )
+
+        dispatch_order_notification(order, status_key=new_status, custom_message=reason)
+        return Response(OrderSerializer(order, context={'request': request}).data)
+
 class AdminUserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrStaff]
     serializer_class = AdminUserSerializer
@@ -381,4 +486,67 @@ class AdminPaymentViewSet(viewsets.ReadOnlyModelViewSet):
             'message': f'Payment #{payment.id} refunded successfully.',
             'payment': PaymentSerializer(payment, context={'request': request}).data,
             'result': refund_result
+        })
+
+class AdminDriverViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminOrStaff]
+    serializer_class = DriverSerializer
+    queryset = Driver.objects.select_related('user').all().order_by('-id')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        approved = self.request.query_params.get('approved')
+        if approved is not None:
+            qs = qs.filter(is_approved=approved.lower() in ('true', '1'))
+        online = self.request.query_params.get('online')
+        if online is not None:
+            qs = qs.filter(is_online=online.lower() in ('true', '1'))
+        search_query = self.request.query_params.get('search')
+        if search_query:
+            qs = qs.filter(
+                Q(user__username__icontains=search_query) |
+                Q(user__first_name__icontains=search_query) |
+                Q(user__phone__icontains=search_query) |
+                Q(license_plate__icontains=search_query) |
+                Q(vehicle_type__icontains=search_query)
+            )
+        return qs
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        driver = self.get_object()
+        driver.is_approved = True
+        driver.save(update_fields=['is_approved'])
+        AuditLog.objects.create(
+            admin_user=request.user,
+            action='UPDATE_MENU_ITEM',
+            target_type='Driver',
+            target_id=str(driver.id),
+            details={'action': 'approve', 'driver_username': driver.user.username},
+            ip_address=_get_client_ip(request)
+        )
+        return Response({
+            'status': 'SUCCESS',
+            'message': f'Driver {driver.user.username} approved.',
+            'driver': DriverSerializer(driver, context={'request': request}).data
+        })
+
+    @action(detail=True, methods=['post'])
+    def suspend(self, request, pk=None):
+        driver = self.get_object()
+        driver.is_approved = False
+        driver.is_online = False
+        driver.save(update_fields=['is_approved', 'is_online'])
+        AuditLog.objects.create(
+            admin_user=request.user,
+            action='UPDATE_MENU_ITEM',
+            target_type='Driver',
+            target_id=str(driver.id),
+            details={'action': 'suspend', 'driver_username': driver.user.username},
+            ip_address=_get_client_ip(request)
+        )
+        return Response({
+            'status': 'SUCCESS',
+            'message': f'Driver {driver.user.username} suspended.',
+            'driver': DriverSerializer(driver, context={'request': request}).data
         })

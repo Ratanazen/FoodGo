@@ -50,11 +50,12 @@ STATUS_NOTIFICATION_TEMPLATES = {
     ),
 }
 
-def dispatch_order_notification(order, status_key=None, custom_title=None, custom_message=None):
+def dispatch_order_notification(order, status_key=None, custom_title=None, custom_message=None, target_user=None):
     """
-    Safely creates an in-app Notification for the order's customer with rich metadata.
+    Safely creates an in-app Notification for the order's customer (or target_user) with rich metadata.
     """
-    if not order or not getattr(order, 'customer', None):
+    recipient = target_user or getattr(order, 'customer', None)
+    if not recipient:
         return None
     try:
         st = (status_key or getattr(order, 'status', 'pending') or 'pending').lower()
@@ -68,7 +69,7 @@ def dispatch_order_notification(order, status_key=None, custom_title=None, custo
         message = custom_message or default_msg_tpl.format(order_id=order.id, restaurant_name=rest_name)
 
         return Notification.objects.create(
-            user=order.customer,
+            user=recipient,
             title=title,
             message=message,
             notification_type='order',

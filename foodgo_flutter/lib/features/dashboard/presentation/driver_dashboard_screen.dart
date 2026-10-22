@@ -303,6 +303,76 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     }
   }
 
+  Future<void> _reportFailedDelivery(Map<String, dynamic> order) async {
+    final orderId = order['id'].toString();
+    final reasonController = TextEditingController();
+    final shouldReport = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: const Text('Report Delivery Issue', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Specify reason (e.g., Customer unreachable, wrong address, gate locked):',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                hintText: 'Customer phone unreachable',
+                filled: true,
+                fillColor: Colors.black26,
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Submit Report', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldReport == true) {
+      try {
+        final reason = reasonController.text.trim().isEmpty
+            ? 'Customer unreachable after multiple attempts'
+            : reasonController.text.trim();
+        await _api.post('drivers/orders/$orderId/failed-delivery/', {'reason': reason});
+        _fetchDashboardData();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Delivery issue logged. Order marked failed delivery.'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to log issue.'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   void _showDeliveryCompletionSheet(Map<String, dynamic> order) {
     final orderId = order['id'].toString();
     final isUnpaid = order['payment_status'] != 'PAID';
@@ -1186,16 +1256,40 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         onPressed: () => _advanceDeliveryStep(order, status),
       );
     } else if (status == 'picked_up' || status == 'on_the_way') {
-      return GlassButton(
-        text: 'Arrived at Customer',
-        icon: Icons.place,
-        onPressed: () => _advanceDeliveryStep(order, status),
+      return Row(
+        children: [
+          Expanded(
+            child: GlassButton(
+              text: 'Arrived at Customer',
+              icon: Icons.place,
+              onPressed: () => _advanceDeliveryStep(order, status),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Report Delivery Issue',
+            icon: const Icon(Icons.report_problem_outlined, color: Colors.orangeAccent),
+            onPressed: () => _reportFailedDelivery(order),
+          ),
+        ],
       );
     } else {
-      return GlassButton(
-        text: 'Complete Delivery Handover',
-        icon: Icons.check_circle,
-        onPressed: () => _advanceDeliveryStep(order, status),
+      return Row(
+        children: [
+          Expanded(
+            child: GlassButton(
+              text: 'Complete Delivery Handover',
+              icon: Icons.check_circle,
+              onPressed: () => _advanceDeliveryStep(order, status),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Report Delivery Issue',
+            icon: const Icon(Icons.report_problem_outlined, color: Colors.orangeAccent),
+            onPressed: () => _reportFailedDelivery(order),
+          ),
+        ],
       );
     }
   }

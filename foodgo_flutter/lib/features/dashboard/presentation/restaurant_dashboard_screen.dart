@@ -73,20 +73,146 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
     }
   }
 
-  Future<void> _updateOrderStatus(String orderId, String newStatus) async {
+
+
+  Future<void> _restaurantAcceptOrder(String orderId) async {
     try {
-      await _api.patch('orders/$orderId/', {'status': newStatus});
+      await _api.post('orders/$orderId/restaurant-accept/', {});
       _fetchDashboardData();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Order updated to $newStatus'),
+        const SnackBar(
+          content: Text('Order accepted.'),
           backgroundColor: GlassTheme.primaryGreen,
           behavior: SnackBarBehavior.floating,
         ),
       );
     } catch (e) {
-      debugPrint('Failed to update status');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to accept order.'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _restaurantRejectOrder(String orderId) async {
+    final reasonController = TextEditingController();
+    final shouldReject = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: const Text('Reject Order', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Please provide a rejection reason (prepaid orders are automatically refunded):',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                hintText: 'e.g., Kitchen at full capacity',
+                filled: true,
+                fillColor: Colors.black26,
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reject & Refund', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldReject == true) {
+      try {
+        final reason = reasonController.text.trim().isEmpty
+            ? 'Kitchen unable to fulfill order'
+            : reasonController.text.trim();
+        await _api.post('orders/$orderId/restaurant-reject/', {'reason': reason});
+        _fetchDashboardData();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Order rejected and refunded if prepaid.'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to reject order.'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _startPreparing(String orderId) async {
+    try {
+      await _api.post('orders/$orderId/start-preparing/', {});
+      _fetchDashboardData();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order preparation started.'),
+          backgroundColor: GlassTheme.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to start preparing order.'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _readyForPickup(String orderId) async {
+    try {
+      await _api.post('orders/$orderId/ready-for-pickup/', {});
+      _fetchDashboardData();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order ready for pickup. Driver notified.'),
+          backgroundColor: GlassTheme.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to mark order ready.'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -611,53 +737,106 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
   }
 
   Widget _buildRestaurantOrderCard(dynamic order) {
+    final status = order['status']?.toString() ?? 'pending';
+    final orderId = order['id'].toString();
+    final assignedDriver = order['assigned_driver'];
+
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Order #${order['id']}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
+              Text(
+                'Order #$orderId',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  status.replaceAll('_', ' ').toUpperCase(),
+                  style: const TextStyle(
+                    color: GlassTheme.primaryGreen,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      order['status'].toString().toUpperCase(),
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Total: \$${order['total_amount']} • Status: ${order['payment_status'] ?? 'UNPAID'}',
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+          if (order['delivery_address_snapshot'] != null &&
+              order['delivery_address_snapshot'].toString().isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined, size: 14, color: Colors.white54),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    order['delivery_address_snapshot'].toString(),
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (assignedDriver != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.delivery_dining, size: 18, color: GlassTheme.primaryGreen),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Driver: ${assignedDriver['name'] ?? 'Assigned'}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '${assignedDriver['vehicle_type'] ?? 'Motorbike'} • ${assignedDriver['license_plate'] ?? ''} • ${assignedDriver['phone'] ?? ''}',
+                          style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Total: \$${order['total_amount']}',
-                style: const TextStyle(color: Colors.white70),
-              ),
-            ],
-          ),
+            ),
+          ],
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -684,27 +863,69 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                   onPressed: () => _showRestaurantOrderBill(order),
                 ),
               ),
-              if (order['status'] == 'pending') ...[
+              if (status == 'pending') ...[
                 const SizedBox(width: 8),
-                Expanded(
-                  child: GlassButton(
-                    text: 'Cook',
-                    icon: Icons.soup_kitchen,
-                    onPressed: () =>
-                        _updateOrderStatus(order['id'].toString(), 'preparing'),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    side: BorderSide(
+                      color: Colors.redAccent.withValues(alpha: 0.6),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  onPressed: () => _restaurantRejectOrder(orderId),
+                  child: const Text(
+                    'Reject',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
-              ],
-              if (order['status'] == 'preparing') ...[
                 const SizedBox(width: 8),
                 Expanded(
                   child: GlassButton(
-                    text: 'Driver',
-                    icon: Icons.delivery_dining,
-                    onPressed: () => _updateOrderStatus(
-                      order['id'].toString(),
-                      'on_the_way',
-                    ),
+                    text: 'Accept',
+                    icon: Icons.check,
+                    onPressed: () => _restaurantAcceptOrder(orderId),
+                  ),
+                ),
+              ] else if (status == 'confirmed' || status == 'driver_assigned' || status == 'driver_accepted') ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GlassButton(
+                    text: 'Start Prep',
+                    icon: Icons.soup_kitchen,
+                    onPressed: () => _startPreparing(orderId),
+                  ),
+                ),
+              ] else if (status == 'preparing') ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GlassButton(
+                    text: 'Ready for Pickup',
+                    icon: Icons.check_circle_outline,
+                    onPressed: () => _readyForPickup(orderId),
+                  ),
+                ),
+              ] else if (status == 'ready_for_pickup') ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.hourglass_top, size: 14, color: Colors.blueAccent),
+                      SizedBox(width: 4),
+                      Text(
+                        'Awaiting Driver',
+                        style: TextStyle(fontSize: 11, color: Colors.blueAccent, fontWeight: FontWeight.w600),
+                      ),
+                    ],
                   ),
                 ),
               ],

@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from .models import *
 
@@ -129,6 +130,23 @@ class DriverSerializer(serializers.ModelSerializer):
         return data
 
 
+class OrderStatusHistorySerializer(serializers.ModelSerializer):
+    actor_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrderStatusHistory
+        fields = [
+            'id', 'order', 'from_status', 'to_status', 'actor',
+            'actor_name', 'actor_role', 'notes', 'created_at'
+        ]
+        read_only_fields = fields
+
+    def get_actor_name(self, obj):
+        if obj.actor:
+            return obj.actor.get_full_name() or obj.actor.username
+        return 'System'
+
+
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     restaurant = serializers.PrimaryKeyRelatedField(queryset=Restaurant.objects.all(), required=False)
@@ -138,23 +156,35 @@ class OrderSerializer(serializers.ModelSerializer):
     payment_info = serializers.SerializerMethodField()
     delivery_token_info = serializers.SerializerMethodField()
     customer_info = serializers.SerializerMethodField()
+    status_history = OrderStatusHistorySerializer(many=True, read_only=True)
+    eta_minutes = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
             'id', 'order_reference', 'restaurant', 'restaurant_name', 'restaurant_image', 'address', 'status', 'payment_status',
             'subtotal', 'delivery_fee_charged', 'discount_amount', 'coupon_code', 'total_amount',
-            'special_instructions', 'delivery_address_snapshot', 'estimated_delivery_time',
+            'special_instructions', 'delivery_address_snapshot', 'estimated_delivery_time', 'eta_minutes',
             'confirmed_at', 'ready_at', 'picked_up_at', 'delivered_at', 'cancelled_at', 'cancellation_reason',
             'created_at', 'updated_at', 'items', 'assigned_driver', 'payment_info', 'delivery_token_info', 'customer_info',
+            'status_history',
         ]
         read_only_fields = [
             'id', 'order_reference', 'restaurant_name', 'restaurant_image', 'status', 'payment_status',
             'subtotal', 'delivery_fee_charged', 'discount_amount', 'total_amount',
-            'delivery_address_snapshot', 'estimated_delivery_time',
+            'delivery_address_snapshot', 'estimated_delivery_time', 'eta_minutes',
             'confirmed_at', 'ready_at', 'picked_up_at', 'delivered_at', 'cancelled_at', 'cancellation_reason',
             'created_at', 'updated_at', 'items', 'assigned_driver', 'payment_info', 'delivery_token_info', 'customer_info',
+            'status_history',
         ]
+
+    def get_eta_minutes(self, obj):
+        if obj.status in ('delivered', 'cancelled', 'failed_delivery'):
+            return 0
+        if obj.estimated_delivery_time:
+            diff = (obj.estimated_delivery_time - timezone.now()).total_seconds()
+            return max(1, int(diff / 60))
+        return 25
 
     def get_restaurant_image(self, obj):
         if obj.restaurant:

@@ -152,5 +152,16 @@ void main() {
       expect(find.text('Accept'), findsOneWidget);
       expect(find.text('Decline'), findsOneWidget);
     });
+
+    testWidgets('Active delivery on_the_way shows Arrived at Customer and Report Issue actions', (tester) async {
+      final activeOrder = Map<String, dynamic>.from(sampleOrder);
+      activeOrder['status'] = 'on_the_way';
+      await tester.pumpWidget(buildDriverDashboard(active: [activeOrder]));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Arrived at Customer'), findsOneWidget);
+      expect(find.byIcon(Icons.report_problem_outlined), findsOneWidget);
+    });
   });
 }

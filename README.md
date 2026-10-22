@@ -6,7 +6,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-198%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-229%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
 ![Zero Emoji](https://img.shields.io/badge/Zero--Emoji-100%25%20Vector-success)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -24,7 +24,40 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 * **Live Order Tracking Sheet (TikTok Reference):** Interactive route polyline on Google Maps, live pulsing status dot, 5-stage milestone stepper (`Confirmed` -> `Preparing` -> `Picked up` -> `On the way` -> `Delivered`), driver info card (`Ahmad Faizal`), route breakdown card, and itemized order receipt.
 * **Dual-Engine Search & Smart Filters:** Instant debounced search for both dishes and restaurants with scope tabs (`All`, `Dishes`, `Restaurants`), persistent search history with individual delete/clear all, quick craving chips with vector icons, advanced filter modal with price tiers (`$`, `$$`, `$$$`), vegetarian toggle, minimum rating filter, and dual USD/KHR price calculations.
 
-### 2. Modern Illustrated Authentication Flow
+### 2. Complete Multi-Role Delivery System & Order State Machine
+* **End-to-End Order Lifecycle:** Standardized lifecycle progression:
+  ```
+  ORDER_CONFIRMED -> DRIVER_ASSIGNED -> DRIVER_ACCEPTED -> PREPARING -> READY_FOR_PICKUP -> PICKED_UP -> OUT_FOR_DELIVERY -> DELIVERED
+  (Terminal states: CANCELLED, FAILED_DELIVERY)
+  ```
+* **Customer Functions:**
+  * Saved delivery address selection and automated dynamic delivery fee calculation ($2.00 base + distance).
+  * Reliable estimated delivery time (ETA) countdown computed server-side.
+  * Real-time assigned driver details card (driver name, vehicle model, license plate, phone contact, and live GPS coordinates).
+  * Comprehensive order timeline and immutable audit trail (`OrderStatusHistory`).
+  * State-aware cancellation safeguard: Cancellation allowed in `pending` and `confirmed` prior to kitchen preparation; strictly blocked once the restaurant begins `preparing`.
+* **Driver Functions:**
+  * Dedicated driver portal (`DriverDashboardScreen`) with secure role-based authorization and admin approval enforcement.
+  * Real-time online/offline availability switch controlling eligibility for incoming orders.
+  * Concurrency-safe delivery request claiming using database-level `select_for_update()` locking to prevent multi-driver collisions.
+  * Route navigation launcher integrating external Google Maps directions for pickup and drop-off coordinates.
+  * Turn-by-turn workflow progression: `Accepted` -> `Arrived at Restaurant` -> `Picked Up` -> `Arrived at Customer` -> `Delivered`.
+  * Multi-method doorstep verification: High-contrast handover QR code scanning, 4-digit customer PIN verification, and Cash on Delivery (COD) collection confirmation.
+  * Delivery issue & failed delivery reporting with documented failure reasons and restaurant return coordination.
+  * Verified earnings accounting tracking completed deliveries and delivery fees.
+* **Restaurant Functions:**
+  * Real-time incoming order dashboard (`RestaurantDashboardScreen`) with itemized bill inspection.
+  * One-tap order acceptance (`POST /api/orders/{id}/restaurant-accept/`).
+  * Structured order rejection (`POST /api/orders/{id}/restaurant-reject/`) with reason logging and automatic refund trigger for prepaid orders.
+  * Kitchen preparation tracking (`POST /api/orders/{id}/start-preparing/`).
+  * Ready-for-pickup handover dispatch (`POST /api/orders/{id}/ready-for-pickup/`) automatically alerting assigned couriers.
+* **Administrator Functions:**
+  * Dedicated driver management console (`AdminDriverViewSet` at `/api/admin/drivers/`) supporting driver approval, suspension, and real-time availability monitoring.
+  * Dynamic delivery reassignment (`POST /api/admin/orders/{id}/reassign_driver/`) with vehicle breakdown and operational handover safeguards.
+  * Status override management (`POST /api/admin/orders/{id}/update_status/`).
+  * Complete audit trail logging every state transition, responsible actor, role, timestamp, and metadata notes.
+
+### 3. Modern Illustrated Authentication Flow
 * **Offline Vector Character Illustrations:** Pure canvas-drawn vector illustrations rendered via custom painters (`AuthIllustration`):
   * **Sign In:** Character reviewing mobile charts with floating notification pills.
   * **Sign Up:** Character holding an inspection checklist clipboard.
@@ -33,7 +66,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 * **Sign Up Screen:** Full name, email, password inputs, legal terms disclaimer, royal blue `Create Account` button, and Google sign-up.
 * **Forget Password Screen:** Email input with royal blue `Send OTP` button and simulated OTP dispatch feedback.
 
-### 3. Application-Wide Screen Modernization
+### 4. Application-Wide Screen Modernization
 * **Cart Screen:** Minimalist circular header, neon-lime quantity steppers (`-` and `+`) with tactile haptic feedback, free delivery milestone progress bar, dual currency total ($ USD & KHR), and high-impact neon-lime `"Proceed to Checkout"` button.
 * **Profile Screen:** User profile header with neon-lime accent ring, 3-column quick action shortcuts (Wallet, Orders, My KHQR Pay Me), Admin Console access tile for authorized staff, and modern rounded `_ProfileOption` tiles with circular icon containers and subtle chevrons.
 * **Orders Screen:** Animated filter pill chips (`All`, `Active`, `Delivered`, `Cancelled`) with active lime selection, order cards with status badges, one-tap `"Order Again"` CTA, and integrated FoodGo Support Concierge modal with 24/7 hotline and issue reporting.
@@ -42,26 +75,26 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 * **Search Screen:** Rounded pill search input with lime search icon and clear action, trending search chips, and modal dish detail sheet with neon-lime add-to-cart button.
 * **Driver Dashboard Screen:** Real-time earnings summary, available and in-progress order cards with prominent customer special cooking instructions badges, and delivery QR verification scanner.
 
-### 4. Administrator Console & Operations Center
+### 5. Administrator Console & Operations Center
 * **Executive Analytics Dashboard:** Real-time KPI telemetry (order volume, USD & KHR gross revenue, active courier tracking, registered customer base, and live database/ASGI health check).
 * **Dispatch & Order Management:** Live search, status pipeline filtering, manual driver assignment modal, and administrative order cancellation.
 * **User & Restaurant Directory:** Comprehensive role filtering (`customer`, `driver`, `restaurant_owner`, `admin`) with real-time active/inactive account toggles.
 * **Immutable Audit Trail:** Append-only security log recording every administrative action (`ASSIGN_DRIVER`, `CANCEL_ORDER`, `REFUND_PAYMENT`, `TOGGLE_USER_ACTIVE`, `TOGGLE_RESTAURANT`), tracking actor, remote IP, and JSON delta changes.
 * **Full Documentation:** Complete technical guides in [`docs/upgrade-plan.md`](docs/upgrade-plan.md) and [`docs/admin-dashboard.md`](docs/admin-dashboard.md).
 
-### 5. Fintech & Security Features
+### 6. Fintech & Security Features
 * **Cambodian KHQR Fintech Gateways:** Seamless dual-currency support (USD `$`, KHR `KHR`), Bakong NBC Open API, ABA Bank Dynamic KHQR with live 5-minute countdown, ACLEDA Bank KHQR, and Cash on Delivery (COD).
 * **In-App Digital Wallet:** Instant top-ups via KHQR with atomic ACID ledger deduction.
 * **Cryptographic Doorstep QR Delivery Confirmation:** Cryptographically secure 15-minute expiring token and 6-digit backup PIN preventing fraudulent delivery handovers.
 * **Real-Time WebSockets:** Powered by Django Channels & Redis for live driver GPS simulation and status updates.
 
-### 6. In-App Notifications & Live Driver GPS Telemetry
+### 7. In-App Notifications & Live Driver GPS Telemetry
 * **Automated Milestone Notifications:** Real-time push notification dispatch across all order lifecycle states (`pending`, `confirmed`, `preparing`, `ready`, `on_the_way`, `driver_arrived`, `delivered`, `cancelled`).
 * **Notification Center:** Dynamic badge counter on `HomeScreen`, category filters (`All`, `Orders`, `Promos`), swipe-to-delete dismissible tiles, mark-all-as-read, and deep-link modal sheets.
 * **Live Driver Route WebSockets:** Daphne ASGI `OrderTrackingConsumer` with coordinate validation, 200ms throttling, and bearing telemetry forwarding.
 * **Turn-by-Turn Courier Animation:** `MapScreen` with continuous polyline progress, rotating motorcycle courier marker (`Transform.rotate`) driven by heading calculations, and live speed/ETA readout.
 
-### 7. National Bank of Cambodia (NBC) Multi-Currency & Disaster Recovery
+### 8. National Bank of Cambodia (NBC) Multi-Currency & Disaster Recovery
 * **Dynamic NBC Rate Engine:** REST endpoint `/api/currency/rates/` exposing the National Bank of Cambodia customary rate (`4,100 KHR / USD`) with database persistence (`ExchangeRate` model) and timestamped caching.
 * **App-Wide Currency Switcher:** User preference toggle (`$ USD`, `៛ KHR`, `Dual ($ / ៛)`) persisted in `SharedPreferences`, dynamically re-rendering all menus, cart totals, and receipts.
 * **Automated Disaster Recovery Script (`scripts/backup_db.sh`):** Enterprise utility supporting PostgreSQL and SQLite backups, gzip compression, 7-day retention rotation, and restore verification.
@@ -230,9 +263,9 @@ FoodGo maintains an enterprise-grade test verification suite and hardened contin
 ### Running Test Commands Locally
 
 ```bash
-# 1. Django Backend Test Suite (98 tests — 100% Passing)
+# 1. Django Backend Test Suite (119 tests — 100% Passing)
 cd backend
-./venv/bin/python manage.py test
+./venv/bin/python manage.py test core
 
 # 2. Django System Checks & Static Assets Collection
 python manage.py check
@@ -242,7 +275,7 @@ python manage.py collectstatic --noinput
 cd ../foodgo_flutter
 flutter analyze --no-pub
 
-# 4. Flutter Unit & Widget Tests (100 tests — 100% Passing)
+# 4. Flutter Unit & Widget Tests (110 tests — 100% Passing)
 flutter test
 
 # 5. Flutter Web Release Compilation
@@ -253,10 +286,10 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test core`)** | **98** | **98 Passed (100%)** | ~4.7s |
-| **Flutter Frontend (`foodgo_flutter/test/`)** | **100** | **100 Passed (100%)** | ~9.0s |
-| **Total Automated Tests** | **198** | **198 Passed (100%)** | ~13.7s |
-| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **84 Files** | **0 Errors, 0 Warnings** | ~2.2s |
+| **Django Backend (`backend/manage.py test core`)** | **119** | **119 Passed (100%)** | ~5.8s |
+| **Flutter Frontend (`foodgo_flutter/test/`)** | **110** | **110 Passed (100%)** | ~9.0s |
+| **Total Automated Tests** | **229** | **229 Passed (100%)** | ~14.8s |
+| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **84 Files** | **0 Errors, 0 Warnings** | ~2.4s |
 | **Zero-Emoji Policy Verification** | **All Repo Files** | **100% Vector Icon Compliant** | ~1.1s |
 | **Multi-Cloud Health Checks (`/api/health/`)** | **Endpoints** | **Operational (Vercel, Render, Docker)** | <10ms |
 | **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |

@@ -223,12 +223,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'pending':
         return Colors.orange;
       case 'confirmed':
+      case 'driver_assigned':
+      case 'driver_accepted':
       case 'preparing':
+      case 'ready_for_pickup':
         return Colors.blue;
+      case 'picked_up':
+      case 'on_the_way':
+      case 'out_for_delivery':
+      case 'driver_arrived':
+      case 'arrived':
       case 'on_delivery':
         return Colors.purple;
       case 'delivered':
         return GlassTheme.primaryGreen;
+      case 'failed_delivery':
       case 'cancelled':
         return Colors.red;
       default:
@@ -240,7 +249,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return [
       'pending',
       'confirmed',
+      'driver_assigned',
+      'driver_accepted',
       'preparing',
+      'ready_for_pickup',
+      'picked_up',
+      'on_the_way',
+      'out_for_delivery',
+      'driver_arrived',
+      'arrived',
       'on_delivery',
     ].contains(status);
   }
@@ -322,7 +339,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Widget _buildStatusTimeline(String status) {
     final steps = ['pending', 'confirmed', 'preparing', 'on_delivery'];
-    final currentIdx = steps.indexOf(status);
+    int currentIdx = 0;
+    if (['confirmed', 'driver_assigned', 'driver_accepted'].contains(status)) {
+      currentIdx = 1;
+    } else if (['preparing', 'ready_for_pickup'].contains(status)) {
+      currentIdx = 2;
+    } else if ([
+      'picked_up',
+      'on_the_way',
+      'out_for_delivery',
+      'driver_arrived',
+      'arrived',
+      'on_delivery',
+    ].contains(status)) {
+      currentIdx = 3;
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -514,6 +545,73 @@ class _OrdersScreenState extends State<OrdersScreen> {
             // Status timeline for in-progress orders
             if (_isInProgress(status)) _buildStatusTimeline(status),
 
+            // Assigned Driver & ETA Info
+            if (order['assigned_driver'] != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.delivery_dining,
+                      size: 20,
+                      color: GlassTheme.primaryGreen,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Driver: ${order['assigned_driver']['name'] ?? 'Courier'}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            '${order['assigned_driver']['vehicle_type'] ?? 'Motorbike'} • ${order['assigned_driver']['license_plate'] ?? ''}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: GlassTheme.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (order['eta_minutes'] != null &&
+                        (order['eta_minutes'] as num) > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'ETA: ~${order['eta_minutes']} min',
+                          style: const TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 14),
             Row(
               children: [
@@ -575,7 +673,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     status == 'on_delivery' ||
                     status == 'picked_up' ||
                     status == 'arrived') ...[
-                  if (status == 'pending') ...[
+                  if (status == 'pending' || status == 'confirmed') ...[
                     const SizedBox(width: 8),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(

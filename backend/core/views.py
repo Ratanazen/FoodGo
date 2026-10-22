@@ -158,6 +158,71 @@ class FoodItemViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('You can only manage food for your own restaurant.')
         serializer.save()
 
+def record_order_status_transition(order, to_status, actor=None, actor_role='', notes='', extra_update_fields=None):
+    """
+    Centralized helper to update order status, update timestamps,
+    log OrderStatusHistory, and dispatch notifications.
+    """
+    from_status = order.status
+    now = timezone.now()
+    order.status = to_status
+    update_fields = ['status', 'updated_at']
+
+    if to_status in ('confirmed', 'driver_assigned', 'driver_accepted') and not order.confirmed_at:
+        order.confirmed_at = now
+        update_fields.append('confirmed_at')
+    elif to_status in ('ready_for_pickup', 'ready') and not order.ready_at:
+        order.ready_at = now
+        update_fields.append('ready_at')
+    elif to_status in ('picked_up', 'on_the_way', 'out_for_delivery') and not order.picked_up_at:
+        order.picked_up_at = now
+        update_fields.append('picked_up_at')
+    elif to_status == 'delivered' and not order.delivered_at:
+        order.delivered_at = now
+        update_fields.append('delivered_at')
+    elif to_status == 'cancelled' and not order.cancelled_at:
+        order.cancelled_at = now
+        if notes:
+            order.cancellation_reason = notes
+            update_fields.append('cancellation_reason')
+        update_fields.append('cancelled_at')
+    elif to_status == 'failed_delivery':
+        if notes:
+            order.cancellation_reason = notes
+            update_fields.append('cancellation_reason')
+
+    if extra_update_fields:
+        for f in extra_update_fields:
+            if f not in update_fields:
+                update_fields.append(f)
+
+    order.save(update_fields=update_fields)
+
+    role = actor_role
+    if not role and actor:
+        if getattr(actor, 'is_staff', False) or getattr(actor, 'is_superuser', False):
+            role = 'admin'
+        elif hasattr(actor, 'role'):
+            role = actor.role
+        elif hasattr(actor, 'driver_profile'):
+            role = 'driver'
+        else:
+            role = 'customer'
+    elif not role:
+        role = 'system'
+
+    history = OrderStatusHistory.objects.create(
+        order=order,
+        from_status=from_status,
+        to_status=to_status,
+        actor=actor if (actor and actor.is_authenticated) else None,
+        actor_role=role,
+        notes=notes or ''
+    )
+    dispatch_order_notification(order, status_key=to_status, custom_message=notes or None)
+    return history
+
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -191,9 +256,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         if status_param:
             if status_param == 'active':
                 qs = qs.filter(status__in=[
-                    'pending', 'confirmed', 'preparing', 'ready',
-                    'ready_for_pickup', 'picked_up', 'on_the_way',
-                    'driver_arrived', 'arrived'
+                    'pending', 'confirmed', 'driver_assigned', 'driver_accepted',
+                    'preparing', 'ready', 'ready_for_pickup', 'picked_up',
+                    'on_the_way', 'out_for_delivery', 'driver_arrived', 'arrived'
                 ])
             elif status_param == 'completed':
                 qs = qs.filter(status='delivered')
@@ -205,15 +270,19 @@ class OrderViewSet(viewsets.ModelViewSet):
         return qs
 
     ALLOWED_TRANSITIONS = {
-        'pending': ['confirmed', 'cancelled'],
-        'confirmed': ['preparing', 'cancelled'],
-        'preparing': ['ready', 'ready_for_pickup', 'on_the_way', 'cancelled'],
-        'ready': ['picked_up', 'on_the_way', 'cancelled'],
-        'ready_for_pickup': ['picked_up', 'on_the_way', 'cancelled'],
-        'picked_up': ['on_the_way', 'driver_arrived', 'arrived'],
-        'on_the_way': ['driver_arrived', 'arrived', 'delivered'],
-        'arrived': ['delivered'],
-        'driver_arrived': ['delivered'],
+        'pending': ['confirmed', 'driver_assigned', 'cancelled'],
+        'confirmed': ['driver_assigned', 'driver_accepted', 'preparing', 'cancelled'],
+        'driver_assigned': ['driver_accepted', 'confirmed', 'preparing', 'cancelled'],
+        'driver_accepted': ['preparing', 'ready', 'ready_for_pickup', 'picked_up', 'cancelled'],
+        'preparing': ['ready', 'ready_for_pickup', 'on_the_way', 'out_for_delivery', 'picked_up', 'cancelled'],
+        'ready': ['picked_up', 'on_the_way', 'out_for_delivery', 'cancelled'],
+        'ready_for_pickup': ['picked_up', 'on_the_way', 'out_for_delivery', 'cancelled'],
+        'picked_up': ['on_the_way', 'out_for_delivery', 'driver_arrived', 'arrived', 'failed_delivery', 'cancelled'],
+        'on_the_way': ['out_for_delivery', 'driver_arrived', 'arrived', 'delivered', 'failed_delivery', 'cancelled'],
+        'out_for_delivery': ['on_the_way', 'driver_arrived', 'arrived', 'delivered', 'failed_delivery', 'cancelled'],
+        'arrived': ['delivered', 'failed_delivery', 'cancelled'],
+        'driver_arrived': ['delivered', 'failed_delivery', 'cancelled'],
+        'failed_delivery': ['delivered', 'cancelled', 'returned_to_restaurant'],
         'delivered': [],
         'cancelled': [],
     }
@@ -236,10 +305,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             if new_status_norm not in allowed and not request.user.is_staff:
                 raise ValidationError({'status': [f"Cannot transition order from '{current_status}' to '{new_status_norm}'."]})
 
-            order.status = new_status_norm
-            order.save(update_fields=['status'])
-            if new_status_norm != current_status:
-                dispatch_order_notification(order, status_key=new_status_norm)
+            record_order_status_transition(order, new_status_norm, actor=request.user, notes=request.data.get('notes', ''))
             delivery = getattr(order, 'delivery', None)
 
             # Auto-bind driver if a driver claims or moves the order
@@ -259,7 +325,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 delivery.driver = driver_profile
                 delivery.status = new_status_norm
                 delivery.save(update_fields=['driver', 'status'])
-            elif delivery and new_status_norm in ('on_the_way', 'arrived', 'driver_arrived', 'picked_up'):
+            elif delivery and new_status_norm in ('on_the_way', 'out_for_delivery', 'arrived', 'driver_arrived', 'picked_up', 'ready_for_pickup', 'preparing'):
                 delivery.status = new_status_norm
                 delivery.save(update_fields=['status'])
 
@@ -270,13 +336,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not user.is_staff:
             if instance.customer != user:
                 raise PermissionDenied("You can only cancel your own orders.")
-            if instance.status not in ('pending', 'cancelled'):
+            if instance.status not in ('pending', 'confirmed'):
                 raise ValidationError({"detail": "Cannot cancel or delete an order that is already being prepared or delivered."})
-        instance.status = 'cancelled'
-        instance.cancelled_at = timezone.now()
-        instance.cancellation_reason = 'Cancelled by user'
-        instance.save(update_fields=['status', 'cancelled_at', 'cancellation_reason'])
-        dispatch_order_notification(instance, status_key='cancelled', custom_message=f"Order #{instance.id} has been cancelled.")
+        record_order_status_transition(instance, 'cancelled', actor=user, notes='Cancelled and deleted by user')
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def cancel(self, request, pk=None):
@@ -286,18 +348,155 @@ class OrderViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You can only cancel your own orders.")
         if order.status not in ('pending', 'confirmed'):
             return Response(
-                {'detail': f'Cannot cancel order in "{order.status}" status.'},
+                {'detail': f'Cannot cancel order in "{order.status}" status. Orders can only be cancelled before preparation begins.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         reason = request.data.get('reason', 'Cancelled by customer')
-        order.status = 'cancelled'
-        order.cancelled_at = timezone.now()
-        order.cancellation_reason = reason
-        order.save(update_fields=['status', 'cancelled_at', 'cancellation_reason'])
-        dispatch_order_notification(order, status_key='cancelled', custom_message=f"Order #{order.id} has been cancelled. Reason: {reason}")
+        record_order_status_transition(order, 'cancelled', actor=user, notes=reason)
         return Response({
             'status': 'cancelled',
             'message': 'Order successfully cancelled.',
+            'order': OrderSerializer(order, context={'request': request}).data
+        })
+
+    @action(detail=True, methods=['post'], url_path='restaurant-accept', permission_classes=[IsAuthenticated])
+    def restaurant_accept(self, request, pk=None):
+        order = self.get_object()
+        user = request.user
+        is_restaurant_owner = (order.restaurant and order.restaurant.owner_id == user.id)
+        if not (is_restaurant_owner or user.is_staff or getattr(user, 'role', '') == 'admin'):
+            raise PermissionDenied("Only the restaurant owner or staff can accept this order.")
+
+        if order.status not in ('pending', 'driver_assigned'):
+            return Response(
+                {'detail': f'Cannot accept order in "{order.status}" status.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        record_order_status_transition(order, 'confirmed', actor=user, actor_role='restaurant', notes='Order accepted by restaurant')
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Order accepted by restaurant.',
+            'order': OrderSerializer(order, context={'request': request}).data
+        })
+
+    @action(detail=True, methods=['post'], url_path='restaurant-reject', permission_classes=[IsAuthenticated])
+    def restaurant_reject(self, request, pk=None):
+        order = self.get_object()
+        user = request.user
+        is_restaurant_owner = (order.restaurant and order.restaurant.owner_id == user.id)
+        if not (is_restaurant_owner or user.is_staff or getattr(user, 'role', '') == 'admin'):
+            raise PermissionDenied("Only the restaurant owner or staff can reject this order.")
+
+        if order.status in ('delivered', 'cancelled'):
+            return Response(
+                {'detail': f'Cannot reject order in "{order.status}" status.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        reason = request.data.get('reason', 'Restaurant unable to fulfill order')
+
+        # Auto refund if paid via online or wallet
+        payment = getattr(order, 'payment', None)
+        extra_fields = []
+        if payment and payment.status == 'PAID':
+            payment.status = 'REFUNDED'
+            payment.save(update_fields=['status'])
+            order.payment_status = 'REFUNDED'
+            extra_fields.append('payment_status')
+
+        record_order_status_transition(
+            order,
+            'cancelled',
+            actor=user,
+            actor_role='restaurant',
+            notes=reason,
+            extra_update_fields=extra_fields
+        )
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Order rejected by restaurant and refunded if prepaid.',
+            'order': OrderSerializer(order, context={'request': request}).data
+        })
+
+    @action(detail=True, methods=['post'], url_path='start-preparing', permission_classes=[IsAuthenticated])
+    def start_preparing(self, request, pk=None):
+        order = self.get_object()
+        user = request.user
+        is_restaurant_owner = (order.restaurant and order.restaurant.owner_id == user.id)
+        if not (is_restaurant_owner or user.is_staff or getattr(user, 'role', '') == 'admin'):
+            raise PermissionDenied("Only the restaurant owner or staff can start food preparation.")
+
+        if order.status not in ('pending', 'confirmed', 'driver_assigned', 'driver_accepted'):
+            return Response(
+                {'detail': f'Cannot start preparation for order in "{order.status}" status.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        delivery = getattr(order, 'delivery', None)
+        if delivery:
+            delivery.status = 'preparing'
+            delivery.save(update_fields=['status'])
+
+        record_order_status_transition(order, 'preparing', actor=user, actor_role='restaurant', notes='Restaurant started cooking order')
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Food preparation started.',
+            'order': OrderSerializer(order, context={'request': request}).data
+        })
+
+    @action(detail=True, methods=['post'], url_path='ready-for-pickup', permission_classes=[IsAuthenticated])
+    def ready_for_pickup(self, request, pk=None):
+        order = self.get_object()
+        user = request.user
+        is_restaurant_owner = (order.restaurant and order.restaurant.owner_id == user.id)
+        if not (is_restaurant_owner or user.is_staff or getattr(user, 'role', '') == 'admin'):
+            raise PermissionDenied("Only the restaurant owner or staff can mark order as ready.")
+
+        if order.status not in ('preparing', 'confirmed'):
+            return Response(
+                {'detail': f'Cannot mark order as ready from "{order.status}" status.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        delivery = getattr(order, 'delivery', None)
+        if delivery:
+            delivery.status = 'ready_for_pickup'
+            delivery.save(update_fields=['status'])
+
+        record_order_status_transition(order, 'ready_for_pickup', actor=user, actor_role='restaurant', notes='Order is packed and ready for driver pickup')
+
+        if delivery and delivery.driver and delivery.driver.user:
+            dispatch_order_notification(
+                order,
+                status_key='ready_for_pickup',
+                target_user=delivery.driver.user,
+                custom_message=f"Order #{order.id} is ready for pickup at {order.restaurant.name}."
+            )
+
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Order marked ready for pickup.',
+            'order': OrderSerializer(order, context={'request': request}).data
+        })
+
+    @action(detail=True, methods=['post'], url_path='failed-delivery', permission_classes=[IsAuthenticated])
+    def failed_delivery(self, request, pk=None):
+        order = self.get_object()
+        user = request.user
+        delivery = getattr(order, 'delivery', None)
+        is_driver = (delivery and delivery.driver and delivery.driver.user_id == user.id)
+        if not (is_driver or user.is_staff or getattr(user, 'role', '') == 'admin'):
+            raise PermissionDenied("Only the assigned driver or administrator can mark a delivery as failed.")
+
+        reason = request.data.get('reason', 'Customer unavailable after multiple contact attempts')
+        if delivery:
+            delivery.status = 'failed_delivery'
+            delivery.save(update_fields=['status'])
+
+        record_order_status_transition(order, 'failed_delivery', actor=user, actor_role='driver' if is_driver else 'admin', notes=f"Delivery failed: {reason}")
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Order marked as failed delivery.',
+            'reason': reason,
             'order': OrderSerializer(order, context={'request': request}).data
         })
 
@@ -375,6 +574,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             delivery_fee = restaurant.delivery_fee if restaurant else Decimal('0.00')
             total_amount = max(Decimal('0.00'), subtotal - discount_amount + delivery_fee)
             addr_snapshot = f"{address.street}, {address.city}, {address.state} {address.zip_code}" if address else ""
+            eta_time = timezone.now() + timezone.timedelta(minutes=30)
 
             order = serializer.save(
                 customer=user,
@@ -386,7 +586,17 @@ class OrderViewSet(viewsets.ModelViewSet):
                 total_amount=total_amount,
                 payment_status='UNPAID',
                 status='pending',
+                estimated_delivery_time=eta_time,
                 delivery_address_snapshot=addr_snapshot
+            )
+
+            OrderStatusHistory.objects.create(
+                order=order,
+                from_status=None,
+                to_status='pending',
+                actor=user,
+                actor_role='customer',
+                notes='Order placed'
             )
 
             OrderItem.objects.bulk_create([
@@ -453,6 +663,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         delivery_fee = restaurant.delivery_fee if restaurant else Decimal('0.00')
         total_amount = max(Decimal('0.00'), subtotal - discount_amount + delivery_fee)
         addr_snapshot = f"{address.street}, {address.city}, {address.state} {address.zip_code}" if address else ""
+        eta_time = timezone.now() + timezone.timedelta(minutes=30)
 
         order = serializer.save(
             customer=user,
@@ -464,7 +675,17 @@ class OrderViewSet(viewsets.ModelViewSet):
             total_amount=total_amount,
             payment_status='UNPAID',
             status='pending',
+            estimated_delivery_time=eta_time,
             delivery_address_snapshot=addr_snapshot
+        )
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            from_status=None,
+            to_status='pending',
+            actor=user,
+            actor_role='customer',
+            notes='Order placed'
         )
 
         OrderItem.objects.bulk_create([
@@ -749,17 +970,26 @@ class OrderViewSet(viewsets.ModelViewSet):
             token_obj.user_agent = request.META.get('HTTP_USER_AGENT', '')[:255]
             token_obj.save(update_fields=['is_used', 'used_at', 'confirmed_by', 'ip_address', 'user_agent'])
 
-            # Transition order status to delivered
-            order.status = 'delivered'
-            # CRITICAL: Preserve order.payment_status as required by specification!
-            order.save(update_fields=['status'])
+            # Transition order status to delivered with audit history
+            record_order_status_transition(
+                order,
+                'delivered',
+                actor=user,
+                actor_role='customer' if is_customer else 'driver',
+                notes='Delivery confirmed via QR / PIN verification'
+            )
 
             # Transition delivery status
             delivery.status = 'delivered'
             delivery.delivery_time = now
             delivery.save(update_fields=['status', 'delivery_time'])
 
-            dispatch_order_notification(order, status_key='delivered')
+            # Credit driver earnings and deliveries
+            driver = token_obj.driver
+            fee = order.delivery_fee_charged if order.delivery_fee_charged else Decimal('2.00')
+            driver.total_deliveries += 1
+            driver.total_earnings += fee
+            driver.save(update_fields=['total_deliveries', 'total_earnings'])
 
         return Response({
             'status': 'SUCCESS',
@@ -1016,16 +1246,13 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                 delivery.status = 'accepted'
                 delivery.save(update_fields=['driver', 'status', 'updated_at'])
 
-            if order.status == 'pending':
-                order.status = 'confirmed'
-                order.confirmed_at = timezone.now()
-                order.save(update_fields=['status', 'confirmed_at', 'updated_at'])
-
-            driver_name = driver.user.get_full_name() or driver.user.username
-            dispatch_order_notification(
+            target_status = 'confirmed' if order.status == 'pending' else order.status
+            record_order_status_transition(
                 order,
-                status_key='driver_assigned',
-                custom_message=f"Driver {driver_name} has accepted your order delivery."
+                target_status,
+                actor=request.user,
+                actor_role='driver',
+                notes=f"Driver {driver.user.get_full_name() or driver.user.username} accepted delivery assignment"
             )
 
         serializer = OrderSerializer(order, context={'request': request})
@@ -1046,6 +1273,14 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                 delivery.driver = None
                 delivery.status = 'assigned'
                 delivery.save(update_fields=['driver', 'status', 'updated_at'])
+                OrderStatusHistory.objects.create(
+                    order=delivery.order,
+                    from_status=delivery.order.status,
+                    to_status=delivery.order.status,
+                    actor=request.user,
+                    actor_role='driver',
+                    notes=f"Driver {driver.user.username} declined delivery assignment; returned to queue"
+                )
         return Response({'status': 'SUCCESS', 'message': 'Order declined.'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/arrive-restaurant')
@@ -1059,6 +1294,15 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         delivery.status = 'arrived_at_restaurant'
         delivery.save(update_fields=['status', 'updated_at'])
         order = delivery.order
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            from_status=order.status,
+            to_status=order.status,
+            actor=request.user,
+            actor_role='driver',
+            notes=f"Driver arrived at {order.restaurant.name if order.restaurant else 'restaurant'} for pickup"
+        )
         dispatch_order_notification(
             order,
             status_key='arrived_restaurant',
@@ -1083,13 +1327,12 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         delivery.pickup_time = now
         delivery.save(update_fields=['status', 'pickup_time', 'updated_at'])
         order = delivery.order
-        order.status = 'on_the_way'
-        order.picked_up_at = now
-        order.save(update_fields=['status', 'picked_up_at', 'updated_at'])
-        dispatch_order_notification(
+        record_order_status_transition(
             order,
-            status_key='on_the_way',
-            custom_message=f"Your order has been picked up from {order.restaurant.name if order.restaurant else 'restaurant'} and is on the way!"
+            'on_the_way',
+            actor=request.user,
+            actor_role='driver',
+            notes=f"Your order has been picked up from {order.restaurant.name if order.restaurant else 'restaurant'} and is on the way!"
         )
         return Response({
             'status': 'SUCCESS',
@@ -1109,12 +1352,12 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         delivery.status = 'arrived'
         delivery.save(update_fields=['status', 'updated_at'])
         order = delivery.order
-        order.status = 'driver_arrived'
-        order.save(update_fields=['status', 'updated_at'])
-        dispatch_order_notification(
+        record_order_status_transition(
             order,
-            status_key='driver_arrived',
-            custom_message="Your driver has arrived outside with your order!"
+            'driver_arrived',
+            actor=request.user,
+            actor_role='driver',
+            notes="Driver has arrived outside customer destination with order."
         )
         return Response({
             'status': 'SUCCESS',
@@ -1135,27 +1378,36 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         now = timezone.now()
         order = delivery.order
 
+        payment = getattr(order, 'payment', None)
         payment_collected = request.data.get('payment_collected', False)
-        if payment_collected or order.payment_status == 'UNPAID':
+        is_cod = (payment and payment.provider == 'COD') or (not payment and order.payment_status != 'PAID')
+        extra_fields = []
+
+        # COD payments are marked paid upon driver confirming collection
+        if payment_collected or is_cod:
             order.payment_status = 'PAID'
+            extra_fields.append('payment_status')
+            if payment:
+                payment.status = 'PAID'
+                payment.paid_at = now
+                payment.save(update_fields=['status', 'paid_at'])
 
         delivery.status = 'delivered'
         delivery.delivery_time = now
         delivery.save(update_fields=['status', 'delivery_time', 'updated_at'])
-
-        order.status = 'delivered'
-        order.delivered_at = now
-        order.save(update_fields=['status', 'payment_status', 'delivered_at', 'updated_at'])
 
         fee = order.delivery_fee_charged if order.delivery_fee_charged else Decimal('2.00')
         driver.total_deliveries += 1
         driver.total_earnings += fee
         driver.save(update_fields=['total_deliveries', 'total_earnings'])
 
-        dispatch_order_notification(
+        record_order_status_transition(
             order,
-            status_key='delivered',
-            custom_message=f"Order #{order.id} has been successfully delivered. Thank you for using FoodGo!"
+            'delivered',
+            actor=request.user,
+            actor_role='driver',
+            notes=f"Order successfully delivered by driver {driver.user.username}. Earned ${fee} delivery fee.",
+            extra_update_fields=extra_fields
         )
         return Response({
             'status': 'SUCCESS',
@@ -1164,6 +1416,34 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             'delivery_time': now.isoformat(),
             'fee_earned': float(fee),
             'total_earnings': float(driver.total_earnings),
+            'payment_status': order.payment_status,
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/failed-delivery')
+    def failed_delivery(self, request, order_id=None):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        delivery = Delivery.objects.filter(order_id=order_id, driver=driver).first()
+        if not delivery:
+            return Response({'error': 'Delivery assignment not found for this driver.'}, status=status.HTTP_404_NOT_FOUND)
+        reason = request.data.get('reason', 'Customer unreachable after multiple attempts')
+        delivery.status = 'failed_delivery'
+        delivery.save(update_fields=['status', 'updated_at'])
+        order = delivery.order
+        record_order_status_transition(
+            order,
+            'failed_delivery',
+            actor=request.user,
+            actor_role='driver',
+            notes=f"Driver delivery failed: {reason}"
+        )
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Failed delivery recorded. Order returned to restaurant.',
+            'order_status': order.status,
+            'delivery_status': delivery.status,
+            'reason': reason,
         })
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/cancel')
@@ -1180,6 +1460,14 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             delivery.driver = None
             delivery.status = 'assigned'
             delivery.save(update_fields=['driver', 'status', 'updated_at'])
+            OrderStatusHistory.objects.create(
+                order=order,
+                from_status=order.status,
+                to_status=order.status,
+                actor=request.user,
+                actor_role='driver',
+                notes=f"Driver released delivery back to queue: {reason}"
+            )
             return Response({
                 'status': 'SUCCESS',
                 'message': 'Delivery released back to available orders queue.',
@@ -1188,14 +1476,12 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             delivery.status = 'cancelled'
             delivery.save(update_fields=['status', 'updated_at'])
-            order.status = 'cancelled'
-            order.cancelled_at = timezone.now()
-            order.cancellation_reason = f"Driver cancellation: {reason}"
-            order.save(update_fields=['status', 'cancelled_at', 'cancellation_reason', 'updated_at'])
-            dispatch_order_notification(
+            record_order_status_transition(
                 order,
-                status_key='cancelled',
-                custom_message=f"Order #{order.id} delivery cancelled: {reason}"
+                'cancelled',
+                actor=request.user,
+                actor_role='driver',
+                notes=f"Driver delivery cancellation: {reason}"
             )
             return Response({
                 'status': 'SUCCESS',

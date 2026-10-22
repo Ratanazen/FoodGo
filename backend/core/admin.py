@@ -21,7 +21,7 @@ def custom_get_app_list(request, app_label=None):
                     users_models.append(model)
                 elif name in ['Restaurant', 'RestaurantCategory', 'FoodCategory', 'FoodItem']:
                     restaurant_models.append(model)
-                elif name in ['Order', 'OrderItem', 'Cart', 'CartItem', 'Delivery', 'Review']:
+                elif name in ['Order', 'OrderItem', 'Cart', 'CartItem', 'Delivery', 'Review', 'OrderStatusHistory']:
                     order_models.append(model)
                 elif name in ['Payment', 'Wallet', 'WalletTransaction']:
                     finance_models.append(model)
@@ -57,7 +57,7 @@ from .models import (
     User, Address, RestaurantCategory, Restaurant, FoodCategory,
     FoodItem, Order, OrderItem, Cart, CartItem, Payment, Driver,
     Delivery, DeliveryConfirmationToken, Review, Favorite, Coupon, Notification, LiveItem,
-    Wallet, WalletTransaction, AuditLog,
+    Wallet, WalletTransaction, AuditLog, OrderStatusHistory,
 )
 
 # ─────────────────────────────────────────────
@@ -485,12 +485,20 @@ class DeliveryInline(admin.StackedInline):
     autocomplete_fields = ['driver']
 
 
+class OrderStatusHistoryInline(admin.TabularInline):
+    model = OrderStatusHistory
+    extra = 0
+    readonly_fields = ['from_status', 'to_status', 'actor', 'actor_role', 'notes', 'created_at']
+    can_delete = False
+    ordering = ['created_at']
+
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'customer', 'restaurant', 'assigned_driver_badge', 'status_badge', 'payment_status', 'total_amount', 'bill_action', 'created_at']
     list_filter = ['status', 'payment_status', 'created_at', 'restaurant']
     search_fields = ['customer__username', 'id']
-    inlines = [OrderItemInline, DeliveryInline]
+    inlines = [OrderItemInline, DeliveryInline, OrderStatusHistoryInline]
     readonly_fields = ['created_at', 'view_bill_link']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
@@ -604,11 +612,18 @@ class OrderAdmin(admin.ModelAdmin):
         colors = {
             'pending': '#f39c12',
             'confirmed': '#3498db',
+            'driver_assigned': '#0284c7',
+            'driver_accepted': '#0369a1',
             'preparing': '#9b59b6',
             'ready': '#1abc9c',
+            'ready_for_pickup': '#0d9488',
             'picked_up': '#2980b9',
             'on_the_way': '#e67e22',
+            'out_for_delivery': '#d97706',
+            'driver_arrived': '#6366f1',
+            'arrived': '#6366f1',
             'delivered': '#27ae60',
+            'failed_delivery': '#dc2626',
             'cancelled': '#e74c3c',
         }
         color = colors.get(obj.status, '#95a5a6')
@@ -616,6 +631,15 @@ class OrderAdmin(admin.ModelAdmin):
             '<span style="background:{};color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{}</span>',
             color, obj.get_status_display()
         )
+
+
+@admin.register(OrderStatusHistory)
+class OrderStatusHistoryAdmin(admin.ModelAdmin):
+    list_display = ['id', 'order', 'from_status', 'to_status', 'actor', 'actor_role', 'notes', 'created_at']
+    list_filter = ['to_status', 'actor_role', 'created_at']
+    search_fields = ['order__id', 'order__order_reference', 'actor__username', 'notes']
+    readonly_fields = ['order', 'from_status', 'to_status', 'actor', 'actor_role', 'notes', 'created_at']
+    ordering = ['-created_at']
 
 
 @admin.register(OrderItem)

@@ -98,12 +98,16 @@ class Order(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
+        ('driver_assigned', 'Driver Assigned'),
+        ('driver_accepted', 'Driver Accepted'),
         ('preparing', 'Preparing'),
         ('ready_for_pickup', 'Ready for Pickup'),
         ('picked_up', 'Picked Up'),
         ('on_the_way', 'On the Way'),
+        ('out_for_delivery', 'Out for Delivery'),
         ('driver_arrived', 'Driver Arrived'),
         ('delivered', 'Delivered'),
+        ('failed_delivery', 'Failed Delivery'),
         ('cancelled', 'Cancelled'),
         # Backward-compatible choices
         ('ready', 'Ready for Pickup (Legacy)'),
@@ -120,7 +124,7 @@ class Order(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='orders')
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='UNPAID')
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     delivery_fee_charged = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
@@ -250,10 +254,14 @@ class Delivery(models.Model):
         ('assigned', 'Assigned'),
         ('accepted', 'Accepted'),
         ('arrived_at_restaurant', 'Arrived at Restaurant'),
+        ('preparing', 'Preparing'),
+        ('ready_for_pickup', 'Ready for Pickup'),
         ('picked_up', 'Picked Up'),
         ('on_the_way', 'On the Way'),
+        ('out_for_delivery', 'Out for Delivery'),
         ('arrived', 'Arrived at Customer'),
         ('delivered', 'Delivered'),
+        ('failed_delivery', 'Failed Delivery'),
         ('cancelled', 'Cancelled'),
     )
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='delivery')
@@ -269,6 +277,24 @@ class Delivery(models.Model):
 
     def __str__(self):
         return f"Delivery for Order #{self.order_id} ({self.status})"
+
+class OrderStatusHistory(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_history')
+    from_status = models.CharField(max_length=30, blank=True, null=True)
+    to_status = models.CharField(max_length=30)
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='order_status_changes')
+    actor_role = models.CharField(max_length=30, blank=True, default='')  # 'customer', 'driver', 'restaurant', 'admin', 'system'
+    notes = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'Order Status History'
+        verbose_name_plural = 'Order Status Histories'
+
+    def __str__(self):
+        actor_name = self.actor.username if self.actor else 'System'
+        return f"Order #{self.order_id}: {self.from_status} -> {self.to_status} by {actor_name} ({self.created_at:%Y-%m-%d %H:%M})"
 
 class DeliveryConfirmationToken(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='delivery_token')

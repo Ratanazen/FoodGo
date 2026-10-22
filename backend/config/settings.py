@@ -6,17 +6,17 @@ import sys
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Automatically load local .env if present (without external dependencies)
-_env_path = BASE_DIR / '.env'
-if _env_path.exists():
-    try:
-        with open(_env_path, 'r', encoding='utf-8') as _f:
-            for _line in _f:
-                _line = _line.strip()
-                if _line and not _line.startswith('#') and '=' in _line:
-                    _k, _v = _line.split('=', 1)
-                    os.environ.setdefault(_k.strip(), _v.strip())
-    except Exception:
-        pass
+for _env_candidate in [BASE_DIR / '.env', BASE_DIR.parent / '.env']:
+    if _env_candidate.exists():
+        try:
+            with open(_env_candidate, 'r', encoding='utf-8') as _f:
+                for _line in _f:
+                    _line = _line.strip()
+                    if _line and not _line.startswith('#') and '=' in _line:
+                        _k, _v = _line.split('=', 1)
+                        os.environ.setdefault(_k.strip(), _v.strip().strip('"').strip("'"))
+        except Exception:
+            pass
 
 SECRET_KEY = os.environ.get('SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY', 'foodgo-django-insecure-secret-key-prod-ready-minimum-50-characters-xyz'))
 _is_cloud_prod = 'VERCEL' in os.environ or 'RENDER' in os.environ or os.environ.get('ENVIRONMENT') == 'production'

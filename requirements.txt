@@ -42,3 +42,5 @@ urllib3==2.8.0
 websockets==17.2
 whitenoise>=6.6.0
 zope.interface==8.7
+dnspython>=2.7.0
+pymongo>=4.19.0

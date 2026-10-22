@@ -10,6 +10,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../widgets/my_qr_modal.dart';
+import '../../../widgets/phone_verification_modal.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -300,6 +301,7 @@ class ProfileScreen extends StatelessWidget {
                 final String username = user?['username'] ?? 'Guest';
                 final String email = user?['email'] ?? 'guest@example.com';
                 final String phone = user?['phone'] ?? '';
+                final bool isPhoneVerified = user?['is_phone_verified'] == true;
                 final String? avatarUrl =
                     user?['avatar_url'] ?? user?['avatar'];
 
@@ -397,28 +399,109 @@ class ProfileScreen extends StatelessWidget {
                                   fontSize: 13,
                                 ),
                               ),
-                              if (phone.isNotEmpty) ...[
-                                const SizedBox(height: 6),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.phone_outlined,
-                                      size: 14,
-                                      color: GlassTheme.limeAccent,
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.phone_outlined,
+                                    size: 14,
+                                    color: GlassTheme.limeAccent,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    phone.isNotEmpty ? phone : 'No phone linked',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      phone,
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  if (isPhoneVerified)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: GlassTheme.primaryGreen.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: GlassTheme.primaryGreen.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            size: 10,
+                                            color: GlassTheme.primaryGreen,
+                                          ),
+                                          SizedBox(width: 3),
+                                          Text(
+                                            'Verified',
+                                            style: TextStyle(
+                                              color: GlassTheme.primaryGreen,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    InkWell(
+                                      onTap: () => PhoneVerificationModal.show(
+                                        context,
+                                        initialPhone: phone,
+                                        purpose: 'customer_verification',
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: Colors.amber.withValues(
+                                              alpha: 0.3,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.warning_amber_rounded,
+                                              size: 10,
+                                              color: Colors.amber,
+                                            ),
+                                            SizedBox(width: 3),
+                                            Text(
+                                              'Verify SMS',
+                                              style: TextStyle(
+                                                color: Colors.amber,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ],
+                                ],
+                              ),
                               const SizedBox(height: 18),
                               // Quick Action Shortcuts: Addresses, Orders, KHQR
                               Row(
@@ -663,10 +746,51 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _ProfileOption(
-              icon: Icons.person_outline,
-              title: 'Edit Profile',
-              onTap: () => context.push('/edit-profile'),
+            Builder(
+              builder: (ctx) {
+                final currentUser = ctx.watch<UserProvider>().user;
+                final bool isVerified = currentUser?['is_phone_verified'] == true;
+                final String userPhone = currentUser?['phone'] ?? '';
+                return Column(
+                  children: [
+                    _ProfileOption(
+                      icon: Icons.person_outline,
+                      title: 'Edit Profile',
+                      onTap: () => context.push('/edit-profile'),
+                    ),
+                    _ProfileOption(
+                      icon: Icons.phone_android_outlined,
+                      title: 'Phone Verification (SMS OTP)',
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isVerified
+                              ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
+                              : Colors.amber.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          isVerified ? 'Verified' : 'Unverified',
+                          style: TextStyle(
+                            color: isVerified
+                                ? GlassTheme.primaryGreen
+                                : Colors.amber,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        PhoneVerificationModal.show(
+                          context,
+                          initialPhone: userPhone,
+                          purpose: 'customer_verification',
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
             ),
             _ProfileOption(
               icon: Icons.receipt_long_outlined,
@@ -952,6 +1076,7 @@ class _ProfileOption extends StatelessWidget {
   final VoidCallback onTap;
   final Color? textColor;
   final Color? iconColor;
+  final Widget? trailing;
 
   const _ProfileOption({
     required this.icon,
@@ -959,6 +1084,7 @@ class _ProfileOption extends StatelessWidget {
     required this.onTap,
     this.textColor,
     this.iconColor,
+    this.trailing,
   });
 
   @override
@@ -998,6 +1124,10 @@ class _ProfileOption extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (trailing != null) ...[
+                    trailing!,
+                    const SizedBox(width: 8),
+                  ],
                   Icon(
                     Icons.arrow_forward_ios,
                     color: Colors.white.withValues(alpha: 0.35),

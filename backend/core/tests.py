@@ -469,7 +469,9 @@ class DriverModuleTestCase(TestCase):
             email='borey@foodgo.kh',
             password='Driver123!',
             role='driver',
-            phone='+855 77 333 444'
+            phone='+855 77 333 444',
+            is_phone_verified=True,
+            phone_normalized='+85577333444'
         )
         self.driver1 = Driver.objects.create(
             user=self.driver_user1,
@@ -484,7 +486,9 @@ class DriverModuleTestCase(TestCase):
             email='chhaya@foodgo.kh',
             password='Driver123!',
             role='driver',
-            phone='+855 77 555 666'
+            phone='+855 77 555 666',
+            is_phone_verified=True,
+            phone_normalized='+85577555666'
         )
         self.driver2 = Driver.objects.create(
             user=self.driver_user2,
@@ -725,7 +729,10 @@ class DeliverySystemTests(TestCase):
         self.driver_user1 = User.objects.create_user(
             username='courier1',
             password='Password123!',
-            role='driver'
+            role='driver',
+            phone='+855 12 345 678',
+            is_phone_verified=True,
+            phone_normalized='+85512345678'
         )
         self.driver1 = Driver.objects.create(
             user=self.driver_user1,
@@ -737,7 +744,10 @@ class DeliverySystemTests(TestCase):
         self.driver_user2 = User.objects.create_user(
             username='courier2',
             password='Password123!',
-            role='driver'
+            role='driver',
+            phone='+855 12 987 654',
+            is_phone_verified=True,
+            phone_normalized='+85512987654'
         )
         self.driver2 = Driver.objects.create(
             user=self.driver_user2,

@@ -6,7 +6,7 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql)
-![Tests](https://img.shields.io/badge/Tests-229%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-263%20Passing-brightgreen)
 ![Analyze](https://img.shields.io/badge/Flutter%20Analyze-0%20Issues-brightgreen)
 ![Zero Emoji](https://img.shields.io/badge/Zero--Emoji-100%25%20Vector-success)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -98,6 +98,16 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 * **Dynamic NBC Rate Engine:** REST endpoint `/api/currency/rates/` exposing the National Bank of Cambodia customary rate (`4,100 KHR / USD`) with database persistence (`ExchangeRate` model) and timestamped caching.
 * **App-Wide Currency Switcher:** User preference toggle (`$ USD`, `៛ KHR`, `Dual ($ / ៛)`) persisted in `SharedPreferences`, dynamically re-rendering all menus, cart totals, and receipts.
 * **Automated Disaster Recovery Script (`scripts/backup_db.sh`):** Enterprise utility supporting PostgreSQL and SQLite backups, gzip compression, 7-day retention rotation, and restore verification.
+
+### 9. Real Cambodian SMS Gateway & Phone OTP Verification
+* **Cambodian Carrier E.164 Normalization:** Strict Cambodian mobile formatting (`+855...`) supporting Smart (`010`, `015`, `016`, `069`, `070`, `081`, `086`, `087`, `093`, `096`, `098`), Cellcard (`011`, `012`, `014`, `017`, `061`, `076`, `077`, `078`, `079`, `085`, `089`, `092`), Metfone (`031`, `060`, `066`, `067`, `068`, `071`, `088`, `090`, `097`), Seatel (`018`), and Cootel (`038`).
+* **Multi-Gateway Architecture:** Primary production adapter for SimoSMS (`smscambodia.com` / ViHaT Group Cambodia), fallback adapter for WeUMS (`weums365.com`), and isolated in-memory test provider.
+* **Zero Plaintext Storage Security:** Cryptographically secure 6-digit numeric OTPs generated via CSPRNG and hashed using keyed HMAC-SHA256 with unique 32-character hexadecimal salts. Plaintext OTPs are never stored in the database or logged to disk.
+* **Anti-Abuse Safeguards:** 60-second resend cooldown timer, 300-second expiration, 5-attempt lockout, and 5-per-hour rate limits per mobile number.
+* **Atomic Consumption:** Concurrency-safe verification using `select_for_update()` row locking preventing replay attacks.
+* **Driver Phone Enforcement:** Couriers must verify their Cambodian mobile number via SMS OTP before accepting delivery assignments (`POST /api/drivers/orders/<id>/accept/` returns 403 Forbidden when unverified).
+* **Flutter Verification UI:** Interactive `PhoneVerificationModal` bottom sheet with Cambodian carrier hints, animated countdown timer, inline validation, and verified profile badge.
+* **Full Documentation:** Complete technical guide in [`docs/cambodian-sms-otp.md`](docs/cambodian-sms-otp.md).
 
 ---
 
@@ -286,10 +296,10 @@ flutter build web --release
 
 | Test Suite | Tests Run | Result | Execution Time |
 | :--- | :---: | :---: | :---: |
-| **Django Backend (`backend/manage.py test core`)** | **119** | **119 Passed (100%)** | ~5.8s |
-| **Flutter Frontend (`foodgo_flutter/test/`)** | **110** | **110 Passed (100%)** | ~9.0s |
-| **Total Automated Tests** | **229** | **229 Passed (100%)** | ~14.8s |
-| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **84 Files** | **0 Errors, 0 Warnings** | ~2.4s |
+| **Django Backend (`backend/manage.py test core`)** | **151** | **151 Passed (100%)** | ~6.4s |
+| **Flutter Frontend (`foodgo_flutter/test/`)** | **112** | **112 Passed (100%)** | ~9.2s |
+| **Total Automated Tests** | **263** | **263 Passed (100%)** | ~15.6s |
+| **Flutter Static Analysis (`flutter analyze --no-pub`)** | **85 Files** | **0 Errors, 0 Warnings** | ~2.3s |
 | **Zero-Emoji Policy Verification** | **All Repo Files** | **100% Vector Icon Compliant** | ~1.1s |
 | **Multi-Cloud Health Checks (`/api/health/`)** | **Endpoints** | **Operational (Vercel, Render, Docker)** | <10ms |
 | **Flutter Web Build (`flutter build web --release`)** | **Full Web Bundle** | **Success (`[Passed] Built build/web`)** | ~74s |
@@ -301,6 +311,7 @@ flutter build web --release
 ## Technical Documentation
 
 Comprehensive documentation is provided in the `docs/` directory:
+- [**Cambodian SMS OTP Specification**](docs/cambodian-sms-otp.md) — Real Cambodian SMS Gateway integration (SimoSMS, WeUMS), E.164 normalization, salted HMAC-SHA256, and anti-abuse policies.
 - [**Authentication & Authorization Specification**](docs/authentication.md) — JWT lifecycle, role-based access control, Remember Me security, and endpoint contracts.
 - [**Login, Auth & QR Payment Audit**](docs/login-payment-audit.md) — Comprehensive audit covering mock token elimination, host routing, and registration validation.
 - [**Payment Flow & EMVCo KHQR Architecture**](docs/payment-flow.md) — Dynamic KHQR flow, CRC16 mathematical verification, state transitions, and responsive layout.

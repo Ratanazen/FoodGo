@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../core/storage/secure_storage.dart';
@@ -69,19 +70,31 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> requestOTP(String phone) async {
+    _lastAuthError = null;
     try {
-      await _apiService.post('auth/phone-login/request/', {'phone': phone});
+      await _apiService.post('auth/phone-login/request/', {
+        'phone': phone,
+        'purpose': 'phone_login',
+      });
       return true;
     } catch (e) {
+      if (e is DioException && e.response?.data is Map) {
+        _lastAuthError = e.response!.data['error']?.toString();
+      } else {
+        _lastAuthError = 'Unable to dispatch SMS verification code.';
+      }
+      notifyListeners();
       return false;
     }
   }
 
   Future<bool> verifyOTP(String phone, String otp) async {
+    _lastAuthError = null;
     try {
       final response = await _apiService.post('auth/phone-login/verify/', {
         'phone': phone,
         'otp': otp,
+        'purpose': 'phone_login',
       });
 
       final access = response['access'];
@@ -98,6 +111,12 @@ class AuthProvider with ChangeNotifier {
       }
       return false;
     } catch (e) {
+      if (e is DioException && e.response?.data is Map) {
+        _lastAuthError = e.response!.data['error']?.toString();
+      } else {
+        _lastAuthError = 'Invalid or expired verification code.';
+      }
+      notifyListeners();
       return false;
     }
   }

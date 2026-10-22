@@ -1086,10 +1086,14 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                 driver.license_plate = data['license_plate']
             if 'is_online' in data:
                 driver.is_online = bool(data['is_online'])
-            driver.save()
             if 'phone' in data:
-                request.user.phone = data['phone']
-                request.user.save(update_fields=['phone'])
+                new_phone = data['phone']
+                if new_phone != request.user.phone:
+                    request.user.phone = new_phone
+                    request.user.phone_normalized = None
+                    request.user.is_phone_verified = False
+                    request.user.phone_verified_at = None
+                    request.user.save(update_fields=['phone', 'phone_normalized', 'is_phone_verified', 'phone_verified_at'])
         serializer = DriverSerializer(driver, context={'request': request})
         return Response(serializer.data)
 
@@ -1225,6 +1229,8 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         driver, err = self._get_driver(request.user)
         if err:
             return err
+        if not request.user.is_phone_verified:
+            return Response({'error': 'Verified Cambodian phone number required before accepting delivery assignments.'}, status=status.HTTP_403_FORBIDDEN)
         if not driver.is_online:
             return Response({'error': 'You must be online to accept delivery requests.'}, status=status.HTTP_400_BAD_REQUEST)
 

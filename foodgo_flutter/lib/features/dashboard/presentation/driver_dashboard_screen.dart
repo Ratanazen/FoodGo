@@ -7,12 +7,14 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
+import 'package:dio/dio.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/delivery_qr_modal.dart';
 import '../../../widgets/delivery_scanner_modal.dart';
+import '../../../widgets/phone_verification_modal.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   final bool initialLoading;
@@ -232,10 +234,36 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
+      String errorMsg = 'Unable to accept order. It may have been claimed by another driver.';
+      bool needsVerification = false;
+      if (e is DioException && e.response?.data is Map) {
+        final data = e.response!.data as Map;
+        if (data['error'] != null) {
+          errorMsg = data['error'].toString();
+          if (errorMsg.toLowerCase().contains('phone') || errorMsg.toLowerCase().contains('verif')) {
+            needsVerification = true;
+          }
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to accept order. It may have been claimed by another driver.'),
+        SnackBar(
+          content: Text(errorMsg),
           backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          action: needsVerification
+              ? SnackBarAction(
+                  label: 'Verify Phone',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    PhoneVerificationModal.show(
+                      context,
+                      initialPhone: _driverProfile?['phone'],
+                      purpose: 'driver_verification',
+                      onVerified: _fetchDashboardData,
+                    );
+                  },
+                )
+              : null,
         ),
       );
     }
@@ -1393,13 +1421,70 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       );
     }
 
-    return ListView.builder(
+    final bool isPhoneVerified = _driverProfile?['is_phone_verified'] == true;
+
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: _availableOrders.length,
-      itemBuilder: (context, index) {
-        final order = _availableOrders[index];
-        return _buildAvailableOrderCard(order);
-      },
+      children: [
+        if (!isPhoneVerified) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Phone Verification Required',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'You must verify your Cambodian phone number (+855) via SMS OTP before accepting delivery assignments.',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    PhoneVerificationModal.show(
+                      context,
+                      initialPhone: _driverProfile?['phone'],
+                      purpose: 'driver_verification',
+                      onVerified: _fetchDashboardData,
+                    );
+                  },
+                  icon: const Icon(Icons.verified, size: 16),
+                  label: const Text('Verify Phone via SMS'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    visualDensity: VisualDensity.compact,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        ..._availableOrders.map((o) => _buildAvailableOrderCard(o)),
+      ],
     );
   }
 
@@ -1720,6 +1805,76 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               _buildProfileRow(Icons.two_wheeler, 'Vehicle Type', vehicle),
               _buildProfileRow(Icons.badge, 'License Plate', plate),
               _buildProfileRow(Icons.phone, 'Contact Phone', phone),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.phonelink_lock, size: 18, color: Colors.white60),
+                    const SizedBox(width: 12),
+                    const Text('Phone Verification', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    const Spacer(),
+                    if (_driverProfile?['is_phone_verified'] == true)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: GlassTheme.primaryGreen.withValues(alpha: 0.3)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.check_circle, size: 12, color: GlassTheme.primaryGreen),
+                            SizedBox(width: 4),
+                            Text(
+                              'Verified (+855)',
+                              style: TextStyle(
+                                color: GlassTheme.primaryGreen,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      InkWell(
+                        onTap: () {
+                          PhoneVerificationModal.show(
+                            context,
+                            initialPhone: phone,
+                            purpose: 'driver_verification',
+                            onVerified: _fetchDashboardData,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.warning_amber_rounded, size: 12, color: Colors.amber),
+                              SizedBox(width: 4),
+                              Text(
+                                'Verify Now',
+                                style: TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
               _buildProfileRow(
                 Icons.verified_user,
                 'Account Approval',

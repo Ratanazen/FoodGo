@@ -5,8 +5,12 @@ from .models import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'phone', 'first_name', 'last_name', 'avatar', 'avatar_url']
-        read_only_fields = ['id']
+        fields = [
+            'id', 'username', 'email', 'role', 'phone', 'phone_normalized',
+            'is_phone_verified', 'phone_verified_at', 'first_name', 'last_name',
+            'avatar', 'avatar_url'
+        ]
+        read_only_fields = ['id', 'phone_normalized', 'is_phone_verified', 'phone_verified_at']
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -83,6 +87,8 @@ class DriverSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     full_name = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
+    is_phone_verified = serializers.BooleanField(source='user.is_phone_verified', read_only=True)
+    phone_verified_at = serializers.DateTimeField(source='user.phone_verified_at', read_only=True)
     email = serializers.CharField(source='user.email', read_only=True)
     rating = serializers.FloatField(default=4.9, read_only=True)
     today_earnings = serializers.SerializerMethodField()
@@ -90,12 +96,15 @@ class DriverSerializer(serializers.ModelSerializer):
     class Meta:
         model = Driver
         fields = [
-            'id', 'user_id', 'username', 'full_name', 'phone', 'email',
-            'vehicle_type', 'license_plate', 'is_online', 'is_approved',
-            'operational_status', 'total_deliveries', 'total_earnings',
-            'today_earnings', 'current_lat', 'current_lng', 'rating',
+            'id', 'user_id', 'username', 'full_name', 'phone', 'is_phone_verified',
+            'phone_verified_at', 'email', 'vehicle_type', 'license_plate',
+            'is_online', 'is_approved', 'operational_status', 'total_deliveries',
+            'total_earnings', 'today_earnings', 'current_lat', 'current_lng', 'rating',
         ]
-        read_only_fields = ['id', 'user_id', 'username', 'email', 'is_approved', 'total_deliveries', 'total_earnings', 'today_earnings']
+        read_only_fields = [
+            'id', 'user_id', 'username', 'email', 'is_approved', 'is_phone_verified',
+            'phone_verified_at', 'total_deliveries', 'total_earnings', 'today_earnings'
+        ]
 
     def get_full_name(self, obj):
         name = obj.user.get_full_name()

@@ -1,4 +1,10 @@
 from .auth_views import RequestOTPView, VerifyOTPView, GoogleLoginView, ChangePasswordView, LogoutView, DeleteAccountView
+from .phone_views import (
+    SendPhoneOTPView,
+    VerifyPhoneOTPView,
+    PhoneStatusView,
+    ChangePhoneView,
+)
 from .payment_views import (
     CreatePaymentView, PaymentDetailView, PaymentStatusView,
     CancelPaymentView, RefundPaymentView, ABACallbackView, ACLEDACallbackView, BakongCallbackView
@@ -37,8 +43,14 @@ router.register(r'admin/audit-logs', AdminAuditLogViewSet, basename='admin-audit
 router.register(r'admin/drivers', AdminDriverViewSet, basename='admin-drivers')
 
 urlpatterns = [
-    path('auth/phone-login/request/', RequestOTPView.as_view(), name='otp_request'),
-    path('auth/phone-login/verify/', VerifyOTPView.as_view(), name='otp_verify'),
+    # Phone Verification & OTP Endpoints (Cambodian SMS)
+    path('auth/phone/send-otp/', SendPhoneOTPView.as_view(), name='phone_send_otp'),
+    path('auth/phone/verify-otp/', VerifyPhoneOTPView.as_view(), name='phone_verify_otp'),
+    path('auth/phone/status/', PhoneStatusView.as_view(), name='phone_status'),
+    path('auth/phone/change/', ChangePhoneView.as_view(), name='phone_change'),
+    # Aliases for phone login
+    path('auth/phone-login/request/', SendPhoneOTPView.as_view(), name='otp_request'),
+    path('auth/phone-login/verify/', VerifyPhoneOTPView.as_view(), name='otp_verify'),
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
     path('auth/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('auth/logout/', LogoutView.as_view(), name='auth_logout'),

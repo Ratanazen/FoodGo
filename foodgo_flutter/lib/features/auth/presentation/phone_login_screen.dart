@@ -28,20 +28,31 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     if (phone.isEmpty) return;
 
     setState(() => _isLoading = true);
-    final success = await context.read<AuthProvider>().requestOTP(phone);
+    final auth = context.read<AuthProvider>();
+    final success = await auth.requestOTP(phone);
     setState(() {
       _isLoading = false;
       if (success) _otpSent = true;
     });
 
-    if (mounted && success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Mock OTP sent! (Use 1234)'),
-          backgroundColor: GlassTheme.primaryGreen,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Verification code dispatched via SMS.'),
+            backgroundColor: GlassTheme.primaryGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(auth.lastAuthError ?? 'Failed to send SMS code. Please check your phone number.'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -51,7 +62,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     if (otp.isEmpty) return;
 
     setState(() => _isLoading = true);
-    final success = await context.read<AuthProvider>().verifyOTP(phone, otp);
+    final auth = context.read<AuthProvider>();
+    final success = await auth.verifyOTP(phone, otp);
     setState(() => _isLoading = false);
 
     if (mounted) {
@@ -60,7 +72,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Invalid or expired OTP.'),
+            content: Text(auth.lastAuthError ?? 'Invalid or expired verification code.'),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -151,8 +163,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           controller: _phoneController,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            labelText: 'Phone Number',
-                            labelStyle: TextStyle(color: GlassTheme.textMuted),
+                            labelText: 'Cambodian Phone Number',
+                            hintText: '012 345 678 (or +855)',
+                            hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+                            labelStyle: const TextStyle(color: GlassTheme.textMuted),
                             prefixIcon: const Icon(
                               Icons.phone,
                               color: GlassTheme.primaryGreen,
@@ -174,22 +188,32 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           ),
                           keyboardType: TextInputType.phone,
                         ).animate().fade().slideX(),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Supported: Smart, Cellcard, Metfone, Seatel, Cootel',
+                          style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                        ),
                         const SizedBox(height: 24),
                         SizedBox(
                           height: 56,
                           child: GlassButton(
                             onPressed: _isLoading ? () {} : _sendOTP,
-                            text: _isLoading ? 'Sending...' : 'Send OTP',
+                            text: _isLoading ? 'Sending SMS...' : 'Send SMS OTP',
                             icon: Icons.send,
                           ),
                         ).animate().fade().scale(),
                       ] else ...[
                         TextFormField(
                           controller: _otpController,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            letterSpacing: 6,
+                          ),
+                          textAlign: TextAlign.center,
                           decoration: InputDecoration(
-                            labelText: '4-Digit OTP',
-                            labelStyle: TextStyle(color: GlassTheme.textMuted),
+                            labelText: '6-Digit SMS Code',
+                            labelStyle: const TextStyle(color: GlassTheme.textMuted),
                             prefixIcon: const Icon(
                               Icons.password,
                               color: GlassTheme.primaryGreen,
@@ -210,14 +234,42 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                             fillColor: Colors.white.withValues(alpha: 0.05),
                           ),
                           keyboardType: TextInputType.number,
-                          maxLength: 4,
+                          maxLength: 6,
                         ).animate().fade().slideX(),
-                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _otpSent = false;
+                                  _otpController.clear();
+                                });
+                              },
+                              child: const Text(
+                                'Change Number',
+                                style: TextStyle(color: Colors.white60, fontSize: 13),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _isLoading ? null : _sendOTP,
+                              child: const Text(
+                                'Resend SMS',
+                                style: TextStyle(
+                                  color: GlassTheme.primaryGreen,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
                         SizedBox(
                           height: 56,
                           child: GlassButton(
                             onPressed: _isLoading ? () {} : _verifyOTP,
-                            text: _isLoading ? 'Verifying...' : 'Login',
+                            text: _isLoading ? 'Verifying...' : 'Verify & Login',
                             icon: Icons.check_circle,
                           ),
                         ).animate().fade().scale(),

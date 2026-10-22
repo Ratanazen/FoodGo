@@ -12,6 +12,9 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
     phone = models.CharField(max_length=20, blank=True, null=True)
+    phone_normalized = models.CharField(max_length=20, blank=True, null=True, db_index=True)
+    is_phone_verified = models.BooleanField(default=False, db_index=True)
+    phone_verified_at = models.DateTimeField(null=True, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     avatar_url = models.URLField(max_length=500, blank=True, null=True, help_text="Direct web link or Google profile photo")
 
@@ -440,4 +443,45 @@ class ExchangeRate(models.Model):
 
     def __str__(self):
         return f"1 {self.base_currency} = {self.rate} {self.target_currency} ({self.source})"
+
+class PhoneOTPChallenge(models.Model):
+    PURPOSE_CHOICES = (
+        ('customer_verification', 'Customer Verification'),
+        ('driver_verification', 'Driver Verification'),
+        ('phone_change', 'Phone Number Change'),
+        ('phone_login', 'Phone Login'),
+    )
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name='phone_otp_challenges')
+    phone_raw = models.CharField(max_length=30)
+    phone_normalized = models.CharField(max_length=20, db_index=True)
+    purpose = models.CharField(max_length=30, choices=PURPOSE_CHOICES, default='customer_verification')
+    hashed_otp = models.CharField(max_length=128)
+    salt = models.CharField(max_length=32)
+    expires_at = models.DateTimeField(db_index=True)
+    resend_available_at = models.DateTimeField()
+    attempts = models.IntegerField(default=0)
+    max_attempts = models.IntegerField(default=5)
+    is_consumed = models.BooleanField(default=False, db_index=True)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    provider_name = models.CharField(max_length=50, blank=True, default='')
+    provider_message_id = models.CharField(max_length=100, blank=True, default='')
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['phone_normalized', 'purpose', 'is_consumed']),
+        ]
+
+    def __str__(self):
+        status = 'Consumed' if self.is_consumed else ('Expired' if self.is_expired() else 'Active')
+        return f"OTP #{self.id} for {self.phone_normalized} ({self.purpose}) - {status}"
+
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
+
+    def can_resend(self):
+        return timezone.now() >= self.resend_available_at
+
 

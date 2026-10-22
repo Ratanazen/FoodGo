@@ -229,3 +229,116 @@ class AdminFeatureTestCase(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         # Total revenue reflects the $25.00 payment with status='PAID'
         self.assertEqual(float(res.data['metrics']['total_revenue']), 25.0)
+
+    def test_user_registration_always_forces_customer_role(self):
+        """Self-registration via API only creates customer accounts; admin/driver/owner roles are forbidden."""
+        payload = {
+            'username': 'attacker_trying_admin',
+            'email': 'attacker@example.com',
+            'password': 'SecurePassword123!',
+            'role': 'admin'
+        }
+        res = self.client.post('/api/register/', payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        created_user = User.objects.get(username='attacker_trying_admin')
+        self.assertEqual(created_user.role, 'customer')
+        self.assertFalse(created_user.is_staff)
+        self.assertFalse(created_user.is_superuser)
+
+    def test_user_admin_save_model_admin_role_auto_grants_staff(self):
+        """When an admin creates an Admin user in Django admin, staff & superuser flags are automatically granted."""
+        from django.contrib.admin.sites import site
+        from core.admin import UserAdmin
+        ua = UserAdmin(User, site)
+        new_admin = User(username='new_admin_exec', email='admin2@foodgo.com', role='admin')
+        ua.save_model(None, new_admin, None, False)
+        self.assertTrue(new_admin.is_staff)
+        self.assertTrue(new_admin.is_superuser)
+
+    def test_user_admin_save_model_driver_role_auto_provisions_profile(self):
+        """When an admin creates a Driver user in Django admin, a Driver profile is automatically created."""
+        from django.contrib.admin.sites import site
+        from core.admin import UserAdmin
+        ua = UserAdmin(User, site)
+        new_driver_user = User.objects.create_user(username='new_driver_user', email='d@foodgo.com', role='driver')
+        ua.save_model(None, new_driver_user, None, False)
+        self.assertTrue(hasattr(new_driver_user, 'driver_profile'))
+        self.assertEqual(new_driver_user.driver_profile.license_plate, 'PP-1AB-2026')
+
+    def test_driver_admin_save_model_updates_user_role_and_updates_cleanly(self):
+        """DriverAdmin.save_model ensures user.role is 'driver' and safely updates existing records without IntegrityError."""
+        from django.contrib.admin.sites import site
+        from core.admin import DriverAdmin
+        da = DriverAdmin(Driver, site)
+
+        normal_user = User.objects.create_user(username='normal_to_driver', email='norm@foodgo.com', role='customer')
+        # Create driver via admin
+        driver_entry = Driver(user=normal_user, vehicle_type='Honda Scoopy', license_plate='PP-8888', is_online=True)
+        da.save_model(None, driver_entry, None, False)
+
+        normal_user.refresh_from_db()
+        self.assertEqual(normal_user.role, 'driver')
+        self.assertEqual(Driver.objects.filter(user=normal_user).count(), 1)
+
+        # Attempt to save a duplicate Driver entry for the same user (e.g. from popup workflow)
+        duplicate_entry = Driver(user=normal_user, vehicle_type='Yamaha Fazzio', license_plate='PP-7777', is_online=True)
+        da.save_model(None, duplicate_entry, None, False)
+
+        # Confirm it updated the existing record without crashing
+        self.assertEqual(Driver.objects.filter(user=normal_user).count(), 1)
+        driver_saved = Driver.objects.get(user=normal_user)
+        self.assertEqual(driver_saved.license_plate, 'PP-7777')
+
+    def test_restaurant_admin_save_model_sets_owner_role(self):
+        """RestaurantAdmin.save_model ensures owner user.role is updated to 'restaurant_owner'."""
+        from django.contrib.admin.sites import site
+        from core.admin import RestaurantAdmin
+        ra = RestaurantAdmin(Restaurant, site)
+
+        user_for_owner = User.objects.create_user(username='promoted_owner', email='powner@foodgo.com', role='customer')
+        rest = Restaurant.objects.create(
+            owner=user_for_owner,
+            name='Owner Promo Diner',
+            address='Street 271',
+            phone='+85598765432'
+        )
+        ra.save_model(None, rest, None, False)
+
+        user_for_owner.refresh_from_db()
+        self.assertEqual(user_for_owner.role, 'restaurant_owner')
+
+    def test_user_admin_convert_to_owner_action(self):
+        """UserAdmin convert_to_owner bulk action updates user roles to restaurant_owner."""
+        from django.contrib.admin.sites import site
+        from core.admin import UserAdmin
+        from django.test import RequestFactory
+        from django.contrib.messages.storage.fallback import FallbackStorage
+
+        ua = UserAdmin(User, site)
+        user_c = User.objects.create_user(username='bulk_cust_to_owner', email='b@foodgo.com', role='customer')
+
+        rf = RequestFactory()
+        req = rf.post('/admin/core/user/')
+        setattr(req, 'session', {})
+        setattr(req, '_messages', FallbackStorage(req))
+
+        ua.convert_to_owner(req, User.objects.filter(id=user_c.id))
+        user_c.refresh_from_db()
+        self.assertEqual(user_c.role, 'restaurant_owner')
+
+    def test_driver_admin_foreignkey_filters_available_users(self):
+        """DriverAdmin.formfield_for_foreignkey only lists users without an existing driver profile."""
+        from django.contrib.admin.sites import site
+        from core.admin import DriverAdmin
+        from django.test import RequestFactory
+
+        da = DriverAdmin(Driver, site)
+        rf = RequestFactory()
+        req = rf.get('/admin/core/driver/add/')
+        field = da.formfield_for_foreignkey(Driver._meta.get_field('user'), req)
+
+        # self.driver_user already has self.driver, so it must not be in the queryset
+        self.assertNotIn(self.driver_user, field.queryset)
+        # self.customer does NOT have a driver, so it must be in the queryset
+        self.assertIn(self.customer, field.queryset)
+

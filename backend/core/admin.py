@@ -196,22 +196,39 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Extra Info', {'fields': ('role', 'phone', 'avatar', 'avatar_url')}),
     )
-    add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ('Extra Info', {'fields': ('role', 'phone', 'avatar', 'avatar_url')}),
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'role', 'first_name', 'last_name', 'phone'),
+        }),
+        ('Permissions', {
+            'classes': ('collapse',),
+            'fields': ('is_active', 'is_staff', 'is_superuser'),
+        }),
     )
     inlines = [DriverInline]
     list_display = ['user_avatar_thumb', 'username', 'email', 'role_badge', 'phone', 'is_staff', 'is_active', 'date_joined']
     list_filter = ['role', 'is_staff', 'is_active']
-    search_fields = ['username', 'email', 'phone']
+    search_fields = ['username', 'email', 'phone', 'first_name', 'last_name']
+
+    def get_inlines(self, request, obj=None):
+        if not obj or '_popup' in request.GET or '_popup' in request.POST:
+            return []
+        if getattr(obj, 'role', '') == 'driver':
+            return [DriverInline]
+        return []
 
     @admin.display(description='Avatar')
     def user_avatar_thumb(self, obj):
         return image_preview(obj.avatar, obj.avatar_url, size=36)
     ordering = ['-date_joined']
     readonly_fields = ['date_joined', 'last_login']
-    actions = ['promote_to_admin', 'convert_to_driver', 'convert_to_customer']
+    actions = ['promote_to_admin', 'convert_to_driver', 'convert_to_owner', 'convert_to_customer']
 
     def save_model(self, request, obj, form, change):
+        if obj.role == 'admin':
+            obj.is_staff = True
+            obj.is_superuser = True
         super().save_model(request, obj, form, change)
         if obj.role == 'driver' and not hasattr(obj, 'driver_profile'):
             from decimal import Decimal
@@ -250,6 +267,11 @@ class UserAdmin(BaseUserAdmin):
             )
             count += 1
         self.message_user(request, f'Converted {count} user(s) to Delivery Driver.')
+
+    @admin.action(description='Convert Selected Users to Restaurant Owner')
+    def convert_to_owner(self, request, queryset):
+        count = queryset.update(role='restaurant_owner')
+        self.message_user(request, f'Converted {count} user(s) to Restaurant Owner.')
 
     @admin.action(description='Convert Selected Users to Customer')
     def convert_to_customer(self, request, queryset):
@@ -316,6 +338,12 @@ class RestaurantAdmin(admin.ModelAdmin):
         if '_popup' in request.GET or '_popup' in request.POST:
             return []
         return super().get_inlines(request, obj)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if obj.owner and obj.owner.role != 'restaurant_owner' and obj.owner.role != 'admin':
+            obj.owner.role = 'restaurant_owner'
+            obj.owner.save(update_fields=['role'])
 
     @admin.display(description='Logo')
     def restaurant_logo(self, obj):
@@ -650,8 +678,45 @@ class DriverAdmin(admin.ModelAdmin):
     list_display = ['user', 'driver_phone', 'vehicle_type', 'license_plate', 'is_online', 'deliveries_count']
     list_filter = ['is_online', 'vehicle_type']
     search_fields = ['user__username', 'user__first_name', 'user__last_name', 'license_plate', 'user__phone']
-    list_editable = ['vehicle_type', 'license_plate', 'is_online']
     actions = ['make_online', 'make_offline']
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'user':
+            from django.db.models import Q
+            object_id = None
+            if request and hasattr(request, 'resolver_match') and request.resolver_match:
+                object_id = request.resolver_match.kwargs.get('object_id')
+            if object_id:
+                current_driver = Driver.objects.filter(pk=object_id).first()
+                current_user_id = current_driver.user_id if current_driver else None
+                kwargs['queryset'] = User.objects.filter(
+                    Q(driver_profile__isnull=True) | Q(id=current_user_id)
+                ).order_by('username')
+            else:
+                kwargs['queryset'] = User.objects.filter(
+                    driver_profile__isnull=True
+                ).order_by('username')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        if obj.user:
+            if obj.user.role != 'driver' and obj.user.role != 'admin':
+                obj.user.role = 'driver'
+                obj.user.save(update_fields=['role'])
+
+            existing = Driver.objects.filter(user=obj.user).exclude(pk=obj.pk).first()
+            if existing:
+                existing.vehicle_type = obj.vehicle_type or existing.vehicle_type
+                existing.license_plate = obj.license_plate or existing.license_plate
+                existing.is_online = obj.is_online
+                if obj.current_lat is not None:
+                    existing.current_lat = obj.current_lat
+                if obj.current_lng is not None:
+                    existing.current_lng = obj.current_lng
+                existing.save()
+                obj.pk = existing.pk
+                return
+        super().save_model(request, obj, form, change)
 
     @admin.display(description='Phone')
     def driver_phone(self, obj):

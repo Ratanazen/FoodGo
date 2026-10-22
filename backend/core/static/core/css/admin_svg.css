@@ -322,9 +322,124 @@ html, body {
         border-radius: 16px !important;
     }
 
-    /* Related Object Popups and Modals */
+    /* Related Object Popups and Modals on Small Screens */
     .modal-dialog {
         margin: 8px !important;
         max-width: calc(100vw - 16px) !important;
     }
 }
+
+/* ==========================================================================
+   JAZZMIN RELATED OBJECT POPUP & MODAL IFRAME ENHANCEMENTS
+   Fixes blank or truncated popup modal when clicking '+' to add related objects
+   ========================================================================== */
+
+/* Modal Container & Dialog */
+.modal-dialog.modal-wide,
+.modal-dialog.related-modal,
+.modal-dialog:has(#related-modal-iframe),
+div[class*='related-modal-'] .modal-dialog {
+    max-width: 920px !important;
+    width: 92vw !important;
+    margin: 1.5rem auto !important;
+}
+
+.modal-dialog.modal-wide .modal-content,
+div[class*='related-modal-'] .modal-content {
+    border-radius: 16px !important;
+    border: none !important;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28) !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+}
+
+.modal-dialog.modal-wide .modal-header,
+div[class*='related-modal-'] .modal-header {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    padding: 14px 20px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.modal-dialog.modal-wide .modal-header .modal-title,
+div[class*='related-modal-'] .modal-header .modal-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+}
+
+.modal-dialog.modal-wide .modal-header .btn-close,
+.modal-dialog.modal-wide .modal-header .close,
+div[class*='related-modal-'] .modal-header .btn-close,
+div[class*='related-modal-'] .modal-header .close {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    opacity: 0.9 !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease;
+}
+
+.modal-dialog.modal-wide .modal-header .btn-close:hover,
+div[class*='related-modal-'] .modal-header .btn-close:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    opacity: 1 !important;
+}
+
+.modal-dialog.modal-wide .modal-body,
+div[class*='related-modal-'] .modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #f8fafc !important;
+    min-height: 540px !important;
+}
+
+/* Related Object Iframe */
+iframe.related-iframe,
+#related-modal-iframe {
+    width: 100% !important;
+    height: 620px !important;
+    min-height: 520px !important;
+    border: none !important;
+    display: block !important;
+    background: #f8fafc !important;
+}
+
+/* Inside Popup Window/Iframe Layout Optimization */
+body.popup {
+    background: #f8fafc !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+body.popup .app-wrapper {
+    background: transparent !important;
+    min-height: auto !important;
+}
+
+body.popup main.app-main {
+    margin-left: 0 !important;
+    padding: 16px 20px 40px !important;
+}
+
+body.popup .app-content-header {
+    display: none !important;
+}
+
+body.popup .app-sidebar,
+body.popup #jazzy-navbar {
+    display: none !important;
+}
+

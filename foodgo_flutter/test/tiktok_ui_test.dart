@@ -194,9 +194,9 @@ void main() {
         const activeGreenPill = Color(0xFF43A047);
         const headerRadius = Radius.circular(32);
 
-        expect(promoYellow.value, 0xFFFFDE00);
-        expect(orderNowOrange.value, 0xFFFF4B26);
-        expect(activeGreenPill.value, 0xFF43A047);
+        expect(promoYellow.toARGB32(), 0xFFFFDE00);
+        expect(orderNowOrange.toARGB32(), 0xFFFF4B26);
+        expect(activeGreenPill.toARGB32(), 0xFF43A047);
         expect(headerRadius.x, 32.0);
       },
     );

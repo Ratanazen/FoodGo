@@ -14,15 +14,14 @@ class AuthProvider with ChangeNotifier {
   String? get lastAuthError => _lastAuthError;
 
   AuthProvider() {
-    _checkAuth();
+    checkAuth();
   }
 
-  Future<void> _checkAuth() async {
+  Future<bool> checkAuth() async {
     final token = await _secureStorage.getAccessToken();
-    if (token != null) {
-      _isAuthenticated = true;
-      notifyListeners();
-    }
+    _isAuthenticated = token != null;
+    notifyListeners();
+    return _isAuthenticated;
   }
 
   Future<bool> login(String username, String password) async {

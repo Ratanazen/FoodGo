@@ -27,7 +27,7 @@ class AppConfig {
         return 'http://$host:8000/api/';
       }
     }
-    return '$defaultLiveUrl/api/';
+    return '$cloudflareEdgeUrl/api/';
   }
 
   /// WebSocket URL for live driver & order delivery tracking (Render ASGI container)

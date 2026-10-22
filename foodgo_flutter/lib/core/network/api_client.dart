@@ -29,9 +29,18 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _secureStorage.getAccessToken();
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
+          final isAuthEndpoint =
+              options.path == 'token/' ||
+              options.path.contains('token/refresh') ||
+              options.path.contains('auth/login') ||
+              options.path.contains('auth/google') ||
+              options.path.contains('auth/phone') ||
+              options.path.contains('auth/register');
+          if (!isAuthEndpoint) {
+            final token = await _secureStorage.getAccessToken();
+            if (token != null) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
           return handler.next(options);
         },
@@ -43,8 +52,15 @@ class ApiClient {
 
           final requestOptions = e.requestOptions;
 
-          // If the failed request was itself the refresh call, don't retry
-          if (requestOptions.path.contains('token/refresh')) {
+          // Never attempt token refresh on login or authentication endpoints
+          final isAuthEndpoint =
+              requestOptions.path == 'token/' ||
+              requestOptions.path.contains('token/refresh') ||
+              requestOptions.path.contains('auth/login') ||
+              requestOptions.path.contains('auth/google') ||
+              requestOptions.path.contains('auth/phone') ||
+              requestOptions.path.contains('auth/register');
+          if (isAuthEndpoint) {
             return handler.next(e);
           }
 

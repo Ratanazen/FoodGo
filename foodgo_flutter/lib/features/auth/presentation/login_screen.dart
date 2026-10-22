@@ -339,17 +339,6 @@ class _LoginScreenState extends State<LoginScreen> {
         toolbarHeight: 32,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            tooltip: 'Server Settings',
-            icon: Icon(
-              Icons.settings_ethernet_rounded,
-              color: isDark ? Colors.white60 : Colors.black45,
-              size: 20,
-            ),
-            onPressed: _showServerDialog,
-          ),
-        ],
       ),
       body: SafeArea(
         child: GestureDetector(

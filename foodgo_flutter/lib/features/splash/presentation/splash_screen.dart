@@ -37,8 +37,10 @@ class _SplashScreenState extends State<SplashScreen>
     Future.delayed(const Duration(milliseconds: 2400), () async {
       if (!mounted) return;
       final auth = context.read<AuthProvider>();
-      if (auth.isAuthenticated) {
-        final userProvider = context.read<UserProvider>();
+      final userProvider = context.read<UserProvider>();
+      final isAuth = await auth.checkAuth();
+      if (!mounted) return;
+      if (isAuth) {
         await userProvider.fetchUser();
         if (!mounted) return;
         final role = userProvider.user?['role']?.toString().toLowerCase();

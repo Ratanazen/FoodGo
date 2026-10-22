@@ -15,6 +15,10 @@ export default {
       const primaryTag = pickA ? 'A' : 'B';
       const secondaryTag = pickA ? 'B' : 'A';
 
+      // Buffer body once to allow retry on secondary backend for POST/PUT/PATCH methods
+      const hasBody = !['GET', 'HEAD'].includes(request.method);
+      const requestBody = hasBody ? await request.arrayBuffer() : null;
+
       // Helper function to build proxied request for a given target origin
       const createProxyRequest = (targetOrigin) => {
         const targetUrl = new URL(url.pathname + url.search, targetOrigin);
@@ -27,7 +31,7 @@ export default {
         return new Request(targetUrl, {
           method: request.method,
           headers: headers,
-          body: ['GET', 'HEAD'].includes(request.method) ? null : request.body,
+          body: requestBody,
           redirect: 'follow',
         });
       };
@@ -93,16 +97,23 @@ export default {
     }
 
     // Serve static assets with single-page-application fallback
-    const response = await env.ASSETS.fetch(request);
-    const newHeaders = new Headers(response.headers);
-    newHeaders.set('X-Frame-Options', 'SAMEORIGIN');
-    newHeaders.set('X-Content-Type-Options', 'nosniff');
-    newHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
+      const response = await env.ASSETS.fetch(request);
+      const newHeaders = new Headers(response.headers);
+      newHeaders.set('X-Frame-Options', 'SAMEORIGIN');
+      newHeaders.set('X-Content-Type-Options', 'nosniff');
+      newHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: newHeaders,
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders,
+      });
+    }
+
+    return new Response('FoodGo Edge Worker Active', {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' },
     });
   },
 };

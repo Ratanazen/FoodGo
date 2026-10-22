@@ -52,7 +52,13 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
     });
 
     try {
-      final response = await ApiService().get('orders/$cleanId/tracking/');
+      dynamic response;
+      try {
+        response = await ApiService().get('orders/$cleanId/track/');
+      } catch (_) {
+        response = await ApiService().get('orders/$cleanId/tracking/');
+      }
+
       if (response != null && response is Map<String, dynamic>) {
         setState(() {
           _trackingData = response;

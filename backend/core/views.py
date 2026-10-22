@@ -845,6 +845,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         
         return Response(data)
 
+    @action(detail=True, methods=['get'], permission_classes=[AllowAny], url_path='tracking')
+    def tracking(self, request, pk=None):
+        return self.track(request, pk=pk)
+
     @action(detail=True, methods=['post'], url_path='delivery_arrive', permission_classes=[IsAuthenticated])
     def delivery_arrive(self, request, pk=None):
         """
@@ -1673,11 +1677,30 @@ class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
     
     def post(self, request):
-        email = request.data.get('email')
-        if not email:
-            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
-        # In a real app, you would generate a token and send an email here.
-        return Response({'message': 'If an account with that email exists, a password reset link has been sent.'}, status=status.HTTP_200_OK)
+        email = (request.data.get('email') or '').strip()
+        phone = (request.data.get('phone') or '').strip()
+        identifier = (request.data.get('identifier') or '').strip()
+
+        target = identifier or email or phone
+        if not target:
+            return Response({'error': 'Email address or phone number is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        import re
+        is_phone = bool(re.match(r'^\+?[0-9\s\-()]{7,20}$', target) and '@' not in target)
+
+        if is_phone:
+            try:
+                from .phone_views import dispatch_phone_otp
+                dispatch_phone_otp(request, target, purpose='password_reset')
+            except Exception:
+                pass
+            return Response({
+                'message': 'If an account with that phone number exists, an OTP reset code has been sent via SMS.'
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            'message': 'If an account with that email exists, a password reset link has been sent.'
+        }, status=status.HTTP_200_OK)
 
 class LiveItemViewSet(viewsets.ModelViewSet):
     queryset = LiveItem.objects.all()

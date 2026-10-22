@@ -12,13 +12,15 @@ Future<LatLng?> getDeviceLocation() async {
   }
 
   try {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      final lastPos = await Geolocator.getLastKnownPosition();
-      if (lastPos != null) {
-        return LatLng(lastPos.latitude, lastPos.longitude);
+    if (!kIsWeb) {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        final lastPos = await Geolocator.getLastKnownPosition();
+        if (lastPos != null) {
+          return LatLng(lastPos.latitude, lastPos.longitude);
+        }
+        return null;
       }
-      return null;
     }
 
     var permission = await Geolocator.checkPermission();

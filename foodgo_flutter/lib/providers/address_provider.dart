@@ -143,13 +143,17 @@ class AddressProvider with ChangeNotifier {
     String state = 'Phnom Penh',
     String zipCode = '12000',
     bool isDefault = false,
+    double? lat,
+    double? lng,
   }) async {
-    final payload = {
+    final payload = <String, dynamic>{
       'street': street.trim(),
       'city': city.trim(),
       'state': state.trim(),
       'zip_code': zipCode.trim(),
       'is_default': isDefault,
+      'lat': ?lat,
+      'lng': ?lng,
     };
 
     try {

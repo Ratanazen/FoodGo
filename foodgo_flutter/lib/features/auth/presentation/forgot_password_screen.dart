@@ -16,22 +16,39 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController();
   final ApiService _api = ApiService();
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _identifierController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     super.dispose();
   }
 
+  bool get _isPhone {
+    final text = _identifierController.text.trim();
+    return !text.contains('@') && text.replaceAll(RegExp(r'[^0-9]'), '').length >= 4;
+  }
+
   Future<void> _sendOTP() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
+    final identifier = _identifierController.text.trim();
+    final cleanDigits = identifier.replaceAll(RegExp(r'[^0-9]'), '');
+    final isEmail = identifier.contains('@') && identifier.contains('.');
+    final isPhone = cleanDigits.length >= 7;
+
+    if (!isEmail && !isPhone) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter a valid email address'),
+          content: Text('Please enter a valid email address or phone number'),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -42,12 +59,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final res = await _api.post('forgot-password/', {'email': email});
+      final res = await _api.post('forgot-password/', {
+        'identifier': identifier,
+        'email': identifier,
+        'phone': identifier,
+      });
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      String message =
-          'OTP code and reset instructions sent! Please check your email inbox.';
+      String message = isPhone
+          ? 'OTP verification code sent! Please check your SMS messages.'
+          : 'Password reset link sent! Please check your email inbox.';
       if (res is Map && res['message'] != null) {
         message = res['message'].toString();
       }
@@ -69,7 +91,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      String errorMsg = 'Failed to send reset link. Please try again.';
+      String errorMsg = 'Failed to send reset code. Please try again.';
       if (e is DioException) {
         final data = e.response?.data;
         if (data is Map) {
@@ -174,7 +196,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   const SizedBox(height: 10),
 
                   Text(
-                    'Enter your registered email address and we will send you a reset code to recover your account.',
+                    'Enter your registered email address or phone number and we will send you a verification code to recover your account.',
                     style: TextStyle(
                       fontSize: 13,
                       color: isDark
@@ -201,8 +223,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ),
                     child: TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _identifierController,
+                      keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _sendOTP(),
                       style: TextStyle(
@@ -210,15 +232,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         fontSize: 14,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Email address',
+                        hintText: 'Email address or phone number',
                         hintStyle: TextStyle(
                           color: isDark
                               ? Colors.white38
                               : const Color(0xFF94A3B8),
                           fontSize: 14,
                         ),
-                        prefixIcon: const Icon(
-                          Icons.mail_outline_rounded,
+                        prefixIcon: Icon(
+                          _isPhone
+                              ? Icons.phone_iphone_rounded
+                              : Icons.alternate_email_rounded,
                           color: GlassTheme.primaryGreen,
                           size: 20,
                         ),
@@ -258,7 +282,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ),
                             )
                           : const Text(
-                              'Send Reset Link',
+                              'Send Reset Code / Link',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,

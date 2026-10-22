@@ -25,6 +25,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
     bool isDefault = false;
     bool isSaving = false;
     bool isLocating = false;
+    double? detectedLat;
+    double? detectedLng;
 
     showModalBottomSheet(
       context: context,
@@ -93,6 +95,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                 final loc = await getDeviceLocation();
                                 setSheetState(() => isLocating = false);
                                 if (loc != null) {
+                                  detectedLat = loc.latitude;
+                                  detectedLng = loc.longitude;
                                   streetController.text =
                                       'Location (${loc.latitude.toStringAsFixed(4)}, ${loc.longitude.toStringAsFixed(4)})';
                                   cityController.text = 'Phnom Penh';
@@ -289,6 +293,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                         city: cityController.text,
                                         zipCode: zipController.text,
                                         isDefault: isDefault,
+                                        lat: detectedLat,
+                                        lng: detectedLng,
                                       );
 
                                   if (sheetCtx.mounted) {

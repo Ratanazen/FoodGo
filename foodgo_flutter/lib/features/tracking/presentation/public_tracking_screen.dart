@@ -66,7 +66,8 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Unable to locate Order #$cleanId. Verify the ID and try again.';
+        _errorMessage =
+            'Unable to locate Order #$cleanId. Verify the ID and try again.';
         _isLoading = false;
         _trackingData = null;
       });
@@ -139,14 +140,21 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                               keyboardType: TextInputType.number,
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.search, color: GlassTheme.primaryGreen),
+                                prefixIcon: const Icon(
+                                  Icons.search,
+                                  color: GlassTheme.primaryGreen,
+                                ),
                                 hintText: 'Enter Order ID (e.g. 101)',
-                                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+                                hintStyle: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.4),
+                                ),
                                 filled: true,
                                 fillColor: Colors.white.withValues(alpha: 0.05),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                                  borderSide: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                  ),
                                 ),
                               ),
                               onSubmitted: (val) => _performTrack(val),
@@ -159,8 +167,13 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                                 : () => _performTrack(_orderIdController.text),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: GlassTheme.primaryGreen,
-                              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 22,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                             child: _isLoading
                                 ? const SizedBox(
@@ -168,7 +181,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                     ),
                                   )
                                 : const Text(
@@ -194,16 +209,25 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                     decoration: BoxDecoration(
                       color: Colors.redAccent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: Colors.redAccent.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -217,18 +241,26 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                   _buildDeliveryProgressCard(_trackingData!),
                   const SizedBox(height: 16),
                   if (_trackingData!['driver'] != null)
-                    _buildDriverCard(_trackingData!['driver'] as Map<String, dynamic>),
+                    _buildDriverCard(
+                      _trackingData!['driver'] as Map<String, dynamic>,
+                    ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.map_outlined, color: Colors.white),
                     label: const Text(
                       'Open Full Interactive Map',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: GlassTheme.authBlue,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     onPressed: () {
                       final id = _trackingData!['order_id'];
@@ -272,7 +304,11 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
           const Divider(height: 24, color: Colors.white12),
           Row(
             children: [
-              const Icon(Icons.storefront_outlined, color: GlassTheme.primaryGreen, size: 18),
+              const Icon(
+                Icons.storefront_outlined,
+                color: GlassTheme.primaryGreen,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -285,12 +321,19 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.location_on_outlined, color: Colors.orangeAccent, size: 18),
+              const Icon(
+                Icons.location_on_outlined,
+                color: Colors.orangeAccent,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Delivery: $address',
-                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
                 ),
               ),
             ],
@@ -313,9 +356,13 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
     int currentStep = 0;
     if (status == 'pending' || status == 'confirmed') {
       currentStep = 0;
-    } else if (status == 'preparing' || status == 'ready' || status == 'ready_for_pickup') {
+    } else if (status == 'preparing' ||
+        status == 'ready' ||
+        status == 'ready_for_pickup') {
       currentStep = 1;
-    } else if (status == 'picked_up' || status == 'on_the_way' || status == 'driver_arrived') {
+    } else if (status == 'picked_up' ||
+        status == 'on_the_way' ||
+        status == 'driver_arrived') {
       currentStep = 2;
     } else if (status == 'delivered') {
       currentStep = 3;
@@ -351,10 +398,16 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                       height: 22,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isDone ? GlassTheme.primaryGreen : Colors.white.withValues(alpha: 0.2),
+                        color: isDone
+                            ? GlassTheme.primaryGreen
+                            : Colors.white.withValues(alpha: 0.2),
                       ),
                       child: isDone
-                          ? const Icon(Icons.check, size: 14, color: Colors.white)
+                          ? const Icon(
+                              Icons.check,
+                              size: 14,
+                              color: Colors.white,
+                            )
                           : null,
                     ),
                     if (index < steps.length - 1)
@@ -374,7 +427,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                     step['title']!,
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isCurrent
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       color: isDone ? Colors.white : Colors.white38,
                     ),
                   ),
@@ -408,7 +463,10 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
               CircleAvatar(
                 radius: 22,
                 backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(Icons.two_wheeler, color: GlassTheme.primaryGreen),
+                child: const Icon(
+                  Icons.two_wheeler,
+                  color: GlassTheme.primaryGreen,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -435,7 +493,10 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.amber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
@@ -489,11 +550,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: fg,
-        ),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: fg),
       ),
     );
   }

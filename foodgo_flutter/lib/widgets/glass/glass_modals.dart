@@ -50,51 +50,51 @@ class GlassModals {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: GlassContainer(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: GlassTheme.textMuted),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        cancelText,
-                        style: TextStyle(color: GlassTheme.textMuted),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: GlassTheme.textMuted),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          cancelText,
+                          style: TextStyle(color: GlassTheme.textMuted),
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: GlassButton(
-                      text: confirmText,
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onConfirm();
-                      },
+                    Expanded(
+                      child: GlassButton(
+                        text: confirmText,
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onConfirm();
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

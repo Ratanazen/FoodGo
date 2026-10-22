@@ -123,173 +123,175 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       isScrollControlled: true,
       builder: (ctx) => ResponsiveBottomSheet(
         child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: GlassTheme.dialogDark,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Select Delivery Address',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: GlassTheme.dialogDark,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white60),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ...addressProvider.addresses.map((addr) {
-                final isSelected =
-                    addressProvider.selectedAddress?.id == addr.id;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: InkWell(
-                    onTap: () {
-                      addressProvider.selectAddress(addr);
-                      Navigator.pop(ctx);
-                    },
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
-                            : Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Select Delivery Address',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white60),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ...addressProvider.addresses.map((addr) {
+                  final isSelected =
+                      addressProvider.selectedAddress?.id == addr.id;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: InkWell(
+                      onTap: () {
+                        addressProvider.selectAddress(addr);
+                        Navigator.pop(ctx);
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? GlassTheme.primaryGreen
-                              : Colors.white.withValues(alpha: 0.1),
+                              ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected
+                                ? GlassTheme.primaryGreen
+                                : Colors.white.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              addr.isDefault
+                                  ? Icons.home
+                                  : Icons.location_on_outlined,
+                              color: isSelected
+                                  ? GlassTheme.primaryGreen
+                                  : Colors.white70,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        addr.street,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.w500,
+                                        ),
+                                      ),
+                                      if (addr.isDefault) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: GlassTheme.primaryGreen
+                                                .withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Default',
+                                            style: TextStyle(
+                                              color: GlassTheme.primaryGreen,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    addr.city,
+                                    style: TextStyle(
+                                      color: GlassTheme.textMuted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              isSelected
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              color: isSelected
+                                  ? GlassTheme.primaryGreen
+                                  : Colors.white38,
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            addr.isDefault
-                                ? Icons.home
-                                : Icons.location_on_outlined,
-                            color: isSelected
-                                ? GlassTheme.primaryGreen
-                                : Colors.white70,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      addr.street,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.w500,
-                                      ),
-                                    ),
-                                    if (addr.isDefault) ...[
-                                      const SizedBox(width: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: GlassTheme.primaryGreen
-                                              .withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          'Default',
-                                          style: TextStyle(
-                                            color: GlassTheme.primaryGreen,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  addr.city,
-                                  style: TextStyle(
-                                    color: GlassTheme.textMuted,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            isSelected
-                                ? Icons.check_circle
-                                : Icons.radio_button_unchecked,
-                            color: isSelected
-                                ? GlassTheme.primaryGreen
-                                : Colors.white38,
-                          ),
-                        ],
-                      ),
                     ),
+                  );
+                }),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    context.push('/addresses');
+                  },
+                  icon: const Icon(Icons.add, color: GlassTheme.primaryGreen),
+                  label: const Text(
+                    'Manage & Add Addresses',
+                    style: TextStyle(color: Colors.white),
                   ),
-                );
-              }),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  context.push('/addresses');
-                },
-                icon: const Icon(Icons.add, color: GlassTheme.primaryGreen),
-                label: const Text(
-                  'Manage & Add Addresses',
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.2),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _showInsufficientBalanceDialog(double total) {
     showDialog(

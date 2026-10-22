@@ -149,3 +149,29 @@ jobs:
     - name: Build Frontend Docker Image
       run: |
         docker build -f Dockerfile.frontend -t foodgo-frontend:ci .
+
+  vercel-deployment:
+    name: Vercel Continuous Deployment
+    runs-on: ubuntu-latest
+    needs: [backend-test, flutter-test, docker-build-verification]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - name: Deploy to Vercel
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      run: |
+        if [ -n "$VERCEL_TOKEN" ]; then
+          echo "Deploying production release to Vercel..."
+          npx --yes vercel --token "$VERCEL_TOKEN" --prod --yes
+          echo "Vercel deployment successfully completed."
+        else
+          echo "Notice: VERCEL_TOKEN secret is not set in GitHub repository settings. Skipping automated Vercel deployment."
+        fi
+

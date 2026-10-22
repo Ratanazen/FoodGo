@@ -85,212 +85,225 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
         builder: (ctx, setSheetState) => ResponsiveBottomSheet(
           child: Container(
             padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: GlassTheme.dialogDark,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (item['image'] != null &&
-                    item['image'].toString().isNotEmpty) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: CachedNetworkImage(
-                      imageUrl: item['image'].toString(),
-                      height: 180,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => Container(
-                        height: 180,
-                        color: Colors.white12,
-                        child: const Icon(
-                          Icons.fastfood,
-                          size: 48,
-                          color: Colors.white38,
-                        ),
+            decoration: const BoxDecoration(
+              color: GlassTheme.dialogDark,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                ],
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item['name'] ?? 'Dish',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                  if (item['image'] != null &&
+                      item['image'].toString().isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: CachedNetworkImage(
+                        imageUrl: item['image'].toString(),
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorWidget: (context, url, error) => Container(
+                          height: 180,
+                          color: Colors.white12,
+                          child: const Icon(
+                            Icons.fastfood,
+                            size: 48,
+                            color: Colors.white38,
+                          ),
                         ),
                       ),
                     ),
-                    Text(
-                      '\$${price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: GlassTheme.primaryGreen,
-                      ),
-                    ),
+                    const SizedBox(height: 16),
                   ],
-                ),
-                if (originalPrice != null && originalPrice > price) ...[
-                  const SizedBox(height: 2),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      '\$${originalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        color: Colors.white38,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    if (isVeg)
-                      _buildDietaryBadge('Vegetarian', Colors.green, Icons.eco),
-                    if (isHalal)
-                      _buildDietaryBadge('Halal', Colors.teal, Icons.verified),
-                    if (isSpicy)
-                      _buildDietaryBadge(
-                        'Spicy',
-                        Colors.deepOrange,
-                        Icons.local_fire_department,
-                      ),
-                    if (item['preparation_time_mins'] != null)
-                      _buildDietaryBadge(
-                        '${item['preparation_time_mins']} mins',
-                        Colors.blueAccent,
-                        Icons.schedule,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  item['description'] ??
-                      'Freshly prepared recipe from our kitchen.',
-                  style: TextStyle(
-                    color: GlassTheme.textMuted,
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                if (!isAvailable)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Currently Sold Out',
-                        style: TextStyle(
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  )
-                else ...[
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        onPressed: qty > 1
-                            ? () => setSheetState(() => qty--)
-                            : null,
-                        icon: const Icon(Icons.remove_circle_outline, size: 28),
-                        color: GlassTheme.primaryGreen,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      Expanded(
                         child: Text(
-                          '$qty',
+                          item['name'] ?? 'Dish',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => setSheetState(() => qty++),
-                        icon: const Icon(Icons.add_circle_outline, size: 28),
-                        color: GlassTheme.primaryGreen,
+                      Text(
+                        '\$${price.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: GlassTheme.primaryGreen,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlassTheme.primaryGreen,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                  if (originalPrice != null && originalPrice > price) ...[
+                    const SizedBox(height: 2),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '\$${originalPrice.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          decoration: TextDecoration.lineThrough,
+                          color: Colors.white38,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
-                    onPressed: () {
-                      final cart = context.read<CartProvider>();
-                      final restId = int.tryParse(
-                        restaurant['id']?.toString() ?? '',
-                      );
-                      for (int i = 0; i < qty; i++) {
-                        cart.addItem(
-                          item['id'] as int? ?? 0,
-                          item['name'] ?? 'Dish',
-                          price,
-                          item['image']?.toString(),
-                          restaurantId: restId,
-                          restaurantName: restaurant['name']?.toString(),
-                        );
-                      }
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Added $qty "${item['name']}" to cart'),
-                          backgroundColor: GlassTheme.dialogDark,
-                          behavior: SnackBarBehavior.floating,
+                  ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (isVeg)
+                        _buildDietaryBadge(
+                          'Vegetarian',
+                          Colors.green,
+                          Icons.eco,
                         ),
-                      );
-                    },
-                    child: Text(
-                      'Add to Cart • \$${(price * qty).toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      if (isHalal)
+                        _buildDietaryBadge(
+                          'Halal',
+                          Colors.teal,
+                          Icons.verified,
+                        ),
+                      if (isSpicy)
+                        _buildDietaryBadge(
+                          'Spicy',
+                          Colors.deepOrange,
+                          Icons.local_fire_department,
+                        ),
+                      if (item['preparation_time_mins'] != null)
+                        _buildDietaryBadge(
+                          '${item['preparation_time_mins']} mins',
+                          Colors.blueAccent,
+                          Icons.schedule,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    item['description'] ??
+                        'Freshly prepared recipe from our kitchen.',
+                    style: TextStyle(
+                      color: GlassTheme.textMuted,
+                      fontSize: 14,
+                      height: 1.4,
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  if (!isAvailable)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Currently Sold Out',
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
+                  else ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: qty > 1
+                              ? () => setSheetState(() => qty--)
+                              : null,
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            size: 28,
+                          ),
+                          color: GlassTheme.primaryGreen,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            '$qty',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => setSheetState(() => qty++),
+                          icon: const Icon(Icons.add_circle_outline, size: 28),
+                          color: GlassTheme.primaryGreen,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlassTheme.primaryGreen,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () {
+                        final cart = context.read<CartProvider>();
+                        final restId = int.tryParse(
+                          restaurant['id']?.toString() ?? '',
+                        );
+                        for (int i = 0; i < qty; i++) {
+                          cart.addItem(
+                            item['id'] as int? ?? 0,
+                            item['name'] ?? 'Dish',
+                            price,
+                            item['image']?.toString(),
+                            restaurantId: restId,
+                            restaurantName: restaurant['name']?.toString(),
+                          );
+                        }
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Added $qty "${item['name']}" to cart',
+                            ),
+                            backgroundColor: GlassTheme.dialogDark,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Add to Cart • \$${(price * qty).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   void initState() {

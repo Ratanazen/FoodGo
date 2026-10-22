@@ -31,214 +31,218 @@ class _AddressesScreenState extends State<AddressesScreen> {
       builder: (sheetCtx) => ResponsiveBottomSheet(
         child: StatefulBuilder(
           builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: GlassTheme.dialogDark,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
-              ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white24,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Add Delivery Address',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white60),
-                          onPressed: () => Navigator.pop(sheetCtx),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Street address
-                    TextFormField(
-                      controller: streetController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Street Address, Apartment, or Building',
-                        labelStyle: TextStyle(color: GlassTheme.textMuted),
-                        prefixIcon: const Icon(
-                          Icons.location_on_outlined,
-                          color: GlassTheme.primaryGreen,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.1),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: GlassTheme.dialogDark,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ),
-                      validator: (val) => (val == null || val.trim().isEmpty)
-                          ? 'Please enter street address'
-                          : null,
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Add Delivery Address',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white60,
+                            ),
+                            onPressed: () => Navigator.pop(sheetCtx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
 
-                    // City
-                    TextFormField(
-                      controller: cityController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'City / District',
-                        labelStyle: TextStyle(color: GlassTheme.textMuted),
-                        prefixIcon: const Icon(
-                          Icons.location_city,
-                          color: GlassTheme.primaryGreen,
+                      // Street address
+                      TextFormField(
+                        controller: streetController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Street Address, Apartment, or Building',
+                          labelStyle: TextStyle(color: GlassTheme.textMuted),
+                          prefixIcon: const Icon(
+                            Icons.location_on_outlined,
+                            color: GlassTheme.primaryGreen,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
                         ),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.1),
+                        validator: (val) => (val == null || val.trim().isEmpty)
+                            ? 'Please enter street address'
+                            : null,
+                      ),
+                      const SizedBox(height: 14),
+
+                      // City
+                      TextFormField(
+                        controller: cityController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'City / District',
+                          labelStyle: TextStyle(color: GlassTheme.textMuted),
+                          prefixIcon: const Icon(
+                            Icons.location_city,
+                            color: GlassTheme.primaryGreen,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                        ),
+                        validator: (val) => (val == null || val.trim().isEmpty)
+                            ? 'Please enter city'
+                            : null,
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Postal Code
+                      TextFormField(
+                        controller: zipController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Postal / Area Code',
+                          labelStyle: TextStyle(color: GlassTheme.textMuted),
+                          prefixIcon: const Icon(
+                            Icons.pin_drop_outlined,
+                            color: GlassTheme.primaryGreen,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
                           ),
                         ),
                       ),
-                      validator: (val) => (val == null || val.trim().isEmpty)
-                          ? 'Please enter city'
-                          : null,
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 14),
 
-                    // Postal Code
-                    TextFormField(
-                      controller: zipController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Postal / Area Code',
-                        labelStyle: TextStyle(color: GlassTheme.textMuted),
-                        prefixIcon: const Icon(
-                          Icons.pin_drop_outlined,
-                          color: GlassTheme.primaryGreen,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.1),
+                      // Set Default switch
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Set as Default Delivery Address',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
+                          Switch.adaptive(
+                            value: isDefault,
+                            activeTrackColor: GlassTheme.primaryGreen,
+                            onChanged: (val) =>
+                                setSheetState(() => isDefault = val),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 20),
 
-                    // Set Default switch
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Set as Default Delivery Address',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlassTheme.primaryGreen,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
-                        ),
-                        Switch.adaptive(
-                          value: isDefault,
-                          activeTrackColor: GlassTheme.primaryGreen,
-                          onChanged: (val) =>
-                              setSheetState(() => isDefault = val),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
+                          onPressed: isSaving
+                              ? null
+                              : () async {
+                                  if (!formKey.currentState!.validate()) return;
+                                  setSheetState(() => isSaving = true);
 
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: GlassTheme.primaryGreen,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        onPressed: isSaving
-                            ? null
-                            : () async {
-                                if (!formKey.currentState!.validate()) return;
-                                setSheetState(() => isSaving = true);
+                                  await context
+                                      .read<AddressProvider>()
+                                      .addAddress(
+                                        street: streetController.text,
+                                        city: cityController.text,
+                                        zipCode: zipController.text,
+                                        isDefault: isDefault,
+                                      );
 
-                                await context
-                                    .read<AddressProvider>()
-                                    .addAddress(
-                                      street: streetController.text,
-                                      city: cityController.text,
-                                      zipCode: zipController.text,
-                                      isDefault: isDefault,
-                                    );
-
-                                if (sheetCtx.mounted) {
-                                  Navigator.pop(sheetCtx);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Address added successfully!',
+                                  if (sheetCtx.mounted) {
+                                    Navigator.pop(sheetCtx);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Address added successfully!',
+                                        ),
+                                        backgroundColor:
+                                            GlassTheme.primaryGreen,
+                                        behavior: SnackBarBehavior.floating,
                                       ),
-                                      backgroundColor: GlassTheme.primaryGreen,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                }
-                              },
-                        child: isSaving
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              )
-                            : const Text(
-                                'Save Address',
-                                style: TextStyle(
+                                    );
+                                  }
+                                },
+                          child: isSaving
+                              ? const CircularProgressIndicator(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  strokeWidth: 2,
+                                )
+                              : const Text(
+                                  'Save Address',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

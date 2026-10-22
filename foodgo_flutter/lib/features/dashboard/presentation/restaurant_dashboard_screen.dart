@@ -73,8 +73,6 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
     }
   }
 
-
-
   Future<void> _restaurantAcceptOrder(String orderId) async {
     try {
       await _api.post('orders/$orderId/restaurant-accept/', {});
@@ -105,7 +103,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E2C),
-        title: const Text('Reject Order', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Reject Order',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,12 +130,18 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white70),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Reject & Refund', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Reject & Refund',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -145,7 +152,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
         final reason = reasonController.text.trim().isEmpty
             ? 'Kitchen unable to fulfill order'
             : reasonController.text.trim();
-        await _api.post('orders/$orderId/restaurant-reject/', {'reason': reason});
+        await _api.post('orders/$orderId/restaurant-reject/', {
+          'reason': reason,
+        });
         _fetchDashboardData();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -758,10 +767,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
@@ -787,7 +793,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.location_on_outlined, size: 14, color: Colors.white54),
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: 14,
+                  color: Colors.white54,
+                ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -811,7 +821,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.delivery_dining, size: 18, color: GlassTheme.primaryGreen),
+                  const Icon(
+                    Icons.delivery_dining,
+                    size: 18,
+                    color: GlassTheme.primaryGreen,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -827,7 +841,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                         ),
                         Text(
                           '${assignedDriver['vehicle_type'] ?? 'Motorbike'} • ${assignedDriver['license_plate'] ?? ''} • ${assignedDriver['phone'] ?? ''}',
-                          style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                          style: TextStyle(
+                            color: GlassTheme.textMuted,
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ),
@@ -874,7 +891,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                   ),
                   onPressed: () => _restaurantRejectOrder(orderId),
                   child: const Text(
@@ -890,7 +910,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                     onPressed: () => _restaurantAcceptOrder(orderId),
                   ),
                 ),
-              ] else if (status == 'confirmed' || status == 'driver_assigned' || status == 'driver_accepted') ...[
+              ] else if (status == 'confirmed' ||
+                  status == 'driver_assigned' ||
+                  status == 'driver_accepted') ...[
                 const SizedBox(width: 8),
                 Expanded(
                   child: GlassButton(
@@ -911,19 +933,32 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
               ] else if (status == 'ready_for_pickup') ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.hourglass_top, size: 14, color: Colors.blueAccent),
+                      Icon(
+                        Icons.hourglass_top,
+                        size: 14,
+                        color: Colors.blueAccent,
+                      ),
                       SizedBox(width: 4),
                       Text(
                         'Awaiting Driver',
-                        style: TextStyle(fontSize: 11, color: Colors.blueAccent, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.blueAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),

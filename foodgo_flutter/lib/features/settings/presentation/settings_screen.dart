@@ -100,7 +100,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     trailing: isSel
-                        ? const Icon(Icons.check, color: GlassTheme.primaryGreen)
+                        ? const Icon(
+                            Icons.check,
+                            color: GlassTheme.primaryGreen,
+                          )
                         : null,
                     onTap: () {
                       setState(() => _selectedLanguage = lang['name']!);
@@ -108,7 +111,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Language switched to ${lang['label']}'),
+                          content: Text(
+                            'Language switched to ${lang['label']}',
+                          ),
                           duration: const Duration(seconds: 1),
                           backgroundColor: GlassTheme.primaryGreen,
                         ),
@@ -131,113 +136,114 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => ResponsiveBottomSheet(
         child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: GlassTheme.dialogDark,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Display Currency',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '1 USD = ${currencyProvider.khrPerUsd.toInt()} KHR',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontSize: 11,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: GlassTheme.dialogDark,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Display Currency',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...[
-              {
-                'mode': DisplayCurrency.usd,
-                'title': r'USD ($)',
-                'subtitle': 'US Dollar (Default international standard)',
-              },
-              {
-                'mode': DisplayCurrency.khr,
-                'title': 'KHR (៛)',
-                'subtitle': 'Cambodian Riel (NBC customary retail rate)',
-              },
-              {
-                'mode': DisplayCurrency.dual,
-                'title': r'Dual Currency ($ / ៛)',
-                'subtitle': 'Shows both USD and estimated Riel simultaneously',
-              },
-            ].map((opt) {
-              final mode = opt['mode'] as DisplayCurrency;
-              final isSel = currencyProvider.currency == mode;
-              return Material(
-                color: Colors.transparent,
-                child: ListTile(
-                  title: Text(
-                    opt['title'] as String,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                  ),
-                  subtitle: Text(
-                    opt['subtitle'] as String,
-                    style: const TextStyle(
-                      color: GlassTheme.textMuted,
-                      fontSize: 12,
+                    decoration: BoxDecoration(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ),
-                  trailing: isSel
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: GlassTheme.primaryGreen,
-                        )
-                      : null,
-                  onTap: () {
-                    currencyProvider.setCurrency(mode);
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Display currency set to ${opt['title']}',
-                        ),
-                        duration: const Duration(seconds: 1),
-                        backgroundColor: GlassTheme.primaryGreen,
-                        behavior: SnackBarBehavior.floating,
+                    child: Text(
+                      '1 USD = ${currencyProvider.khrPerUsd.toInt()} KHR',
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  },
-                ),
-              );
-            }),
-          ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ...[
+                {
+                  'mode': DisplayCurrency.usd,
+                  'title': r'USD ($)',
+                  'subtitle': 'US Dollar (Default international standard)',
+                },
+                {
+                  'mode': DisplayCurrency.khr,
+                  'title': 'KHR (៛)',
+                  'subtitle': 'Cambodian Riel (NBC customary retail rate)',
+                },
+                {
+                  'mode': DisplayCurrency.dual,
+                  'title': r'Dual Currency ($ / ៛)',
+                  'subtitle':
+                      'Shows both USD and estimated Riel simultaneously',
+                },
+              ].map((opt) {
+                final mode = opt['mode'] as DisplayCurrency;
+                final isSel = currencyProvider.currency == mode;
+                return Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    title: Text(
+                      opt['title'] as String,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    subtitle: Text(
+                      opt['subtitle'] as String,
+                      style: const TextStyle(
+                        color: GlassTheme.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                    trailing: isSel
+                        ? const Icon(
+                            Icons.check_circle,
+                            color: GlassTheme.primaryGreen,
+                          )
+                        : null,
+                    onTap: () {
+                      currencyProvider.setCurrency(mode);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Display currency set to ${opt['title']}',
+                          ),
+                          duration: const Duration(seconds: 1),
+                          backgroundColor: GlassTheme.primaryGreen,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _showFontSizeDialog() {
     showDialog(
@@ -304,167 +310,171 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: ResponsiveBottomSheet(
             child: Container(
               padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: GlassTheme.dialogDark,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
+              decoration: BoxDecoration(
+                color: GlassTheme.dialogDark,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Change Account Password',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: currentPw,
-                  obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Current Password',
-                    labelStyle: TextStyle(color: GlassTheme.textMuted),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Change Account Password',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: newPw,
-                  obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'New Password',
-                    labelStyle: TextStyle(color: GlassTheme.textMuted),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: currentPw,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Current Password',
+                      labelStyle: TextStyle(color: GlassTheme.textMuted),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: confirmPw,
-                  obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
-                    labelStyle: TextStyle(color: GlassTheme.textMuted),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: newPw,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      labelStyle: TextStyle(color: GlassTheme.textMuted),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlassTheme.primaryGreen,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: confirmPw,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Confirm New Password',
+                      labelStyle: TextStyle(color: GlassTheme.textMuted),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
-                  onPressed: isSubmitting
-                      ? null
-                      : () async {
-                          if (currentPw.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Please enter your current password',
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlassTheme.primaryGreen,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: isSubmitting
+                        ? null
+                        : () async {
+                            if (currentPw.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Please enter your current password',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
                                 ),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                            return;
-                          }
-                          if (newPw.text.isEmpty ||
-                              newPw.text != confirmPw.text) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Passwords do not match or are empty',
+                              );
+                              return;
+                            }
+                            if (newPw.text.isEmpty ||
+                                newPw.text != confirmPw.text) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Passwords do not match or are empty',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
                                 ),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                            return;
-                          }
-                          if (newPw.text.length < 6) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'New password must be at least 6 characters',
+                              );
+                              return;
+                            }
+                            if (newPw.text.length < 6) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'New password must be at least 6 characters',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
                                 ),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                            return;
-                          }
-                          setSheetState(() => isSubmitting = true);
-                          try {
-                            final api = ApiService();
-                            await api.post('auth/change-password/', {
-                              'current_password': currentPw.text,
-                              'new_password': newPw.text,
-                            });
-                            if (sheetCtx.mounted) Navigator.pop(sheetCtx);
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Password updated successfully!'),
-                                backgroundColor: GlassTheme.primaryGreen,
-                              ),
-                            );
-                          } catch (e) {
-                            setSheetState(() => isSubmitting = false);
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to update password: $e'),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                          }
-                        },
-                  child: isSubmitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                              );
+                              return;
+                            }
+                            setSheetState(() => isSubmitting = true);
+                            try {
+                              final api = ApiService();
+                              await api.post('auth/change-password/', {
+                                'current_password': currentPw.text,
+                                'new_password': newPw.text,
+                              });
+                              if (sheetCtx.mounted) Navigator.pop(sheetCtx);
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Password updated successfully!',
+                                  ),
+                                  backgroundColor: GlassTheme.primaryGreen,
+                                ),
+                              );
+                            } catch (e) {
+                              setSheetState(() => isSubmitting = false);
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to update password: $e',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          },
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Save New Password',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Save New Password',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _showDeleteAccountDialog() {
     final confirmController = TextEditingController();
@@ -708,221 +718,226 @@ class _SettingsScreenState extends State<SettingsScreen> {
         maxWidth: 800,
         child: ListView(
           padding: const EdgeInsets.all(16),
-        children: [
-          // ── Appearance ──────────────────────
-          _SectionHeader(title: 'Appearance'),
-          GlassContainer(
-            borderRadius: GlassTheme.borderRadius,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: isDark ? Icons.dark_mode : Icons.light_mode,
-                  iconColor: isDark ? Colors.indigo : Colors.amber,
-                  title: 'Dark Mode',
-                  subtitle: isDark ? 'Dark theme active' : 'Light theme active',
-                  trailing: Switch.adaptive(
-                    value: isDark,
-                    activeTrackColor: GlassTheme.primaryGreen,
-                    onChanged: (_) => themeProvider.toggleTheme(),
+          children: [
+            // ── Appearance ──────────────────────
+            _SectionHeader(title: 'Appearance'),
+            GlassContainer(
+              borderRadius: GlassTheme.borderRadius,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                children: [
+                  _SettingsTile(
+                    icon: isDark ? Icons.dark_mode : Icons.light_mode,
+                    iconColor: isDark ? Colors.indigo : Colors.amber,
+                    title: 'Dark Mode',
+                    subtitle: isDark
+                        ? 'Dark theme active'
+                        : 'Light theme active',
+                    trailing: Switch.adaptive(
+                      value: isDark,
+                      activeTrackColor: GlassTheme.primaryGreen,
+                      onChanged: (_) => themeProvider.toggleTheme(),
+                    ),
                   ),
-                ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.language,
-                  iconColor: GlassTheme.primaryGreen,
-                  title: 'Language',
-                  subtitle: _selectedLanguage,
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _showLanguageDialog,
-                ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.text_fields,
-                  iconColor: Colors.blueAccent,
-                  title: 'Font Size',
-                  subtitle: _selectedFontSize,
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _showFontSizeDialog,
-                ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.currency_exchange,
-                  iconColor: Colors.amberAccent,
-                  title: 'Display Currency',
-                  subtitle:
-                      '${context.watch<CurrencyProvider>().currencySymbol} (${context.watch<CurrencyProvider>().currency.name.toUpperCase()}) • 1 USD = ${context.watch<CurrencyProvider>().khrPerUsd.toInt()} KHR',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showCurrencyDialog(context),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0),
-          const SizedBox(height: 20),
+                  _Divider(),
+                  _SettingsTile(
+                    icon: Icons.language,
+                    iconColor: GlassTheme.primaryGreen,
+                    title: 'Language',
+                    subtitle: _selectedLanguage,
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _showLanguageDialog,
+                  ),
+                  _Divider(),
+                  _SettingsTile(
+                    icon: Icons.text_fields,
+                    iconColor: Colors.blueAccent,
+                    title: 'Font Size',
+                    subtitle: _selectedFontSize,
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _showFontSizeDialog,
+                  ),
+                  _Divider(),
+                  _SettingsTile(
+                    icon: Icons.currency_exchange,
+                    iconColor: Colors.amberAccent,
+                    title: 'Display Currency',
+                    subtitle:
+                        '${context.watch<CurrencyProvider>().currencySymbol} (${context.watch<CurrencyProvider>().currency.name.toUpperCase()}) • 1 USD = ${context.watch<CurrencyProvider>().khrPerUsd.toInt()} KHR',
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showCurrencyDialog(context),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0),
+            const SizedBox(height: 20),
 
-          // ── Notifications ───────────────────
-          _SectionHeader(title: 'Notifications'),
-          GlassContainer(
-                borderRadius: GlassTheme.borderRadius,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.notifications_active,
-                      iconColor: Colors.orange,
-                      title: 'Push Notifications',
-                      subtitle: 'Receive all app notifications',
-                      trailing: Switch.adaptive(
-                        value: _notificationsEnabled,
-                        activeTrackColor: GlassTheme.primaryGreen,
-                        onChanged: (v) {
-                          setState(() => _notificationsEnabled = v);
-                          _saveSetting('settings_notifications', v);
-                        },
+            // ── Notifications ───────────────────
+            _SectionHeader(title: 'Notifications'),
+            GlassContainer(
+                  borderRadius: GlassTheme.borderRadius,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    children: [
+                      _SettingsTile(
+                        icon: Icons.notifications_active,
+                        iconColor: Colors.orange,
+                        title: 'Push Notifications',
+                        subtitle: 'Receive all app notifications',
+                        trailing: Switch.adaptive(
+                          value: _notificationsEnabled,
+                          activeTrackColor: GlassTheme.primaryGreen,
+                          onChanged: (v) {
+                            setState(() => _notificationsEnabled = v);
+                            _saveSetting('settings_notifications', v);
+                          },
+                        ),
                       ),
-                    ),
-                    _Divider(),
-                    _SettingsTile(
-                      icon: Icons.delivery_dining,
-                      iconColor: GlassTheme.primaryGreen,
-                      title: 'Order Updates',
-                      subtitle: 'Status changes for your orders',
-                      trailing: Switch.adaptive(
-                        value: _orderUpdates,
-                        activeTrackColor: GlassTheme.primaryGreen,
-                        onChanged: (v) {
-                          setState(() => _orderUpdates = v);
-                          _saveSetting('settings_order_updates', v);
-                        },
+                      _Divider(),
+                      _SettingsTile(
+                        icon: Icons.delivery_dining,
+                        iconColor: GlassTheme.primaryGreen,
+                        title: 'Order Updates',
+                        subtitle: 'Status changes for your orders',
+                        trailing: Switch.adaptive(
+                          value: _orderUpdates,
+                          activeTrackColor: GlassTheme.primaryGreen,
+                          onChanged: (v) {
+                            setState(() => _orderUpdates = v);
+                            _saveSetting('settings_order_updates', v);
+                          },
+                        ),
                       ),
-                    ),
-                    _Divider(),
-                    _SettingsTile(
-                      icon: Icons.local_offer,
-                      iconColor: Colors.redAccent,
-                      title: 'Promotions & Offers',
-                      subtitle: 'Deals, discounts & coupons',
-                      trailing: Switch.adaptive(
-                        value: _promoAlerts,
-                        activeTrackColor: GlassTheme.primaryGreen,
-                        onChanged: (v) {
-                          setState(() => _promoAlerts = v);
-                          _saveSetting('settings_promo_alerts', v);
-                        },
+                      _Divider(),
+                      _SettingsTile(
+                        icon: Icons.local_offer,
+                        iconColor: Colors.redAccent,
+                        title: 'Promotions & Offers',
+                        subtitle: 'Deals, discounts & coupons',
+                        trailing: Switch.adaptive(
+                          value: _promoAlerts,
+                          activeTrackColor: GlassTheme.primaryGreen,
+                          onChanged: (v) {
+                            setState(() => _promoAlerts = v);
+                            _saveSetting('settings_promo_alerts', v);
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              )
-              .animate()
-              .fadeIn(delay: 80.ms, duration: 350.ms)
-              .slideY(begin: 0.08, end: 0),
-          const SizedBox(height: 20),
+                    ],
+                  ),
+                )
+                .animate()
+                .fadeIn(delay: 80.ms, duration: 350.ms)
+                .slideY(begin: 0.08, end: 0),
+            const SizedBox(height: 20),
 
-          // ── Privacy & Security ──────────────
-          _SectionHeader(title: 'Privacy & Security'),
-          GlassContainer(
-            borderRadius: GlassTheme.borderRadius,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.lock_outline,
-                  iconColor: Colors.purple,
-                  title: 'Change Password',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _showChangePasswordDialog,
-                ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.privacy_tip_outlined,
-                  iconColor: Colors.teal,
-                  title: 'Privacy Policy',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/privacy'),
-                ),
-                _Divider(),
-                _SettingsTile(
-                  icon: Icons.description_outlined,
-                  iconColor: Colors.blue,
-                  title: 'Terms of Service',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/terms'),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(delay: 140.ms, duration: 350.ms).slideY(begin: 0.08, end: 0),
-          const SizedBox(height: 20),
-
-          // ── About ───────────────────────────
-          _SectionHeader(title: 'About'),
-          GlassContainer(
-                borderRadius: GlassTheme.borderRadius,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.info_outline,
-                      iconColor: GlassTheme.primaryGreen,
-                      title: 'App Version',
-                      subtitle: '1.0.0 (Build 12) • Production Ready',
-                      trailing: const SizedBox.shrink(),
-                    ),
-                    _Divider(),
-                    _SettingsTile(
-                      icon: Icons.star_outline,
-                      iconColor: Colors.amber,
-                      title: 'Rate Us',
-                      subtitle: 'Enjoying FoodGo? Let us know!',
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: _showRateUsDialog,
-                    ),
-                    _Divider(),
-                    _SettingsTile(
-                      icon: Icons.support_agent,
-                      iconColor: Colors.cyan,
-                      title: 'Help & Support',
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push('/support'),
-                    ),
-                  ],
-                ),
-              )
-              .animate()
-              .fadeIn(delay: 200.ms, duration: 350.ms)
-              .slideY(begin: 0.08, end: 0),
-          const SizedBox(height: 20),
-
-          // ── Danger Zone ─────────────────────
-          _SectionHeader(title: 'Danger Zone'),
-          GlassContainer(
-                borderRadius: GlassTheme.borderRadius,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.delete_forever,
-                      iconColor: Colors.redAccent,
-                      title: 'Delete Account',
-                      subtitle: 'Permanently remove account & all order data',
-                      trailing: const Icon(
-                        Icons.chevron_right,
-                        color: Colors.redAccent,
+            // ── Privacy & Security ──────────────
+            _SectionHeader(title: 'Privacy & Security'),
+            GlassContainer(
+                  borderRadius: GlassTheme.borderRadius,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    children: [
+                      _SettingsTile(
+                        icon: Icons.lock_outline,
+                        iconColor: Colors.purple,
+                        title: 'Change Password',
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: _showChangePasswordDialog,
                       ),
-                      onTap: _showDeleteAccountDialog,
-                    ),
-                  ],
-                ),
-              )
-              .animate()
-              .fadeIn(delay: 260.ms, duration: 350.ms)
-              .slideY(begin: 0.08, end: 0),
-          const SizedBox(height: 100),
-        ],
+                      _Divider(),
+                      _SettingsTile(
+                        icon: Icons.privacy_tip_outlined,
+                        iconColor: Colors.teal,
+                        title: 'Privacy Policy',
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/privacy'),
+                      ),
+                      _Divider(),
+                      _SettingsTile(
+                        icon: Icons.description_outlined,
+                        iconColor: Colors.blue,
+                        title: 'Terms of Service',
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/terms'),
+                      ),
+                    ],
+                  ),
+                )
+                .animate()
+                .fadeIn(delay: 140.ms, duration: 350.ms)
+                .slideY(begin: 0.08, end: 0),
+            const SizedBox(height: 20),
+
+            // ── About ───────────────────────────
+            _SectionHeader(title: 'About'),
+            GlassContainer(
+                  borderRadius: GlassTheme.borderRadius,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    children: [
+                      _SettingsTile(
+                        icon: Icons.info_outline,
+                        iconColor: GlassTheme.primaryGreen,
+                        title: 'App Version',
+                        subtitle: '1.0.0 (Build 12) • Production Ready',
+                        trailing: const SizedBox.shrink(),
+                      ),
+                      _Divider(),
+                      _SettingsTile(
+                        icon: Icons.star_outline,
+                        iconColor: Colors.amber,
+                        title: 'Rate Us',
+                        subtitle: 'Enjoying FoodGo? Let us know!',
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: _showRateUsDialog,
+                      ),
+                      _Divider(),
+                      _SettingsTile(
+                        icon: Icons.support_agent,
+                        iconColor: Colors.cyan,
+                        title: 'Help & Support',
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/support'),
+                      ),
+                    ],
+                  ),
+                )
+                .animate()
+                .fadeIn(delay: 200.ms, duration: 350.ms)
+                .slideY(begin: 0.08, end: 0),
+            const SizedBox(height: 20),
+
+            // ── Danger Zone ─────────────────────
+            _SectionHeader(title: 'Danger Zone'),
+            GlassContainer(
+                  borderRadius: GlassTheme.borderRadius,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    children: [
+                      _SettingsTile(
+                        icon: Icons.delete_forever,
+                        iconColor: Colors.redAccent,
+                        title: 'Delete Account',
+                        subtitle: 'Permanently remove account & all order data',
+                        trailing: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.redAccent,
+                        ),
+                        onTap: _showDeleteAccountDialog,
+                      ),
+                    ],
+                  ),
+                )
+                .animate()
+                .fadeIn(delay: 260.ms, duration: 350.ms)
+                .slideY(begin: 0.08, end: 0),
+            const SizedBox(height: 100),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _SectionHeader extends StatelessWidget {

@@ -549,7 +549,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
             if (order['assigned_driver'] != null) ...[
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(10),
@@ -872,129 +875,129 @@ class _OrdersScreenState extends State<OrdersScreen> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-          color: isDark ? GlassTheme.surfaceDark : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(
-            color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.support_agent_rounded,
-                    color: GlassTheme.primaryGreen,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'FoodGo Support Concierge',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        orderId != null
-                            ? 'Assistance for Order #$orderId'
-                            : '24/7 Customer Support',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: GlassTheme.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildSupportTile(
-              icon: Icons.chat_bubble_outline_rounded,
-              title: 'Live Chat Support',
-              subtitle: 'Average response time: 2 minutes',
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Connecting to live support agent...'),
-                    backgroundColor: GlassTheme.primaryGreenDark,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildSupportTile(
-              icon: Icons.phone_in_talk_outlined,
-              title: 'Call Support Hotline',
-              subtitle: '+855 23 999 888 (Toll-Free in Cambodia)',
-              onTap: () {
-                Navigator.pop(ctx);
-                Clipboard.setData(const ClipboardData(text: '+85523999888'));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Support hotline copied to clipboard: +855 23 999 888',
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
                     ),
-                    backgroundColor: GlassTheme.primaryGreenDark,
-                    behavior: SnackBarBehavior.floating,
+                    child: const Icon(
+                      Icons.support_agent_rounded,
+                      color: GlassTheme.primaryGreen,
+                      size: 24,
+                    ),
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildSupportTile(
-              icon: Icons.report_problem_outlined,
-              title: 'Report Order Issue',
-              subtitle: 'Missing item, food damage, or late delivery',
-              onTap: () {
-                Navigator.pop(ctx);
-                _showReportIssueDialog(orderId);
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildSupportTile(
-              icon: Icons.help_outline_rounded,
-              title: 'Delivery FAQs & Terms',
-              subtitle: 'Refund guarantee, delivery tracking, and policies',
-              onTap: () {
-                Navigator.pop(ctx);
-                _showFaqDialog();
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'FoodGo Support Concierge',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          orderId != null
+                              ? 'Assistance for Order #$orderId'
+                              : '24/7 Customer Support',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: GlassTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildSupportTile(
+                icon: Icons.chat_bubble_outline_rounded,
+                title: 'Live Chat Support',
+                subtitle: 'Average response time: 2 minutes',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Connecting to live support agent...'),
+                      backgroundColor: GlassTheme.primaryGreenDark,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildSupportTile(
+                icon: Icons.phone_in_talk_outlined,
+                title: 'Call Support Hotline',
+                subtitle: '+855 23 999 888 (Toll-Free in Cambodia)',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Clipboard.setData(const ClipboardData(text: '+85523999888'));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Support hotline copied to clipboard: +855 23 999 888',
+                      ),
+                      backgroundColor: GlassTheme.primaryGreenDark,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildSupportTile(
+                icon: Icons.report_problem_outlined,
+                title: 'Report Order Issue',
+                subtitle: 'Missing item, food damage, or late delivery',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showReportIssueDialog(orderId);
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildSupportTile(
+                icon: Icons.help_outline_rounded,
+                title: 'Delivery FAQs & Terms',
+                subtitle: 'Refund guarantee, delivery tracking, and policies',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showFaqDialog();
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildSupportTile({
     required IconData icon,
@@ -1362,223 +1365,227 @@ class _OrdersScreenState extends State<OrdersScreen> {
             color: GlassTheme.surfaceDark,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Order Bill Receipt',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '#FG-${order['id']} · ${_formatDate(order['created_at'] as String?)}',
-                        style: TextStyle(
-                          color: GlassTheme.textMuted,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
                     decoration: BoxDecoration(
-                      color: _statusColor(status).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      _formatStatus(status),
-                      style: TextStyle(
-                        color: _statusColor(status),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Row(
+                const SizedBox(height: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(
-                      Icons.store,
-                      color: GlassTheme.primaryGreen,
-                      size: 22,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Order Bill Receipt',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '#FG-${order['id']} · ${_formatDate(order['created_at'] as String?)}',
+                          style: TextStyle(
+                            color: GlassTheme.textMuted,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _statusColor(status).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: Text(
-                        restaurantName,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        _formatStatus(status),
+                        style: TextStyle(
+                          color: _statusColor(status),
                           fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                          fontSize: 12,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'ITEMS',
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 200),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: items.length,
-                  separatorBuilder: (context, sepIdx) => Divider(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    height: 12,
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  itemBuilder: (context, i) {
-                    final it = items[i];
-                    final name = it['food_name'] ?? 'Item #${it['food_item']}';
-                    final qty = it['quantity'] ?? 1;
-                    final price = it['price'] ?? '0.00';
-                    final lineTotal =
-                        ((double.tryParse(price.toString()) ?? 0.0) *
-                                (int.tryParse(qty.toString()) ?? 1))
-                            .toStringAsFixed(2);
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '$qty x $name',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '\$$lineTotal',
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.store,
+                        color: GlassTheme.primaryGreen,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          restaurantName,
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 15,
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              Divider(color: Colors.white.withValues(alpha: 0.15), height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Payment Status',
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                  Text(
-                    paymentStatus,
-                    style: TextStyle(
-                      color: paymentStatus == 'PAID'
-                          ? GlassTheme.primaryGreen
-                          : Colors.orangeAccent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total Amount',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '\$${totalAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: GlassTheme.primaryGreen,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                      Text(
-                        '≈ ${KhmerCurrency.formatKhr(totalAmount)} KHR (អត្រា ៤,១០០)',
-                        style: const TextStyle(
-                          color: Colors.white54,
-                          fontSize: 11,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (paymentStatus != 'PAID' &&
-                  (order['status'] as String? ?? '') != 'cancelled') ...[
-                GlassButton(
-                  text: 'Pay Now with KHQR',
-                  icon: Icons.qr_code_2,
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _resumeKhqrPayment(order);
-                  },
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
+                const Text(
+                  'ITEMS',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: items.length,
+                    separatorBuilder: (context, sepIdx) => Divider(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      height: 12,
+                    ),
+                    itemBuilder: (context, i) {
+                      final it = items[i];
+                      final name =
+                          it['food_name'] ?? 'Item #${it['food_item']}';
+                      final qty = it['quantity'] ?? 1;
+                      final price = it['price'] ?? '0.00';
+                      final lineTotal =
+                          ((double.tryParse(price.toString()) ?? 0.0) *
+                                  (int.tryParse(qty.toString()) ?? 1))
+                              .toStringAsFixed(2);
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '$qty x $name',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '\$$lineTotal',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                Divider(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  height: 24,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Payment Status',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                    Text(
+                      paymentStatus,
+                      style: TextStyle(
+                        color: paymentStatus == 'PAID'
+                            ? GlassTheme.primaryGreen
+                            : Colors.orangeAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total Amount',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '\$${totalAmount.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                        Text(
+                          '≈ ${KhmerCurrency.formatKhr(totalAmount)} KHR (អត្រា ៤,១០០)',
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                if (paymentStatus != 'PAID' &&
+                    (order['status'] as String? ?? '') != 'cancelled') ...[
+                  GlassButton(
+                    text: 'Pay Now with KHQR',
+                    icon: Icons.qr_code_2,
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _resumeKhqrPayment(order);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                GlassButton(text: 'Close', onPressed: () => Navigator.pop(ctx)),
               ],
-              GlassButton(text: 'Close', onPressed: () => Navigator.pop(ctx)),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildFilterChips() {
     const filters = ['All', 'Active', 'Delivered', 'Cancelled'];

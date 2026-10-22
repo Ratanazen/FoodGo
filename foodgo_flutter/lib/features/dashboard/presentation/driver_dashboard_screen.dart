@@ -40,7 +40,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     with SingleTickerProviderStateMixin {
   final ApiService _api = ApiService();
 
-  int _selectedTab = 0; // 0: Active, 1: Available, 2: History & Earnings, 3: Profile
+  int _selectedTab =
+      0; // 0: Active, 1: Available, 2: History & Earnings, 3: Profile
   late bool _isLoading;
   bool _isOnline = true;
   bool _isApproved = true;
@@ -186,12 +187,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            value
-                ? 'Status: Online and accepting orders'
-                : 'Status: Offline',
+            value ? 'Status: Online and accepting orders' : 'Status: Offline',
           ),
-          backgroundColor:
-              value ? GlassTheme.primaryGreen : Colors.redAccent,
+          backgroundColor: value ? GlassTheme.primaryGreen : Colors.redAccent,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -203,10 +201,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
 
   Future<void> _broadcastLocation() async {
     try {
-      await _api.post('drivers/location/', {
-        'lat': 11.5580,
-        'lng': 104.9210,
-      });
+      await _api.post('drivers/location/', {'lat': 11.5580, 'lng': 104.9210});
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -234,13 +229,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      String errorMsg = 'Unable to accept order. It may have been claimed by another driver.';
+      String errorMsg =
+          'Unable to accept order. It may have been claimed by another driver.';
       bool needsVerification = false;
       if (e is DioException && e.response?.data is Map) {
         final data = e.response!.data as Map;
         if (data['error'] != null) {
           errorMsg = data['error'].toString();
-          if (errorMsg.toLowerCase().contains('phone') || errorMsg.toLowerCase().contains('verif')) {
+          if (errorMsg.toLowerCase().contains('phone') ||
+              errorMsg.toLowerCase().contains('verif')) {
             needsVerification = true;
           }
         }
@@ -285,7 +282,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     } catch (_) {}
   }
 
-  Future<void> _advanceDeliveryStep(Map<String, dynamic> order, String currentStatus) async {
+  Future<void> _advanceDeliveryStep(
+    Map<String, dynamic> order,
+    String currentStatus,
+  ) async {
     final orderId = order['id'].toString();
     try {
       if (currentStatus == 'assigned' || currentStatus == 'accepted') {
@@ -297,7 +297,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             backgroundColor: GlassTheme.primaryGreen,
           ),
         );
-      } else if (currentStatus == 'arrived_at_restaurant' || currentStatus == 'ready' || currentStatus == 'preparing') {
+      } else if (currentStatus == 'arrived_at_restaurant' ||
+          currentStatus == 'ready' ||
+          currentStatus == 'preparing') {
         await _api.post('drivers/orders/$orderId/pickup/', {});
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -306,7 +308,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             backgroundColor: GlassTheme.primaryGreen,
           ),
         );
-      } else if (currentStatus == 'picked_up' || currentStatus == 'on_the_way') {
+      } else if (currentStatus == 'picked_up' ||
+          currentStatus == 'on_the_way') {
         await _api.post('drivers/orders/$orderId/arrive-customer/', {});
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -315,7 +318,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             backgroundColor: GlassTheme.primaryGreen,
           ),
         );
-      } else if (currentStatus == 'arrived' || currentStatus == 'driver_arrived') {
+      } else if (currentStatus == 'arrived' ||
+          currentStatus == 'driver_arrived') {
         _showDeliveryCompletionSheet(order);
         return;
       }
@@ -338,7 +342,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E2C),
-        title: const Text('Report Delivery Issue', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Report Delivery Issue',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,12 +369,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white70),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Submit Report', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Submit Report',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -378,12 +391,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         final reason = reasonController.text.trim().isEmpty
             ? 'Customer unreachable after multiple attempts'
             : reasonController.text.trim();
-        await _api.post('drivers/orders/$orderId/failed-delivery/', {'reason': reason});
+        await _api.post('drivers/orders/$orderId/failed-delivery/', {
+          'reason': reason,
+        });
         _fetchDashboardData();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Delivery issue logged. Order marked failed delivery.'),
+            content: Text(
+              'Delivery issue logged. Order marked failed delivery.',
+            ),
             backgroundColor: Colors.orange,
             behavior: SnackBarBehavior.floating,
           ),
@@ -443,7 +460,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   decoration: BoxDecoration(
                     color: Colors.amber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -463,7 +482,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                             ),
                             Text(
                               'Collect \$${order['total_amount']} or scan Bakong KHQR',
-                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -480,11 +502,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               const SizedBox(height: 14),
               ListTile(
                 tileColor: Colors.white.withValues(alpha: 0.05),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                leading: const Icon(Icons.qr_code_2, color: GlassTheme.primaryGreen),
-                title: const Text('Show Handover QR Code', style: TextStyle(color: Colors.white, fontSize: 14)),
-                subtitle: const Text('Customer scans code on your screen', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                trailing: const Icon(Icons.chevron_right, color: Colors.white30),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: const Icon(
+                  Icons.qr_code_2,
+                  color: GlassTheme.primaryGreen,
+                ),
+                title: const Text(
+                  'Show Handover QR Code',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                subtitle: const Text(
+                  'Customer scans code on your screen',
+                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.white30,
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   DeliveryQrModal.show(
@@ -498,11 +534,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               const SizedBox(height: 10),
               ListTile(
                 tileColor: Colors.white.withValues(alpha: 0.05),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                leading: const Icon(Icons.pin_outlined, color: Colors.blueAccent),
-                title: const Text('Enter Customer 4-Digit PIN', style: TextStyle(color: Colors.white, fontSize: 14)),
-                subtitle: const Text('Customer provides PIN shown in their app', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                trailing: const Icon(Icons.chevron_right, color: Colors.white30),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: const Icon(
+                  Icons.pin_outlined,
+                  color: Colors.blueAccent,
+                ),
+                title: const Text(
+                  'Enter Customer 4-Digit PIN',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                subtitle: const Text(
+                  'Customer provides PIN shown in their app',
+                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.white30,
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   DeliveryScannerModal.show(
@@ -515,11 +565,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               const SizedBox(height: 10),
               ListTile(
                 tileColor: Colors.white.withValues(alpha: 0.05),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                leading: const Icon(Icons.check_circle_outline, color: GlassTheme.primaryGreen),
-                title: const Text('Direct Handover Confirmation', style: TextStyle(color: Colors.white, fontSize: 14)),
-                subtitle: const Text('Confirm package handed to customer directly', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                trailing: const Icon(Icons.chevron_right, color: Colors.white30),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: const Icon(
+                  Icons.check_circle_outline,
+                  color: GlassTheme.primaryGreen,
+                ),
+                title: const Text(
+                  'Direct Handover Confirmation',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                subtitle: const Text(
+                  'Confirm package handed to customer directly',
+                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.white30,
+                ),
                 onTap: () async {
                   Navigator.pop(ctx);
                   try {
@@ -554,15 +618,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   }
 
   void _showCancelOrderDialog(String orderId) {
-    final reasonController = TextEditingController(text: 'Vehicle breakdown or emergency');
+    final reasonController = TextEditingController(
+      text: 'Vehicle breakdown or emergency',
+    );
 
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1E242B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Report Issue / Cancel', style: TextStyle(color: Colors.white)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Report Issue / Cancel',
+            style: TextStyle(color: Colors.white),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -579,7 +650,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   labelStyle: const TextStyle(color: Colors.white60),
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ],
@@ -587,10 +660,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Keep Delivery', style: TextStyle(color: Colors.white60)),
+              child: const Text(
+                'Keep Delivery',
+                style: TextStyle(color: Colors.white60),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+              ),
               onPressed: () async {
                 Navigator.pop(ctx);
                 try {
@@ -607,7 +685,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   _fetchDashboardData();
                 } catch (_) {}
               },
-              child: const Text('Confirm Cancel', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Confirm Cancel',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -632,9 +713,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     } catch (_) {
       await Clipboard.setData(ClipboardData(text: '$lat, $lng'));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Coordinates copied: $lat, $lng')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Coordinates copied: $lat, $lng')));
     }
   }
 
@@ -685,13 +766,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               children: [
                 // ── Status & Navigation Header ──
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: _buildHeaderCard(),
                 ),
 
                 // ── Segmented Tab Selector ──
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 4.0,
+                  ),
                   child: _buildTabSelector(),
                 ),
 
@@ -731,7 +818,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               CircleAvatar(
                 radius: 20,
                 backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(Icons.two_wheeler, color: GlassTheme.primaryGreen, size: 22),
+                child: const Icon(
+                  Icons.two_wheeler,
+                  color: GlassTheme.primaryGreen,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -741,7 +832,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     Row(
                       children: [
                         Text(
-                          _driverProfile?['full_name'] ?? _driverProfile?['username'] ?? 'FoodGo Driver',
+                          _driverProfile?['full_name'] ??
+                              _driverProfile?['username'] ??
+                              'FoodGo Driver',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -751,14 +844,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         if (!_isApproved) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.amber.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
                               'Pending Approval',
-                              style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Colors.amber,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -767,7 +867,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     const SizedBox(height: 2),
                     Text(
                       '${_driverProfile?['vehicle_type'] ?? 'Motorcycle'} · ${_driverProfile?['license_plate'] ?? 'PP-2026'}',
-                      style: const TextStyle(color: Colors.white60, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -797,17 +900,27 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     const SizedBox(width: 6),
                     const Text(
                       'Online & Available',
-                      style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
                 TextButton.icon(
                   style: TextButton.styleFrom(
                     foregroundColor: GlassTheme.primaryGreen,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                   ),
                   icon: const Icon(Icons.my_location, size: 14),
-                  label: const Text('Broadcast Location', style: TextStyle(fontSize: 12)),
+                  label: const Text(
+                    'Broadcast Location',
+                    style: TextStyle(fontSize: 12),
+                  ),
                   onPressed: _broadcastLocation,
                 ),
               ],
@@ -820,8 +933,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
 
   Widget _buildTabSelector() {
     final tabs = [
-      {'title': 'Active (${_activeOrders.length})', 'icon': Icons.delivery_dining},
-      {'title': 'Available (${_availableOrders.length})', 'icon': Icons.list_alt},
+      {
+        'title': 'Active (${_activeOrders.length})',
+        'icon': Icons.delivery_dining,
+      },
+      {
+        'title': 'Available (${_availableOrders.length})',
+        'icon': Icons.list_alt,
+      },
       {'title': 'Earnings', 'icon': Icons.payments_outlined},
       {'title': 'Profile', 'icon': Icons.person_outline},
     ];
@@ -843,9 +962,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? GlassTheme.primaryGreen.withValues(alpha: 0.25) : Colors.transparent,
+                  color: isSelected
+                      ? GlassTheme.primaryGreen.withValues(alpha: 0.25)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
-                  border: isSelected ? Border.all(color: GlassTheme.primaryGreen.withValues(alpha: 0.5)) : null,
+                  border: isSelected
+                      ? Border.all(
+                          color: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                        )
+                      : null,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -853,14 +978,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     Icon(
                       tabs[index]['icon'] as IconData,
                       size: 16,
-                      color: isSelected ? GlassTheme.primaryGreen : Colors.white60,
+                      color: isSelected
+                          ? GlassTheme.primaryGreen
+                          : Colors.white60,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       tabs[index]['title'] as String,
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                         color: isSelected ? Colors.white : Colors.white60,
                       ),
                       maxLines: 1,
@@ -902,11 +1031,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.directions_bike, size: 56, color: GlassTheme.textMuted.withValues(alpha: 0.5)),
+              Icon(
+                Icons.directions_bike,
+                size: 56,
+                color: GlassTheme.textMuted.withValues(alpha: 0.5),
+              ),
               const SizedBox(height: 16),
               const Text(
                 'No Active Deliveries',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -919,7 +1056,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: GlassTheme.primaryGreen,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 icon: const Icon(Icons.search, size: 18),
                 label: const Text('View Available Orders'),
@@ -943,14 +1082,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
 
   Widget _buildActiveOrderCard(Map<String, dynamic> order) {
     final status = order['status']?.toString() ?? 'assigned';
-    final rest = order['restaurant'] is Map ? order['restaurant'] : {'name': order['restaurant_name'] ?? 'Restaurant'};
+    final rest = order['restaurant'] is Map
+        ? order['restaurant']
+        : {'name': order['restaurant_name'] ?? 'Restaurant'};
     final restName = rest['name'] ?? 'Restaurant';
     final restPhone = rest['phone'] ?? '+855 23 888 777';
     final restAddress = rest['address'] ?? 'Phnom Penh';
     final restLat = (rest['lat'] as num?)?.toDouble() ?? 11.5564;
     final restLng = (rest['lng'] as num?)?.toDouble() ?? 104.9282;
 
-    final addr = order['address'] is Map ? order['address'] : {'street': order['delivery_address_snapshot'] ?? 'Phnom Penh'};
+    final addr = order['address'] is Map
+        ? order['address']
+        : {'street': order['delivery_address_snapshot'] ?? 'Phnom Penh'};
     final custStreet = addr['street'] ?? 'Delivery Address, Phnom Penh';
     final custLat = (addr['lat'] as num?)?.toDouble() ?? 11.5621;
     final custLng = (addr['lng'] as num?)?.toDouble() ?? 104.9160;
@@ -974,14 +1117,23 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             children: [
               Text(
                 'Order #${order['id']}',
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: _getStatusColor(status).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _getStatusColor(status).withValues(alpha: 0.5)),
+                  border: Border.all(
+                    color: _getStatusColor(status).withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Text(
                   _getStatusLabel(status),
@@ -1020,12 +1172,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.store, color: GlassTheme.primaryGreen, size: 18),
+                    const Icon(
+                      Icons.store,
+                      color: GlassTheme.primaryGreen,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Pickup: $restName',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
@@ -1042,11 +1202,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                       style: OutlinedButton.styleFrom(
                         foregroundColor: GlassTheme.primaryGreen,
                         side: const BorderSide(color: GlassTheme.primaryGreen),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.navigation, size: 14),
-                      label: const Text('Directions', style: TextStyle(fontSize: 11)),
+                      label: const Text(
+                        'Directions',
+                        style: TextStyle(fontSize: 11),
+                      ),
                       onPressed: () => _launchMaps(restLat, restLng, restName),
                     ),
                     const SizedBox(width: 8),
@@ -1054,12 +1220,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white70,
                         side: const BorderSide(color: Colors.white24),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.phone, size: 14),
                       label: const Text('Call', style: TextStyle(fontSize: 11)),
-                      onPressed: () => _copyToClipboard(restPhone, 'Restaurant Phone'),
+                      onPressed: () =>
+                          _copyToClipboard(restPhone, 'Restaurant Phone'),
                     ),
                   ],
                 ),
@@ -1081,12 +1251,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.location_on, color: Colors.redAccent, size: 18),
+                    const Icon(
+                      Icons.location_on,
+                      color: Colors.redAccent,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Deliver to: $custName',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
@@ -1096,7 +1274,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   custStreet,
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
-                if (order['special_instructions'] != null && order['special_instructions'].toString().trim().isNotEmpty) ...[
+                if (order['special_instructions'] != null &&
+                    order['special_instructions']
+                        .toString()
+                        .trim()
+                        .isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
                     'Note: ${order['special_instructions']}',
@@ -1110,24 +1292,35 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.blueAccent,
                         side: const BorderSide(color: Colors.blueAccent),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.navigation, size: 14),
-                      label: const Text('Directions', style: TextStyle(fontSize: 11)),
-                      onPressed: () => _launchMaps(custLat, custLng, custStreet),
+                      label: const Text(
+                        'Directions',
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      onPressed: () =>
+                          _launchMaps(custLat, custLng, custStreet),
                     ),
                     const SizedBox(width: 8),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white70,
                         side: const BorderSide(color: Colors.white24),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.phone, size: 14),
                       label: const Text('Call', style: TextStyle(fontSize: 11)),
-                      onPressed: () => _copyToClipboard(custPhone, 'Customer Phone'),
+                      onPressed: () =>
+                          _copyToClipboard(custPhone, 'Customer Phone'),
                     ),
                   ],
                 ),
@@ -1143,20 +1336,30 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Payment Status', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  const Text(
+                    'Payment Status',
+                    style: TextStyle(color: Colors.white60, fontSize: 11),
+                  ),
                   const SizedBox(height: 2),
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: isPaid ? GlassTheme.primaryGreen.withValues(alpha: 0.2) : Colors.amber.withValues(alpha: 0.2),
+                          color: isPaid
+                              ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
+                              : Colors.amber.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           isPaid ? 'PAID ONLINE' : 'CASH / KHQR ON DELIVERY',
                           style: TextStyle(
-                            color: isPaid ? GlassTheme.primaryGreen : Colors.amber,
+                            color: isPaid
+                                ? GlassTheme.primaryGreen
+                                : Colors.amber,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1169,11 +1372,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Text('Delivery Fee Earning', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  const Text(
+                    'Delivery Fee Earning',
+                    style: TextStyle(color: Colors.white60, fontSize: 11),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     '+\$$deliveryFee (Total: \$$totalAmount)',
-                    style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      color: GlassTheme.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ),
@@ -1188,7 +1398,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           // Secondary Action (Cancel / Report Issue)
           TextButton(
             onPressed: () => _showCancelOrderDialog(order['id'].toString()),
-            child: const Text('Report Issue or Reassign', style: TextStyle(color: Colors.white54, fontSize: 12)),
+            child: const Text(
+              'Report Issue or Reassign',
+              style: TextStyle(color: Colors.white54, fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -1225,28 +1438,46 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     Expanded(
                       child: Container(
                         height: 2,
-                        color: i <= currentStepIndex ? GlassTheme.primaryGreen : Colors.white12,
+                        color: i <= currentStepIndex
+                            ? GlassTheme.primaryGreen
+                            : Colors.white12,
                       ),
                     ),
                   Container(
                     width: 20,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: isCompleted ? GlassTheme.primaryGreen : Colors.white12,
+                      color: isCompleted
+                          ? GlassTheme.primaryGreen
+                          : Colors.white12,
                       shape: BoxShape.circle,
-                      border: isCurrent ? Border.all(color: Colors.white, width: 2) : null,
+                      border: isCurrent
+                          ? Border.all(color: Colors.white, width: 2)
+                          : null,
                     ),
                     child: Center(
                       child: isCompleted
-                          ? const Icon(Icons.check, size: 12, color: Colors.black)
-                          : Text('${i + 1}', style: const TextStyle(fontSize: 10, color: Colors.white60)),
+                          ? const Icon(
+                              Icons.check,
+                              size: 12,
+                              color: Colors.black,
+                            )
+                          : Text(
+                              '${i + 1}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white60,
+                              ),
+                            ),
                     ),
                   ),
                   if (i < steps.length - 1)
                     Expanded(
                       child: Container(
                         height: 2,
-                        color: i < currentStepIndex ? GlassTheme.primaryGreen : Colors.white12,
+                        color: i < currentStepIndex
+                            ? GlassTheme.primaryGreen
+                            : Colors.white12,
                       ),
                     ),
                 ],
@@ -1277,7 +1508,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         icon: Icons.storefront,
         onPressed: () => _advanceDeliveryStep(order, status),
       );
-    } else if (status == 'arrived_at_restaurant' || status == 'ready' || status == 'preparing') {
+    } else if (status == 'arrived_at_restaurant' ||
+        status == 'ready' ||
+        status == 'preparing') {
       return GlassButton(
         text: 'Confirm Food Picked Up',
         icon: Icons.takeout_dining,
@@ -1296,7 +1529,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           const SizedBox(width: 8),
           IconButton(
             tooltip: 'Report Delivery Issue',
-            icon: const Icon(Icons.report_problem_outlined, color: Colors.orangeAccent),
+            icon: const Icon(
+              Icons.report_problem_outlined,
+              color: Colors.orangeAccent,
+            ),
             onPressed: () => _reportFailedDelivery(order),
           ),
         ],
@@ -1314,7 +1550,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           const SizedBox(width: 8),
           IconButton(
             tooltip: 'Report Delivery Issue',
-            icon: const Icon(Icons.report_problem_outlined, color: Colors.orangeAccent),
+            icon: const Icon(
+              Icons.report_problem_outlined,
+              color: Colors.orangeAccent,
+            ),
             onPressed: () => _reportFailedDelivery(order),
           ),
         ],
@@ -1372,7 +1611,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               const SizedBox(height: 16),
               const Text(
                 'You are Currently Offline',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 6),
               const Text(
@@ -1407,7 +1650,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               const SizedBox(height: 16),
               const Text(
                 'No Available Orders',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 6),
               const Text(
@@ -1440,7 +1687,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 20),
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.amber,
+                      size: 20,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Phone Verification Required',
@@ -1490,11 +1741,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
 
   Widget _buildAvailableOrderCard(Map<String, dynamic> order) {
     final orderId = order['id'].toString();
-    final rest = order['restaurant'] is Map ? order['restaurant'] : {'name': order['restaurant_name'] ?? 'Restaurant'};
+    final rest = order['restaurant'] is Map
+        ? order['restaurant']
+        : {'name': order['restaurant_name'] ?? 'Restaurant'};
     final restName = rest['name'] ?? 'Restaurant';
     final restAddress = rest['address'] ?? 'Phnom Penh';
 
-    final addr = order['address'] is Map ? order['address'] : {'street': order['delivery_address_snapshot'] ?? 'Phnom Penh'};
+    final addr = order['address'] is Map
+        ? order['address']
+        : {'street': order['delivery_address_snapshot'] ?? 'Phnom Penh'};
     final custStreet = addr['street'] ?? 'Delivery Address, Phnom Penh';
 
     final deliveryFee = order['delivery_fee_charged']?.toString() ?? '2.00';
@@ -1511,12 +1766,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             children: [
               Text(
                 'Order #$orderId',
-                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isPaid ? GlassTheme.primaryGreen.withValues(alpha: 0.2) : Colors.amber.withValues(alpha: 0.2),
+                  color: isPaid
+                      ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
+                      : Colors.amber.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -1542,8 +1803,23 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(restName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
-                    Text(restAddress, style: const TextStyle(color: Colors.white60, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(
+                      restName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      restAddress,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
@@ -1561,8 +1837,23 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Delivery Destination', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
-                    Text(custStreet, style: const TextStyle(color: Colors.white60, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const Text(
+                      'Delivery Destination',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      custStreet,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
@@ -1577,10 +1868,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Delivery Earning', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  const Text(
+                    'Delivery Earning',
+                    style: TextStyle(color: Colors.white60, fontSize: 11),
+                  ),
                   Text(
                     '+\$$deliveryFee (Order: \$$totalAmount)',
-                    style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      color: GlassTheme.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ),
@@ -1590,20 +1888,35 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white60,
                       side: const BorderSide(color: Colors.white24),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                     ),
                     onPressed: () => _declineOrder(orderId),
-                    child: const Text('Decline', style: TextStyle(fontSize: 12)),
+                    child: const Text(
+                      'Decline',
+                      style: TextStyle(fontSize: 12),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: GlassTheme.primaryGreen,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                     ),
                     icon: const Icon(Icons.check, size: 16),
-                    label: const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    label: const Text(
+                      'Accept',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                     onPressed: () => _acceptOrder(orderId),
                   ),
                 ],
@@ -1635,15 +1948,26 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Today's Earnings", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      const Text(
+                        "Today's Earnings",
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         '\$${_todayEarningsUsd.toStringAsFixed(2)}',
-                        style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         '≈ ${KhmerCurrency.formatKhr(_todayEarningsUsd)}',
-                        style: const TextStyle(color: GlassTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          color: GlassTheme.primaryGreen,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -1653,7 +1977,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                       color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.account_balance_wallet, color: GlassTheme.primaryGreen, size: 32),
+                    child: const Icon(
+                      Icons.account_balance_wallet,
+                      color: GlassTheme.primaryGreen,
+                      size: 32,
+                    ),
                   ),
                 ],
               ),
@@ -1663,15 +1991,35 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 children: [
                   Column(
                     children: [
-                      Text('$_completedDeliveries', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      const Text('Total Trips', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                      Text(
+                        '$_completedDeliveries',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'Total Trips',
+                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                      ),
                     ],
                   ),
                   Container(width: 1, height: 28, color: Colors.white12),
                   Column(
                     children: [
-                      Text('\$${_totalEarningsUsd.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      const Text('Lifetime Earned', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                      Text(
+                        '\$${_totalEarningsUsd.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'Lifetime Earned',
+                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                      ),
                     ],
                   ),
                 ],
@@ -1683,7 +2031,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
 
         const Text(
           'Completed Deliveries',
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 12),
 
@@ -1710,7 +2062,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             return Padding(
               padding: const EdgeInsets.only(bottom: 10.0),
               child: GlassCard(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -1719,21 +2074,42 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.check, color: GlassTheme.primaryGreen, size: 18),
+                      child: const Icon(
+                        Icons.check,
+                        color: GlassTheme.primaryGreen,
+                        size: 18,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Order #${o['id']} · $restName', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
-                          Text(dateStr, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                          Text(
+                            'Order #${o['id']} · $restName',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            dateStr,
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     Text(
                       '+\$$fee',
-                      style: const TextStyle(color: GlassTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -1751,7 +2127,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     final username = _driverProfile?['username'] ?? 'driver1';
     final fullName = _driverProfile?['full_name'] ?? username;
     final phone = _driverProfile?['phone'] ?? '+855 12 888 999';
-    final vehicle = _driverProfile?['vehicle_type'] ?? 'Motorcycle (Honda Wave)';
+    final vehicle =
+        _driverProfile?['vehicle_type'] ?? 'Motorcycle (Honda Wave)';
     final plate = _driverProfile?['license_plate'] ?? 'PP-2026';
     final rating = (_driverProfile?['rating'] as num?)?.toDouble() ?? 4.9;
 
@@ -1766,17 +2143,31 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               CircleAvatar(
                 radius: 36,
                 backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(Icons.person, size: 40, color: GlassTheme.primaryGreen),
+                child: const Icon(
+                  Icons.person,
+                  size: 40,
+                  color: GlassTheme.primaryGreen,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
                 fullName,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              Text('@$username', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(
+                '@$username',
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
@@ -1786,7 +2177,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   children: [
                     const Icon(Icons.star, color: Colors.amber, size: 14),
                     const SizedBox(width: 4),
-                    Text('$rating Rating', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text(
+                      '$rating Rating',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1800,7 +2198,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Vehicle & Registration', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+              const Text(
+                'Vehicle & Registration',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
               const Divider(color: Colors.white12, height: 20),
               _buildProfileRow(Icons.two_wheeler, 'Vehicle Type', vehicle),
               _buildProfileRow(Icons.badge, 'License Plate', plate),
@@ -1809,22 +2214,42 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    const Icon(Icons.phonelink_lock, size: 18, color: Colors.white60),
+                    const Icon(
+                      Icons.phonelink_lock,
+                      size: 18,
+                      color: Colors.white60,
+                    ),
                     const SizedBox(width: 12),
-                    const Text('Phone Verification', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    const Text(
+                      'Phone Verification',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
                     const Spacer(),
                     if (_driverProfile?['is_phone_verified'] == true)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                          color: GlassTheme.primaryGreen.withValues(
+                            alpha: 0.15,
+                          ),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: GlassTheme.primaryGreen.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check_circle, size: 12, color: GlassTheme.primaryGreen),
+                            Icon(
+                              Icons.check_circle,
+                              size: 12,
+                              color: GlassTheme.primaryGreen,
+                            ),
                             SizedBox(width: 4),
                             Text(
                               'Verified (+855)',
@@ -1849,16 +2274,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         },
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.amber.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                            border: Border.all(
+                              color: Colors.amber.withValues(alpha: 0.4),
+                            ),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.warning_amber_rounded, size: 12, color: Colors.amber),
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                size: 12,
+                                color: Colors.amber,
+                              ),
                               SizedBox(width: 4),
                               Text(
                                 'Verify Now',
@@ -1879,7 +2313,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 Icons.verified_user,
                 'Account Approval',
                 _isApproved ? 'Approved & Active' : 'Pending Review',
-                valueColor: _isApproved ? GlassTheme.primaryGreen : Colors.amber,
+                valueColor: _isApproved
+                    ? GlassTheme.primaryGreen
+                    : Colors.amber,
               ),
             ],
           ),
@@ -1895,14 +2331,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     );
   }
 
-  Widget _buildProfileRow(IconData icon, String label, String value, {Color? valueColor}) {
+  Widget _buildProfileRow(
+    IconData icon,
+    String label,
+    String value, {
+    Color? valueColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
           Icon(icon, size: 18, color: Colors.white60),
           const SizedBox(width: 12),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          ),
           const Spacer(),
           Text(
             value,
@@ -1918,17 +2362,28 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   }
 
   void _showEditProfileDialog() {
-    final vehicleCtrl = TextEditingController(text: _driverProfile?['vehicle_type'] ?? 'Motorcycle');
-    final plateCtrl = TextEditingController(text: _driverProfile?['license_plate'] ?? 'PP-2026');
-    final phoneCtrl = TextEditingController(text: _driverProfile?['phone'] ?? '+855 12 888 999');
+    final vehicleCtrl = TextEditingController(
+      text: _driverProfile?['vehicle_type'] ?? 'Motorcycle',
+    );
+    final plateCtrl = TextEditingController(
+      text: _driverProfile?['license_plate'] ?? 'PP-2026',
+    );
+    final phoneCtrl = TextEditingController(
+      text: _driverProfile?['phone'] ?? '+855 12 888 999',
+    );
 
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1E242B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Update Profile', style: TextStyle(color: Colors.white)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Update Profile',
+            style: TextStyle(color: Colors.white),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1969,10 +2424,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white60),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: GlassTheme.primaryGreen),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GlassTheme.primaryGreen,
+              ),
               onPressed: () async {
                 Navigator.pop(ctx);
                 try {

@@ -78,7 +78,9 @@ class _SupportScreenState extends State<SupportScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Your inquiry has been received. Our team will contact you shortly.'),
+        content: Text(
+          'Your inquiry has been received. Our team will contact you shortly.',
+        ),
         backgroundColor: GlassTheme.primaryGreen,
       ),
     );
@@ -211,15 +213,18 @@ class _SupportScreenState extends State<SupportScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ..._faqs.map((faq) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Material(
-                        color: Colors.white.withValues(alpha: 0.04),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                ..._faqs.map(
+                  (faq) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Material(
+                      color: Colors.white.withValues(alpha: 0.04),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.08),
                         ),
-                        child: ExpansionTile(
+                      ),
+                      child: ExpansionTile(
                         iconColor: GlassTheme.primaryGreen,
                         collapsedIconColor: Colors.white70,
                         title: Text(
@@ -232,7 +237,11 @@ class _SupportScreenState extends State<SupportScreen> {
                         ),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              bottom: 16,
+                            ),
                             child: Text(
                               faq['answer']!,
                               style: TextStyle(
@@ -271,20 +280,41 @@ class _SupportScreenState extends State<SupportScreen> {
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           labelText: 'Inquiry Category',
-                          labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                          labelStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.04),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 'General', child: Text('General Inquiry')),
-                          DropdownMenuItem(value: 'Order', child: Text('Order & Delivery Status')),
-                          DropdownMenuItem(value: 'Payment', child: Text('Payment & Bakong KHQR')),
-                          DropdownMenuItem(value: 'Driver', child: Text('Driver Partner Inquiry')),
-                          DropdownMenuItem(value: 'Restaurant', child: Text('Restaurant Partner Inquiry')),
+                          DropdownMenuItem(
+                            value: 'General',
+                            child: Text('General Inquiry'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Order',
+                            child: Text('Order & Delivery Status'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Payment',
+                            child: Text('Payment & Bakong KHQR'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Driver',
+                            child: Text('Driver Partner Inquiry'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Restaurant',
+                            child: Text('Restaurant Partner Inquiry'),
+                          ),
                         ],
                         onChanged: (val) {
-                          if (val != null) setState(() => _selectedCategory = val);
+                          if (val != null) {
+                            setState(() => _selectedCategory = val);
+                          }
                         },
                       ),
                       const SizedBox(height: 12),
@@ -293,10 +323,14 @@ class _SupportScreenState extends State<SupportScreen> {
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           labelText: 'Your Name',
-                          labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                          labelStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.04),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -305,10 +339,14 @@ class _SupportScreenState extends State<SupportScreen> {
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           labelText: 'Phone (+855...) or Email',
-                          labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                          labelStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.04),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -318,10 +356,14 @@ class _SupportScreenState extends State<SupportScreen> {
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           labelText: 'How can we help you?',
-                          labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                          labelStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.04),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -330,7 +372,9 @@ class _SupportScreenState extends State<SupportScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlassTheme.primaryGreen,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                         child: const Text(
                           'Submit Inquiry',
@@ -346,7 +390,10 @@ class _SupportScreenState extends State<SupportScreen> {
                         const Text(
                           'Ticket logged in system. An agent will respond to your contact info.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: GlassTheme.primaryGreen, fontSize: 13),
+                          style: TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ],

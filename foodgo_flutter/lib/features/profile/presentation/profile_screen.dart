@@ -69,218 +69,234 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => ResponsiveBottomSheet(
         child: SafeArea(
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.88,
-          ),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: GlassTheme.dialogDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.88,
+            ),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: GlassTheme.dialogDark,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: GlassTheme.primaryGreen.withValues(
+                            alpha: 0.15,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.payment_outlined,
+                          color: GlassTheme.primaryGreen,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Payment Methods',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'FoodGo supports secure banking rails and cash on delivery in Cambodia.',
+                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                        color: Colors.redAccent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
+                      alignment: Alignment.center,
                       child: const Icon(
-                        Icons.payment_outlined,
-                        color: GlassTheme.primaryGreen,
+                        Icons.qr_code_2,
+                        color: Colors.redAccent,
                         size: 22,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Payment Methods',
+                    title: const Text(
+                      'Bakong KHQR (National Bank of Cambodia)',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'FoodGo supports secure banking rails and cash on delivery in Cambodia.',
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.qr_code_2,
-                      color: Colors.redAccent,
-                      size: 22,
+                    subtitle: const Text(
+                      'Universal QR in USD & KHR across all member banks',
+                      style: TextStyle(
+                        color: GlassTheme.textMuted,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                  title: const Text(
-                    'Bakong KHQR (National Bank of Cambodia)',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                  const SizedBox(height: 8),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.cyanAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.account_balance,
+                        color: Colors.cyanAccent,
+                        size: 20,
+                      ),
+                    ),
+                    title: const Text(
+                      'ABA Mobile KHQR / PayWay',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Direct scan-to-pay via ABA Mobile app',
+                      style: TextStyle(
+                        color: GlassTheme.textMuted,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                  subtitle: const Text(
-                    'Universal QR in USD & KHR across all member banks',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.cyanAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.credit_card,
+                        color: Colors.blueAccent,
+                        size: 20,
+                      ),
                     ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.account_balance,
-                      color: Colors.cyanAccent,
-                      size: 20,
+                    title: const Text(
+                      'ACLEDA Bank KHQR / x-Pay',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                  title: const Text(
-                    'ABA Mobile KHQR / PayWay',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  subtitle: const Text(
-                    'Direct scan-to-pay via ABA Mobile app',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.credit_card,
-                      color: Colors.blueAccent,
-                      size: 20,
+                    subtitle: const Text(
+                      'Instant payment via ACLEDA Mobile banking',
+                      style: TextStyle(
+                        color: GlassTheme.textMuted,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                  title: const Text(
-                    'ACLEDA Bank KHQR / x-Pay',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                  const SizedBox(height: 8),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.amberAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.payments_outlined,
+                        color: Colors.amberAccent,
+                        size: 22,
+                      ),
+                    ),
+                    title: const Text(
+                      'Cash on Delivery (COD)',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Pay cash directly to driver upon order arrival',
+                      style: TextStyle(
+                        color: GlassTheme.textMuted,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                  subtitle: const Text(
-                    'Instant payment via ACLEDA Mobile banking',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.amberAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.payments_outlined,
-                      color: Colors.amberAccent,
-                      size: 22,
-                    ),
-                  ),
-                  title: const Text(
-                    'Cash on Delivery (COD)',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  subtitle: const Text(
-                    'Pay cash directly to driver upon order arrival',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          context.push('/orders');
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.2),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            context.push('/orders');
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.2),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          child: const Text('View Orders & Receipts'),
                         ),
-                        child: const Text('View Orders & Receipts'),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: GlassTheme.primaryGreen,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlassTheme.primaryGreen,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                          child: const Text('Close'),
                         ),
-                        child: const Text('Close'),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +428,9 @@ class ProfileScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    phone.isNotEmpty ? phone : 'No phone linked',
+                                    phone.isNotEmpty
+                                        ? phone
+                                        : 'No phone linked',
                                     style: const TextStyle(
                                       color: Colors.white70,
                                       fontSize: 13,
@@ -427,14 +445,12 @@ class ProfileScreen extends StatelessWidget {
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: GlassTheme.primaryGreen.withValues(
-                                          alpha: 0.15,
-                                        ),
+                                        color: GlassTheme.primaryGreen
+                                            .withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(
-                                          color: GlassTheme.primaryGreen.withValues(
-                                            alpha: 0.3,
-                                          ),
+                                          color: GlassTheme.primaryGreen
+                                              .withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: const Row(
@@ -474,7 +490,9 @@ class ProfileScreen extends StatelessWidget {
                                           color: Colors.amber.withValues(
                                             alpha: 0.15,
                                           ),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                           border: Border.all(
                                             color: Colors.amber.withValues(
                                               alpha: 0.3,
@@ -751,7 +769,8 @@ class ProfileScreen extends StatelessWidget {
             Builder(
               builder: (ctx) {
                 final currentUser = ctx.watch<UserProvider>().user;
-                final bool isVerified = currentUser?['is_phone_verified'] == true;
+                final bool isVerified =
+                    currentUser?['is_phone_verified'] == true;
                 final String userPhone = currentUser?['phone'] ?? '';
                 return Column(
                   children: [
@@ -764,7 +783,10 @@ class ProfileScreen extends StatelessWidget {
                       icon: Icons.phone_android_outlined,
                       title: 'Phone Verification (SMS OTP)',
                       trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: isVerified
                               ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
@@ -848,79 +870,81 @@ class ProfileScreen extends StatelessWidget {
                   backgroundColor: Colors.transparent,
                   builder: (ctx) => ResponsiveBottomSheet(
                     child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.dialogDark,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(28),
-                      ),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Select Language / ជ្រើសរើសភាសា',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.dialogDark,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(28),
                         ),
-                        const SizedBox(height: 16),
-                        ListTile(
-                          title: const Text(
-                            'English (US)',
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Select Language / ជ្រើសរើសភាសា',
                             style: TextStyle(
                               color: Colors.white,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          trailing: const Icon(
-                            Icons.check,
-                            color: GlassTheme.primaryGreen,
-                          ),
-                          onTap: () => Navigator.pop(ctx),
-                        ),
-                        ListTile(
-                          title: const Text(
-                            'ភាសាខ្មែរ (Khmer)',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('ភាសាខ្មែរ ត្រូវបានជ្រើសរើស'),
-                                backgroundColor: GlassTheme.primaryGreen,
+                          const SizedBox(height: 16),
+                          ListTile(
+                            title: const Text(
+                              'English (US)',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          },
-                        ),
-                        ListTile(
-                          title: const Text(
-                            'Français (French)',
-                            style: TextStyle(color: Colors.white),
+                            ),
+                            trailing: const Icon(
+                              Icons.check,
+                              color: GlassTheme.primaryGreen,
+                            ),
+                            onTap: () => Navigator.pop(ctx),
                           ),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Langue française sélectionnée'),
-                                backgroundColor: GlassTheme.primaryGreen,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                          ListTile(
+                            title: const Text(
+                              'ភាសាខ្មែរ (Khmer)',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('ភាសាខ្មែរ ត្រូវបានជ្រើសរើស'),
+                                  backgroundColor: GlassTheme.primaryGreen,
+                                ),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            title: const Text(
+                              'Français (French)',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Langue française sélectionnée',
+                                  ),
+                                  backgroundColor: GlassTheme.primaryGreen,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
             ),
             _ProfileOption(
               icon: Icons.help_outline,
@@ -931,85 +955,85 @@ class ProfileScreen extends StatelessWidget {
                   backgroundColor: Colors.transparent,
                   builder: (ctx) => ResponsiveBottomSheet(
                     child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.dialogDark,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(28),
-                      ),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'FoodGo 24/7 Support',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.dialogDark,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(28),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Get fast help with delivery, payments, or orders.',
-                          style: TextStyle(
-                            color: GlassTheme.textMuted,
-                            fontSize: 13,
-                          ),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
                         ),
-                        const SizedBox(height: 16),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.chat_bubble_outline,
-                            color: GlassTheme.primaryGreen,
-                          ),
-                          title: const Text(
-                            'Chat with Support',
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'FoodGo 24/7 Support',
                             style: TextStyle(
                               color: Colors.white,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          subtitle: Text(
-                            'Average reply time: 2 mins',
+                          const SizedBox(height: 8),
+                          Text(
+                            'Get fast help with delivery, payments, or orders.',
                             style: TextStyle(
                               color: GlassTheme.textMuted,
-                              fontSize: 12,
+                              fontSize: 13,
                             ),
                           ),
-                          onTap: () => Navigator.pop(ctx),
-                        ),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.phone_outlined,
-                            color: Colors.amber,
-                          ),
-                          title: const Text(
-                            'Hotline: +855 23 999 888',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(height: 16),
+                          ListTile(
+                            leading: const Icon(
+                              Icons.chat_bubble_outline,
+                              color: GlassTheme.primaryGreen,
                             ),
-                          ),
-                          subtitle: Text(
-                            'Toll-free customer care',
-                            style: TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 12,
+                            title: const Text(
+                              'Chat with Support',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
+                            subtitle: Text(
+                              'Average reply time: 2 mins',
+                              style: TextStyle(
+                                color: GlassTheme.textMuted,
+                                fontSize: 12,
+                              ),
+                            ),
+                            onTap: () => Navigator.pop(ctx),
                           ),
-                          onTap: () => Navigator.pop(ctx),
-                        ),
-                      ],
+                          ListTile(
+                            leading: const Icon(
+                              Icons.phone_outlined,
+                              color: Colors.amber,
+                            ),
+                            title: const Text(
+                              'Hotline: +855 23 999 888',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Toll-free customer care',
+                              style: TextStyle(
+                                color: GlassTheme.textMuted,
+                                fontSize: 12,
+                              ),
+                            ),
+                            onTap: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
             ),
             Consumer<AuthProvider>(
               builder: (context, auth, child) {

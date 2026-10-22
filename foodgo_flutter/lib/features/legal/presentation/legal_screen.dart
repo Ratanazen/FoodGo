@@ -75,10 +75,7 @@ class _LegalScreenState extends State<LegalScreen>
           maxWidth: 900,
           child: TabBarView(
             controller: _tabController,
-            children: [
-              _buildTermsContent(),
-              _buildPrivacyContent(),
-            ],
+            children: [_buildTermsContent(), _buildPrivacyContent()],
           ),
         ),
       ),
@@ -105,7 +102,10 @@ class _LegalScreenState extends State<LegalScreen>
             const SizedBox(height: 6),
             Text(
               'Last updated: October 2026 • Kingdom of Cambodia',
-              style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.5)),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
             ),
             const Divider(height: 32, color: Colors.white24),
             _buildSection(
@@ -169,7 +169,10 @@ class _LegalScreenState extends State<LegalScreen>
             const SizedBox(height: 6),
             Text(
               'Last updated: October 2026 • Data Protection Standard',
-              style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.5)),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
             ),
             const Divider(height: 32, color: Colors.white24),
             _buildSection(

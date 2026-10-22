@@ -6,7 +6,9 @@ import 'package:foodgo_flutter/widgets/phone_verification_modal.dart';
 
 void main() {
   group('PhoneVerificationModal Widget Tests', () {
-    testWidgets('Renders Cambodian phone verification modal components', (tester) async {
+    testWidgets('Renders Cambodian phone verification modal components', (
+      tester,
+    ) async {
       final userProvider = UserProvider();
 
       await tester.pumpWidget(
@@ -41,11 +43,19 @@ void main() {
 
       // Check header titles
       expect(find.text('Verify Cambodian Phone'), findsOneWidget);
-      expect(find.text('Carrier SMS verification (Smart, Cellcard, Metfone)'), findsOneWidget);
+      expect(
+        find.text('Carrier SMS verification (Smart, Cellcard, Metfone)'),
+        findsOneWidget,
+      );
 
       // Check country prefix and carrier hint
       expect(find.text('KH +855'), findsOneWidget);
-      expect(find.text('Supported carriers: Smart, Cellcard, Metfone, Seatel, Cootel.'), findsOneWidget);
+      expect(
+        find.text(
+          'Supported carriers: Smart, Cellcard, Metfone, Seatel, Cootel.',
+        ),
+        findsOneWidget,
+      );
 
       // Check phone input prefilled
       expect(find.byType(TextField), findsOneWidget);
@@ -56,7 +66,9 @@ void main() {
       expect(find.text('Send Verification Code'), findsOneWidget);
     });
 
-    testWidgets('Shows error message when phone number is empty', (tester) async {
+    testWidgets('Shows error message when phone number is empty', (
+      tester,
+    ) async {
       final userProvider = UserProvider();
 
       await tester.pumpWidget(
@@ -93,7 +105,10 @@ void main() {
       await tester.tap(find.text('Send Verification Code'));
       await tester.pump();
 
-      expect(find.text('Please enter your Cambodian mobile number.'), findsOneWidget);
+      expect(
+        find.text('Please enter your Cambodian mobile number.'),
+        findsOneWidget,
+      );
     });
   });
 }

@@ -249,288 +249,293 @@ class _SearchScreenState extends State<SearchScreen> {
           return ResponsiveBottomSheet(
             child: Container(
               decoration: BoxDecoration(
-              color: GlassTheme.dialogDark,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
+                color: GlassTheme.dialogDark,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-            ),
-            padding: EdgeInsets.only(
-              top: 20,
-              left: 20,
-              right: 20,
-              bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 24,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: GlassTheme.limeAccent.withValues(
-                                alpha: 0.15,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.tune,
-                              size: 18,
-                              color: GlassTheme.limeAccent,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          const Text(
-                            'Filters & Sorting',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          setModalState(() {
-                            tempPriceTier = null;
-                            tempVegetarian = false;
-                            tempMinRating = null;
-                            tempSortBy = 'recommended';
-                          });
-                        },
-                        child: const Text(
-                          'Reset All',
-                          style: TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Sort By Section
-                  const Text(
-                    'SORT BY',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _buildFilterChip(
-                        label: 'Recommended',
-                        selected: tempSortBy == 'recommended',
-                        onTap: () =>
-                            setModalState(() => tempSortBy = 'recommended'),
-                      ),
-                      _buildFilterChip(
-                        label: 'Price: Low to High',
-                        selected: tempSortBy == 'price_asc',
-                        onTap: () =>
-                            setModalState(() => tempSortBy = 'price_asc'),
-                      ),
-                      _buildFilterChip(
-                        label: 'Price: High to Low',
-                        selected: tempSortBy == 'price_desc',
-                        onTap: () =>
-                            setModalState(() => tempSortBy = 'price_desc'),
-                      ),
-                      _buildFilterChip(
-                        label: 'Highest Rated',
-                        selected: tempSortBy == 'rating',
-                        onTap: () => setModalState(() => tempSortBy = 'rating'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Price Tier Section
-                  const Text(
-                    'PRICE TIER',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _buildFilterChip(
-                        label: 'All Prices',
-                        selected: tempPriceTier == null,
-                        onTap: () => setModalState(() => tempPriceTier = null),
-                      ),
-                      _buildFilterChip(
-                        label: r'$ (Under $5)',
-                        selected: tempPriceTier == r'$',
-                        onTap: () => setModalState(() => tempPriceTier = r'$'),
-                      ),
-                      _buildFilterChip(
-                        label: r'$$ ($5 - $15)',
-                        selected: tempPriceTier == r'$$',
-                        onTap: () => setModalState(() => tempPriceTier = r'$$'),
-                      ),
-                      _buildFilterChip(
-                        label: r'$$$ ($15+)',
-                        selected: tempPriceTier == r'$$$',
-                        onTap: () =>
-                            setModalState(() => tempPriceTier = r'$$$'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Dietary Preference Section
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
-                    ),
-                    child: Row(
+                    const SizedBox(height: 16),
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(
-                              Icons.eco,
-                              size: 20,
-                              color: GlassTheme.primaryGreen,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: GlassTheme.limeAccent.withValues(
+                                  alpha: 0.15,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.tune,
+                                size: 18,
+                                color: GlassTheme.limeAccent,
+                              ),
                             ),
-                            SizedBox(width: 10),
-                            Text(
-                              'Vegetarian Friendly',
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Filters & Sorting',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
-                        Switch.adaptive(
-                          value: tempVegetarian,
-                          activeTrackColor: GlassTheme.primaryGreen,
-                          onChanged: (val) =>
-                              setModalState(() => tempVegetarian = val),
+                        TextButton(
+                          onPressed: () {
+                            setModalState(() {
+                              tempPriceTier = null;
+                              tempVegetarian = false;
+                              tempMinRating = null;
+                              tempSortBy = 'recommended';
+                            });
+                          },
+                          child: const Text(
+                            'Reset All',
+                            style: TextStyle(
+                              color: GlassTheme.primaryGreen,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                  // Rating Filter Section
-                  const Text(
-                    'MINIMUM RATING',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _buildFilterChip(
-                        label: 'Any Rating',
-                        selected: tempMinRating == null,
-                        onTap: () => setModalState(() => tempMinRating = null),
-                      ),
-                      _buildFilterChip(
-                        label: '4.0+ Stars',
-                        icon: Icons.star,
-                        selected: tempMinRating == 4.0,
-                        onTap: () => setModalState(() => tempMinRating = 4.0),
-                      ),
-                      _buildFilterChip(
-                        label: '4.5+ Stars',
-                        icon: Icons.star,
-                        selected: tempMinRating == 4.5,
-                        onTap: () => setModalState(() => tempMinRating = 4.5),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 26),
-
-                  // Apply Button
-                  SizedBox(
-                    height: 50,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.limeAccent,
-                        foregroundColor: Colors.black,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _selectedPriceTier = tempPriceTier;
-                          _isVegetarianOnly = tempVegetarian;
-                          _minRating = tempMinRating;
-                          _sortBy = tempSortBy;
-                        });
-                        Navigator.pop(ctx);
-                        _performSearch(_searchController.text.trim());
-                      },
-                      child: const Text(
-                        'Apply Filters',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 15,
-                        ),
+                    // Sort By Section
+                    const Text(
+                      'SORT BY',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFilterChip(
+                          label: 'Recommended',
+                          selected: tempSortBy == 'recommended',
+                          onTap: () =>
+                              setModalState(() => tempSortBy = 'recommended'),
+                        ),
+                        _buildFilterChip(
+                          label: 'Price: Low to High',
+                          selected: tempSortBy == 'price_asc',
+                          onTap: () =>
+                              setModalState(() => tempSortBy = 'price_asc'),
+                        ),
+                        _buildFilterChip(
+                          label: 'Price: High to Low',
+                          selected: tempSortBy == 'price_desc',
+                          onTap: () =>
+                              setModalState(() => tempSortBy = 'price_desc'),
+                        ),
+                        _buildFilterChip(
+                          label: 'Highest Rated',
+                          selected: tempSortBy == 'rating',
+                          onTap: () =>
+                              setModalState(() => tempSortBy = 'rating'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Price Tier Section
+                    const Text(
+                      'PRICE TIER',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFilterChip(
+                          label: 'All Prices',
+                          selected: tempPriceTier == null,
+                          onTap: () =>
+                              setModalState(() => tempPriceTier = null),
+                        ),
+                        _buildFilterChip(
+                          label: r'$ (Under $5)',
+                          selected: tempPriceTier == r'$',
+                          onTap: () =>
+                              setModalState(() => tempPriceTier = r'$'),
+                        ),
+                        _buildFilterChip(
+                          label: r'$$ ($5 - $15)',
+                          selected: tempPriceTier == r'$$',
+                          onTap: () =>
+                              setModalState(() => tempPriceTier = r'$$'),
+                        ),
+                        _buildFilterChip(
+                          label: r'$$$ ($15+)',
+                          selected: tempPriceTier == r'$$$',
+                          onTap: () =>
+                              setModalState(() => tempPriceTier = r'$$$'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Dietary Preference Section
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(
+                                Icons.eco,
+                                size: 20,
+                                color: GlassTheme.primaryGreen,
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                'Vegetarian Friendly',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Switch.adaptive(
+                            value: tempVegetarian,
+                            activeTrackColor: GlassTheme.primaryGreen,
+                            onChanged: (val) =>
+                                setModalState(() => tempVegetarian = val),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Rating Filter Section
+                    const Text(
+                      'MINIMUM RATING',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFilterChip(
+                          label: 'Any Rating',
+                          selected: tempMinRating == null,
+                          onTap: () =>
+                              setModalState(() => tempMinRating = null),
+                        ),
+                        _buildFilterChip(
+                          label: '4.0+ Stars',
+                          icon: Icons.star,
+                          selected: tempMinRating == 4.0,
+                          onTap: () => setModalState(() => tempMinRating = 4.0),
+                        ),
+                        _buildFilterChip(
+                          label: '4.5+ Stars',
+                          icon: Icons.star,
+                          selected: tempMinRating == 4.5,
+                          onTap: () => setModalState(() => tempMinRating = 4.5),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 26),
+
+                    // Apply Button
+                    SizedBox(
+                      height: 50,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlassTheme.limeAccent,
+                          foregroundColor: Colors.black,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _selectedPriceTier = tempPriceTier;
+                            _isVegetarianOnly = tempVegetarian;
+                            _minRating = tempMinRating;
+                            _sortBy = tempSortBy;
+                          });
+                          Navigator.pop(ctx);
+                          _performSearch(_searchController.text.trim());
+                        },
+                        child: const Text(
+                          'Apply Filters',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
       ),
     );
   }
@@ -608,233 +613,235 @@ class _SearchScreenState extends State<SearchScreen> {
         builder: (ctx, setSheetState) => ResponsiveBottomSheet(
           child: Container(
             decoration: BoxDecoration(
-            color: GlassTheme.dialogDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+              color: GlassTheme.dialogDark,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
               ),
-              const SizedBox(height: 16),
-              if (image != null && image.isNotEmpty) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: CachedNetworkImage(
-                    imageUrl: image,
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) => Container(
-                      height: 160,
-                      color: Colors.white10,
-                      child: const Icon(
-                        Icons.fastfood,
-                        size: 48,
-                        color: GlassTheme.primaryGreen,
-                      ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-              ],
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                if (image != null && image.isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: CachedNetworkImage(
+                      imageUrl: image,
+                      height: 160,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, _, _) => Container(
+                        height: 160,
+                        color: Colors.white10,
+                        child: const Icon(
+                          Icons.fastfood,
+                          size: 48,
+                          color: GlassTheme.primaryGreen,
+                        ),
                       ),
                     ),
                   ),
-                  Consumer<FavoritesProvider>(
-                    builder: (context, favs, child) {
-                      final isFav = favs.isFoodFavorite(itemId);
-                      return IconButton(
-                        icon: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border,
-                          color: isFav
-                              ? GlassTheme.foodpandaPink
-                              : Colors.white70,
-                        ),
-                        onPressed: () => favs.toggleFoodItem(item),
-                      );
-                    },
-                  ),
+                  const SizedBox(height: 16),
                 ],
-              ),
-              if (restName != null && restName.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                InkWell(
-                  onTap: restId != null
-                      ? () {
-                          Navigator.pop(sheetCtx);
-                          context.push('/restaurant/$restId');
-                        }
-                      : null,
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.storefront,
-                        size: 14,
-                        color: GlassTheme.primaryGreen,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        restName,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
                         style: const TextStyle(
-                          color: GlassTheme.primaryGreen,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 10),
-              Text(
-                desc,
-                style: const TextStyle(
-                  color: GlassTheme.textMuted,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '\$${(price * qty).toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: GlassTheme.primaryGreen,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      Text(
-                        '~${(khrPrice * qty)} KHR',
-                        style: const TextStyle(
-                          color: Colors.white38,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(20),
                     ),
+                    Consumer<FavoritesProvider>(
+                      builder: (context, favs, child) {
+                        final isFav = favs.isFoodFavorite(itemId);
+                        return IconButton(
+                          icon: Icon(
+                            isFav ? Icons.favorite : Icons.favorite_border,
+                            color: isFav
+                                ? GlassTheme.foodpandaPink
+                                : Colors.white70,
+                          ),
+                          onPressed: () => favs.toggleFoodItem(item),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                if (restName != null && restName.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  InkWell(
+                    onTap: restId != null
+                        ? () {
+                            Navigator.pop(sheetCtx);
+                            context.push('/restaurant/$restId');
+                          }
+                        : null,
                     child: Row(
                       children: [
-                        IconButton(
-                          onPressed: qty > 1
-                              ? () => setSheetState(() => qty--)
-                              : null,
-                          icon: const Icon(Icons.remove, size: 18),
+                        const Icon(
+                          Icons.storefront,
+                          size: 14,
+                          color: GlassTheme.primaryGreen,
                         ),
+                        const SizedBox(width: 6),
                         Text(
-                          '$qty',
+                          restName,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => setSheetState(() => qty++),
-                          icon: const Icon(
-                            Icons.add,
-                            size: 18,
                             color: GlassTheme.primaryGreen,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 52,
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlassTheme.limeAccent,
-                    foregroundColor: Colors.black,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(26),
-                    ),
+                const SizedBox(height: 10),
+                Text(
+                  desc,
+                  style: const TextStyle(
+                    color: GlassTheme.textMuted,
+                    fontSize: 14,
                   ),
-                  icon: const Icon(
-                    Icons.add_shopping_cart,
-                    color: Colors.black,
-                    size: 20,
-                  ),
-                  label: Text(
-                    'Add $qty to Cart • \$${(price * qty).toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 15,
-                      color: Colors.black,
-                    ),
-                  ),
-                  onPressed: () {
-                    final cart = context.read<CartProvider>();
-                    for (int i = 0; i < qty; i++) {
-                      cart.addItem(
-                        itemId,
-                        name,
-                        price,
-                        image,
-                        restaurantId: restId,
-                        restaurantName: restName,
-                      );
-                    }
-                    Navigator.pop(sheetCtx);
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Added $qty "$name" to your cart!'),
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: GlassTheme.surfaceDark,
-                        behavior: SnackBarBehavior.floating,
-                        action: SnackBarAction(
-                          label: 'View Cart',
-                          textColor: GlassTheme.limeAccent,
-                          onPressed: () => context.push('/cart'),
-                        ),
-                      ),
-                    );
-                  },
                 ),
-              ),
-            ],
+                const SizedBox(height: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '\$${(price * qty).toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: GlassTheme.primaryGreen,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          '~${(khrPrice * qty)} KHR',
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: qty > 1
+                                ? () => setSheetState(() => qty--)
+                                : null,
+                            icon: const Icon(Icons.remove, size: 18),
+                          ),
+                          Text(
+                            '$qty',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => setSheetState(() => qty++),
+                            icon: const Icon(
+                              Icons.add,
+                              size: 18,
+                              color: GlassTheme.primaryGreen,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 52,
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlassTheme.limeAccent,
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.add_shopping_cart,
+                      color: Colors.black,
+                      size: 20,
+                    ),
+                    label: Text(
+                      'Add $qty to Cart • \$${(price * qty).toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: Colors.black,
+                      ),
+                    ),
+                    onPressed: () {
+                      final cart = context.read<CartProvider>();
+                      for (int i = 0; i < qty; i++) {
+                        cart.addItem(
+                          itemId,
+                          name,
+                          price,
+                          image,
+                          restaurantId: restId,
+                          restaurantName: restName,
+                        );
+                      }
+                      Navigator.pop(sheetCtx);
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Added $qty "$name" to your cart!'),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: GlassTheme.surfaceDark,
+                          behavior: SnackBarBehavior.floating,
+                          action: SnackBarAction(
+                            label: 'View Cart',
+                            textColor: GlassTheme.limeAccent,
+                            onPressed: () => context.push('/cart'),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildScopePill(String title, SearchScope scope, int count) {
     final isSelected = _selectedScope == scope;
@@ -1314,398 +1321,404 @@ class _SearchScreenState extends State<SearchScreen> {
           maxWidth: 1000,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 6),
-              // Search Bar & Filter Action Row
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 6),
+                // Search Bar & Filter Action Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.12),
+                          ),
                         ),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 2,
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: _onSearchChanged,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 2,
                         ),
-                        decoration: InputDecoration(
-                          hintText: 'Search dishes, restaurants, cravings...',
-                          hintStyle: const TextStyle(
-                            color: GlassTheme.textMuted,
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: _onSearchChanged,
+                          style: const TextStyle(
+                            color: Colors.white,
                             fontSize: 14,
                           ),
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: GlassTheme.limeAccent,
-                            size: 22,
+                          decoration: InputDecoration(
+                            hintText: 'Search dishes, restaurants, cravings...',
+                            hintStyle: const TextStyle(
+                              color: GlassTheme.textMuted,
+                              fontSize: 14,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: GlassTheme.limeAccent,
+                              size: 22,
+                            ),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(
+                                      Icons.clear,
+                                      color: Colors.white70,
+                                      size: 18,
+                                    ),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _onSearchChanged('');
+                                    },
+                                  )
+                                : null,
+                            border: InputBorder.none,
                           ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(
-                                    Icons.clear,
-                                    color: Colors.white70,
-                                    size: 18,
-                                  ),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    _onSearchChanged('');
-                                  },
-                                )
-                              : null,
-                          border: InputBorder.none,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  // Tune / Filter Button with Badge
-                  InkWell(
-                    onTap: _showFilterModal,
-                    borderRadius: BorderRadius.circular(22),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: _activeFilterCount > 0
-                                ? GlassTheme.primaryGreen.withValues(
-                                    alpha: 0.25,
-                                  )
-                                : Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(
+                    const SizedBox(width: 10),
+                    // Tune / Filter Button with Badge
+                    InkWell(
+                      onTap: _showFilterModal,
+                      borderRadius: BorderRadius.circular(22),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
                               color: _activeFilterCount > 0
-                                  ? GlassTheme.primaryGreen
-                                  : Colors.white.withValues(alpha: 0.15),
+                                  ? GlassTheme.primaryGreen.withValues(
+                                      alpha: 0.25,
+                                    )
+                                  : Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: _activeFilterCount > 0
+                                    ? GlassTheme.primaryGreen
+                                    : Colors.white.withValues(alpha: 0.15),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.tune,
+                              size: 20,
+                              color: _activeFilterCount > 0
+                                  ? GlassTheme.limeAccent
+                                  : Colors.white70,
                             ),
                           ),
-                          child: Icon(
-                            Icons.tune,
-                            size: 20,
-                            color: _activeFilterCount > 0
-                                ? GlassTheme.limeAccent
-                                : Colors.white70,
-                          ),
-                        ),
-                        if (_activeFilterCount > 0)
-                          Positioned(
-                            top: -3,
-                            right: -3,
-                            child: Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: const BoxDecoration(
-                                color: GlassTheme.limeAccent,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '$_activeFilterCount',
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
+                          if (_activeFilterCount > 0)
+                            Positioned(
+                              top: -3,
+                              right: -3,
+                              child: Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: const BoxDecoration(
+                                  color: GlassTheme.limeAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '$_activeFilterCount',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Scope Segmented Tabs (All / Dishes / Restaurants) when search is executed
-              if (hasSearched && !_isLoading) ...[
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildScopePill('All', SearchScope.all, totalCount),
-                      const SizedBox(width: 8),
-                      _buildScopePill(
-                        'Dishes',
-                        SearchScope.dishes,
-                        totalDishes,
-                      ),
-                      const SizedBox(width: 8),
-                      _buildScopePill(
-                        'Restaurants',
-                        SearchScope.restaurants,
-                        totalRestaurants,
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
                 const SizedBox(height: 14),
-              ],
 
-              // When query is empty and no active filters: show Recent & Quick Craving chips
-              if (!hasSearched) ...[
-                if (_recentSearches.isNotEmpty) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Recent Searches',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      InkWell(
-                        onTap: _clearAllRecentSearches,
-                        child: const Text(
-                          'Clear All',
-                          style: TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+                // Scope Segmented Tabs (All / Dishes / Restaurants) when search is executed
+                if (hasSearched && !_isLoading) ...[
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: _recentSearches.map((tag) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Chip(
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.08,
-                            ),
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.15),
-                            ),
-                            avatar: const Icon(
-                              Icons.history,
-                              size: 14,
-                              color: GlassTheme.primaryGreen,
-                            ),
-                            label: InkWell(
-                              onTap: () {
-                                _searchController.text = tag;
-                                _performSearch(tag);
-                              },
-                              child: Text(
-                                tag,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                            deleteIcon: const Icon(
-                              Icons.close,
-                              size: 14,
-                              color: Colors.white60,
-                            ),
-                            onDeleted: () => _removeRecentSearch(tag),
-                          ),
-                        );
-                      }).toList(),
+                      children: [
+                        _buildScopePill('All', SearchScope.all, totalCount),
+                        const SizedBox(width: 8),
+                        _buildScopePill(
+                          'Dishes',
+                          SearchScope.dishes,
+                          totalDishes,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildScopePill(
+                          'Restaurants',
+                          SearchScope.restaurants,
+                          totalRestaurants,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 14),
                 ],
 
-                const Text(
-                  'Quick Cravings',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _quickCategories.map((cat) {
-                      final name = cat['name'] as String;
-                      final icon = cat['icon'] as IconData;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ActionChip(
-                          backgroundColor: Colors.white.withValues(alpha: 0.06),
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.12),
+                // When query is empty and no active filters: show Recent & Quick Craving chips
+                if (!hasSearched) ...[
+                  if (_recentSearches.isNotEmpty) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Recent Searches',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
                           ),
-                          avatar: Icon(
-                            icon,
-                            size: 15,
-                            color: GlassTheme.limeAccent,
-                          ),
-                          label: Text(
-                            name,
-                            style: const TextStyle(
-                              color: Colors.white,
+                        ),
+                        InkWell(
+                          onTap: _clearAllRecentSearches,
+                          child: const Text(
+                            'Clear All',
+                            style: TextStyle(
+                              color: GlassTheme.primaryGreen,
                               fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          onPressed: () {
-                            _searchController.text = name;
-                            _performSearch(name);
-                          },
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Results View
-              Expanded(
-                child: _isLoading
-                    ? ListView.builder(
-                        itemCount: 4,
-                        itemBuilder: (context, index) => const Padding(
-                          padding: EdgeInsets.only(bottom: 12.0),
-                          child: ShimmerFoodCard(),
-                        ),
-                      )
-                    : !hasSearched
-                    ? Center(
-                        child: GlassCard(
-                          padding: const EdgeInsets.all(28),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.restaurant_menu,
-                                size: 56,
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _recentSearches.map((tag) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Chip(
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.08,
+                              ),
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.15),
+                              ),
+                              avatar: const Icon(
+                                Icons.history,
+                                size: 14,
                                 color: GlassTheme.primaryGreen,
                               ),
-                              const SizedBox(height: 14),
-                              const Text(
-                                'Explore Food & Restaurants',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              const Text(
-                                'Search for favorite dishes, restaurants, or select a craving chip above!',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : totalCount == 0
-                    ? _buildEmptyState()
-                    : ListView(
-                        children: [
-                          // 1. Restaurants Section (when Scope is 'all' or 'restaurants')
-                          if ((_selectedScope == SearchScope.all ||
-                                  _selectedScope == SearchScope.restaurants) &&
-                              _restaurantResults.isNotEmpty) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.storefront,
-                                      size: 16,
-                                      color: GlassTheme.limeAccent,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Restaurants (${_restaurantResults.length})',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                if (_selectedScope == SearchScope.all &&
-                                    _restaurantResults.length > 2)
-                                  InkWell(
-                                    onTap: () => setState(
-                                      () => _selectedScope =
-                                          SearchScope.restaurants,
-                                    ),
-                                    child: const Text(
-                                      'View All',
-                                      style: TextStyle(
-                                        color: GlassTheme.primaryGreen,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            ..._restaurantResults
-                                .take(
-                                  _selectedScope == SearchScope.all ? 3 : 100,
-                                )
-                                .map((r) => _buildRestaurantCard(r)),
-                            const SizedBox(height: 12),
-                          ],
-
-                          // 2. Dishes Section (when Scope is 'all' or 'dishes')
-                          if ((_selectedScope == SearchScope.all ||
-                                  _selectedScope == SearchScope.dishes) &&
-                              _foodResults.isNotEmpty) ...[
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.fastfood,
-                                  size: 16,
-                                  color: GlassTheme.primaryGreen,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Dishes (${_foodResults.length})',
+                              label: InkWell(
+                                onTap: () {
+                                  _searchController.text = tag;
+                                  _performSearch(tag);
+                                },
+                                child: Text(
+                                  tag,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 14,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              deleteIcon: const Icon(
+                                Icons.close,
+                                size: 14,
+                                color: Colors.white60,
+                              ),
+                              onDeleted: () => _removeRecentSearch(tag),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+
+                  const Text(
+                    'Quick Cravings',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _quickCategories.map((cat) {
+                        final name = cat['name'] as String;
+                        final icon = cat['icon'] as IconData;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ActionChip(
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.06,
+                            ),
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.12),
+                            ),
+                            avatar: Icon(
+                              icon,
+                              size: 15,
+                              color: GlassTheme.limeAccent,
+                            ),
+                            label: Text(
+                              name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                            onPressed: () {
+                              _searchController.text = name;
+                              _performSearch(name);
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // Results View
+                Expanded(
+                  child: _isLoading
+                      ? ListView.builder(
+                          itemCount: 4,
+                          itemBuilder: (context, index) => const Padding(
+                            padding: EdgeInsets.only(bottom: 12.0),
+                            child: ShimmerFoodCard(),
+                          ),
+                        )
+                      : !hasSearched
+                      ? Center(
+                          child: GlassCard(
+                            padding: const EdgeInsets.all(28),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.restaurant_menu,
+                                  size: 56,
+                                  color: GlassTheme.primaryGreen,
+                                ),
+                                const SizedBox(height: 14),
+                                const Text(
+                                  'Explore Food & Restaurants',
+                                  style: TextStyle(
+                                    fontSize: 18,
                                     fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  'Search for favorite dishes, restaurants, or select a craving chip above!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 13,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            ..._foodResults.map((item) => _buildDishCard(item)),
+                          ),
+                        )
+                      : totalCount == 0
+                      ? _buildEmptyState()
+                      : ListView(
+                          children: [
+                            // 1. Restaurants Section (when Scope is 'all' or 'restaurants')
+                            if ((_selectedScope == SearchScope.all ||
+                                    _selectedScope ==
+                                        SearchScope.restaurants) &&
+                                _restaurantResults.isNotEmpty) ...[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.storefront,
+                                        size: 16,
+                                        color: GlassTheme.limeAccent,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Restaurants (${_restaurantResults.length})',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (_selectedScope == SearchScope.all &&
+                                      _restaurantResults.length > 2)
+                                    InkWell(
+                                      onTap: () => setState(
+                                        () => _selectedScope =
+                                            SearchScope.restaurants,
+                                      ),
+                                      child: const Text(
+                                        'View All',
+                                        style: TextStyle(
+                                          color: GlassTheme.primaryGreen,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              ..._restaurantResults
+                                  .take(
+                                    _selectedScope == SearchScope.all ? 3 : 100,
+                                  )
+                                  .map((r) => _buildRestaurantCard(r)),
+                              const SizedBox(height: 12),
+                            ],
+
+                            // 2. Dishes Section (when Scope is 'all' or 'dishes')
+                            if ((_selectedScope == SearchScope.all ||
+                                    _selectedScope == SearchScope.dishes) &&
+                                _foodResults.isNotEmpty) ...[
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.fastfood,
+                                    size: 16,
+                                    color: GlassTheme.primaryGreen,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Dishes (${_foodResults.length})',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              ..._foodResults.map(
+                                (item) => _buildDishCard(item),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-              ),
-            ],
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

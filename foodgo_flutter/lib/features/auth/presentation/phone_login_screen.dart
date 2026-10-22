@@ -47,7 +47,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(auth.lastAuthError ?? 'Failed to send SMS code. Please check your phone number.'),
+            content: Text(
+              auth.lastAuthError ??
+                  'Failed to send SMS code. Please check your phone number.',
+            ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -72,7 +75,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(auth.lastAuthError ?? 'Invalid or expired verification code.'),
+            content: Text(
+              auth.lastAuthError ?? 'Invalid or expired verification code.',
+            ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -165,8 +170,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           decoration: InputDecoration(
                             labelText: 'Cambodian Phone Number',
                             hintText: '012 345 678 (or +855)',
-                            hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
-                            labelStyle: const TextStyle(color: GlassTheme.textMuted),
+                            hintStyle: const TextStyle(
+                              color: Colors.white24,
+                              fontSize: 13,
+                            ),
+                            labelStyle: const TextStyle(
+                              color: GlassTheme.textMuted,
+                            ),
                             prefixIcon: const Icon(
                               Icons.phone,
                               color: GlassTheme.primaryGreen,
@@ -191,14 +201,19 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         const SizedBox(height: 8),
                         const Text(
                           'Supported: Smart, Cellcard, Metfone, Seatel, Cootel',
-                          style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                          style: TextStyle(
+                            color: GlassTheme.textMuted,
+                            fontSize: 11,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         SizedBox(
                           height: 56,
                           child: GlassButton(
                             onPressed: _isLoading ? () {} : _sendOTP,
-                            text: _isLoading ? 'Sending SMS...' : 'Send SMS OTP',
+                            text: _isLoading
+                                ? 'Sending SMS...'
+                                : 'Send SMS OTP',
                             icon: Icons.send,
                           ),
                         ).animate().fade().scale(),
@@ -213,7 +228,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           textAlign: TextAlign.center,
                           decoration: InputDecoration(
                             labelText: '6-Digit SMS Code',
-                            labelStyle: const TextStyle(color: GlassTheme.textMuted),
+                            labelStyle: const TextStyle(
+                              color: GlassTheme.textMuted,
+                            ),
                             prefixIcon: const Icon(
                               Icons.password,
                               color: GlassTheme.primaryGreen,
@@ -248,7 +265,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                               },
                               child: const Text(
                                 'Change Number',
-                                style: TextStyle(color: Colors.white60, fontSize: 13),
+                                style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
                             TextButton(
@@ -269,7 +289,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           height: 56,
                           child: GlassButton(
                             onPressed: _isLoading ? () {} : _verifyOTP,
-                            text: _isLoading ? 'Verifying...' : 'Verify & Login',
+                            text: _isLoading
+                                ? 'Verifying...'
+                                : 'Verify & Login',
                             icon: Icons.check_circle,
                           ),
                         ).animate().fade().scale(),

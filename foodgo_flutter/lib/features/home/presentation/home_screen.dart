@@ -242,7 +242,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: _buildModernLocationHeader(context, isDark)
                           .animate()
                           .fadeIn(duration: 400.ms)
-                          .slideY(begin: -0.08, end: 0, curve: Curves.easeOutCubic),
+                          .slideY(
+                            begin: -0.08,
+                            end: 0,
+                            curve: Curves.easeOutCubic,
+                          ),
                     ),
 
                     // ── 2. Content Body with Hero & Categories ─────────────

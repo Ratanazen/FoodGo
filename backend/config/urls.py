@@ -28,6 +28,8 @@ urlpatterns = [
     path('accounts/profile/', profile_redirect, name='profile-redirect'),
     path('accounts/login/', lambda request: redirect('/admin/login/'), name='accounts-login-redirect'),
     path('media/mongo/<path:filename>', MongoImageView.as_view(), name='root_mongo_image'),
+    path('api/health/', HealthCheckView.as_view(), name='root-api-health'),
+    path('api/health', HealthCheckView.as_view(), name='root-api-health-no-slash'),
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

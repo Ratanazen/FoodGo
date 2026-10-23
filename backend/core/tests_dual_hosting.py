@@ -374,6 +374,46 @@ class DualBackendHostingTests(TestCase):
         test_png_bytes = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDRtest_png_binary'
         b64_str = base64.b64encode(test_png_bytes).decode('utf-8')
 
+        from core.mongodb import get_mongo_client
+        if get_mongo_client() is None:
+            from unittest.mock import patch
+            mock_files = {}
+
+            def fake_save(filename, file_data, content_type=None, metadata=None):
+                mock_files[filename] = {
+                    'id': 'mock_gridfs_id_999',
+                    'filename': filename,
+                    'content': file_data,
+                    'content_type': content_type or 'image/png',
+                    'metadata': metadata or {}
+                }
+                return 'mock_gridfs_id_999'
+
+            def fake_get(filename_or_id):
+                return mock_files.get(filename_or_id)
+
+            with patch('core.mongodb.save_image_mongo', side_effect=fake_save), \
+                 patch('core.mongodb.get_image_mongo', side_effect=fake_get):
+                upload_url = reverse('mongo_image_upload')
+                post_resp = self.client.post(upload_url, {
+                    'image_base64': f'data:image/png;base64,{b64_str}',
+                    'filename': 'unit_test_badge.png'
+                }, format='json')
+                self.assertEqual(post_resp.status_code, status.HTTP_201_CREATED)
+                self.assertEqual(post_resp.data['status'], 'success')
+                self.assertEqual(post_resp.data['filename'], 'unit_test_badge.png')
+                self.assertTrue(post_resp.data['url'].startswith('/api/media/mongo/'))
+
+                get_url = reverse('mongo_image_serve', kwargs={'filename': 'unit_test_badge.png'})
+                get_resp = self.client.get(get_url)
+                self.assertEqual(get_resp.status_code, status.HTTP_200_OK)
+                self.assertEqual(get_resp.content, test_png_bytes)
+
+                bad_url = reverse('mongo_image_serve', kwargs={'filename': 'nonexistent_file_xyz_123.jpg'})
+                bad_resp = self.client.get(bad_url)
+                self.assertEqual(bad_resp.status_code, status.HTTP_404_NOT_FOUND)
+            return
+
         # 1. Upload via JSON base64
         upload_url = reverse('mongo_image_upload')
         post_resp = self.client.post(upload_url, {
@@ -395,6 +435,7 @@ class DualBackendHostingTests(TestCase):
         bad_url = reverse('mongo_image_serve', kwargs={'filename': 'nonexistent_file_xyz_123.jpg'})
         bad_resp = self.client.get(bad_url)
         self.assertEqual(bad_resp.status_code, status.HTTP_404_NOT_FOUND)
+
 
     def test_mongo_sync_endpoint(self):
         """

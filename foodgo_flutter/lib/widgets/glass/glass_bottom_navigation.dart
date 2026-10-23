@@ -21,12 +21,9 @@ class GlassBottomNavigation extends StatelessWidget {
     final cartCount = context.watch<CartProvider>().itemCount;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final containerBg = isDark
-        ? const Color(0xFF16181D)
-        : const Color(0xFFF5F6F8);
     final borderColor = isDark
-        ? const Color(0xFF282B33)
-        : const Color(0xFFE5E7EB);
+        ? GlassTheme.borderDark
+        : GlassTheme.borderLight;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -43,20 +40,22 @@ class GlassBottomNavigation extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(38),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
                 child: Container(
                   height: 68,
                   decoration: BoxDecoration(
-                    color: containerBg.withValues(alpha: isDark ? 0.92 : 0.96),
+                    gradient: isDark
+                        ? GlassTheme.liquidSurfaceDark
+                        : GlassTheme.liquidSurfaceLight,
                     borderRadius: BorderRadius.circular(38),
                     border: Border.all(color: borderColor, width: 1.2),
                     boxShadow: [
+                      GlassTheme.liquidShadow,
                       BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: isDark ? 0.35 : 0.08,
-                        ),
-                        blurRadius: 20,
-                        offset: const Offset(0, 6),
+                        color: (isDark ? GlassTheme.deepSmalt : GlassTheme.paleSmalt)
+                            .withValues(alpha: 0.18),
+                        blurRadius: 18,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -189,15 +188,19 @@ class _PillNavItemState extends State<_PillNavItem>
     final isSelected = widget.isSelected;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final activePillBg = isDark
-        ? const Color(0xFF262930)
-        : const Color(0xFF191A1F);
+    final activePillGradient = LinearGradient(
+      colors: isDark
+          ? const [GlassTheme.royalSmalt, GlassTheme.deepSmalt]
+          : const [GlassTheme.royalSmalt, GlassTheme.cobaltSmalt],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
     final inactiveIconColor = isDark
-        ? const Color(0xFF8C909B)
-        : const Color(0xFF5D616C);
+        ? GlassTheme.smaltTint.withValues(alpha: 0.70)
+        : GlassTheme.slateSmalt.withValues(alpha: 0.75);
     final inactiveTextColor = isDark
-        ? const Color(0xFF8C909B)
-        : const Color(0xFF6B707B);
+        ? GlassTheme.smaltTint.withValues(alpha: 0.70)
+        : GlassTheme.slateSmalt.withValues(alpha: 0.75);
 
     return Expanded(
       child: GestureDetector(
@@ -215,16 +218,16 @@ class _PillNavItemState extends State<_PillNavItem>
               vertical: 6,
             ),
             decoration: BoxDecoration(
-              color: isSelected ? activePillBg : Colors.transparent,
+              gradient: isSelected ? activePillGradient : null,
               borderRadius: BorderRadius.circular(28),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: isDark ? 0.35 : 0.15,
+                        color: GlassTheme.royalSmalt.withValues(
+                          alpha: isDark ? 0.45 : 0.30,
                         ),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
                       ),
                     ]
                   : null,

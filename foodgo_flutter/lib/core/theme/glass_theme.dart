@@ -27,9 +27,9 @@ class GlassTheme {
   static const Color midnightSmalt = Color(0xFF1A2653);
 
   // App Backgrounds (Smalt Blue Dark Theme)
-  static const Color backgroundLight = Color(0xFFF3F5FC);
-  static const Color backgroundDark = Color(0xFF101626);
-  static const Color outerBackground = Color(0xFF0A0E1A);
+  static const Color backgroundLight = Color(0xFFF4F6FC);
+  static const Color backgroundDark = Color(0xFF0C1220);
+  static const Color outerBackground = Color(0xFF080C16);
 
   // Brand Smalt Blue (Rebound across all 500+ widget references seamlessly)
   static const Color primarySmalt = royalSmalt; // 0xFF2A52BE
@@ -112,18 +112,63 @@ class GlassTheme {
   static const Color textLight = Color(0xFFF3F6F4);
   static const Color textMutedLight = Color(0xFFA5ACA7);
 
-  // Glassmorphic Opacities & Dimensions
+  // Liquid Glass Design System
   static const double radius = 24.0;
-  static const double blurSigma = 15.0;
+  static const double blurSigma = 20.0;
+  static const double liquidBlurSigma = 24.0;
 
-  static const Color glassWhite = Color(0xAAFFFFFF); // ~66% opacity
-  static const Color glassWhiteLight = Color(0x77FFFFFF); // ~46% opacity
+  static const Color glassWhite = Color(0xD9FFFFFF); // ~85% opacity frosted white
+  static const Color glassWhiteLight = Color(0xA6F4F6FC); // ~65% opacity pale smalt liquid
 
-  static const Color glassDark = Color(0xAA1E1E1E); // ~66% opacity
-  static const Color glassDarkLight = Color(0x771E1E1E); // ~46% opacity
+  static const Color glassDark = Color(0xD8162244); // ~85% opacity liquid smalt deep
+  static const Color glassDarkLight = Color(0x991F2D5A); // ~60% opacity liquid smalt shadow
 
-  static const Color borderLight = Color(0x66FFFFFF); // 40% opacity
-  static const Color borderDark = Color(0x66FFFFFF);
+  static const Color borderLight = Color(0x80FFFFFF); // 50% opacity specular edge
+  static const Color borderDark = Color(0x40A9B7E1); // 25% opacity smalt tint specular edge
+
+  static const LinearGradient liquidGlassBorderDark = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0x66A9B7E1), // smaltTint highlight
+      Color(0x20BBC6EC), // paleSmalt subtle
+      Color(0x102A52BE), // royalSmalt whisper
+      Color(0x4D3B4AB5), // stormySmalt reflection
+    ],
+    stops: [0.0, 0.4, 0.7, 1.0],
+  );
+
+  static const LinearGradient liquidGlassBorderLight = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0x99FFFFFF), // crisp specular highlight
+      Color(0x4DFFFFFF),
+      Color(0x33A9B7E1),
+      Color(0x80FFFFFF),
+    ],
+    stops: [0.0, 0.35, 0.7, 1.0],
+  );
+
+  static const LinearGradient liquidSurfaceDark = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xE01F2847), // inkSmalt liquid top
+      Color(0xC81A2653), // midnightSmalt body
+      Color(0xD0202E5F), // smaltShadow base
+    ],
+  );
+
+  static const LinearGradient liquidSurfaceLight = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xF2FFFFFF),
+      Color(0xD8F4F6FC),
+      Color(0xE6E8EDF9),
+    ],
+  );
 
   static BorderRadius get borderRadius => BorderRadius.circular(radius);
   static BorderRadius get borderRadiusMedium =>
@@ -137,10 +182,10 @@ class GlassTheme {
   );
 
   static BoxShadow get softShadow => BoxShadow(
-    color: Colors.black.withValues(alpha: 0.05),
-    blurRadius: 15,
+    color: smaltShadow.withValues(alpha: 0.12),
+    blurRadius: 18,
     spreadRadius: 0,
-    offset: const Offset(0, 5),
+    offset: const Offset(0, 6),
   );
 
   static BoxShadow get pillCardShadow => BoxShadow(
@@ -148,6 +193,13 @@ class GlassTheme {
     blurRadius: 16,
     spreadRadius: 1,
     offset: const Offset(0, 4),
+  );
+
+  static BoxShadow get liquidShadow => BoxShadow(
+    color: const Color(0xFF080C16).withValues(alpha: 0.32),
+    blurRadius: 24,
+    spreadRadius: -2,
+    offset: const Offset(0, 10),
   );
 
   // Animation Durations

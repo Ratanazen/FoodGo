@@ -222,9 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? GlassTheme.backgroundDark
-          : const Color(0xFFFBFBFD),
+      backgroundColor: Colors.transparent,
       body: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 export 'glass_widgets_extended.dart';
 export 'glass_modals.dart';
 export 'glass_states.dart';
+export 'liquid_glass_background.dart';
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 

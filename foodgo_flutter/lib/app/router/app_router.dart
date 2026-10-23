@@ -39,6 +39,7 @@ import '../../features/tracking/presentation/public_tracking_screen.dart';
 
 // Widgets
 import '../../widgets/glass/glass_bottom_navigation.dart';
+import '../../widgets/glass/liquid_glass_background.dart';
 import '../../widgets/responsive_layout.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -440,21 +441,23 @@ class MainScreenShell extends StatelessWidget {
 
     if (isWide) {
       return Scaffold(
-        body: Column(
-          children: [
-            WebHeaderNavBar(
-              selectedIndex: selectedIdx,
-              onDestinationSelected: (int idx) => _onItemTapped(idx, context),
-            ),
-            Expanded(child: child),
-          ],
+        body: LiquidGlassBackground(
+          child: Column(
+            children: [
+              WebHeaderNavBar(
+                selectedIndex: selectedIdx,
+                onDestinationSelected: (int idx) => _onItemTapped(idx, context),
+              ),
+              Expanded(child: child),
+            ],
+          ),
         ),
       );
     }
 
     return Scaffold(
       extendBody: true,
-      body: child,
+      body: LiquidGlassBackground(child: child),
       bottomNavigationBar: GlassBottomNavigation(
         selectedIndex: selectedIdx,
         onDestinationSelected: (int idx) => _onItemTapped(idx, context),

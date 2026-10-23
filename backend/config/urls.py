@@ -13,7 +13,7 @@ def profile_redirect(request):
         return redirect('/admin/')
     return redirect('/')
 
-from core.views import HealthCheckView, HealthLiveView, HealthReadyView, MongoHealthCheckView
+from core.views import HealthCheckView, HealthLiveView, HealthReadyView, MongoHealthCheckView, MongoImageView
 
 urlpatterns = [
     path('', api_root, name='api-root'),
@@ -27,6 +27,7 @@ urlpatterns = [
     path('healthz/', HealthCheckView.as_view(), name='root-healthz'),
     path('accounts/profile/', profile_redirect, name='profile-redirect'),
     path('accounts/login/', lambda request: redirect('/admin/login/'), name='accounts-login-redirect'),
+    path('media/mongo/<path:filename>', MongoImageView.as_view(), name='root_mongo_image'),
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

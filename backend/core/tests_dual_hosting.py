@@ -357,3 +357,53 @@ class DualBackendHostingTests(TestCase):
         url2 = reverse('order-confirm-delivery', args=[order2.id])
         c3 = self.client.post(url2, {'token': token}, format='json')
         self.assertEqual(c3.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_mongo_health_check_endpoint(self):
+        """
+        Verify /api/health/mongodb/ and /health/mongodb/ return cluster connectivity status.
+        """
+        response = self.client.get(reverse('api_health_mongodb'))
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_503_SERVICE_UNAVAILABLE])
+        self.assertIn('status', response.data)
+
+    def test_mongo_image_upload_and_serve(self):
+        """
+        Verify image upload to MongoDB GridFS and subsequent retrieval.
+        """
+        import base64
+        test_png_bytes = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDRtest_png_binary'
+        b64_str = base64.b64encode(test_png_bytes).decode('utf-8')
+
+        # 1. Upload via JSON base64
+        upload_url = reverse('mongo_image_upload')
+        post_resp = self.client.post(upload_url, {
+            'image_base64': f'data:image/png;base64,{b64_str}',
+            'filename': 'unit_test_badge.png'
+        }, format='json')
+        self.assertEqual(post_resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(post_resp.data['status'], 'success')
+        self.assertEqual(post_resp.data['filename'], 'unit_test_badge.png')
+        self.assertTrue(post_resp.data['url'].startswith('/api/media/mongo/'))
+
+        # 2. Retrieve via GET /api/media/mongo/<filename>
+        get_url = reverse('mongo_image_serve', kwargs={'filename': 'unit_test_badge.png'})
+        get_resp = self.client.get(get_url)
+        self.assertEqual(get_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(get_resp.content, test_png_bytes)
+
+        # 3. Requesting nonexistent file returns 404
+        bad_url = reverse('mongo_image_serve', kwargs={'filename': 'nonexistent_file_xyz_123.jpg'})
+        bad_resp = self.client.get(bad_url)
+        self.assertEqual(bad_resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_mongo_sync_endpoint(self):
+        """
+        Verify POST /api/mongodb/sync/ mirrors data to MongoDB Atlas collections.
+        """
+        url = reverse('mongo_sync')
+        resp = self.client.post(url, {}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data['status'], 'success')
+        self.assertIn('catalog_synced', resp.data)
+        self.assertIn('orders_synced', resp.data)
+

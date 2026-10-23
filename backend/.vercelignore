@@ -1,0 +1,24 @@
+# Vercel deployment exclusions
+# Prevents large Flutter, Android, iOS, and virtual environment directories
+# from exceeding the 50MB Vercel serverless function size limit.
+
+foodgo_flutter/
+.venv/
+backend/venv/
+.git/
+.github/
+android/
+ios/
+web/
+windows/
+macos/
+linux/
+build/
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.tempmediaStorage/

@@ -2334,3 +2334,141 @@ class MongoHealthCheckView(APIView):
         return Response(result, status=http_status)
 
 
+class MongoImageView(APIView):
+    """
+    Serve images and files stored directly in MongoDB Atlas GridFS.
+    Endpoint: GET /api/media/mongo/<path:filename>
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, filename):
+        from django.http import HttpResponse
+        from core.mongodb import get_image_mongo, save_image_mongo
+        import os
+        from django.conf import settings
+
+        doc = get_image_mongo(filename)
+        if not doc:
+            # Fallback to local MEDIA_ROOT if file exists locally
+            local_path = os.path.join(settings.MEDIA_ROOT, filename)
+            if os.path.exists(local_path):
+                try:
+                    with open(local_path, 'rb') as f:
+                        content = f.read()
+                    import mimetypes
+                    content_type, _ = mimetypes.guess_type(local_path)
+                    content_type = content_type or 'application/octet-stream'
+                    save_image_mongo(filename, content, content_type=content_type)
+                    resp = HttpResponse(content, content_type=content_type)
+                    resp['Cache-Control'] = 'public, max-age=86400'
+                    return resp
+                except Exception:
+                    pass
+            return Response({'error': f"File '{filename}' not found in MongoDB Atlas"}, status=status.HTTP_404_NOT_FOUND)
+
+        resp = HttpResponse(doc['content'], content_type=doc.get('content_type', 'application/octet-stream'))
+        resp['Cache-Control'] = 'public, max-age=86400'
+        resp['Content-Length'] = len(doc['content'])
+        return resp
+
+
+class MongoImageUploadView(APIView):
+    """
+    Upload images directly into MongoDB Atlas GridFS and list stored files.
+    Endpoints:
+    - GET /api/media/mongo/upload/ (List stored media)
+    - POST /api/media/mongo/upload/ (Upload file or base64 data)
+    """
+    permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get(self, request):
+        from core.mongodb import list_images_mongo
+        limit = min(int(request.query_params.get('limit', 50)), 200)
+        images = list_images_mongo(limit=limit)
+        return Response({
+            'count': len(images),
+            'images': images
+        })
+
+    def post(self, request):
+        from core.mongodb import save_image_mongo
+        import secrets
+        import os
+
+        file_obj = request.FILES.get('image') or request.FILES.get('file')
+        content_type = None
+
+        if file_obj:
+            orig_name = file_obj.name
+            content_type = file_obj.content_type
+            file_data = file_obj.read()
+        elif 'image_base64' in request.data:
+            import base64
+            b64_data = request.data['image_base64']
+            if ',' in b64_data:
+                header, b64_data = b64_data.split(',', 1)
+                if 'image/' in header:
+                    content_type = header.split(';')[0].replace('data:', '')
+            try:
+                file_data = base64.b64decode(b64_data)
+            except Exception as e:
+                return Response({'error': f'Invalid base64 encoding: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+            orig_name = request.data.get('filename', f"upload_{secrets.token_hex(4)}.jpg")
+        else:
+            return Response({'error': 'No image file or image_base64 provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        safe_name = os.path.basename(orig_name).replace(' ', '_')
+        if not safe_name:
+            safe_name = f"upload_{secrets.token_hex(4)}.jpg"
+
+        file_id = save_image_mongo(
+            filename=safe_name,
+            file_data=file_data,
+            content_type=content_type,
+            metadata={
+                'uploaded_by': request.user.username if request.user and request.user.is_authenticated else 'anonymous',
+                'original_name': orig_name
+            }
+        )
+
+        if not file_id:
+            return Response({'error': 'Failed to save image to MongoDB Atlas'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        public_url = request.build_absolute_uri(f"/api/media/mongo/{safe_name}")
+        return Response({
+            'status': 'success',
+            'file_id': file_id,
+            'filename': safe_name,
+            'content_type': content_type,
+            'size': len(file_data),
+            'url': f"/api/media/mongo/{safe_name}",
+            'absolute_url': public_url
+        }, status=status.HTTP_201_CREATED)
+
+
+class MongoSyncView(APIView):
+    """
+    Trigger manual or automated synchronization of catalog and orders to MongoDB Atlas.
+    Endpoint: POST /api/mongodb/sync/
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        from core.mongodb import sync_catalog_to_mongo, save_order_mongo, get_mongo_stats
+        from core.models import Order
+
+        catalog_res = sync_catalog_to_mongo()
+        orders = Order.objects.all()
+        orders_synced = sum(1 for o in orders if save_order_mongo(o))
+        stats = get_mongo_stats()
+
+        return Response({
+            'status': 'success',
+            'catalog_synced': catalog_res,
+            'orders_synced': orders_synced,
+            'current_stats': stats
+        })
+
+
+

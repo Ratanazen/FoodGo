@@ -94,4 +94,9 @@ urlpatterns = [
     path('health/mongodb/', MongoHealthCheckView.as_view(), name='api_health_mongodb'),
     path('health/live/', HealthLiveView.as_view(), name='api_health_live'),
     path('health/ready/', HealthReadyView.as_view(), name='api_health_ready'),
+    # MongoDB Atlas Media & Sync Services
+    path('media/mongo/upload/', MongoImageUploadView.as_view(), name='mongo_image_upload'),
+    path('media/mongo/<path:filename>', MongoImageView.as_view(), name='mongo_image_serve'),
+    path('mongodb/stats/', MongoHealthCheckView.as_view(), name='mongo_stats'),
+    path('mongodb/sync/', MongoSyncView.as_view(), name='mongo_sync'),
 ]

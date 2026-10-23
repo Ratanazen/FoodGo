@@ -1,15 +1,12 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "builds": [
-    {
-      "src": "config/wsgi.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "runtime": "python3.12"
-      }
+  "functions": {
+    "config/wsgi.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{staticfiles/**,media/**,tests*/**}"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(.*)",
@@ -22,3 +19,4 @@
     }
   ]
 }
+

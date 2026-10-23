@@ -117,14 +117,26 @@ class GlassTheme {
   static const double blurSigma = 20.0;
   static const double liquidBlurSigma = 24.0;
 
-  static const Color glassWhite = Color(0xD9FFFFFF); // ~85% opacity frosted white
-  static const Color glassWhiteLight = Color(0xA6F4F6FC); // ~65% opacity pale smalt liquid
+  static const Color glassWhite = Color(
+    0xD9FFFFFF,
+  ); // ~85% opacity frosted white
+  static const Color glassWhiteLight = Color(
+    0xA6F4F6FC,
+  ); // ~65% opacity pale smalt liquid
 
-  static const Color glassDark = Color(0xD8162244); // ~85% opacity liquid smalt deep
-  static const Color glassDarkLight = Color(0x991F2D5A); // ~60% opacity liquid smalt shadow
+  static const Color glassDark = Color(
+    0xD8162244,
+  ); // ~85% opacity liquid smalt deep
+  static const Color glassDarkLight = Color(
+    0x991F2D5A,
+  ); // ~60% opacity liquid smalt shadow
 
-  static const Color borderLight = Color(0x80FFFFFF); // 50% opacity specular edge
-  static const Color borderDark = Color(0x40A9B7E1); // 25% opacity smalt tint specular edge
+  static const Color borderLight = Color(
+    0x80FFFFFF,
+  ); // 50% opacity specular edge
+  static const Color borderDark = Color(
+    0x40A9B7E1,
+  ); // 25% opacity smalt tint specular edge
 
   static const LinearGradient liquidGlassBorderDark = LinearGradient(
     begin: Alignment.topLeft,
@@ -163,11 +175,7 @@ class GlassTheme {
   static const LinearGradient liquidSurfaceLight = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xF2FFFFFF),
-      Color(0xD8F4F6FC),
-      Color(0xE6E8EDF9),
-    ],
+    colors: [Color(0xF2FFFFFF), Color(0xD8F4F6FC), Color(0xE6E8EDF9)],
   );
 
   static BorderRadius get borderRadius => BorderRadius.circular(radius);

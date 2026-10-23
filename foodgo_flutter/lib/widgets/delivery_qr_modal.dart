@@ -480,7 +480,8 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                     alignment: Alignment.center,
                     children: [
                       QrImageView(
-                        data: (_qrPayload != null &&
+                        data:
+                            (_qrPayload != null &&
                                 _qrPayload!.trim().isNotEmpty)
                             ? _qrPayload!.trim()
                             : 'FOODGO:HANDOVER:ORDER#${widget.orderId}',

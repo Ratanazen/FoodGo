@@ -523,7 +523,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           : GlassAppBar(
               title: 'Explore on Map',
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                ),
                 tooltip: 'Exit Map',
                 onPressed: () {
                   if (Navigator.of(context).canPop()) {
@@ -1497,9 +1500,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isPassed ? FontWeight.bold : FontWeight.w500,
-                color: isPassed
-                    ? GlassTheme.royalSmalt
-                    : GlassTheme.textMuted,
+                color: isPassed ? GlassTheme.royalSmalt : GlassTheme.textMuted,
               ),
             );
           }),

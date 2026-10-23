@@ -446,7 +446,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     const SizedBox(height: 14),
 
-
                     const SizedBox(height: 16),
 
                     // Terms & Conditions Disclaimer
@@ -616,6 +615,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-
-
 }

@@ -1170,8 +1170,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         '00020101021229380016${acquiringGuid}0108foodgo015204581253038405405${payment.amount > 0 ? payment.amount.toStringAsFixed(2) : '10.00'}5802KH5917FoodGo Restaurant6010Phnom Penh62140110FG-QR-PAY6304';
     final String qrString =
         (payment.qrPayload != null && payment.qrPayload!.trim().isNotEmpty)
-            ? payment.qrPayload!.trim()
-            : fallbackPayload;
+        ? payment.qrPayload!.trim()
+        : fallbackPayload;
 
     final bool isSessionPaid = payment.isPaid;
     final bool isSessionExpired = payment.isExpired || _secondsRemaining <= 0;

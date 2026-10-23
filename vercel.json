@@ -1,15 +1,12 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "builds": [
-    {
-      "src": "backend/config/wsgi.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "runtime": "python3.12"
-      }
+  "functions": {
+    "backend/config/wsgi.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{foodgo_flutter/**,android/**,ios/**,web/**,windows/**,macos/**,linux/**,build/**,docs/**,scripts/**,backups/**}"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(.*)",
@@ -22,3 +19,4 @@
     }
   ]
 }
+

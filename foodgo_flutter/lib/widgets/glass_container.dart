@@ -59,7 +59,9 @@ class GlassContainer extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: customGradient == null ? (customColor ?? fallbackColor) : null,
+              color: customGradient == null
+                  ? (customColor ?? fallbackColor)
+                  : null,
               gradient: customGradient,
               borderRadius: radius,
               border:
@@ -99,7 +101,8 @@ class LiquidGlassContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectiveRadius = borderRadius ?? BorderRadius.circular(GlassTheme.radius);
+    final effectiveRadius =
+        borderRadius ?? BorderRadius.circular(GlassTheme.radius);
 
     final widget = GlassContainer(
       blur: GlassTheme.liquidBlurSigma,
@@ -108,7 +111,9 @@ class LiquidGlassContainer extends StatelessWidget {
       padding: padding,
       width: width,
       height: height,
-      customGradient: isDark ? GlassTheme.liquidSurfaceDark : GlassTheme.liquidSurfaceLight,
+      customGradient: isDark
+          ? GlassTheme.liquidSurfaceDark
+          : GlassTheme.liquidSurfaceLight,
       customBorder: Border.all(
         color: isDark ? GlassTheme.borderDark : GlassTheme.borderLight,
         width: 1.2,
@@ -116,7 +121,8 @@ class LiquidGlassContainer extends StatelessWidget {
       customShadow: [
         GlassTheme.liquidShadow,
         BoxShadow(
-          color: (isDark ? GlassTheme.deepSmalt : GlassTheme.paleSmalt).withValues(alpha: 0.15),
+          color: (isDark ? GlassTheme.deepSmalt : GlassTheme.paleSmalt)
+              .withValues(alpha: 0.15),
           blurRadius: 14,
           offset: const Offset(0, 2),
         ),
@@ -141,4 +147,3 @@ class LiquidGlassContainer extends StatelessWidget {
     return widget;
   }
 }
-

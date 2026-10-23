@@ -1228,7 +1228,9 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: const EdgeInsets.only(right: 14),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFF1C1C1E),
+              color: isDark
+                  ? GlassTheme.surfaceCardDark
+                  : const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(

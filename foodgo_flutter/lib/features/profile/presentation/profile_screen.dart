@@ -62,8 +62,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-
-
   void _showPaymentMethodsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -830,7 +828,9 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                       onTap: () {
-                        final role = (currentUser?['role'] ?? 'customer').toString().toLowerCase();
+                        final role = (currentUser?['role'] ?? 'customer')
+                            .toString()
+                            .toLowerCase();
                         if (role == 'driver') {
                           context.go('/driver-dashboard');
                         } else if (role == 'restaurant_owner') {
@@ -840,7 +840,9 @@ class ProfileScreen extends StatelessWidget {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Customer account active. Driver and merchant roles are provisioned by Admin in the backend.'),
+                              content: Text(
+                                'Customer account active. Driver and merchant roles are provisioned by Admin in the backend.',
+                              ),
                               duration: Duration(seconds: 2),
                               behavior: SnackBarBehavior.floating,
                             ),

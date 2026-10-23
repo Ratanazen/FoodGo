@@ -7,10 +7,7 @@ import '../../core/theme/glass_theme.dart';
 class LiquidGlassBackground extends StatelessWidget {
   final Widget child;
 
-  const LiquidGlassBackground({
-    super.key,
-    required this.child,
-  });
+  const LiquidGlassBackground({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +26,7 @@ class LiquidGlassBackground extends StatelessWidget {
         ),
 
         // ── 2. Ambient Smalt Blue Liquid Glow Orbs ─────────────────────────
-        CustomPaint(
-          painter: _LiquidOrbsPainter(isDark: isDark),
-        ),
+        CustomPaint(painter: _LiquidOrbsPainter(isDark: isDark)),
 
         // ── 3. Child Screen Content ─────────────────────────────────────────
         child,

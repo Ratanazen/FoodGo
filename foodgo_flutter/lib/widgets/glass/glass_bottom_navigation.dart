@@ -21,9 +21,7 @@ class GlassBottomNavigation extends StatelessWidget {
     final cartCount = context.watch<CartProvider>().itemCount;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final borderColor = isDark
-        ? GlassTheme.borderDark
-        : GlassTheme.borderLight;
+    final borderColor = isDark ? GlassTheme.borderDark : GlassTheme.borderLight;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -52,8 +50,11 @@ class GlassBottomNavigation extends StatelessWidget {
                     boxShadow: [
                       GlassTheme.liquidShadow,
                       BoxShadow(
-                        color: (isDark ? GlassTheme.deepSmalt : GlassTheme.paleSmalt)
-                            .withValues(alpha: 0.18),
+                        color:
+                            (isDark
+                                    ? GlassTheme.deepSmalt
+                                    : GlassTheme.paleSmalt)
+                                .withValues(alpha: 0.18),
                         blurRadius: 18,
                         offset: const Offset(0, 4),
                       ),

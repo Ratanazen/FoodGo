@@ -382,14 +382,14 @@ class _HomeScreenState extends State<HomeScreen> {
               : 'Home 12 Jalan Ampang, Kuala L...');
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: GlassTheme.headerGradient,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x33236E31),
+            color: GlassTheme.deepSmalt.withValues(alpha: 0.35),
             blurRadius: 16,
-            offset: Offset(0, 6),
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -445,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                       errorWidget: (ctx, url, err) => Container(
-                                        color: const Color(0xFF236E31),
+                                        color: GlassTheme.deepSmalt,
                                         alignment: Alignment.center,
                                         child: Text(
                                           username.isNotEmpty
@@ -460,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     )
                                   : Container(
-                                      color: const Color(0xFF236E31),
+                                      color: GlassTheme.deepSmalt,
                                       alignment: Alignment.center,
                                       child: Text(
                                         username.isNotEmpty
@@ -694,14 +694,14 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 152,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF236E31), Color(0xFF388E3C)],
+          colors: [GlassTheme.deepSmalt, GlassTheme.royalSmalt],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF236E31).withValues(alpha: 0.35),
+            color: GlassTheme.deepSmalt.withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -893,19 +893,19 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF43A047)
+                    ? GlassTheme.royalSmalt
                     : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF43A047)
+                      ? GlassTheme.royalSmalt
                       : (isDark ? Colors.white10 : const Color(0xFFEEEEEE)),
                   width: isSelected ? 1.5 : 1,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: isSelected
-                        ? const Color(0x4043A047)
+                        ? GlassTheme.royalSmalt.withValues(alpha: 0.35)
                         : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                     blurRadius: isSelected ? 10 : 8,
                     offset: const Offset(0, 3),
@@ -1165,7 +1165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                                backgroundColor: const Color(0xFF2E7D32),
+                                backgroundColor: GlassTheme.royalSmalt,
                                 behavior: SnackBarBehavior.floating,
                                 duration: const Duration(seconds: 2),
                                 action: SnackBarAction(
@@ -1230,7 +1230,7 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: const EdgeInsets.only(right: 14),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF18231C) : const Color(0xFF1C1C1E),
+              color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -1301,7 +1301,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF4CAF50),
+                                color: GlassTheme.royalSmalt,
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: const Text(
@@ -2063,8 +2063,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? const Color(0xFF1B3820)
-                      : const Color(0xFFE8F5E9),
+                      ? GlassTheme.deepSmalt.withValues(alpha: 0.45)
+                      : GlassTheme.paleSmalt.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(
@@ -2072,17 +2072,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       '$_activeOrderEta',
-                      style: const TextStyle(
-                        color: Color(0xFF2E7D32),
+                      style: TextStyle(
+                        color: isDark
+                            ? GlassTheme.paleSmalt
+                            : GlassTheme.royalSmalt,
                         fontWeight: FontWeight.w900,
                         fontSize: 16,
                         height: 1.1,
                       ),
                     ),
-                    const Text(
+                    Text(
                       'min',
                       style: TextStyle(
-                        color: Color(0xFF2E7D32),
+                        color: isDark
+                            ? GlassTheme.paleSmalt
+                            : GlassTheme.royalSmalt,
                         fontWeight: FontWeight.w600,
                         fontSize: 11,
                         height: 1.0,

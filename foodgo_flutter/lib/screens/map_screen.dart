@@ -1479,7 +1479,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 height: 4,
                 decoration: BoxDecoration(
                   color: isCompletedOrCurrent
-                      ? const Color(0xFF4CAF50)
+                      ? GlassTheme.royalSmalt
                       : const Color(0xFFE0E0E0),
                   borderRadius: BorderRadius.circular(2),
                 ),
@@ -1498,7 +1498,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 fontSize: 10,
                 fontWeight: isPassed ? FontWeight.bold : FontWeight.w500,
                 color: isPassed
-                    ? const Color(0xFF2E7D32)
+                    ? GlassTheme.royalSmalt
                     : GlassTheme.textMuted,
               ),
             );
@@ -1804,16 +1804,18 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   ),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? const Color(0xFF1B3820)
-                        : const Color(0xFFE8F5E9),
+                        ? GlassTheme.deepSmalt.withValues(alpha: 0.45)
+                        : GlassTheme.paleSmalt.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     time,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2E7D32),
+                      color: isDark
+                          ? GlassTheme.paleSmalt
+                          : GlassTheme.royalSmalt,
                     ),
                   ),
                 )

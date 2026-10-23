@@ -78,7 +78,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: const Color(0xFF2E7D32),
+          backgroundColor: GlassTheme.royalSmalt,
           behavior: SnackBarBehavior.floating,
         ),
       );

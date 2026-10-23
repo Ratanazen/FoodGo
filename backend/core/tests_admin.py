@@ -342,3 +342,22 @@ class AdminFeatureTestCase(APITestCase):
         # self.customer does NOT have a driver, so it must be in the queryset
         self.assertIn(self.customer, field.queryset)
 
+    def test_user_admin_changelist_render(self):
+        """UserAdmin changelist renders without TypeError on user_avatar_thumb with no photo."""
+        from django.test import Client
+        client = Client()
+        client.force_login(self.admin)
+        resp = client.get('/admin/core/user/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'No photo')
+
+    def test_order_admin_changelist_render(self):
+        """OrderAdmin changelist renders without TypeError on assigned_driver_badge."""
+        from django.test import Client
+        client = Client()
+        client.force_login(self.admin)
+        resp = client.get('/admin/core/order/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Unassigned')
+
+

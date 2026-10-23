@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.db.models import Sum, Count
 from django.urls import reverse
 
@@ -181,7 +182,7 @@ def image_preview(image_field=None, image_url=None, size=50):
             '<img src="{}" width="{}" height="{}" style="object-fit:cover;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12);" />',
             url, size, size
         )
-    return format_html('<span style="color:#aaa;font-size:11px;background:rgba(0,0,0,0.05);padding:3px 8px;border-radius:6px;">No photo</span>')
+    return mark_safe('<span style="color:#aaa;font-size:11px;background:rgba(0,0,0,0.05);padding:3px 8px;border-radius:6px;">No photo</span>')
 
 
 class DriverInline(admin.StackedInline):
@@ -509,13 +510,13 @@ class OrderAdmin(admin.ModelAdmin):
         delivery = getattr(obj, 'delivery', None)
         if delivery and delivery.driver:
             driver = delivery.driver
-            online_dot = format_html('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;"></span>') if driver.is_online else format_html('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;"></span>')
+            online_dot = mark_safe('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;"></span>') if driver.is_online else mark_safe('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;"></span>')
             return format_html(
                 '<span style="background:#1e293b;color:#f8fafc;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:6px;">'
                 '{} <strong>{}</strong> <span style="opacity:0.75;">({})</span></span>',
                 online_dot, driver.user.username, driver.vehicle_type or 'Bike'
             )
-        return format_html('<span style="color:#94a3b8;font-size:11px;font-style:italic;">— Unassigned —</span>')
+        return mark_safe('<span style="color:#94a3b8;font-size:11px;font-style:italic;">— Unassigned —</span>')
 
     @admin.action(description='Auto-Assign Available Online Driver')
     def auto_assign_driver(self, request, queryset):

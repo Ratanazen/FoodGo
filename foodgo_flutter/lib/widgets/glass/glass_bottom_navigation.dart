@@ -221,6 +221,12 @@ class _PillNavItemState extends State<_PillNavItem>
             decoration: BoxDecoration(
               gradient: isSelected ? activePillGradient : null,
               borderRadius: BorderRadius.circular(28),
+              border: isSelected
+                  ? Border.all(
+                      color: Colors.white.withValues(alpha: 0.35),
+                      width: 1.2,
+                    )
+                  : null,
               boxShadow: isSelected
                   ? [
                       BoxShadow(

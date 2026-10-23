@@ -244,18 +244,22 @@ class _CartScreenState extends State<CartScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    InkWell(
+                    AnimatedPressable(
+                      pressedScale: 0.86,
                       onTap: () {
                         HapticFeedback.lightImpact();
                         cart.decrementItem(item.id);
                       },
-                      borderRadius: BorderRadius.circular(16),
                       child: Container(
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1.0,
+                          ),
                         ),
                         child: const Icon(
                           Icons.remove,
@@ -275,7 +279,8 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       ),
                     ),
-                    InkWell(
+                    AnimatedPressable(
+                      pressedScale: 0.86,
                       onTap: () {
                         HapticFeedback.lightImpact();
                         cart.addItem(
@@ -287,13 +292,25 @@ class _CartScreenState extends State<CartScreen> {
                           restaurantName: item.restaurantName,
                         );
                       },
-                      borderRadius: BorderRadius.circular(16),
                       child: Container(
                         width: 28,
                         height: 28,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: GlassTheme.limeAccent,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: GlassTheme.limeAccent.withValues(
+                                alpha: 0.4,
+                              ),
+                              blurRadius: 6,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
                         ),
                         child: const Icon(
                           Icons.add,
@@ -306,13 +323,9 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(
-                  Icons.delete_outline,
-                  size: 20,
-                  color: Colors.white38,
-                ),
-                onPressed: () {
+              AnimatedPressable(
+                pressedScale: 0.88,
+                onTap: () {
                   HapticFeedback.lightImpact();
                   final removedItem = item;
                   final qty = item.quantity;
@@ -342,9 +355,22 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   );
                 },
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                tooltip: 'Remove item',
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.05),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline,
+                    size: 18,
+                    color: Colors.white60,
+                  ),
+                ),
               ),
             ],
           ),
@@ -457,26 +483,33 @@ class _CartScreenState extends State<CartScreen> {
                             onSubmitted: (_) => _applyVoucher(cart),
                           ),
                         ),
-                        TextButton(
-                          onPressed: () => _applyVoucher(cart),
-                          style: TextButton.styleFrom(
+                        AnimatedPressable(
+                          pressedScale: 0.92,
+                          onTap: () => _applyVoucher(cart),
+                          child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
+                              horizontal: 14,
+                              vertical: 7,
                             ),
-                            backgroundColor: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.2,
-                            ),
-                            shape: RoundedRectangleBorder(
+                            decoration: BoxDecoration(
+                              color: GlassTheme.primaryGreen.withValues(
+                                alpha: 0.25,
+                              ),
                               borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: GlassTheme.primaryGreen.withValues(
+                                  alpha: 0.5,
+                                ),
+                                width: 1.0,
+                              ),
                             ),
-                          ),
-                          child: const Text(
-                            'Apply',
-                            style: TextStyle(
-                              color: GlassTheme.primaryGreen,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                            child: const Text(
+                              'Apply',
+                              style: TextStyle(
+                                color: GlassTheme.primaryGreen,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ),
@@ -607,22 +640,30 @@ class _CartScreenState extends State<CartScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.limeAccent,
-                  foregroundColor: Colors.black,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(26),
+            AnimatedPressable(
+              pressedScale: 0.96,
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                context.push('/checkout');
+              },
+              child: Container(
+                width: double.infinity,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: GlassTheme.limeAccent,
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    width: 1.5,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: GlassTheme.limeAccent.withValues(alpha: 0.4),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                onPressed: () {
-                  HapticFeedback.mediumImpact();
-                  context.push('/checkout');
-                },
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -639,7 +680,11 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ),
                     SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, color: Colors.black, size: 20),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.black,
+                      size: 20,
+                    ),
                   ],
                 ),
               ),
@@ -651,18 +696,21 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildPromoChip(String label, String code, CartProvider cart) {
-    return InkWell(
+    return AnimatedPressable(
+      pressedScale: 0.93,
       onTap: () {
         _voucherController.text = code;
         _applyVoucher(cart);
       },
-      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.14),
+            width: 1.0,
+          ),
         ),
         child: Text(
           label,
@@ -688,21 +736,25 @@ class _CartScreenState extends State<CartScreen> {
             leading: Navigator.of(context).canPop()
                 ? Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.15),
+                    child: AnimatedPressable(
+                      pressedScale: 0.9,
+                      onTap: () => context.pop(),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            width: 1.0,
+                          ),
                         ),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new,
-                          size: 16,
-                          color: Colors.white,
+                        child: const Center(
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                         ),
-                        onPressed: () => context.pop(),
                       ),
                     ),
                   )
@@ -720,58 +772,63 @@ class _CartScreenState extends State<CartScreen> {
               if (cart.items.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(right: 12.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.15),
-                      ),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        size: 18,
-                        color: Colors.white70,
-                      ),
-                      tooltip: 'Clear Cart',
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            backgroundColor: GlassTheme.dialogDark,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            title: const Text('Clear Cart?'),
-                            content: const Text(
-                              'Are you sure you want to remove all items from your cart?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text(
-                                  'Cancel',
-                                  style: TextStyle(color: Colors.white60),
-                                ),
-                              ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                                onPressed: () {
-                                  cart.clear();
-                                  Navigator.pop(ctx);
-                                },
-                                child: const Text(
-                                  'Clear',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ],
+                  child: AnimatedPressable(
+                    pressedScale: 0.9,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: GlassTheme.dialogDark,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
                           ),
-                        );
-                      },
+                          title: const Text('Clear Cart?'),
+                          content: const Text(
+                            'Are you sure you want to remove all items from your cart?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(color: Colors.white60),
+                              ),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                              ),
+                              onPressed: () {
+                                cart.clear();
+                                Navigator.pop(ctx);
+                              },
+                              child: const Text(
+                                'Clear',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.delete_outline,
+                          size: 18,
+                          color: Colors.white70,
+                        ),
+                      ),
                     ),
                   ),
                 ),

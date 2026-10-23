@@ -16,6 +16,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/shimmer_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/glass/glass_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -408,9 +409,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   children: [
                     // Circular Avatar with online dot & profile link
-                    InkWell(
+                    AnimatedPressable(
                       onTap: () => context.push('/profile'),
-                      borderRadius: BorderRadius.circular(20),
+                      pressedScale: 0.92,
                       child: Stack(
                         children: [
                           Container(
@@ -496,9 +497,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // Deliver To Column
                     Expanded(
-                      child: InkWell(
+                      child: AnimatedPressable(
+                        pressedScale: 0.96,
                         onTap: () => context.push('/addresses'),
-                        borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 4,
@@ -565,9 +566,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Consumer<NotificationProvider>(
                 builder: (context, notifProvider, child) {
                   final unread = notifProvider.unreadCount;
-                  return InkWell(
+                  return AnimatedPressable(
                     onTap: () => context.push('/notifications'),
-                    borderRadius: BorderRadius.circular(20),
+                    pressedScale: 0.92,
                     child: Container(
                       width: 40,
                       height: 40,
@@ -627,14 +628,18 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 14),
 
           // Second Row: Full-width Rounded White Pill Search Bar
-          InkWell(
+          AnimatedPressable(
+            pressedScale: 0.98,
             onTap: () => context.push('/search'),
-            borderRadius: BorderRadius.circular(30),
             child: Container(
               height: 48,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  width: 1.2,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.12),
@@ -822,33 +827,48 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                InkWell(
+                AnimatedPressable(
                   onTap: () => _claimCoupon('FREESHIP'),
-                  borderRadius: BorderRadius.circular(20),
+                  pressedScale: 0.94,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 18,
-                      vertical: 7,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF4B26),
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.35),
+                        width: 1.2,
+                      ),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x66FF4B26),
-                          blurRadius: 8,
-                          offset: Offset(0, 3),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
                         ),
                       ],
                     ),
-                    child: const Text(
-                      'ORDER NOW',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                        letterSpacing: 0.5,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          'ORDER NOW',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -874,7 +894,8 @@ class _HomeScreenState extends State<HomeScreen> {
           final cat = _quickCategories[index];
           final isSelected = _selectedQuickCategoryIndex == index;
 
-          return InkWell(
+          return AnimatedPressable(
+            pressedScale: 0.93,
             onTap: () {
               setState(() {
                 if (_selectedQuickCategoryIndex == index) {
@@ -884,7 +905,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               });
             },
-            borderRadius: BorderRadius.circular(18),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: 74,
@@ -897,8 +917,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: Border.all(
                   color: isSelected
                       ? GlassTheme.royalSmalt
-                      : (isDark ? Colors.white10 : const Color(0xFFEEEEEE)),
-                  width: isSelected ? 1.5 : 1,
+                      : (isDark
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : const Color(0xFFE5E7EB)),
+                  width: isSelected ? 1.6 : 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -913,12 +935,17 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    cat['icon'] as IconData,
-                    size: 28,
-                    color: isSelected
-                        ? Colors.white
-                        : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                  AnimatedScale(
+                    scale: isSelected ? 1.15 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutBack,
+                    child: Icon(
+                      cat['icon'] as IconData,
+                      size: 28,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -959,18 +986,29 @@ class _HomeScreenState extends State<HomeScreen> {
             color: isDark ? Colors.white : Colors.black,
           ),
         ),
-        InkWell(
+        AnimatedPressable(
+          pressedScale: 0.92,
           onTap: () => context.push('/explore'),
-          borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            child: Text(
-              'See More',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'See More',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 11,
+                  color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
+                ),
+              ],
             ),
           ),
         ),
@@ -1032,16 +1070,19 @@ class _HomeScreenState extends State<HomeScreen> {
         final favoritesProvider = context.watch<FavoritesProvider>();
         final isFav = favoritesProvider.isFoodFavorite(item['id']);
 
-        return InkWell(
+        return AnimatedPressable(
+              pressedScale: 0.97,
               onTap: () => context.push('/food-details', extra: item),
-              borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : const Color(0xFFE5E7EB),
+                    width: 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -1059,14 +1100,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Favorite Heart Button in top right
                     Align(
                       alignment: Alignment.topRight,
-                      child: InkWell(
+                      child: AnimatedPressable(
+                        pressedScale: 0.8,
                         onTap: () => favoritesProvider.toggleFoodItem(item),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(2.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.4)
+                                : Colors.black.withValues(alpha: 0.05),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.12)
+                                  : Colors.black.withValues(alpha: 0.06),
+                            ),
+                          ),
                           child: Icon(
                             isFav ? Icons.favorite : Icons.favorite_border,
-                            size: 20,
+                            size: 18,
                             color: isFav
                                 ? const Color(0xFFFF4842)
                                 : const Color(0xFFD0D0D0),
@@ -1137,7 +1189,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: isDark ? Colors.white : Colors.black,
                           ),
                         ),
-                        InkWell(
+                        AnimatedPressable(
+                          pressedScale: 0.88,
                           onTap: () {
                             context.read<CartProvider>().addItem(
                               item['id'] as int,
@@ -1174,25 +1227,28 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          borderRadius: BorderRadius.circular(16),
                           child: Container(
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
                               color: GlassTheme.limeAccent,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.4),
+                                width: 1.2,
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: GlassTheme.limeAccent.withValues(
-                                    alpha: 0.4,
+                                    alpha: 0.45,
                                   ),
-                                  blurRadius: 6,
+                                  blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
                             child: const Icon(
-                              Icons.add,
+                              Icons.add_rounded,
                               color: Colors.black,
                               size: 20,
                             ),
@@ -1232,6 +1288,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? GlassTheme.surfaceCardDark
                   : const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.08),
+                width: 1.0,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.16),
@@ -1292,17 +1352,30 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          InkWell(
+                          AnimatedPressable(
+                            pressedScale: 0.93,
                             onTap: () => _claimCoupon(deal['code']),
-                            borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 14,
-                                vertical: 5,
+                                vertical: 6,
                               ),
                               decoration: BoxDecoration(
                                 color: GlassTheme.royalSmalt,
                                 borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.28),
+                                  width: 1.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: GlassTheme.royalSmalt.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: const Text(
                                 'Claim',
@@ -1310,6 +1383,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 11,
+                                  letterSpacing: 0.3,
                                 ),
                               ),
                             ),
@@ -1711,15 +1785,18 @@ class _HomeScreenState extends State<HomeScreen> {
       id,
     );
 
-    return InkWell(
+    return AnimatedPressable(
+      pressedScale: 0.97,
       onTap: () => context.push('/restaurant/$id'),
-      borderRadius: BorderRadius.circular(18),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.12)
+                : const Color(0xFFE5E7EB),
+            width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
@@ -1769,6 +1846,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       color: GlassTheme.primaryGreen,
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        width: 1.0,
+                      ),
                       boxShadow: const [
                         BoxShadow(color: Colors.black26, blurRadius: 4),
                       ],
@@ -1791,14 +1872,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 Positioned(
                   bottom: 6,
                   right: 6,
-                  child: InkWell(
+                  child: AnimatedPressable(
+                    pressedScale: 0.8,
                     onTap: () =>
                         context.read<FavoritesProvider>().toggleRestaurant(res),
                     child: Container(
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
+                        color: Colors.black.withValues(alpha: 0.55),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 1.0,
+                        ),
                       ),
                       child: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -1973,9 +2059,9 @@ class _HomeScreenState extends State<HomeScreen> {
       left: isWide ? null : 16,
       right: isWide ? 24 : 16,
       width: isWide ? 420 : null,
-      child: InkWell(
+      child: AnimatedPressable(
+        pressedScale: 0.98,
         onTap: () => context.push('/map/$activeOrderId'),
-        borderRadius: BorderRadius.circular(20),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
@@ -2117,14 +2203,29 @@ class _HomeScreenState extends State<HomeScreen> {
             letterSpacing: -0.2,
           ),
         ),
-        InkWell(
+        AnimatedPressable(
+          pressedScale: 0.92,
           onTap: onSeeAll,
-          child: const Text(
-            'See All',
-            style: TextStyle(
-              color: GlassTheme.primaryGreen,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Text(
+                  'See All',
+                  style: TextStyle(
+                    color: GlassTheme.primaryGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 11,
+                  color: GlassTheme.primaryGreen,
+                ),
+              ],
             ),
           ),
         ),

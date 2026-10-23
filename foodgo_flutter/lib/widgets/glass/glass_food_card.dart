@@ -4,6 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 
+import 'animated_pressable.dart';
+
 class GlassFoodCard extends StatelessWidget {
   final String id;
   final String title;
@@ -28,27 +30,32 @@ class GlassFoodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return AnimatedPressable(
       onTap: onTap,
+      pressedScale: 0.98,
       child: GlassContainer(
         borderRadius: GlassTheme.borderRadiusSmall,
         padding: const EdgeInsets.all(12),
         margin: const EdgeInsets.only(bottom: 16),
+        customBorder: Border.all(
+          color: Colors.white.withValues(alpha: 0.18),
+          width: 1.2,
+        ),
         child: Row(
           children: [
             Hero(
               tag: 'food_image_$id',
               child: ClipRRect(
-                borderRadius: GlassTheme.borderRadiusSmall,
+                borderRadius: BorderRadius.circular(14),
                 child: imageUrl.isNotEmpty
                     ? CachedNetworkImage(
                         imageUrl: imageUrl,
-                        width: 80,
-                        height: 80,
+                        width: 82,
+                        height: 82,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
-                          width: 80,
-                          height: 80,
+                          width: 82,
+                          height: 82,
                           color: Colors.white.withValues(alpha: 0.05),
                           child: const Center(
                             child: SizedBox(
@@ -62,8 +69,8 @@ class GlassFoodCard extends StatelessWidget {
                           ),
                         ),
                         errorWidget: (context, url, error) => Container(
-                          width: 80,
-                          height: 80,
+                          width: 82,
+                          height: 82,
                           color: Colors.grey.withValues(alpha: 0.2),
                           child: const Icon(
                             Icons.fastfood,
@@ -72,8 +79,8 @@ class GlassFoodCard extends StatelessWidget {
                         ),
                       )
                     : Container(
-                        width: 80,
-                        height: 80,
+                        width: 82,
+                        height: 82,
                         color: Colors.grey.withValues(alpha: 0.2),
                         child: const Icon(Icons.image),
                       ),
@@ -89,6 +96,7 @@ class GlassFoodCard extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -103,17 +111,18 @@ class GlassFoodCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
                       const SizedBox(width: 4),
                       Text(
                         rating,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                       ),
                       const Spacer(),
                       Text(
                         price,
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
                           color: GlassTheme.primaryGreen,
                         ),
                       ),
@@ -122,15 +131,15 @@ class GlassFoodCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: onAddTap,
-              child: GlassContainer(
-                padding: const EdgeInsets.all(8),
-                borderRadius: BorderRadius.circular(12),
-                customColor: GlassTheme.primaryGreen.withValues(alpha: 0.1),
-                child: const Icon(Icons.add, color: GlassTheme.primaryGreen),
-              ),
+            const SizedBox(width: 10),
+            AnimatedIconButton(
+              icon: Icons.add_rounded,
+              onPressed: onAddTap,
+              size: 38,
+              iconSize: 22,
+              color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+              iconColor: GlassTheme.primaryGreen,
+              borderColor: GlassTheme.primaryGreen.withValues(alpha: 0.35),
             ),
           ],
         ),

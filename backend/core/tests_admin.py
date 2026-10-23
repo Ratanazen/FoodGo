@@ -360,4 +360,22 @@ class AdminFeatureTestCase(APITestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Unassigned')
 
+    def test_restaurant_admin_changelist_render(self):
+        """RestaurantAdmin changelist renders without TypeError on restaurant_logo with no photo."""
+        from django.test import Client
+        client = Client()
+        client.force_login(self.admin)
+        resp = client.get('/admin/core/restaurant/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'No photo')
+
+    def test_fooditem_admin_changelist_render(self):
+        """FoodItemAdmin changelist renders without TypeError."""
+        from django.test import Client
+        client = Client()
+        client.force_login(self.admin)
+        resp = client.get('/admin/core/fooditem/')
+        self.assertEqual(resp.status_code, 200)
+
+
 

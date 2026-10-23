@@ -54,6 +54,8 @@ admin.site.get_app_list = custom_get_app_list
 # Imports
 # ─────────────────────────────────────────────
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import UserCreationForm
+
 from .models import (
     User, Address, RestaurantCategory, Restaurant, FoodCategory,
     FoodItem, Order, OrderItem, Cart, CartItem, Payment, Driver,
@@ -192,15 +194,32 @@ class DriverInline(admin.StackedInline):
     fields = ['vehicle_type', 'license_plate', 'is_online', 'current_lat', 'current_lng']
 
 
+class CustomUserAdminCreationForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ('username', 'role', 'email', 'first_name', 'last_name', 'phone')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = self.cleaned_data.get('role', 'customer')
+        if user.role == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+        if commit:
+            user.save()
+        return user
+
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    add_form = CustomUserAdminCreationForm
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Extra Info', {'fields': ('role', 'phone', 'avatar', 'avatar_url')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'role', 'first_name', 'last_name', 'phone'),
+            'fields': ('username', 'role', 'password1', 'password2', 'email', 'first_name', 'last_name', 'phone'),
         }),
         ('Permissions', {
             'classes': ('collapse',),
@@ -231,7 +250,7 @@ class UserAdmin(BaseUserAdmin):
             obj.is_staff = True
             obj.is_superuser = True
         super().save_model(request, obj, form, change)
-        if obj.role == 'driver' and not hasattr(obj, 'driver_profile'):
+        if obj.role == 'driver':
             from decimal import Decimal
             Driver.objects.get_or_create(
                 user=obj,
@@ -239,10 +258,12 @@ class UserAdmin(BaseUserAdmin):
                     'vehicle_type': 'Motorcycle (Honda Wave 125i)',
                     'license_plate': 'PP-1AB-2026',
                     'is_online': True,
+                    'is_approved': True,
                     'current_lat': Decimal('11.5580'),
                     'current_lng': Decimal('104.9210'),
                 }
             )
+
 
     @admin.action(description='Promote Selected Users to Admin (Staff + Superuser)')
     def promote_to_admin(self, request, queryset):

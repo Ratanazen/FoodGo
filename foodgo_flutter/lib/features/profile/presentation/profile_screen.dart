@@ -62,209 +62,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showRoleSwitchModal(BuildContext context, String currentRole) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => ResponsiveBottomSheet(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: GlassTheme.dialogDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.switch_account_rounded,
-                      color: GlassTheme.primaryGreen,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Switch Active Role',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Select your active FoodGo account mode:',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(
-                    color: currentRole == 'customer'
-                        ? GlassTheme.primaryGreen
-                        : Colors.white10,
-                  ),
-                ),
-                tileColor: currentRole == 'customer'
-                    ? GlassTheme.primaryGreen.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.04),
-                leading: const Icon(
-                  Icons.person,
-                  color: GlassTheme.primaryGreen,
-                ),
-                title: const Text(
-                  'Customer',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: const Text(
-                  'Order food, explore restaurants & track deliveries',
-                  style: TextStyle(color: Colors.white60, fontSize: 11),
-                ),
-                trailing: currentRole == 'customer'
-                    ? const Icon(
-                        Icons.check_circle,
-                        color: GlassTheme.primaryGreen,
-                      )
-                    : null,
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await context.read<UserProvider>().updateRole('customer');
-                  if (!context.mounted) return;
-                  context.go('/home');
-                },
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(
-                    color: currentRole == 'driver'
-                        ? GlassTheme.primaryGreen
-                        : Colors.white10,
-                  ),
-                ),
-                tileColor: currentRole == 'driver'
-                    ? GlassTheme.primaryGreen.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.04),
-                leading: const Icon(
-                  Icons.delivery_dining,
-                  color: Colors.orangeAccent,
-                ),
-                title: const Text(
-                  'Delivery Driver',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: const Text(
-                  'Accept delivery requests & scan customer QR codes',
-                  style: TextStyle(color: Colors.white60, fontSize: 11),
-                ),
-                trailing: currentRole == 'driver'
-                    ? const Icon(
-                        Icons.check_circle,
-                        color: GlassTheme.primaryGreen,
-                      )
-                    : null,
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await context.read<UserProvider>().updateRole('driver');
-                  if (!context.mounted) return;
-                  context.go('/driver-dashboard');
-                },
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(
-                    color: currentRole == 'restaurant_owner'
-                        ? GlassTheme.primaryGreen
-                        : Colors.white10,
-                  ),
-                ),
-                tileColor: currentRole == 'restaurant_owner'
-                    ? GlassTheme.primaryGreen.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.04),
-                leading: const Icon(
-                  Icons.storefront_rounded,
-                  color: Colors.cyanAccent,
-                ),
-                title: const Text(
-                  'Restaurant Owner',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: const Text(
-                  'Manage your menu catalog & incoming kitchen orders',
-                  style: TextStyle(color: Colors.white60, fontSize: 11),
-                ),
-                trailing: currentRole == 'restaurant_owner'
-                    ? const Icon(
-                        Icons.check_circle,
-                        color: GlassTheme.primaryGreen,
-                      )
-                    : null,
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await context.read<UserProvider>().updateRole(
-                    'restaurant_owner',
-                  );
-                  if (!context.mounted) return;
-                  context.go('/restaurant-dashboard');
-                },
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white70,
-                  side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: const Text('Cancel'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 
   void _showPaymentMethodsModal(BuildContext context) {
     showModalBottomSheet(
@@ -1032,10 +830,22 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                       onTap: () {
-                        _showRoleSwitchModal(
-                          context,
-                          currentUser?['role'] ?? 'customer',
-                        );
+                        final role = (currentUser?['role'] ?? 'customer').toString().toLowerCase();
+                        if (role == 'driver') {
+                          context.go('/driver-dashboard');
+                        } else if (role == 'restaurant_owner') {
+                          context.go('/restaurant-dashboard');
+                        } else if (role == 'admin') {
+                          context.go('/admin-dashboard');
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Customer account active. Driver and merchant roles are provisioned by Admin in the backend.'),
+                              duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
                       },
                     ),
                     _ProfileOption(

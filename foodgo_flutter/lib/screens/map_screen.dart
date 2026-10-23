@@ -522,6 +522,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           ? null
           : GlassAppBar(
               title: 'Explore on Map',
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                tooltip: 'Exit Map',
+                onPressed: () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    context.go('/home');
+                  }
+                },
+              ),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.layers_outlined, color: Colors.white),
@@ -532,6 +543,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   icon: const Icon(Icons.refresh, color: Colors.white),
                   tooltip: 'Refresh',
                   onPressed: _fetchNearbyRestaurants,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, color: Colors.white),
+                  tooltip: 'Exit Map',
+                  onPressed: () {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    } else {
+                      context.go('/home');
+                    }
+                  },
                 ),
               ],
             ),

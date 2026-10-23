@@ -377,5 +377,52 @@ class AdminFeatureTestCase(APITestCase):
         resp = client.get('/admin/core/fooditem/')
         self.assertEqual(resp.status_code, 200)
 
+    def test_admin_can_create_driver_user_and_profile(self):
+        """Admin can create a new delivery driver with auto-provisioned driver profile."""
+        from django.test import Client
+        from core.models import Driver
+        client = Client()
+        client.force_login(self.admin)
+        resp = client.post('/admin/core/user/add/', {
+            'username': 'new_admin_driver_test',
+            'password1': 'DriverPass2026!',
+            'password2': 'DriverPass2026!',
+            'role': 'driver',
+            'email': 'driver_new@foodgo.com',
+            'first_name': 'Sok',
+            'last_name': 'Driver',
+            'is_active': 'on',
+            '_save': 'Save',
+        })
+        self.assertEqual(resp.status_code, 302)
+        driver_user = User.objects.filter(username='new_admin_driver_test').first()
+        self.assertIsNotNone(driver_user)
+        self.assertEqual(driver_user.role, 'driver')
+        profile = Driver.objects.filter(user=driver_user).first()
+        self.assertIsNotNone(profile)
+        self.assertTrue(profile.is_approved)
+
+    def test_admin_can_create_restaurant_owner(self):
+        """Admin can create a new restaurant owner."""
+        from django.test import Client
+        client = Client()
+        client.force_login(self.admin)
+        resp = client.post('/admin/core/user/add/', {
+            'username': 'new_admin_owner_test',
+            'password1': 'OwnerPass2026!',
+            'password2': 'OwnerPass2026!',
+            'role': 'restaurant_owner',
+            'email': 'owner_new@foodgo.com',
+            'first_name': 'Vann',
+            'last_name': 'Owner',
+            'is_active': 'on',
+            '_save': 'Save',
+        })
+        self.assertEqual(resp.status_code, 302)
+        owner_user = User.objects.filter(username='new_admin_owner_test').first()
+        self.assertIsNotNone(owner_user)
+        self.assertEqual(owner_user.role, 'restaurant_owner')
+
+
 
 

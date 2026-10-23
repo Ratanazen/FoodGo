@@ -23,7 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  String _selectedRole = 'customer'; // 'customer', 'driver', 'restaurant_owner'
+  final String _selectedRole = 'customer';
 
   @override
   void dispose() {
@@ -446,53 +446,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     const SizedBox(height: 14),
 
-                    // Role Selector: Customer / Driver / Restaurant Owner
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Join FoodGo as:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? Colors.white70
-                                : GlassTheme.authSubtitle,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildRoleCard(
-                                role: 'customer',
-                                label: 'Customer',
-                                icon: Icons.person_outline,
-                                isDark: isDark,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _buildRoleCard(
-                                role: 'driver',
-                                label: 'Driver',
-                                icon: Icons.delivery_dining,
-                                isDark: isDark,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _buildRoleCard(
-                                role: 'restaurant_owner',
-                                label: 'Merchant',
-                                icon: Icons.storefront_outlined,
-                                isDark: isDark,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ).animate().fade(delay: 375.ms),
 
                     const SizedBox(height: 16),
 
@@ -664,56 +617,5 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildRoleCard({
-    required String role,
-    required String label,
-    required IconData icon,
-    required bool isDark,
-  }) {
-    final isSelected = _selectedRole == role;
-    return InkWell(
-      onTap: () => setState(() => _selectedRole = role),
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? GlassTheme.primaryGreen.withValues(alpha: 0.18)
-              : (isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? GlassTheme.primaryGreen
-                : (isDark ? Colors.white12 : GlassTheme.authInputBorder),
-            width: isSelected ? 1.6 : 1.0,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected
-                  ? GlassTheme.primaryGreen
-                  : (isDark ? Colors.white60 : Colors.black54),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected
-                    ? GlassTheme.primaryGreen
-                    : (isDark ? Colors.white70 : const Color(0xFF1E293B)),
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 }

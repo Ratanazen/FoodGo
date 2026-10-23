@@ -118,12 +118,16 @@ class GlassButton extends StatelessWidget {
                 borderRadius: effectiveRadius,
                 customColor: effectiveColor,
                 customGradient: gradient,
-                customBorder: border ??
+                customBorder:
+                    border ??
                     Border.all(
-                      color: Colors.white.withValues(alpha: isEnabled ? 0.28 : 0.12),
+                      color: Colors.white.withValues(
+                        alpha: isEnabled ? 0.28 : 0.12,
+                      ),
                       width: 1.2,
                     ),
-                customShadow: boxShadow ??
+                customShadow:
+                    boxShadow ??
                     [
                       BoxShadow(
                         color: effectiveColor.withValues(alpha: 0.35),
@@ -131,7 +135,9 @@ class GlassButton extends StatelessWidget {
                         offset: const Offset(0, 4),
                       ),
                     ],
-                padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                padding:
+                    padding ??
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -142,7 +148,9 @@ class GlassButton extends StatelessWidget {
                         height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 10),

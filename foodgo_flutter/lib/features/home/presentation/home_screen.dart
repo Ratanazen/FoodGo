@@ -918,8 +918,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: isSelected
                       ? GlassTheme.royalSmalt
                       : (isDark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : const Color(0xFFE5E7EB)),
+                            ? Colors.white.withValues(alpha: 0.12)
+                            : const Color(0xFFE5E7EB)),
                   width: isSelected ? 1.6 : 1.0,
                 ),
                 boxShadow: [

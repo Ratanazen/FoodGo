@@ -9,6 +9,7 @@ if [ -d "build/web" ] && [ -f "build/web/index.html" ]; then
 fi
 
 echo "==> Preparing Flutter SDK..."
+git config --global --add safe.directory "*" 2>/dev/null || true
 if command -v flutter >/dev/null 2>&1; then
   FLUTTER_CMD="flutter"
 else
@@ -16,6 +17,7 @@ else
     echo "==> Cloning stable Flutter SDK..."
     git clone --depth 1 -b stable https://github.com/flutter/flutter.git _flutter
   fi
+  export PATH="$(pwd)/_flutter/bin:$PATH"
   FLUTTER_CMD="./_flutter/bin/flutter"
 fi
 

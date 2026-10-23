@@ -85,7 +85,8 @@ class _AnimatedPressableState extends State<AnimatedPressable>
     Widget childWidget = AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
-        final currentScale = _isHovered && !_controller.isAnimating && _controller.value == 0
+        final currentScale =
+            _isHovered && !_controller.isAnimating && _controller.value == 0
             ? widget.hoverScale
             : _scaleAnimation.value;
         return Transform.scale(
@@ -99,7 +100,9 @@ class _AnimatedPressableState extends State<AnimatedPressable>
 
     if (kIsWeb) {
       childWidget = MouseRegion(
-        cursor: isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        cursor: isInteractive
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
         onEnter: (_) {
           if (isInteractive && mounted) setState(() => _isHovered = true);
         },
@@ -170,7 +173,8 @@ class AnimatedIconButton extends StatelessWidget {
         : Colors.black.withValues(alpha: 0.08);
     final fallbackIconColor = isDark ? Colors.white : const Color(0xFF1A2653);
 
-    final effectiveRadius = borderRadius ??
+    final effectiveRadius =
+        borderRadius ??
         (shape == BoxShape.circle
             ? BorderRadius.circular(size / 2)
             : BorderRadius.circular(14));
@@ -184,10 +188,7 @@ class AnimatedIconButton extends StatelessWidget {
         color: color ?? fallbackBg,
         shape: shape,
         borderRadius: shape == BoxShape.rectangle ? effectiveRadius : null,
-        border: Border.all(
-          color: borderColor ?? fallbackBorder,
-          width: 1.2,
-        ),
+        border: Border.all(color: borderColor ?? fallbackBorder, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.06),
@@ -210,31 +211,16 @@ class AnimatedIconButton extends StatelessWidget {
               ),
             )
           else
-            Icon(
-              icon,
-              size: iconSize,
-              color: iconColor ?? fallbackIconColor,
-            ),
-          if (badge != null)
-            Positioned(
-              top: -2,
-              right: -2,
-              child: badge!,
-            ),
+            Icon(icon, size: iconSize, color: iconColor ?? fallbackIconColor),
+          if (badge != null) Positioned(top: -2, right: -2, child: badge!),
         ],
       ),
     );
 
     if (tooltip != null) {
-      buttonContent = Tooltip(
-        message: tooltip!,
-        child: buttonContent,
-      );
+      buttonContent = Tooltip(message: tooltip!, child: buttonContent);
     }
 
-    return AnimatedPressable(
-      onTap: onPressed,
-      child: buttonContent,
-    );
+    return AnimatedPressable(onTap: onPressed, child: buttonContent);
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/admin_provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/user_provider.dart';
 // ignore: unused_import
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -49,6 +52,50 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     super.dispose();
   }
 
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: GlassTheme.dialogDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text(
+          'Admin Log Out',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to log out of the Admin Console?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white60),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              await context.read<AuthProvider>().logout();
+              if (!context.mounted) return;
+              context.read<UserProvider>().clearUser();
+              context.go('/login');
+            },
+            child: const Text(
+              'Log Out',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +116,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             size: 18,
             color: GlassTheme.limeAccent,
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/home'),
         ),
         title: const Row(
           children: [
@@ -97,6 +145,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             ),
             tooltip: 'Refresh Data',
             onPressed: _loadAllData,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            tooltip: 'Log Out',
+            onPressed: () => _confirmLogout(context),
           ),
         ],
         bottom: TabBar(

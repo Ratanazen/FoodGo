@@ -4,10 +4,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/glass_theme.dart';
+import 'package:provider/provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../services/api_service.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/user_provider.dart';
 
 class RestaurantDashboardScreen extends StatefulWidget {
   const RestaurantDashboardScreen({super.key});
@@ -538,6 +541,50 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
     );
   }
 
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: GlassTheme.dialogDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text(
+          'Restaurant Log Out',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to log out of the Restaurant Portal?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white60),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              await context.read<AuthProvider>().logout();
+              if (!context.mounted) return;
+              context.read<UserProvider>().clearUser();
+              context.go('/login');
+            },
+            child: const Text(
+              'Log Out',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -546,12 +593,19 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
         title: 'Restaurant Portal',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/home'),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
             onPressed: _fetchDashboardData,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            tooltip: 'Log Out',
+            onPressed: () => _confirmLogout(context),
           ),
         ],
       ),

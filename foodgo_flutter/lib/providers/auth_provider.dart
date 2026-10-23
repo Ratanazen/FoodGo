@@ -46,6 +46,7 @@ class AuthProvider with ChangeNotifier {
     String? firstName,
     String? lastName,
     String? phone,
+    String? role,
   }) async {
     _lastAuthError = null;
     final result = await _apiService.register(
@@ -55,6 +56,7 @@ class AuthProvider with ChangeNotifier {
       firstName: firstName,
       lastName: lastName,
       phone: phone,
+      role: role,
     );
     if (result.isSuccess) {
       _isAuthenticated = true;

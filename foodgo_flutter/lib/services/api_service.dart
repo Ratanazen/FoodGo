@@ -159,6 +159,7 @@ class ApiService {
     String? firstName,
     String? lastName,
     String? phone,
+    String? role,
   }) async {
     try {
       final payload = <String, dynamic>{
@@ -174,6 +175,9 @@ class ApiService {
       }
       if (phone != null && phone.isNotEmpty) {
         payload['phone'] = phone;
+      }
+      if (role != null && role.isNotEmpty) {
+        payload['role'] = role;
       }
 
       final response = await _apiClient.dio.post('register/', data: payload);

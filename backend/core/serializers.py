@@ -342,10 +342,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(required=True)
     
+    role = serializers.CharField(required=False, default='customer')
+
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'first_name', 'last_name', 'phone', 'role']
-        read_only_fields = ['role']
+
+    def validate_role(self, value):
+        val = (value or 'customer').strip().lower()
+        if val not in ['customer', 'driver', 'restaurant_owner']:
+            return 'customer'
+        return val
 
     def validate_username(self, value):
         norm = value.strip()
@@ -369,17 +376,33 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return value
         
     def create(self, validated_data):
+        selected_role = validated_data.get('role', 'customer')
+        if selected_role not in ['customer', 'driver', 'restaurant_owner']:
+            selected_role = 'customer'
+            
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', '').lower(),
             password=validated_data['password'],
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
-            role='customer'
+            role=selected_role
         )
         if 'phone' in validated_data and validated_data['phone']:
             user.phone = validated_data['phone']
             user.save(update_fields=['phone'])
+            
+        if selected_role == 'driver':
+            from .models import Driver
+            Driver.objects.get_or_create(
+                user=user,
+                defaults={
+                    'vehicle_type': 'Motorcycle',
+                    'license_plate': 'PP-2026',
+                    'is_online': True,
+                    'is_approved': True,
+                }
+            )
         return user
 
 

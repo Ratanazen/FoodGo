@@ -40,6 +40,7 @@ class UserProvider with ChangeNotifier {
     String? lastName,
     String? email,
     String? phone,
+    String? role,
     String? avatarUrl,
     String? avatarFilePath,
   }) async {
@@ -62,6 +63,9 @@ class UserProvider with ChangeNotifier {
         if (phone != null) {
           formData.fields.add(MapEntry('phone', phone));
         }
+        if (role != null) {
+          formData.fields.add(MapEntry('role', role));
+        }
         if (avatarUrl != null) {
           formData.fields.add(MapEntry('avatar_url', avatarUrl));
         }
@@ -79,6 +83,7 @@ class UserProvider with ChangeNotifier {
         if (lastName != null) map['last_name'] = lastName;
         if (email != null) map['email'] = email;
         if (phone != null) map['phone'] = phone;
+        if (role != null) map['role'] = role;
         if (avatarUrl != null) map['avatar_url'] = avatarUrl;
         payload = map;
       }
@@ -92,6 +97,7 @@ class UserProvider with ChangeNotifier {
         if (lastName != null) updatedUser['last_name'] = lastName;
         if (email != null) updatedUser['email'] = email;
         if (phone != null) updatedUser['phone'] = phone;
+        if (role != null) updatedUser['role'] = role;
         if (avatarUrl != null) updatedUser['avatar_url'] = avatarUrl;
         _user = updatedUser;
       }
@@ -106,8 +112,33 @@ class UserProvider with ChangeNotifier {
       if (lastName != null) updatedUser['last_name'] = lastName;
       if (email != null) updatedUser['email'] = email;
       if (phone != null) updatedUser['phone'] = phone;
+      if (role != null) updatedUser['role'] = role;
       if (avatarUrl != null) updatedUser['avatar_url'] = avatarUrl;
       _user = updatedUser;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    }
+  }
+
+  Future<bool> updateRole(String newRole) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final updated = await _apiService.patch('me/', {'role': newRole});
+      if (updated is Map<String, dynamic>) {
+        _user = updated;
+      } else if (_user != null) {
+        _user!['role'] = newRole;
+      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error updating role: $e');
+      if (_user != null) {
+        _user!['role'] = newRole;
+      }
       _isLoading = false;
       notifyListeners();
       return true;

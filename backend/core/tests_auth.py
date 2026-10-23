@@ -171,3 +171,39 @@ class AuthenticationTests(APITestCase):
         self.client.logout()
         login_res = self.client.post(self.token_url, {'username': 'testcustomer', 'password': 'BrandNewPass123'}, format='json')
         self.assertEqual(login_res.status_code, status.HTTP_200_OK)
+
+    def test_register_with_driver_role_creates_driver_profile(self):
+        payload = {
+            'username': 'newdriveruser',
+            'email': 'newdriver@example.com',
+            'password': 'StrongPassword123!',
+            'first_name': 'New',
+            'last_name': 'Driver',
+            'role': 'driver',
+            'phone': '+85512999000'
+        }
+        res = self.client.post(self.register_url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['role'], 'driver')
+        new_user = User.objects.get(username='newdriveruser')
+        self.assertEqual(new_user.role, 'driver')
+        self.assertTrue(hasattr(new_user, 'driver_profile'))
+        self.assertEqual(new_user.driver_profile.vehicle_type, 'Motorcycle')
+
+    def test_update_role_to_driver_and_restaurant_owner(self):
+        self.client.force_authenticate(user=self.user)
+        # Update to driver
+        res1 = self.client.patch(self.me_url, {'role': 'driver'}, format='json')
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        self.assertEqual(res1.data['role'], 'driver')
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.role, 'driver')
+        self.assertTrue(hasattr(self.user, 'driver_profile'))
+
+        # Update to restaurant_owner
+        res2 = self.client.patch(self.me_url, {'role': 'restaurant_owner'}, format='json')
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+        self.assertEqual(res2.data['role'], 'restaurant_owner')
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.role, 'restaurant_owner')
+

@@ -267,14 +267,20 @@ class WebHeaderNavBar extends StatelessWidget {
                     _WebNavLink(
                       label: 'Explore',
                       icon: Icons.explore_rounded,
+                      isSelected: selectedIndex == 3,
+                      onTap: () => onDestinationSelected(3),
+                    ),
+                    _WebNavLink(
+                      label: 'Saved',
+                      icon: Icons.favorite_rounded,
                       isSelected: selectedIndex == 1,
                       onTap: () => onDestinationSelected(1),
                     ),
                     _WebNavLink(
                       label: 'Orders',
                       icon: Icons.receipt_long_rounded,
-                      isSelected: selectedIndex == 3,
-                      onTap: () => onDestinationSelected(3),
+                      isSelected: false,
+                      onTap: () => context.push('/orders'),
                     ),
                     if (role == 'driver')
                       _WebNavLink(

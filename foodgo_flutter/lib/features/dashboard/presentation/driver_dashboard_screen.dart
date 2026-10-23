@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import 'package:dio/dio.dart';
+import 'package:provider/provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -15,6 +16,8 @@ import '../../../services/api_service.dart';
 import '../../../widgets/delivery_qr_modal.dart';
 import '../../../widgets/delivery_scanner_modal.dart';
 import '../../../widgets/phone_verification_modal.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/user_provider.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   final bool initialLoading;
@@ -736,6 +739,50 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     );
   }
 
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: GlassTheme.dialogDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text(
+          'Driver Log Out',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to log out of the Driver Portal?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white60),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              await context.read<AuthProvider>().logout();
+              if (!context.mounted) return;
+              context.read<UserProvider>().clearUser();
+              context.go('/login');
+            },
+            child: const Text(
+              'Log Out',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -744,13 +791,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         title: 'Driver Portal',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/home'),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh Dashboard',
             onPressed: _fetchDashboardData,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            tooltip: 'Log Out',
+            onPressed: () => _confirmLogout(context),
           ),
         ],
       ),
@@ -2332,6 +2385,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           text: 'Edit Vehicle / Phone Info',
           icon: Icons.edit,
           onPressed: _showEditProfileDialog,
+        ),
+        const SizedBox(height: 14),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent.withValues(alpha: 0.15),
+            foregroundColor: Colors.redAccent,
+            side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.5)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          icon: const Icon(Icons.logout, size: 18),
+          label: const Text(
+            'Log Out from Driver Portal',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          onPressed: () => _confirmLogout(context),
         ),
       ],
     );

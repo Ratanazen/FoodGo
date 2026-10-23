@@ -616,39 +616,40 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ],
 
             const SizedBox(height: 14),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.25),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.25),
                     ),
-                    icon: const Icon(
-                      Icons.receipt_long,
-                      size: 16,
-                      color: GlassTheme.primaryGreen,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    label: const Text(
-                      'View Bill',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
                     ),
-                    onPressed: () => _showOrderBillDialog(order),
                   ),
+                  icon: const Icon(
+                    Icons.receipt_long,
+                    size: 16,
+                    color: GlassTheme.primaryGreen,
+                  ),
+                  label: const Text(
+                    'View Bill',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  onPressed: () => _showOrderBillDialog(order),
                 ),
                 if ((order['payment_status'] as String? ?? 'UNPAID') !=
                         'PAID' &&
                     status != 'cancelled') ...[
-                  const SizedBox(width: 8),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: GlassTheme.primaryGreen,
@@ -657,7 +658,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
+                        horizontal: 12,
                         vertical: 10,
                       ),
                     ),
@@ -677,7 +678,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     status == 'picked_up' ||
                     status == 'arrived') ...[
                   if (status == 'pending' || status == 'confirmed') ...[
-                    const SizedBox(width: 8),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.redAccent,
@@ -688,7 +688,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
+                          horizontal: 12,
                           vertical: 10,
                         ),
                       ),
@@ -702,7 +702,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(width: 8),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: GlassTheme.primaryGreen,
@@ -711,7 +710,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
+                        horizontal: 12,
                         vertical: 10,
                       ),
                     ),
@@ -730,18 +729,34 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       onDelivered: () => _fetchOrders(),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: GlassButton(
-                      text: 'Track',
-                      icon: Icons.map_outlined,
-                      onPressed: () => context.push('/map/${order['id']}'),
-                      color: Colors.transparent,
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.12),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
                     ),
+                    icon: const Icon(
+                      Icons.map_outlined,
+                      size: 16,
+                      color: GlassTheme.limeAccent,
+                    ),
+                    label: const Text(
+                      'Track Order',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () => context.push('/map/${order['id']}'),
                   ),
                 ] else ...[
                   if (status == 'delivered') ...[
-                    const SizedBox(width: 8),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.amber,
@@ -752,7 +767,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
+                          horizontal: 12,
                           vertical: 10,
                         ),
                       ),
@@ -771,33 +786,33 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       onPressed: () => _showRatingDialog(order),
                     ),
                   ],
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.limeAccent,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        elevation: 0,
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlassTheme.limeAccent,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      icon: const Icon(
-                        Icons.refresh,
-                        size: 16,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      elevation: 0,
+                    ),
+                    icon: const Icon(
+                      Icons.refresh,
+                      size: 16,
+                      color: Colors.black,
+                    ),
+                    label: const Text(
+                      'Order Again',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
                         color: Colors.black,
                       ),
-                      label: const Text(
-                        'Order Again',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                        ),
-                      ),
-                      onPressed: () => _reorderItems(order),
                     ),
+                    onPressed: () => _reorderItems(order),
                   ),
                 ],
               ],

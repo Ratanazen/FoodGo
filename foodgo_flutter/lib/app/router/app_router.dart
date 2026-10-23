@@ -253,11 +253,14 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/map',
-      pageBuilder: (context, state) => _buildPage(
-        state: state,
-        child: const MapScreen(orderId: ''),
-        type: PageTransitionType.slideRight,
-      ),
+      pageBuilder: (context, state) {
+        final queryId = state.uri.queryParameters['orderId'] ?? '';
+        return _buildPage(
+          state: state,
+          child: MapScreen(orderId: queryId),
+          type: PageTransitionType.slideRight,
+        );
+      },
     ),
     GoRoute(
       path: '/map/:id',

@@ -480,19 +480,20 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                     alignment: Alignment.center,
                     children: [
                       QrImageView(
-                        data:
-                            _qrPayload ??
-                            'FOODGO:HANDOVER:ORDER#${widget.orderId}',
+                        data: (_qrPayload != null &&
+                                _qrPayload!.trim().isNotEmpty)
+                            ? _qrPayload!.trim()
+                            : 'FOODGO:HANDOVER:ORDER#${widget.orderId}',
                         version: QrVersions.auto,
                         size: 200.0,
                         backgroundColor: Colors.white,
                         eyeStyle: const QrEyeStyle(
                           eyeShape: QrEyeShape.square,
-                          color: Color(0xFF1B5E20),
+                          color: GlassTheme.royalSmalt,
                         ),
                         dataModuleStyle: const QrDataModuleStyle(
                           dataModuleShape: QrDataModuleShape.square,
-                          color: Color(0xFF0E1511),
+                          color: GlassTheme.inkSmalt,
                         ),
                       ),
                       if (isExpired)

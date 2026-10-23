@@ -225,12 +225,19 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/qr-payment',
       pageBuilder: (context, state) {
-        final payment = state.extra is PaymentModel
-            ? state.extra as PaymentModel
-            : null;
-        final paymentId = int.tryParse(
-          state.uri.queryParameters['paymentId'] ?? '',
-        );
+        PaymentModel? payment;
+        if (state.extra is PaymentModel) {
+          payment = state.extra as PaymentModel;
+        } else if (state.extra is Map<String, dynamic>) {
+          try {
+            payment = PaymentModel.fromJson(
+              state.extra as Map<String, dynamic>,
+            );
+          } catch (_) {}
+        }
+        final paymentId = state.extra is int
+            ? state.extra as int
+            : int.tryParse(state.uri.queryParameters['paymentId'] ?? '');
         return _buildPage(
           state: state,
           child: QRPaymentScreen(payment: payment, paymentId: paymentId),

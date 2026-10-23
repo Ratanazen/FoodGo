@@ -67,9 +67,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
       final orderId = order['id'] is int
           ? order['id'] as int
           : int.parse(order['id'].toString());
+      final String provider = (order['payment'] is Map &&
+              order['payment']['provider'] != null &&
+              order['payment']['provider'].toString().isNotEmpty)
+          ? order['payment']['provider'].toString().toUpperCase()
+          : 'ABA';
       final payment = await paymentService.createPayment(
         orderId: orderId,
-        provider: 'ABA',
+        provider: provider == 'COD' || provider == 'WALLET' ? 'ABA' : provider,
         currency: 'USD',
       );
       if (mounted) {

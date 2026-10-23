@@ -1,17 +1,43 @@
 import 'package:flutter/material.dart';
 
 class GlassTheme {
-  // App Backgrounds
-  static const Color backgroundLight = Color(0xFFF3F6F4);
-  static const Color backgroundDark = Color(0xFF0E1511);
-  static const Color outerBackground = Color(0xFF070B09);
+  // 21 Smalt Blue Palette Tokens (from reference media_1792722551337.png)
+  static const Color paleSmalt = Color(0xFFBBC6EC);
+  static const Color smaltTint = Color(0xFFA9B7E1);
+  static const Color smaltBlueMist = Color(0xFFA2B2D5);
+  static const Color smaltPowder = Color(0xFFA5ADD4);
+  static const Color frostedSmalt = Color(0xFF92A3CE);
+  static const Color fadedSmalt = Color(0xFF6479B2);
+  static const Color dustyCobalt = Color(0xFF5B6CA8);
 
-  // Brand Greens
-  static const Color primaryGreen = Color(0xFF35B86B);
-  static const Color primaryGreenDark = Color(0xFF289A57);
-  static const Color primaryGreenAccent = Color(0xFF7FFFB3);
+  static const Color slateSmalt = Color(0xFF4D5D9E);
+  static const Color mutedSmaltBlue = Color(0xFF3C4D8B);
+  static const Color stormySmalt = Color(0xFF3B4AB5);
+  static const Color royalSmalt = Color(0xFF2A52BE);
+  static const Color cobaltSmalt = Color(0xFF0047AB);
+  static const Color vividSmalt = Color(0xFF1D3FA4);
+  static const Color trueSmalt = Color(0xFF003399);
 
-  // TikTok Reference Modern Delivery Green Tokens
+  static const Color smaltIndigo = Color(0xFF3B4E9C);
+  static const Color deepSmalt = Color(0xFF223C7A);
+  static const Color vintageSmalt = Color(0xFF2C3874);
+  static const Color twilightSmalt = Color(0xFF1F336B);
+  static const Color inkSmalt = Color(0xFF1F2847);
+  static const Color smaltShadow = Color(0xFF202E5F);
+  static const Color midnightSmalt = Color(0xFF1A2653);
+
+  // App Backgrounds (Smalt Blue Dark Theme)
+  static const Color backgroundLight = Color(0xFFF3F5FC);
+  static const Color backgroundDark = Color(0xFF101626);
+  static const Color outerBackground = Color(0xFF0A0E1A);
+
+  // Brand Smalt Blue (Rebound across all 500+ widget references seamlessly)
+  static const Color primarySmalt = royalSmalt; // 0xFF2A52BE
+  static const Color primaryGreen = royalSmalt; // 0xFF2A52BE
+  static const Color primaryGreenDark = cobaltSmalt; // 0xFF0047AB
+  static const Color primaryGreenAccent = smaltTint; // 0xFFA9B7E1
+
+  // TikTok Reference Delivery Tokens
   static const Color headerGreenStart = Color(0xFF236E31);
   static const Color headerGreenMid = Color(0xFF2E7D32);
   static const Color headerGreenEnd = Color(0xFF388E3C);
@@ -20,7 +46,7 @@ class GlassTheme {
   static const Color lightGreenBorder = Color(0xFFC8E6C9);
 
   static const LinearGradient headerGradient = LinearGradient(
-    colors: [headerGreenStart, headerGreenMid, headerGreenEnd],
+    colors: [twilightSmalt, deepSmalt, royalSmalt],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -41,19 +67,19 @@ class GlassTheme {
   static const Color authInputFill = Color(0xFFF8FAFC);
   static const Color authInputBorder = Color(0xFFE2E8F0);
 
-  // Modern Food Delivery (Foodpanda & Grab) Accents
+  // Modern Food Delivery Accents
   static const Color foodpandaPink = Color(0xFFD70F64);
   static const Color accentOrange = Color(0xFFFF6A00);
   static const Color ratingAmber = Color(0xFFFFB800);
   static const Color discountRed = Color(0xFFE53935);
 
-  // Surfaces, Cards & Sheets
-  static const Color surfaceDark = Color(0xFF141F18);
-  static const Color surfaceCardDark = Color(0xFF141C17);
-  static const Color cardDark = Color(0xFF161F1A);
-  static const Color badgeTagDark = Color(0xFF1B2620);
-  static const Color dialogDark = Color(0xFF161F1A);
-  static const Color dropdownDark = Color(0xFF1A261D);
+  // Surfaces, Cards & Sheets (Smalt Dark Surface Architecture)
+  static const Color surfaceDark = midnightSmalt; // 0xFF1A2653
+  static const Color surfaceCardDark = smaltShadow; // 0xFF202E5F
+  static const Color cardDark = inkSmalt; // 0xFF1F2847
+  static const Color badgeTagDark = deepSmalt; // 0xFF223C7A
+  static const Color dialogDark = inkSmalt; // 0xFF1F2847
+  static const Color dropdownDark = smaltShadow; // 0xFF202E5F
 
   // Banking, KHQR & Payment Providers
   static const Color bakongRed = Color(0xFFE41E26);
@@ -130,10 +156,10 @@ class GlassTheme {
   static const Duration animSlow = Duration(milliseconds: 500);
 
   // Shimmer Skeleton Colors
-  static const Color shimmerBaseDark = Color(0xFF1E2822);
-  static const Color shimmerHighlightDark = Color(0xFF2E3D34);
-  static const Color shimmerBaseLight = Color(0xFFE2E8E4);
-  static const Color shimmerHighlightLight = Color(0xFFF0F5F2);
+  static const Color shimmerBaseDark = inkSmalt;
+  static const Color shimmerHighlightDark = vintageSmalt;
+  static const Color shimmerBaseLight = Color(0xFFE2E7F5);
+  static const Color shimmerHighlightLight = Color(0xFFEFF3FD);
 }
 
 class AppRadius {

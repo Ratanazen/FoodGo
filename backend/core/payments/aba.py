@@ -47,7 +47,7 @@ class ABAKHQRProvider(PaymentProvider):
 
     def create_payment(self, order, amount, currency: str = "USD", **kwargs):
         merchant_ref = f"FG-ABA-{order.id}-{int(time.time())}"
-        expires_at = timezone.now() + timedelta(minutes=5)
+        expires_at = timezone.now() + timedelta(minutes=30)
         
         # Bakong / ABA Dynamic KHQR payload structure according to NBC KHQR standard
         qr_string, md5_hash = self.generate_khqr(merchant_ref=merchant_ref, amount=amount, currency=currency)

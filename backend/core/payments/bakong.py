@@ -53,7 +53,7 @@ class BakongKHQRProvider(PaymentProvider):
 
     def create_payment(self, order, amount, currency: str = "USD", **kwargs):
         merchant_ref = f"FG-BK-{order.id}-{int(time.time())}"
-        expires_at = timezone.now() + timedelta(minutes=5)
+        expires_at = timezone.now() + timedelta(minutes=30)
 
         qr_string, md5_hash = self.generate_khqr(
             merchant_ref=merchant_ref,

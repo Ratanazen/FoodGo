@@ -141,10 +141,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                       ),
                       Text(
                         '\$${price.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ],
@@ -232,7 +232,7 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                             Icons.remove_circle_outline,
                             size: 28,
                           ),
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -247,14 +247,14 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                         IconButton(
                           onPressed: () => setSheetState(() => qty++),
                           icon: const Icon(Icons.add_circle_outline, size: 28),
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.primaryGreen,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -598,8 +598,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                               color:
                                                   (restaurant['is_active'] !=
                                                               false
-                                                          ? GlassTheme
-                                                                .primaryGreen
+                                                          ? Theme.of(context)
+                                                                .colorScheme
+                                                                .primary
                                                           : Colors.redAccent)
                                                       .withValues(alpha: 0.2),
                                               borderRadius:
@@ -613,7 +614,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                 color:
                                                     restaurant['is_active'] !=
                                                         false
-                                                    ? GlassTheme.primaryGreen
+                                                    ? Theme.of(
+                                                        context,
+                                                      ).colorScheme.primary
                                                     : Colors.redAccent,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 10,
@@ -627,25 +630,29 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                               vertical: 3,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: GlassTheme.primaryGreen
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
                                                   .withValues(alpha: 0.2),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
                                             child: Row(
                                               children: [
-                                                const Icon(
+                                                Icon(
                                                   Icons.access_time,
                                                   size: 14,
-                                                  color:
-                                                      GlassTheme.primaryGreen,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   '$minTime-$maxTime min',
-                                                  style: const TextStyle(
-                                                    color:
-                                                        GlassTheme.primaryGreen,
+                                                  style: TextStyle(
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 12,
                                                   ),
@@ -661,9 +668,11 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                       ),
                                       Row(
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.moped,
-                                            color: GlassTheme.primaryGreen,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                             size: 18,
                                           ),
                                           const SizedBox(width: 6),
@@ -765,10 +774,12 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                   color: Colors.white,
                                 ),
                                 decoration: InputDecoration(
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.search,
                                     size: 18,
-                                    color: GlassTheme.primaryGreen,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                   hintText:
                                       'Search dishes in this restaurant...',
@@ -827,7 +838,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                             ),
                                             decoration: BoxDecoration(
                                               color: isSelected
-                                                  ? GlassTheme.primaryGreen
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary
                                                   : Colors.white.withValues(
                                                       alpha: 0.06,
                                                     ),
@@ -846,8 +859,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                               boxShadow: isSelected
                                                   ? [
                                                       BoxShadow(
-                                                        color: GlassTheme
-                                                            .primaryGreen
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .primary
                                                             .withValues(
                                                               alpha: 0.35,
                                                             ),
@@ -1028,9 +1042,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                             children: [
                                               Text(
                                                 '\$${price.toStringAsFixed(2)}',
-                                                style: const TextStyle(
-                                                  color:
-                                                      GlassTheme.primaryGreen,
+                                                style: TextStyle(
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
                                                   fontWeight: FontWeight.w900,
                                                   fontSize: 16,
                                                 ),
@@ -1087,14 +1102,15 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                               .withValues(
                                                                 alpha: 0.05,
                                                               ),
-                                                          child: const Center(
+                                                          child: Center(
                                                             child: SizedBox(
                                                               width: 18,
                                                               height: 18,
                                                               child: CircularProgressIndicator(
                                                                 strokeWidth: 2,
-                                                                color: GlassTheme
-                                                                    .primaryGreen,
+                                                                color: Theme.of(
+                                                                  context,
+                                                                ).colorScheme.primary,
                                                               ),
                                                             ),
                                                           ),
@@ -1231,8 +1247,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                         .floating,
                                                     action: SnackBarAction(
                                                       label: 'View Cart',
-                                                      textColor: GlassTheme
-                                                          .primaryGreen,
+                                                      textColor: Theme.of(
+                                                        context,
+                                                      ).colorScheme.primary,
                                                       onPressed: () =>
                                                           context.go('/cart'),
                                                     ),
@@ -1244,7 +1261,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                 height: 32,
                                                 decoration: BoxDecoration(
                                                   color: inCartQty > 0
-                                                      ? GlassTheme.primaryGreen
+                                                      ? Theme.of(
+                                                          context,
+                                                        ).colorScheme.primary
                                                       : Colors.white,
                                                   shape: BoxShape.circle,
                                                   border: Border.all(

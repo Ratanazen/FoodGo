@@ -73,7 +73,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
               Expanded(child: Text('$name added to cart!')),
             ],
           ),
-          backgroundColor: GlassTheme.primaryGreenDark,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
         ),
@@ -129,7 +129,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
     final String carbo = data['carbo']?.toString() ?? '23.7';
 
     return Scaffold(
-      backgroundColor: isDark ? GlassTheme.backgroundDark : Colors.white,
+      backgroundColor: isDark
+          ? GlassTheme.activePalette.backgroundDark
+          : Colors.white,
       body: Stack(
         children: [
           // ── Scrollable Body ──────────────────────────────────────────
@@ -254,8 +256,12 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                       fontSize: 22,
                                       fontWeight: FontWeight.w900,
                                       color: isDark
-                                          ? GlassTheme.limeAccent
-                                          : GlassTheme.royalSmalt,
+                                          ? GlassTheme
+                                                .activePalette
+                                                .primaryAccent
+                                          : Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                     ),
                                   ),
                                   Text(
@@ -373,8 +379,8 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: isDark
-                                ? GlassTheme.limeAccent
-                                : GlassTheme.royalSmalt,
+                                ? GlassTheme.activePalette.primaryAccent
+                                : Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),
@@ -418,10 +424,10 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               fontSize: 12,
                               color: isDark ? Colors.white38 : Colors.black38,
                             ),
-                            prefixIcon: const Icon(
+                            prefixIcon: Icon(
                               Icons.edit_note_rounded,
                               size: 22,
-                              color: GlassTheme.primaryGreen,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -549,7 +555,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               height: 54,
                               decoration: BoxDecoration(
                                 color: _addedToBagAnimation
-                                    ? GlassTheme.primaryGreen
+                                    ? Theme.of(context).colorScheme.primary
                                     : (isDark
                                           ? Colors.white10
                                           : const Color(0xFFF5F6F7)),
@@ -578,7 +584,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                           ),
                           const SizedBox(width: 14),
 
-                          // Large Lime-Green "Buy Now" Pill Button
+                          // Large Brand Pill Button
                           Expanded(
                             child: AnimatedPressable(
                               pressedScale: 0.96,
@@ -594,7 +600,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               child: Container(
                                 height: 54,
                                 decoration: BoxDecoration(
-                                  color: GlassTheme.limeAccentBright,
+                                  color: Theme.of(context).colorScheme.primary,
                                   borderRadius: BorderRadius.circular(28),
                                   border: Border.all(
                                     color: Colors.white.withValues(alpha: 0.4),
@@ -602,7 +608,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: GlassTheme.limeAccentBright
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary
                                           .withValues(alpha: 0.4),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
@@ -613,7 +621,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                   child: Text(
                                     'Buy Now',
                                     style: TextStyle(
-                                      color: Colors.black,
+                                      color: Colors.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 0.2,

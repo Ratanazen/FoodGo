@@ -163,6 +163,7 @@ class WebHeaderNavBar extends StatelessWidget {
             MediaQuery.of(context).platformBrightness == Brightness.dark);
     final user = userProvider.user;
     final role = user?['role']?.toString().toLowerCase();
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Container(
       height: 72,
@@ -199,12 +200,12 @@ class WebHeaderNavBar extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                        color: primaryColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.lunch_dining_rounded,
-                        color: GlassTheme.primaryGreen,
+                        color: primaryColor,
                         size: 24,
                       ),
                     ),
@@ -227,12 +228,12 @@ class WebHeaderNavBar extends StatelessWidget {
                                   letterSpacing: -0.5,
                                 ),
                               ),
-                              const TextSpan(
+                              TextSpan(
                                 text: 'Go',
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w900,
-                                  color: GlassTheme.primaryGreen,
+                                  color: primaryColor,
                                   letterSpacing: -0.5,
                                 ),
                               ),
@@ -317,10 +318,7 @@ class WebHeaderNavBar extends StatelessWidget {
 
                   // Map Shortcut
                   IconButton(
-                    icon: const Icon(
-                      Icons.map_outlined,
-                      color: GlassTheme.primaryGreen,
-                    ),
+                    icon: Icon(Icons.map_outlined, color: primaryColor),
                     tooltip: 'Live Delivery Map',
                     onPressed: () => context.push('/map'),
                   ),
@@ -340,14 +338,12 @@ class WebHeaderNavBar extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: selectedIndex == 2
-                                ? GlassTheme.primaryGreen.withValues(
-                                    alpha: 0.15,
-                                  )
+                                ? primaryColor.withValues(alpha: 0.15)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: selectedIndex == 2
-                                  ? GlassTheme.primaryGreen
+                                  ? primaryColor
                                   : (isDark
                                         ? Colors.white.withValues(alpha: 0.1)
                                         : Colors.black.withValues(alpha: 0.1)),
@@ -359,7 +355,7 @@ class WebHeaderNavBar extends StatelessWidget {
                                 Icons.shopping_cart_outlined,
                                 size: 20,
                                 color: selectedIndex == 2
-                                    ? GlassTheme.primaryGreen
+                                    ? primaryColor
                                     : (isDark
                                           ? Colors.white70
                                           : const Color(0xFF475569)),
@@ -371,7 +367,7 @@ class WebHeaderNavBar extends StatelessWidget {
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: selectedIndex == 2
-                                      ? GlassTheme.primaryGreen
+                                      ? primaryColor
                                       : (isDark
                                             ? Colors.white70
                                             : const Color(0xFF475569)),
@@ -391,7 +387,7 @@ class WebHeaderNavBar extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: GlassTheme.primaryGreen,
+                              color: primaryColor,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
@@ -434,14 +430,14 @@ class WebHeaderNavBar extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: selectedIndex == 4
-                            ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
+                            ? primaryColor.withValues(alpha: 0.2)
                             : (isDark
                                   ? Colors.white.withValues(alpha: 0.05)
                                   : Colors.black.withValues(alpha: 0.04)),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: selectedIndex == 4
-                              ? GlassTheme.primaryGreen
+                              ? primaryColor
                               : (isDark
                                     ? Colors.white.withValues(alpha: 0.1)
                                     : Colors.black.withValues(alpha: 0.08)),
@@ -451,7 +447,7 @@ class WebHeaderNavBar extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 14,
-                            backgroundColor: GlassTheme.primaryGreen,
+                            backgroundColor: primaryColor,
                             child: Text(
                               (user?['username'] != null &&
                                       user!['username'].toString().isNotEmpty)
@@ -471,7 +467,7 @@ class WebHeaderNavBar extends StatelessWidget {
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: selectedIndex == 4
-                                  ? GlassTheme.primaryGreen
+                                  ? primaryColor
                                   : (isDark
                                         ? Colors.white
                                         : GlassTheme.textDark),
@@ -509,7 +505,7 @@ class _WebNavLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeColor = highlightColor ?? GlassTheme.primaryGreen;
+    final activeColor = highlightColor ?? Theme.of(context).colorScheme.primary;
     final inactiveColor = isDark ? Colors.white70 : const Color(0xFF475569);
 
     return Padding(

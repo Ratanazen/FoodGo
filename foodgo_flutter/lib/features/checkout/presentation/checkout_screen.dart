@@ -1054,13 +1054,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ? 'Checking account balance...'
                     : 'Balance: \$${_walletBalance.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(_walletBalance)}) • 1-Tap Pay',
                 icon: Icons.account_balance_wallet,
-                iconColor: GlassTheme.primaryGreen,
+                iconColor: Theme.of(context).colorScheme.primary,
                 isSelected: _selectedProvider == 'WALLET',
                 badge: _walletBalance >= cart.grandTotal
                     ? 'INSTANT PAY'
                     : 'LOW BALANCE',
                 badgeColor: _walletBalance >= cart.grandTotal
-                    ? GlassTheme.primaryGreen
+                    ? Theme.of(context).colorScheme.primary
                     : Colors.white24,
                 onTap: () => setState(() => _selectedProvider = 'WALLET'),
               ),
@@ -1104,7 +1104,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 title: 'Cash on Delivery / COD (ទូទាត់ពេលដឹកដល់)',
                 subtitle: 'Pay cash in USD or Khmer Riel (៛) directly to rider',
                 svgAsset: 'delivery_bike',
-                iconColor: GlassTheme.primaryGreen,
+                iconColor: Theme.of(context).colorScheme.primary,
                 isSelected: _selectedProvider == 'COD',
                 onTap: () => setState(() => _selectedProvider = 'COD'),
               ),
@@ -1115,10 +1115,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Column(
@@ -1285,9 +1289,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   if (cart.discountAmount > 0)
                                     Text(
                                       'Saved \$${cart.discountAmount.toStringAsFixed(2)}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 11,
-                                        color: GlassTheme.primaryGreen,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -1298,10 +1304,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 children: [
                                   Text(
                                     '\$${total.toStringAsFixed(2)}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.w900,
-                                      color: GlassTheme.primaryGreen,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                     ),
                                   ),
                                   Text(
@@ -1331,9 +1339,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: GlassTheme.primaryGreen.withValues(
-                                    alpha: 0.35,
-                                  ),
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.35),
                                   blurRadius: 14,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1413,7 +1421,7 @@ class _PaymentOptionTile extends StatelessWidget {
         child: GlassCard(
           border: Border.all(
             color: isSelected
-                ? GlassTheme.primaryGreen
+                ? Theme.of(context).colorScheme.primary
                 : Colors.white.withValues(alpha: 0.14),
             width: isSelected ? 1.6 : 1.2,
           ),
@@ -1455,14 +1463,18 @@ class _PaymentOptionTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: (badgeColor ?? GlassTheme.primaryGreen)
-                                  .withValues(alpha: 0.2),
+                              color:
+                                  (badgeColor ??
+                                          Theme.of(context).colorScheme.primary)
+                                      .withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               badge!,
                               style: TextStyle(
-                                color: badgeColor ?? GlassTheme.primaryGreen,
+                                color:
+                                    badgeColor ??
+                                    Theme.of(context).colorScheme.primary,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1486,7 +1498,9 @@ class _PaymentOptionTile extends StatelessWidget {
                 isSelected
                     ? Icons.radio_button_checked
                     : Icons.radio_button_off,
-                color: isSelected ? GlassTheme.primaryGreen : Colors.white38,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.white38,
               ),
             ],
           ),

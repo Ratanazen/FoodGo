@@ -846,13 +846,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 // ── Tab Content ──
                 Expanded(
                   child: _isLoading
-                      ? const Center(
+                      ? Center(
                           child: CircularProgressIndicator(
-                            color: GlassTheme.primaryGreen,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         )
                       : RefreshIndicator(
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).colorScheme.primary,
                           backgroundColor: GlassTheme.backgroundDark,
                           onRefresh: _fetchDashboardData,
                           child: _buildSelectedTabContent(),
@@ -1022,12 +1022,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? GlassTheme.primaryGreen.withValues(alpha: 0.25)
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.25)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                   border: isSelected
                       ? Border.all(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.5),
                         )
                       : null,
                 ),
@@ -1038,7 +1042,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                       tabs[index]['icon'] as IconData,
                       size: 16,
                       color: isSelected
-                          ? GlassTheme.primaryGreen
+                          ? Theme.of(context).colorScheme.primary
                           : Colors.white60,
                     ),
                     const SizedBox(height: 2),

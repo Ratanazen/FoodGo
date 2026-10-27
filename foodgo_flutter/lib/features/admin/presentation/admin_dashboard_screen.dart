@@ -159,9 +159,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           dividerColor: Colors.transparent,
           splashBorderRadius: BorderRadius.circular(12),
           indicatorSize: TabBarIndicatorSize.tab,
-          indicatorColor: GlassTheme.limeAccent,
+          indicatorColor: Theme.of(context).colorScheme.primary,
           indicatorWeight: 3,
-          labelColor: GlassTheme.limeAccent,
+          labelColor: Theme.of(context).colorScheme.primary,
           unselectedLabelColor: GlassTheme.textMuted,
           tabs: const [
             Tab(icon: Icon(Icons.analytics_outlined), text: 'Overview'),
@@ -1225,7 +1225,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     Color statusColor;
     switch (status) {
       case 'PAID':
-        statusColor = GlassTheme.primaryGreen;
+        statusColor = Theme.of(context).colorScheme.primary;
         break;
       case 'PENDING':
         statusColor = Colors.orangeAccent;
@@ -1472,7 +1472,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                           : 'Failed to process refund: ${admin.errorMessage}',
                     ),
                     backgroundColor: success
-                        ? GlassTheme.primaryGreen
+                        ? Theme.of(context).colorScheme.primary
                         : Colors.redAccent,
                   ),
                 );

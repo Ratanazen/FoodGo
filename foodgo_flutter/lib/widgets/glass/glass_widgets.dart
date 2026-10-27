@@ -5,6 +5,7 @@ export 'glass_modals.dart';
 export 'glass_states.dart';
 export 'liquid_glass_background.dart';
 export 'animated_pressable.dart';
+export '../../core/theme/context_theme_extensions.dart';
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 import 'animated_pressable.dart';
@@ -173,7 +174,7 @@ class GlassButton extends StatelessWidget {
             ];
         break;
       case GlassButtonVariant.primary:
-        baseColor = color ?? GlassTheme.royalSmalt;
+        baseColor = color ?? Theme.of(context).colorScheme.primary;
         defaultTextColor = textColor ?? Colors.white;
         defaultBorder =
             border ??

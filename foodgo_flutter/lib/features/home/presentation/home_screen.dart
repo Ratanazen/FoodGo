@@ -211,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        backgroundColor: GlassTheme.primaryGreen,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
@@ -231,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Stack(
             children: [
               RefreshIndicator(
-                color: GlassTheme.primaryGreen,
+                color: Theme.of(context).colorScheme.primary,
                 onRefresh: () =>
                     context.read<RestaurantProvider>().fetchRestaurants(),
                 child: CustomScrollView(
@@ -696,15 +696,18 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       height: 152,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [GlassTheme.deepSmalt, GlassTheme.royalSmalt],
+        gradient: LinearGradient(
+          colors: [
+            GlassTheme.activePalette.primaryDark,
+            Theme.of(context).colorScheme.primary,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: GlassTheme.deepSmalt.withValues(alpha: 0.35),
+            color: GlassTheme.activePalette.primaryDark.withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -911,12 +914,12 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? GlassTheme.royalSmalt
+                    ? Theme.of(context).colorScheme.primary
                     : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: isSelected
-                      ? GlassTheme.royalSmalt
+                      ? Theme.of(context).colorScheme.primary
                       : (isDark
                             ? Colors.white.withValues(alpha: 0.12)
                             : const Color(0xFFE5E7EB)),
@@ -925,7 +928,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 boxShadow: [
                   BoxShadow(
                     color: isSelected
-                        ? GlassTheme.royalSmalt.withValues(alpha: 0.35)
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.35)
                         : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                     blurRadius: isSelected ? 10 : 8,
                     offset: const Offset(0, 3),
@@ -1232,7 +1237,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                                backgroundColor: GlassTheme.royalSmalt,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
                                 behavior: SnackBarBehavior.floating,
                                 duration: const Duration(seconds: 2),
                                 action: SnackBarAction(
@@ -1377,7 +1384,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: GlassTheme.royalSmalt,
+                                color: Theme.of(context).colorScheme.primary,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: Colors.white.withValues(alpha: 0.28),
@@ -1385,9 +1392,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: GlassTheme.royalSmalt.withValues(
-                                      alpha: 0.4,
-                                    ),
+                                    color: Theme.of(context).colorScheme.primary
+                                        .withValues(alpha: 0.4),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -1488,7 +1494,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: GlassTheme.primaryGreen,
+                              color: Theme.of(context).colorScheme.primary,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -1588,7 +1594,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label: Text(sort),
               selected: isSelected,
               onSelected: (_) => setState(() => _selectedSort = sort),
-              selectedColor: GlassTheme.primaryGreen,
+              selectedColor: Theme.of(context).colorScheme.primary,
               backgroundColor: isDark
                   ? Colors.white.withValues(alpha: 0.08)
                   : Colors.white,
@@ -1734,13 +1740,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         });
                         provider.fetchRestaurants();
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.refresh,
-                        color: GlassTheme.primaryGreen,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      label: const Text(
+                      label: Text(
                         'Reset Filter',
-                        style: TextStyle(color: GlassTheme.primaryGreen),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ),
                   ],
@@ -1860,7 +1868,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: GlassTheme.primaryGreen,
+                      color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.25),
@@ -1978,7 +1986,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: fee == 0.0
-                          ? GlassTheme.primaryGreen
+                          ? Theme.of(context).colorScheme.primary
                           : GlassTheme.textMuted,
                     ),
                     maxLines: 1,
@@ -2025,7 +2033,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       letter = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'F';
       bg = Colors.white;
-      fg = GlassTheme.primaryGreen;
+      fg = Theme.of(context).colorScheme.primary;
     }
 
     return Container(
@@ -2085,7 +2093,7 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isDark
-                  ? GlassTheme.primaryGreen.withValues(alpha: 0.5)
+                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
                   : const Color(0xFFE0E0E0),
               width: 1.2,
             ),
@@ -2122,7 +2130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 12,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen,
+                        color: Theme.of(context).colorScheme.primary,
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
@@ -2177,7 +2185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         color: isDark
                             ? GlassTheme.paleSmalt
-                            : GlassTheme.royalSmalt,
+                            : Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w900,
                         fontSize: 16,
                         height: 1.1,
@@ -2188,7 +2196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         color: isDark
                             ? GlassTheme.paleSmalt
-                            : GlassTheme.royalSmalt,
+                            : Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
                         fontSize: 11,
                         height: 1.0,
@@ -2226,20 +2234,20 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Text(
                   'See All',
                   style: TextStyle(
-                    color: GlassTheme.primaryGreen,
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
                 ),
-                SizedBox(width: 4),
+                const SizedBox(width: 4),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 11,
-                  color: GlassTheme.primaryGreen,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),

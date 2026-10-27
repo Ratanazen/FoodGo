@@ -242,7 +242,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'on_delivery':
         return Colors.purple;
       case 'delivered':
-        return GlassTheme.primaryGreen;
+        return Theme.of(context).colorScheme.primary;
       case 'failed_delivery':
       case 'cancelled':
         return Colors.red;
@@ -676,8 +676,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     child: IgnorePointer(
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: GlassTheme.primaryGreen,
-                          foregroundColor: Colors.black,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          foregroundColor: Colors.white,
                           side: BorderSide(
                             color: Colors.white.withValues(alpha: 0.4),
                             width: 1.2,
@@ -750,9 +752,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     child: IgnorePointer(
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: GlassTheme.primaryGreen,
-                          side: const BorderSide(
-                            color: GlassTheme.primaryGreen,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
                             width: 1.2,
                           ),
                           shape: RoundedRectangleBorder(

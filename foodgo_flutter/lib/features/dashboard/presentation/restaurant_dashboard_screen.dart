@@ -721,12 +721,12 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                           child: TabBar(
                             controller: _tabController,
                             indicator: BoxDecoration(
-                              color: GlassTheme.primaryGreen.withValues(
-                                alpha: 0.3,
-                              ),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: GlassTheme.primaryGreen,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                             labelColor: Colors.white,

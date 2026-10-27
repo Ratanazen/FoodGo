@@ -430,7 +430,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isDone
-                            ? GlassTheme.primaryGreen
+                            ? Theme.of(context).colorScheme.primary
                             : (isDark
                                   ? Colors.white.withValues(alpha: 0.2)
                                   : Colors.black.withValues(alpha: 0.12)),
@@ -448,7 +448,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                         width: 2,
                         height: 30,
                         color: index < currentStep
-                            ? GlassTheme.primaryGreen
+                            ? Theme.of(context).colorScheme.primary
                             : (isDark
                                   ? Colors.white.withValues(alpha: 0.15)
                                   : Colors.black.withValues(alpha: 0.1)),
@@ -568,8 +568,8 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
     String label = status.replaceAll('_', ' ').toUpperCase();
 
     if (status == 'delivered') {
-      bg = GlassTheme.primaryGreen.withValues(alpha: 0.2);
-      fg = GlassTheme.primaryGreen;
+      bg = Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+      fg = Theme.of(context).colorScheme.primary;
     } else if (status == 'on_the_way' || status == 'picked_up') {
       bg = Colors.blue.withValues(alpha: 0.2);
       fg = Colors.lightBlueAccent;

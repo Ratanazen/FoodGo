@@ -41,7 +41,7 @@ class _CartScreenState extends State<CartScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Voucher "$code" applied successfully!'),
-          backgroundColor: GlassTheme.primaryGreen,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -72,14 +72,18 @@ class _CartScreenState extends State<CartScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isFree
-            ? GlassTheme.primaryGreen.withValues(alpha: isDark ? 0.15 : 0.08)
+            ? Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.08)
             : (isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : Colors.black.withValues(alpha: 0.03)),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isFree
-              ? GlassTheme.primaryGreen.withValues(alpha: isDark ? 0.4 : 0.3)
+              ? Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: isDark ? 0.4 : 0.3)
               : (isDark
                     ? Colors.white.withValues(alpha: 0.1)
                     : Colors.black.withValues(alpha: 0.08)),
@@ -93,7 +97,7 @@ class _CartScreenState extends State<CartScreen> {
               Icon(
                 isFree ? Icons.check_circle : Icons.delivery_dining,
                 color: isFree
-                    ? GlassTheme.primaryGreen
+                    ? Theme.of(context).colorScheme.primary
                     : (isDark ? Colors.amberAccent : Colors.amber.shade800),
                 size: 20,
               ),
@@ -107,7 +111,7 @@ class _CartScreenState extends State<CartScreen> {
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: isFree
-                        ? GlassTheme.primaryGreen
+                        ? Theme.of(context).colorScheme.primary
                         : (isDark ? Colors.white : GlassTheme.textDark),
                   ),
                 ),
@@ -124,7 +128,7 @@ class _CartScreenState extends State<CartScreen> {
                   : Colors.black.withValues(alpha: 0.08),
               valueColor: AlwaysStoppedAnimation<Color>(
                 isFree
-                    ? GlassTheme.primaryGreen
+                    ? Theme.of(context).colorScheme.primary
                     : (isDark ? Colors.amberAccent : Colors.amber.shade700),
               ),
               minHeight: 6,
@@ -213,10 +217,10 @@ class _CartScreenState extends State<CartScreen> {
                       : null,
                 ),
                 child: item.image == null || item.image!.isEmpty
-                    ? const Icon(
+                    ? Icon(
                         Icons.fastfood,
                         size: 36,
-                        color: GlassTheme.primaryGreen,
+                        color: Theme.of(context).colorScheme.primary,
                       )
                     : null,
               ),
@@ -243,8 +247,8 @@ class _CartScreenState extends State<CartScreen> {
                           '\$${item.price.toStringAsFixed(2)}',
                           style: TextStyle(
                             color: isDark
-                                ? GlassTheme.limeAccentBright
-                                : GlassTheme.primaryGreen,
+                                ? GlassTheme.activePalette.primaryAccent
+                                : Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.w900,
                             fontSize: 15,
                           ),
@@ -475,16 +479,16 @@ class _CartScreenState extends State<CartScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.check_circle,
-                              color: GlassTheme.primaryGreen,
+                              color: Theme.of(context).colorScheme.primary,
                               size: 18,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               'Code "$promoCode" Applied',
-                              style: const TextStyle(
-                                color: GlassTheme.primaryGreen,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
@@ -509,9 +513,9 @@ class _CartScreenState extends State<CartScreen> {
                   ] else ...[
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.local_offer_outlined,
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).colorScheme.primary,
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -547,21 +551,21 @@ class _CartScreenState extends State<CartScreen> {
                               vertical: 7,
                             ),
                             decoration: BoxDecoration(
-                              color: GlassTheme.primaryGreen.withValues(
-                                alpha: 0.25,
-                              ),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: GlassTheme.primaryGreen.withValues(
-                                  alpha: 0.5,
-                                ),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.5),
                                 width: 1.0,
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Apply',
                               style: TextStyle(
-                                color: GlassTheme.primaryGreen,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -628,7 +632,7 @@ class _CartScreenState extends State<CartScreen> {
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: cart.deliveryFee <= 0
-                        ? GlassTheme.primaryGreen
+                        ? Theme.of(context).colorScheme.primary
                         : null,
                   ),
                 ),
@@ -641,17 +645,17 @@ class _CartScreenState extends State<CartScreen> {
                 children: [
                   Text(
                     'Discount ($promoCode)',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
-                      color: GlassTheme.primaryGreen,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   Text(
                     '-\$${cart.discountAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: GlassTheme.primaryGreen,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ],
@@ -680,8 +684,8 @@ class _CartScreenState extends State<CartScreen> {
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
                         color: isDark
-                            ? GlassTheme.limeAccentBright
-                            : GlassTheme.primaryGreen,
+                            ? GlassTheme.activePalette.primaryAccent
+                            : Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     Text(
@@ -709,7 +713,7 @@ class _CartScreenState extends State<CartScreen> {
                 width: double.infinity,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: GlassTheme.limeAccent,
+                  color: Theme.of(context).colorScheme.primary,
                   borderRadius: BorderRadius.circular(26),
                   border: Border.all(
                     color: Colors.white.withValues(alpha: 0.4),
@@ -717,7 +721,9 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: GlassTheme.limeAccent.withValues(alpha: 0.4),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.4),
                       blurRadius: 14,
                       offset: const Offset(0, 4),
                     ),
@@ -734,14 +740,14 @@ class _CartScreenState extends State<CartScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                     SizedBox(width: 8),
                     Icon(
                       Icons.arrow_forward_rounded,
-                      color: Colors.black,
+                      color: Colors.white,
                       size: 20,
                     ),
                   ],

@@ -54,6 +54,8 @@ def get_mongo_client():
             uri,
             serverSelectionTimeoutMS=5000,
             connectTimeoutMS=5000,
+            socketTimeoutMS=int(os.environ.get('MONGO_SOCKET_TIMEOUT_MS', '10000')),
+            maxPoolSize=int(os.environ.get('MONGO_MAX_POOL_SIZE', '10')),
             retryWrites=True,
             w='majority'
         )
@@ -107,12 +109,12 @@ def get_mongo_stats() -> Dict[str, Any]:
             'available': True,
             'database': get_mongo_db_name(),
             'counts': {
-                'orders': db.orders.count_documents({}) if 'orders' in colls else 0,
-                'delivery_tokens': db.delivery_tokens.count_documents({}) if 'delivery_tokens' in colls else 0,
-                'delivery_events': db.delivery_events.count_documents({}) if 'delivery_events' in colls else 0,
-                'restaurants': db.restaurants.count_documents({}) if 'restaurants' in colls else 0,
-                'food_items': db.food_items.count_documents({}) if 'food_items' in colls else 0,
-                'media_files': db['fs.files'].count_documents({}) if 'fs.files' in colls else 0,
+                'orders': db.orders.estimated_document_count() if 'orders' in colls else 0,
+                'delivery_tokens': db.delivery_tokens.estimated_document_count() if 'delivery_tokens' in colls else 0,
+                'delivery_events': db.delivery_events.estimated_document_count() if 'delivery_events' in colls else 0,
+                'restaurants': db.restaurants.estimated_document_count() if 'restaurants' in colls else 0,
+                'food_items': db.food_items.estimated_document_count() if 'food_items' in colls else 0,
+                'media_files': db['fs.files'].estimated_document_count() if 'fs.files' in colls else 0,
             }
         }
         return stats

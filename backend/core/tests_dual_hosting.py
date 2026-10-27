@@ -375,7 +375,16 @@ class DualBackendHostingTests(TestCase):
         b64_str = base64.b64encode(test_png_bytes).decode('utf-8')
 
         from core.mongodb import get_mongo_client
-        if get_mongo_client() is None:
+        _client = get_mongo_client()
+        _is_live = False
+        if _client is not None:
+            try:
+                _client.admin.command('ping')
+                _is_live = True
+            except Exception:
+                _is_live = False
+
+        if not _is_live:
             from unittest.mock import patch
             mock_files = {}
 

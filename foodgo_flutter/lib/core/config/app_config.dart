@@ -27,7 +27,7 @@ class AppConfig {
         return 'http://$host:8000/api/';
       }
     }
-    return '$cloudflareEdgeUrl/api/';
+    return '$defaultLiveUrl/api/';
   }
 
   /// WebSocket URL for live driver & order delivery tracking (Render ASGI container)
@@ -80,6 +80,7 @@ class AppConfig {
         _customApiUrl.contains('food-go-backend.vercel.app') ||
         _customApiUrl.contains('foodgo-backend-a.vercel.app') ||
         _customApiUrl.contains('foodgo-backend-b.vercel.app') ||
+        _customApiUrl.contains('workers.dev') ||
         _customApiUrl.contains('api.foodgo.app')) {
       _customApiUrl = '';
       await prefs.remove('custom_api_url');

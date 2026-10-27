@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/theme/glass_theme.dart';
+import '../../../core/utils/khmer_currency.dart';
+import '../../../widgets/glass/animated_pressable.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../providers/favorites_provider.dart';
 
@@ -224,17 +226,49 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Dish Title
-                      Text(
-                            name,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF1B1B1B),
-                              letterSpacing: -0.5,
-                            ),
+                      // Dish Title & Price Header
+                      Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1B1B1B),
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '\$${price.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      color: isDark
+                                          ? GlassTheme.limeAccent
+                                          : GlassTheme.royalSmalt,
+                                    ),
+                                  ),
+                                  Text(
+                                    KhmerCurrency.formatKhr(price),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: GlassTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           )
                           .animate()
                           .fadeIn(duration: 400.ms, delay: 150.ms)
@@ -275,8 +309,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isDark
-                                    ? Colors.white12
+                                    ? Colors.white.withValues(alpha: 0.18)
                                     : const Color(0xFFEDEDED),
+                                width: 1.2,
                               ),
                             ),
                             child: Row(
@@ -323,9 +358,10 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               : const Color(0xFF757575),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
 
-                      GestureDetector(
+                      AnimatedPressable(
+                        pressedScale: 0.94,
                         onTap: () {
                           setState(() {
                             _isDescriptionExpanded = !_isDescriptionExpanded;
@@ -336,7 +372,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black,
+                            color: isDark
+                                ? GlassTheme.limeAccent
+                                : GlassTheme.royalSmalt,
                           ),
                         ),
                       ),
@@ -412,29 +450,16 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Back Button
-                InkWell(
-                  onTap: () => context.pop(),
-                  borderRadius: BorderRadius.circular(22),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.chevron_left,
-                      color: isDark ? Colors.white : Colors.black87,
-                      size: 26,
-                    ),
-                  ),
+                AnimatedIconButton(
+                  icon: Icons.chevron_left,
+                  iconSize: 26,
+                  size: 44,
+                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  borderColor: isDark
+                      ? Colors.white.withValues(alpha: 0.22)
+                      : Colors.black.withValues(alpha: 0.1),
+                  iconColor: isDark ? Colors.white : Colors.black87,
+                  onPressed: () => context.pop(),
                 ),
 
                 // Center Title
@@ -451,33 +476,22 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                 Consumer<FavoritesProvider>(
                   builder: (context, favs, child) {
                     final isFav = favs.isFoodFavorite(itemId);
-                    return InkWell(
-                      onTap: () => favs.toggleFoodItem(data),
-                      borderRadius: BorderRadius.circular(22),
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? GlassTheme.surfaceCardDark
-                              : Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          isFav ? Icons.favorite : Icons.gps_fixed,
-                          color: isFav
-                              ? const Color(0xFFE53935)
-                              : (isDark ? Colors.white70 : Colors.black87),
-                          size: 20,
-                        ),
-                      ),
+                    return AnimatedIconButton(
+                      icon: isFav ? Icons.favorite : Icons.gps_fixed,
+                      iconSize: 20,
+                      size: 44,
+                      color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                      borderColor: isDark
+                          ? (isFav
+                                ? const Color(0xFFE53935).withValues(alpha: 0.4)
+                                : Colors.white.withValues(alpha: 0.22))
+                          : (isFav
+                                ? const Color(0xFFE53935).withValues(alpha: 0.3)
+                                : Colors.black.withValues(alpha: 0.1)),
+                      iconColor: isFav
+                          ? const Color(0xFFE53935)
+                          : (isDark ? Colors.white70 : Colors.black87),
+                      onPressed: () => favs.toggleFoodItem(data),
                     );
                   },
                 ),
@@ -500,6 +514,14 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: isDark ? GlassTheme.surfaceDark : Colors.white,
+                        border: Border(
+                          top: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.15)
+                                : const Color(0xFFE2E4E6),
+                            width: 1.2,
+                          ),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.08),
@@ -511,7 +533,8 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       child: Row(
                         children: [
                           // Shopping Bag Icon Button with Animated Feedback
-                          InkWell(
+                          AnimatedPressable(
+                            pressedScale: 0.90,
                             onTap: () => _onAddToCart(
                               context,
                               itemId,
@@ -520,7 +543,6 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               imageUrl,
                               data,
                             ),
-                            borderRadius: BorderRadius.circular(16),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 250),
                               width: 54,
@@ -534,10 +556,13 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: _addedToBagAnimation
-                                      ? GlassTheme.primaryGreen
+                                      ? Colors.white.withValues(alpha: 0.4)
                                       : (isDark
-                                            ? Colors.white12
+                                            ? Colors.white.withValues(
+                                                alpha: 0.18,
+                                              )
                                             : const Color(0xFFE2E4E6)),
+                                  width: 1.2,
                                 ),
                               ),
                               child: Icon(
@@ -555,7 +580,8 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
 
                           // Large Lime-Green "Buy Now" Pill Button
                           Expanded(
-                            child: InkWell(
+                            child: AnimatedPressable(
+                              pressedScale: 0.96,
                               onTap: () => _onAddToCart(
                                 context,
                                 itemId,
@@ -565,12 +591,15 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                 data,
                                 buyNow: true,
                               ),
-                              borderRadius: BorderRadius.circular(28),
                               child: Container(
                                 height: 54,
                                 decoration: BoxDecoration(
                                   color: GlassTheme.limeAccentBright,
                                   borderRadius: BorderRadius.circular(28),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.4),
+                                    width: 1.5,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
                                       color: GlassTheme.limeAccentBright

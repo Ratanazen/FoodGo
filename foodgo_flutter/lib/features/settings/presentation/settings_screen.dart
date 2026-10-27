@@ -885,6 +885,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       _Divider(),
                       _SettingsTile(
+                        icon: Icons.cloud_done_outlined,
+                        iconColor: Colors.blueAccent,
+                        title: 'Backend API Host',
+                        subtitle:
+                            'https://food-go-app.vercel.app (Vercel Production)',
+                        trailing: const Icon(
+                          Icons.check_circle,
+                          color: GlassTheme.primaryGreen,
+                          size: 18,
+                        ),
+                      ),
+                      _Divider(),
+                      _SettingsTile(
                         icon: Icons.star_outline,
                         iconColor: Colors.amber,
                         title: 'Rate Us',

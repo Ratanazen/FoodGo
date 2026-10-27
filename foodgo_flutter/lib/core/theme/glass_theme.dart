@@ -228,3 +228,57 @@ class AppRadius {
   static const double large = 26.0;
   static const double pill = 999.0;
 }
+
+class AppSpacing {
+  static const double xxs = 2.0;
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 16.0;
+  static const double lg = 24.0;
+  static const double xl = 32.0;
+  static const double xxl = 48.0;
+
+  static const EdgeInsets edgeInsetsXs = EdgeInsets.all(xs);
+  static const EdgeInsets edgeInsetsSm = EdgeInsets.all(sm);
+  static const EdgeInsets edgeInsetsMd = EdgeInsets.all(md);
+  static const EdgeInsets edgeInsetsLg = EdgeInsets.all(lg);
+  static const EdgeInsets edgeInsetsXl = EdgeInsets.all(xl);
+
+  static const EdgeInsets screenPadding = EdgeInsets.symmetric(
+    horizontal: md,
+    vertical: sm,
+  );
+  static const EdgeInsets cardPadding = EdgeInsets.all(md);
+  static const EdgeInsets modalPadding = EdgeInsets.all(lg);
+}
+
+class AppShadows {
+  static List<BoxShadow> card(bool isDark) => [
+    BoxShadow(
+      color: isDark
+          ? Colors.black.withValues(alpha: 0.35)
+          : const Color(0xFF1E2847).withValues(alpha: 0.08),
+      blurRadius: 16,
+      offset: const Offset(0, 4),
+    ),
+  ];
+
+  static List<BoxShadow> floating(bool isDark) => [
+    BoxShadow(
+      color: isDark
+          ? Colors.black.withValues(alpha: 0.45)
+          : const Color(0xFF1E2847).withValues(alpha: 0.14),
+      blurRadius: 24,
+      spreadRadius: 1,
+      offset: const Offset(0, 8),
+    ),
+  ];
+
+  static List<BoxShadow> button(Color baseColor) => [
+    BoxShadow(
+      color: baseColor.withValues(alpha: 0.30),
+      blurRadius: 12,
+      offset: const Offset(0, 4),
+    ),
+  ];
+}

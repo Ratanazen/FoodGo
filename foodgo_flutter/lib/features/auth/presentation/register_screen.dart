@@ -7,6 +7,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../services/google_auth_service.dart';
+import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -490,35 +491,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     // Primary Button: Create Account
                     SizedBox(
                       height: 50,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _register,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: GlassTheme.authBlue,
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                      child: AnimatedPressable(
+                        pressedScale: 0.96,
+                        onTap: _isLoading ? null : _register,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _register,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlassTheme.authBlue,
+                            foregroundColor: Colors.white,
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.35),
+                              width: 1.2,
+                            ),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            shadowColor: GlassTheme.authBlue.withValues(
+                              alpha: 0.4,
+                            ),
                           ),
-                          shadowColor: GlassTheme.authBlue.withValues(
-                            alpha: 0.4,
-                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Create Account',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.2,
-                                ),
-                              )
-                            : const Text(
-                                'Create Account',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
                       ),
                     ).animate().fade(delay: 450.ms).scale(),
 
@@ -527,53 +536,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     // Google Sign Up Option
                     SizedBox(
                       height: 44,
-                      child: OutlinedButton(
-                        onPressed: _isLoading ? null : _loginWithGoogle,
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: isDark
-                              ? const Color(0xFF1E293B)
-                              : Colors.white,
-                          side: BorderSide(
-                            color: isDark
-                                ? Colors.white12
-                                : const Color(0xFFE2E8F0),
+                      child: AnimatedPressable(
+                        pressedScale: 0.95,
+                        onTap: _isLoading ? null : _loginWithGoogle,
+                        child: OutlinedButton(
+                          onPressed: _isLoading ? null : _loginWithGoogle,
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: isDark
+                                ? const Color(0xFF1E293B)
+                                : Colors.white,
+                            side: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.16)
+                                  : const Color(0xFFCBD5E1),
+                              width: 1.2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 20,
-                              height: 20,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'G',
-                                style: TextStyle(
-                                  color: Color(0xFF4285F4),
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 14,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'G',
+                                  style: TextStyle(
+                                    color: Color(0xFF4285F4),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Sign up with Google',
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF1E293B),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                              const SizedBox(width: 8),
+                              Text(
+                                'Sign up with Google',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1E293B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ).animate().fade(delay: 500.ms),
@@ -593,14 +607,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             fontSize: 13,
                           ),
                         ),
-                        InkWell(
+                        AnimatedPressable(
+                          pressedScale: 0.94,
                           onTap: () => context.go('/login'),
-                          child: const Text(
-                            'Sign in',
-                            style: TextStyle(
-                              color: GlassTheme.authBlue,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            child: Text(
+                              'Sign in',
+                              style: TextStyle(
+                                color: GlassTheme.authBlue,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),

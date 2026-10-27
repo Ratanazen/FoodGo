@@ -7,10 +7,10 @@
       <stop offset="100%" stop-color="#070E0A" />
     </linearGradient>
 
-    <!-- Emerald Glow Radial -->
+    <!-- Smalt Blue Glow Radial -->
     <radialGradient id="emerald_glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#35B86B" stop-opacity="0.32" />
-      <stop offset="65%" stop-color="#289A57" stop-opacity="0.08" />
+      <stop offset="0%" stop-color="#2A52BE" stop-opacity="0.32" />
+      <stop offset="65%" stop-color="#1D3FA4" stop-opacity="0.08" />
       <stop offset="100%" stop-color="#000000" stop-opacity="0" />
     </radialGradient>
 
@@ -70,8 +70,8 @@
     </filter>
   </defs>
 
-  <!-- 1. Dark Emerald Squircle Base -->
-  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#icon_bg_grad)" stroke="#35B86B" stroke-width="6" stroke-opacity="0.4" />
+  <!-- 1. Dark Smalt Squircle Base -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#icon_bg_grad)" stroke="#2A52BE" stroke-width="6" stroke-opacity="0.4" />
 
   <!-- 2. Ambient Radiant Aura -->
   <circle cx="256" cy="256" r="210" fill="url(#emerald_glow)" />
@@ -173,11 +173,11 @@
   <!-- 5. Modern Brand Wordmark Monogram at Bottom -->
   <g id="brand_badge" transform="translate(256, 420)">
     <!-- Pill Container -->
-    <rect x="-76" y="-18" width="152" height="36" rx="18" fill="#14281E" stroke="#35B86B" stroke-width="1.8" stroke-opacity="0.6" />
+    <rect x="-76" y="-18" width="152" height="36" rx="18" fill="#1A2653" stroke="#2A52BE" stroke-width="1.8" stroke-opacity="0.6" />
     <!-- Text FoodGo -->
     <text x="-48" y="7" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">Food</text>
-    <text x="3" y="7" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="900" fill="#35B86B" letter-spacing="-0.5">Go</text>
+    <text x="3" y="7" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="900" fill="#2A52BE" letter-spacing="-0.5">Go</text>
     <!-- Lightning Dot -->
-    <circle cx="44" cy="2" r="3" fill="#FBBF24" />
+    <circle cx="44" cy="2" r="3" fill="#CCFF00" />
   </g>
 </svg>

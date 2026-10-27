@@ -18,6 +18,7 @@ class AddressesScreen extends StatefulWidget {
 
 class _AddressesScreenState extends State<AddressesScreen> {
   void _showAddAddressSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final formKey = GlobalKey<FormState>();
     final streetController = TextEditingController();
     final cityController = TextEditingController(text: 'Phnom Penh');
@@ -41,11 +42,15 @@ class _AddressesScreenState extends State<AddressesScreen> {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: GlassTheme.dialogDark,
+                color: isDark ? GlassTheme.dialogDark : Colors.white,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(28),
                 ),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.08),
+                ),
               ),
               child: SingleChildScrollView(
                 child: Form(
@@ -59,7 +64,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
                           width: 40,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: Colors.white24,
+                            color: isDark ? Colors.white24 : Colors.black26,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -68,18 +73,22 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Add Delivery Address',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: isDark
+                                  ? Colors.white
+                                  : GlassTheme.textDark,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
-                              color: Colors.white60,
+                              color: isDark
+                                  ? Colors.white60
+                                  : const Color(0xFF64748B),
                             ),
                             onPressed: () => Navigator.pop(sheetCtx),
                           ),
@@ -130,7 +139,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.12,
+                              alpha: isDark ? 0.12 : 0.08,
                             ),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
@@ -177,20 +186,44 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       // Street address
                       TextFormField(
                         controller: streetController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : GlassTheme.textDark,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Street Address, Apartment, or Building',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
+                          labelStyle: TextStyle(
+                            color: isDark
+                                ? GlassTheme.textMuted
+                                : const Color(0xFF64748B),
+                          ),
                           prefixIcon: const Icon(
                             Icons.location_on_outlined,
                             color: GlassTheme.primaryGreen,
                           ),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          fillColor: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: GlassTheme.primaryGreen,
                             ),
                           ),
                         ),
@@ -203,20 +236,44 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       // City
                       TextFormField(
                         controller: cityController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : GlassTheme.textDark,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'City / District',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
+                          labelStyle: TextStyle(
+                            color: isDark
+                                ? GlassTheme.textMuted
+                                : const Color(0xFF64748B),
+                          ),
                           prefixIcon: const Icon(
                             Icons.location_city,
                             color: GlassTheme.primaryGreen,
                           ),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          fillColor: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: GlassTheme.primaryGreen,
                             ),
                           ),
                         ),
@@ -229,20 +286,44 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       // Postal Code
                       TextFormField(
                         controller: zipController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : GlassTheme.textDark,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Postal / Area Code',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
+                          labelStyle: TextStyle(
+                            color: isDark
+                                ? GlassTheme.textMuted
+                                : const Color(0xFF64748B),
+                          ),
                           prefixIcon: const Icon(
                             Icons.pin_drop_outlined,
                             color: GlassTheme.primaryGreen,
                           ),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          fillColor: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: GlassTheme.primaryGreen,
                             ),
                           ),
                         ),
@@ -253,10 +334,12 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Set as Default Delivery Address',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: isDark
+                                  ? Colors.white
+                                  : GlassTheme.textDark,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -341,6 +424,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
   Widget build(BuildContext context) {
     final addressProvider = context.watch<AddressProvider>();
     final addresses = addressProvider.addresses;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: GlassAppBar(
@@ -425,9 +509,15 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                   decoration: BoxDecoration(
                                     color: addr.isDefault
                                         ? GlassTheme.primaryGreen.withValues(
-                                            alpha: 0.2,
+                                            alpha: isDark ? 0.2 : 0.12,
                                           )
-                                        : Colors.white.withValues(alpha: 0.05),
+                                        : (isDark
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.05,
+                                                )
+                                              : Colors.black.withValues(
+                                                  alpha: 0.04,
+                                                )),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
@@ -436,7 +526,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                         : Icons.location_on_outlined,
                                     color: addr.isDefault
                                         ? GlassTheme.primaryGreen
-                                        : Colors.white70,
+                                        : (isDark
+                                              ? Colors.white70
+                                              : const Color(0xFF64748B)),
                                     size: 24,
                                   ),
                                 ),
@@ -527,10 +619,12 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                             ),
                                           const Spacer(),
                                           IconButton(
-                                            icon: const Icon(
+                                            icon: Icon(
                                               Icons.delete_outline,
                                               size: 18,
-                                              color: Colors.white38,
+                                              color: isDark
+                                                  ? Colors.white38
+                                                  : const Color(0xFF94A3B8),
                                             ),
                                             tooltip: 'Delete',
                                             padding: EdgeInsets.zero,

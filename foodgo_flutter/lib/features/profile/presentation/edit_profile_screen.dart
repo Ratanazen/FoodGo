@@ -126,6 +126,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _showImageSourceSheet() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -142,16 +143,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: isDark ? Colors.white24 : Colors.black26,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Change Profile Photo',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: isDark ? Colors.white : GlassTheme.textDark,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -170,10 +171,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: GlassTheme.primaryGreen,
                   ),
                 ),
-                title: const Text(
+                title: Text(
                   'Take Photo with Camera',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -199,10 +200,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: GlassTheme.googleBlue,
                   ),
                 ),
-                title: const Text(
+                title: Text(
                   'Choose from Gallery',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -225,10 +226,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   child: const Icon(Icons.face, color: Colors.amber),
                 ),
-                title: const Text(
+                title: Text(
                   'Pick FoodGo Avatar Preset',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -251,10 +252,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   child: const Icon(Icons.link, color: Colors.purpleAccent),
                 ),
-                title: const Text(
+                title: Text(
                   'Enter Image URL',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -306,6 +307,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _showPresetAvatarDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (ctx) {
@@ -321,18 +323,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Choose Avatar',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: isDark ? Colors.white : GlassTheme.textDark,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
-                        color: Colors.white60,
+                        color: isDark
+                            ? Colors.white60
+                            : const Color(0xFF64748B),
                         size: 20,
                       ),
                       onPressed: () => Navigator.of(ctx).pop(),
@@ -367,13 +371,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
-                              : Colors.white.withValues(alpha: 0.05),
+                              ? GlassTheme.primaryGreen.withValues(
+                                  alpha: isDark ? 0.2 : 0.12,
+                                )
+                              : (isDark
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.black.withValues(alpha: 0.03)),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected
                                 ? GlassTheme.primaryGreen
-                                : Colors.white12,
+                                : (isDark
+                                      ? Colors.white12
+                                      : Colors.black.withValues(alpha: 0.08)),
                             width: isSelected ? 2 : 1,
                           ),
                         ),
@@ -387,8 +397,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             const SizedBox(height: 6),
                             Text(
                               item['title']!,
-                              style: const TextStyle(
-                                color: Colors.white70,
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF64748B),
                                 fontSize: 10,
                               ),
                               textAlign: TextAlign.center,
@@ -410,6 +422,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _showUrlInputDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final controller = TextEditingController(text: _selectedAvatarUrl ?? '');
     showDialog(
       context: context,
@@ -423,10 +436,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
+                Text(
                   'Paste Image Link',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -439,11 +452,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: controller,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : GlassTheme.textDark,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'https://images.unsplash.com/...',
-                    hintStyle: const TextStyle(
-                      color: Colors.white24,
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.white24 : Colors.black26,
                       fontSize: 13,
                     ),
                     prefixIcon: const Icon(
@@ -451,9 +466,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       color: GlassTheme.primaryGreen,
                     ),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
+                    fillColor: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.03),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.1),
+                      ),
                     ),
                   ),
                 ),
@@ -462,9 +484,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      child: const Text(
+                      child: Text(
                         'Cancel',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF64748B),
+                        ),
                       ),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
@@ -787,26 +813,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     String? helperText,
     String? Function(String?)? validator,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: isDark ? Colors.white : GlassTheme.textDark),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: GlassTheme.textMuted),
+        labelStyle: TextStyle(
+          color: isDark ? GlassTheme.textMuted : const Color(0xFF64748B),
+        ),
         helperText: helperText,
-        helperStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+        helperStyle: TextStyle(
+          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+          fontSize: 11,
+        ),
         prefixIcon: Icon(icon, color: GlassTheme.primaryGreen),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.1),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.1),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),

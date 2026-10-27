@@ -32,9 +32,9 @@ This plan documents the completed v2.0 - v3.7 milestones and the remaining targe
 ## Remaining Milestones to Final Release (v4.2 - v4.5)
 
 ### Phase 4.2: In-App Notifications & Automated Milestone Dispatch
-- [ ] Connect `Order.save` status transitions to automated `Notification.objects.create`.
-- [ ] In-App Notification Center with live unread badge on `HomeScreen`.
-- [ ] Filter notifications by category (`All`, `Orders`, `Promos`).
+- [x] Connect `Order.save` status transitions to automated `Notification.objects.create`.
+- [x] In-App Notification Center with live unread badge on `HomeScreen`.
+- [x] Filter notifications by category (`All`, `Orders`, `Promos`).
 
 ### Phase 4.3: Real-Time Driver Route WebSocket Simulator
 - [ ] WebSocket consumer `OrderTrackingConsumer` coordinate broadcasting.

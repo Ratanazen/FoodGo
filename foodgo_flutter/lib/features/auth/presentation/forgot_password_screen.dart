@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/glass_theme.dart';
 import '../../../services/api_service.dart';
+import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
 import 'widgets/auth_illustration.dart';
 
@@ -123,19 +124,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
-            size: 20,
+        leading: Center(
+          child: AnimatedIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            iconSize: 18,
+            iconColor: isDark ? Colors.white : const Color(0xFF1E293B),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/login');
+              }
+            },
           ),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/login');
-            }
-          },
         ),
       ),
       body: SafeArea(
@@ -260,36 +261,44 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   SizedBox(
                     height: 52,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _sendOTP,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.primaryGreen,
-                        foregroundColor: Colors.white,
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                    child: AnimatedPressable(
+                      pressedScale: 0.96,
+                      onTap: _isLoading ? null : _sendOTP,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _sendOTP,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlassTheme.primaryGreen,
+                          foregroundColor: Colors.white,
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.35),
+                            width: 1.2,
+                          ),
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          shadowColor: GlassTheme.primaryGreen.withValues(
+                            alpha: 0.4,
+                          ),
                         ),
-                        shadowColor: GlassTheme.primaryGreen.withValues(
-                          alpha: 0.4,
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.2,
+                                ),
+                              )
+                            : const Text(
+                                'Send Reset Code / Link',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.2,
-                              ),
-                            )
-                          : const Text(
-                              'Send Reset Code / Link',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
                     ),
                   ).animate().fade(delay: 300.ms).scale(),
 
@@ -307,7 +316,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           fontSize: 13,
                         ),
                       ),
-                      InkWell(
+                      AnimatedPressable(
+                        pressedScale: 0.94,
                         onTap: () {
                           if (context.canPop()) {
                             context.pop();
@@ -315,12 +325,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             context.go('/login');
                           }
                         },
-                        child: const Text(
-                          'Sign in',
-                          style: TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Text(
+                            'Sign in',
+                            style: TextStyle(
+                              color: GlassTheme.primaryGreen,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),

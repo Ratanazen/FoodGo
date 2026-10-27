@@ -214,18 +214,20 @@ class WebHeaderNavBar extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         RichText(
-                          text: const TextSpan(
+                          text: TextSpan(
                             children: [
                               TextSpan(
                                 text: 'Food',
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.white,
+                                  color: isDark
+                                      ? Colors.white
+                                      : GlassTheme.textDark,
                                   letterSpacing: -0.5,
                                 ),
                               ),
-                              TextSpan(
+                              const TextSpan(
                                 text: 'Go',
                                 style: TextStyle(
                                   fontSize: 22,
@@ -346,7 +348,9 @@ class WebHeaderNavBar extends StatelessWidget {
                             border: Border.all(
                               color: selectedIndex == 2
                                   ? GlassTheme.primaryGreen
-                                  : Colors.white.withValues(alpha: 0.1),
+                                  : (isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.1)),
                             ),
                           ),
                           child: Row(
@@ -356,7 +360,9 @@ class WebHeaderNavBar extends StatelessWidget {
                                 size: 20,
                                 color: selectedIndex == 2
                                     ? GlassTheme.primaryGreen
-                                    : Colors.white70,
+                                    : (isDark
+                                          ? Colors.white70
+                                          : const Color(0xFF475569)),
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -366,7 +372,9 @@ class WebHeaderNavBar extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                   color: selectedIndex == 2
                                       ? GlassTheme.primaryGreen
-                                      : Colors.white70,
+                                      : (isDark
+                                            ? Colors.white70
+                                            : const Color(0xFF475569)),
                                 ),
                               ),
                             ],
@@ -427,12 +435,16 @@ class WebHeaderNavBar extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: selectedIndex == 4
                             ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.05),
+                            : (isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.04)),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: selectedIndex == 4
                               ? GlassTheme.primaryGreen
-                              : Colors.white.withValues(alpha: 0.1),
+                              : (isDark
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.08)),
                         ),
                       ),
                       child: Row(
@@ -460,7 +472,9 @@ class WebHeaderNavBar extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                               color: selectedIndex == 4
                                   ? GlassTheme.primaryGreen
-                                  : Colors.white,
+                                  : (isDark
+                                        ? Colors.white
+                                        : GlassTheme.textDark),
                             ),
                           ),
                         ],
@@ -494,7 +508,9 @@ class _WebNavLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final activeColor = highlightColor ?? GlassTheme.primaryGreen;
+    final inactiveColor = isDark ? Colors.white70 : const Color(0xFF475569);
 
     return Padding(
       padding: const EdgeInsets.only(right: 12.0),
@@ -520,7 +536,7 @@ class _WebNavLink extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? activeColor : Colors.white70,
+                color: isSelected ? activeColor : inactiveColor,
               ),
               const SizedBox(width: 8),
               Text(
@@ -528,7 +544,7 @@ class _WebNavLink extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? activeColor : Colors.white70,
+                  color: isSelected ? activeColor : inactiveColor,
                 ),
               ),
             ],
@@ -545,14 +561,18 @@ class WebFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C120F),
+        color: isDark ? GlassTheme.outerBackground : const Color(0xFFF1F5F9),
         border: Border(
           top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : const Color(0xFFE2E8F0),
             width: 1,
           ),
         ),
@@ -569,18 +589,22 @@ class WebFooter extends StatelessWidget {
                 children: [
                   _FooterLink(
                     label: 'Track Order',
+                    isDark: isDark,
                     onTap: () => context.push('/track'),
                   ),
                   _FooterLink(
                     label: 'Help & Support',
+                    isDark: isDark,
                     onTap: () => context.push('/support'),
                   ),
                   _FooterLink(
                     label: 'Terms of Service',
+                    isDark: isDark,
                     onTap: () => context.push('/terms'),
                   ),
                   _FooterLink(
                     label: 'Privacy Policy',
+                    isDark: isDark,
                     onTap: () => context.push('/privacy'),
                   ),
                 ],
@@ -591,7 +615,9 @@ class WebFooter extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.6)
+                      : const Color(0xFF64748B),
                 ),
               ),
               const SizedBox(height: 4),
@@ -600,7 +626,9 @@ class WebFooter extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.4)
+                      : const Color(0xFF94A3B8),
                 ),
               ),
             ],
@@ -613,9 +641,14 @@ class WebFooter extends StatelessWidget {
 
 class _FooterLink extends StatelessWidget {
   final String label;
+  final bool isDark;
   final VoidCallback onTap;
 
-  const _FooterLink({required this.label, required this.onTap});
+  const _FooterLink({
+    required this.label,
+    required this.isDark,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -629,7 +662,9 @@ class _FooterLink extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withValues(alpha: 0.8),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.85)
+                : const Color(0xFF334155),
           ),
         ),
       ),

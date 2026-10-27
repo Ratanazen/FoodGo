@@ -1,3 +1,5 @@
+from datetime import timedelta
+from django.utils import timezone
 import logging
 from .models import Notification
 
@@ -53,6 +55,8 @@ STATUS_NOTIFICATION_TEMPLATES = {
 def dispatch_order_notification(order, status_key=None, custom_title=None, custom_message=None, target_user=None):
     """
     Safely creates an in-app Notification for the order's customer (or target_user) with rich metadata.
+    Includes rapid deduplication to prevent duplicate notifications across automated model signals
+    and manual controller calls.
     """
     recipient = target_user or getattr(order, 'customer', None)
     if not recipient:
@@ -60,7 +64,7 @@ def dispatch_order_notification(order, status_key=None, custom_title=None, custo
     try:
         st = (status_key or getattr(order, 'status', 'pending') or 'pending').lower()
         rest_name = order.restaurant.name if getattr(order, 'restaurant', None) else 'FoodGo Restaurant'
-        
+
         default_title, default_msg_tpl = STATUS_NOTIFICATION_TEMPLATES.get(
             st,
             ('Order Update', f'Your order #{order.id} status is now {st}.')
@@ -68,7 +72,32 @@ def dispatch_order_notification(order, status_key=None, custom_title=None, custo
         title = custom_title or default_title
         message = custom_message or default_msg_tpl.format(order_id=order.id, restaurant_name=rest_name)
 
-        return Notification.objects.create(
+        # 5-second rapid deduplication for identical recipient, order, and status
+        if getattr(order, 'id', None):
+            cutoff = timezone.now() - timedelta(seconds=5)
+            existing = Notification.objects.filter(
+                user=recipient,
+                notification_type='order',
+                data__order_id=order.id,
+                data__status=st,
+                created_at__gte=cutoff
+            ).first()
+
+            if existing:
+                # Upgrade title or message in-place if custom content is supplied
+                changed = False
+                if custom_title and existing.title != custom_title:
+                    existing.title = custom_title
+                    changed = True
+                if custom_message and existing.message != custom_message:
+                    existing.message = custom_message
+                    changed = True
+                if changed:
+                    existing.save(update_fields=['title', 'message'])
+                order._notification_dispatched_for_status = st
+                return existing
+
+        notif = Notification.objects.create(
             user=recipient,
             title=title,
             message=message,
@@ -81,6 +110,8 @@ def dispatch_order_notification(order, status_key=None, custom_title=None, custo
                 'total_amount': str(getattr(order, 'total_amount', '0.00')),
             }
         )
+        order._notification_dispatched_for_status = st
+        return notif
     except Exception as e:
         logger.warning(f"Failed to dispatch order notification for order {getattr(order, 'id', None)}: {e}")
         return None

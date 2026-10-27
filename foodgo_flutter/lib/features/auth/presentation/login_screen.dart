@@ -9,6 +9,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../services/google_auth_service.dart';
+import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -203,15 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 ActionChip(
                   label: const Text(
-                    'Cloudflare Edge (Dual Backend 50/50)',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                  onPressed: () => controller.text =
-                      'https://foodgo.rtnaeam611.workers.dev/api/',
-                ),
-                ActionChip(
-                  label: const Text(
-                    'Vercel (Live)',
+                    'Vercel (Production Live)',
                     style: TextStyle(fontSize: 11),
                   ),
                   onPressed: () =>
@@ -232,6 +225,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () =>
                       controller.text = 'http://10.0.2.2:8000/api/',
+                ),
+                ActionChip(
+                  label: const Text(
+                    'Cloudflare Edge (Fallback)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () => controller.text =
+                      'https://foodgo.rtnaeam611.workers.dev/api/',
                 ),
               ],
             ),
@@ -704,38 +705,46 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Primary Button: Login
                       SizedBox(
                         height: 50,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _login,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: GlassTheme.authBlue,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: GlassTheme.authBlue
-                                .withValues(alpha: 0.5),
-                            disabledForegroundColor: Colors.white70,
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                        child: AnimatedPressable(
+                          pressedScale: 0.96,
+                          onTap: _isLoading ? null : _login,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _login,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: GlassTheme.authBlue,
+                              foregroundColor: Colors.white,
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.35),
+                                width: 1.2,
+                              ),
+                              disabledBackgroundColor: GlassTheme.authBlue
+                                  .withValues(alpha: 0.5),
+                              disabledForegroundColor: Colors.white70,
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              shadowColor: GlassTheme.authBlue.withValues(
+                                alpha: 0.4,
+                              ),
                             ),
-                            shadowColor: GlassTheme.authBlue.withValues(
-                              alpha: 0.4,
-                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Sign In',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                           ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2.2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Sign In',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
                         ),
                       ).animate().fade(delay: 400.ms).scale(),
 
@@ -783,56 +792,63 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(
                             child: SizedBox(
                               height: 44,
-                              child: OutlinedButton(
-                                onPressed: _isLoading ? null : _loginWithGoogle,
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: isDark
-                                      ? const Color(0xFF1E293B)
-                                      : Colors.white,
-                                  side: BorderSide(
-                                    color: isDark
-                                        ? Colors.white12
-                                        : const Color(0xFFE2E8F0),
+                              child: AnimatedPressable(
+                                pressedScale: 0.95,
+                                onTap: _isLoading ? null : _loginWithGoogle,
+                                child: OutlinedButton(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : _loginWithGoogle,
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: isDark
+                                        ? const Color(0xFF1E293B)
+                                        : Colors.white,
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.16)
+                                          : const Color(0xFFCBD5E1),
+                                      width: 1.2,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: const Text(
-                                        'G',
-                                        style: TextStyle(
-                                          color: Color(0xFF4285F4),
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 14,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 20,
+                                        height: 20,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: const Text(
+                                          'G',
+                                          style: TextStyle(
+                                            color: Color(0xFF4285F4),
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 14,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Google',
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Google',
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white
+                                              : const Color(0xFF1E293B),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -843,39 +859,46 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(
                             child: SizedBox(
                               height: 44,
-                              child: OutlinedButton.icon(
-                                onPressed: _isLoading
+                              child: AnimatedPressable(
+                                pressedScale: 0.95,
+                                onTap: _isLoading
                                     ? null
                                     : () => context.push('/phone-login'),
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: isDark
-                                      ? const Color(0xFF1E293B)
-                                      : Colors.white,
-                                  side: BorderSide(
-                                    color: isDark
-                                        ? Colors.white12
-                                        : const Color(0xFFE2E8F0),
+                                child: OutlinedButton.icon(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => context.push('/phone-login'),
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: isDark
+                                        ? const Color(0xFF1E293B)
+                                        : Colors.white,
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.16)
+                                          : const Color(0xFFCBD5E1),
+                                      width: 1.2,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                  icon: const Icon(
+                                    Icons.phone_iphone_rounded,
+                                    size: 18,
+                                    color: GlassTheme.authBlue,
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                  ),
-                                ),
-                                icon: const Icon(
-                                  Icons.phone_iphone_rounded,
-                                  size: 18,
-                                  color: GlassTheme.authBlue,
-                                ),
-                                label: Text(
-                                  'Phone OTP',
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF1E293B),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                  label: Text(
+                                    'Phone OTP',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF1E293B),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -900,14 +923,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontSize: 13,
                             ),
                           ),
-                          InkWell(
+                          AnimatedPressable(
+                            pressedScale: 0.94,
                             onTap: () => context.push('/register'),
-                            child: const Text(
-                              'Sign up',
-                              style: TextStyle(
-                                color: GlassTheme.authBlue,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              child: Text(
+                                'Sign up',
+                                style: TextStyle(
+                                  color: GlassTheme.authBlue,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),

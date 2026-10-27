@@ -430,43 +430,41 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                       expandedHeight: 250.0,
                       pinned: true,
                       backgroundColor: GlassTheme.backgroundDark,
-                      leading: Container(
-                        margin: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                      leading: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: AnimatedIconButton(
+                          icon: Icons.arrow_back,
+                          iconSize: 20,
+                          size: 38,
+                          color: Colors.black.withValues(alpha: 0.55),
+                          borderColor: Colors.white.withValues(alpha: 0.25),
+                          iconColor: Colors.white,
                           onPressed: () => context.pop(),
                         ),
                       ),
                       actions: [
-                        Container(
-                          margin: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            shape: BoxShape.circle,
-                          ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12),
                           child: Consumer<FavoritesProvider>(
                             builder: (context, favProvider, child) {
                               final isResFav = favProvider.isRestaurantFavorite(
                                 restaurant['id'],
                               );
-                              return IconButton(
-                                icon: Icon(
-                                  isResFav
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: isResFav
-                                      ? GlassTheme.foodpandaPink
-                                      : Colors.white,
-                                  size: 20,
-                                ),
+                              return AnimatedIconButton(
+                                icon: isResFav
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                iconSize: 20,
+                                size: 38,
+                                color: Colors.black.withValues(alpha: 0.55),
+                                borderColor: isResFav
+                                    ? GlassTheme.foodpandaPink.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : Colors.white.withValues(alpha: 0.25),
+                                iconColor: isResFav
+                                    ? GlassTheme.foodpandaPink
+                                    : Colors.white,
                                 onPressed: () async {
                                   final added = await favProvider
                                       .toggleRestaurant(restaurant);
@@ -813,13 +811,11 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                         padding: const EdgeInsets.only(
                                           right: 8.0,
                                         ),
-                                        child: InkWell(
+                                        child: AnimatedPressable(
+                                          pressedScale: 0.94,
                                           onTap: () => setState(
                                             () =>
                                                 _selectedCategoryIndex = index,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
                                           ),
                                           child: AnimatedContainer(
                                             duration: const Duration(
@@ -839,11 +835,30 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                   BorderRadius.circular(20),
                                               border: Border.all(
                                                 color: isSelected
-                                                    ? Colors.transparent
+                                                    ? Colors.white.withValues(
+                                                        alpha: 0.35,
+                                                      )
                                                     : Colors.white.withValues(
                                                         alpha: 0.12,
                                                       ),
+                                                width: isSelected ? 1.5 : 1.0,
                                               ),
+                                              boxShadow: isSelected
+                                                  ? [
+                                                      BoxShadow(
+                                                        color: GlassTheme
+                                                            .primaryGreen
+                                                            .withValues(
+                                                              alpha: 0.35,
+                                                            ),
+                                                        blurRadius: 10,
+                                                        offset: const Offset(
+                                                          0,
+                                                          3,
+                                                        ),
+                                                      ),
+                                                    ]
+                                                  : null,
                                             ),
                                             child: Center(
                                               child: Text(
@@ -909,11 +924,15 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
 
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12.0),
-                            child: InkWell(
+                            child: AnimatedPressable(
+                              pressedScale: 0.98,
                               onTap: () =>
                                   _showDishDetailSheet(item, restaurant),
-                              borderRadius: BorderRadius.circular(16),
                               child: GlassCard(
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.16),
+                                  width: 1.2,
+                                ),
                                 padding: const EdgeInsets.all(12),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1178,60 +1197,78 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                           Positioned(
                                             bottom: -6,
                                             right: -6,
-                                            child: Material(
-                                              color: inCartQty > 0
-                                                  ? GlassTheme.primaryGreen
-                                                  : Colors.white,
-                                              shape: const CircleBorder(),
-                                              elevation: 4,
-                                              child: InkWell(
-                                                customBorder:
-                                                    const CircleBorder(),
-                                                onTap: () {
-                                                  context
-                                                      .read<CartProvider>()
-                                                      .addItem(
-                                                        itemId,
-                                                        item['name'] ?? 'Dish',
-                                                        price,
-                                                        item['image']
-                                                            ?.toString(),
-                                                        restaurantId:
-                                                            int.tryParse(
-                                                              widget.id ?? '1',
-                                                            ),
-                                                        restaurantName:
-                                                            restaurant['name'],
-                                                      );
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).hideCurrentSnackBar();
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        'Added "${item['name']}" to cart!',
-                                                      ),
-                                                      duration: const Duration(
-                                                        seconds: 1,
-                                                      ),
-                                                      behavior: SnackBarBehavior
-                                                          .floating,
-                                                      action: SnackBarAction(
-                                                        label: 'View Cart',
-                                                        textColor: GlassTheme
-                                                            .primaryGreen,
-                                                        onPressed: () =>
-                                                            context.go('/cart'),
+                                            child: AnimatedPressable(
+                                              pressedScale: 0.88,
+                                              onTap: () {
+                                                context
+                                                    .read<CartProvider>()
+                                                    .addItem(
+                                                      itemId,
+                                                      item['name'] ?? 'Dish',
+                                                      price,
+                                                      item['image']?.toString(),
+                                                      restaurantId:
+                                                          int.tryParse(
+                                                            widget.id ?? '1',
+                                                          ),
+                                                      restaurantName:
+                                                          restaurant['name'],
+                                                    );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).hideCurrentSnackBar();
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'Added "${item['name']}" to cart!',
+                                                    ),
+                                                    duration: const Duration(
+                                                      seconds: 1,
+                                                    ),
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
+                                                    action: SnackBarAction(
+                                                      label: 'View Cart',
+                                                      textColor: GlassTheme
+                                                          .primaryGreen,
+                                                      onPressed: () =>
+                                                          context.go('/cart'),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              child: Container(
+                                                width: 32,
+                                                height: 32,
+                                                decoration: BoxDecoration(
+                                                  color: inCartQty > 0
+                                                      ? GlassTheme.primaryGreen
+                                                      : Colors.white,
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: Colors.white
+                                                        .withValues(
+                                                          alpha: 0.35,
+                                                        ),
+                                                    width: 1.2,
+                                                  ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withValues(
+                                                            alpha: 0.25,
+                                                          ),
+                                                      blurRadius: 6,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
                                                       ),
                                                     ),
-                                                  );
-                                                },
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    6.0,
-                                                  ),
+                                                  ],
+                                                ),
+                                                child: Center(
                                                   child: inCartQty > 0
                                                       ? Text(
                                                           '$inCartQty',

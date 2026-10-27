@@ -4,16 +4,16 @@ import subprocess
 SVG_CONTENT = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
   <defs>
     <linearGradient id="bg_grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#141F18" />
-      <stop offset="100%" stop-color="#0E1511" />
+      <stop offset="0%" stop-color="#1A2653" />
+      <stop offset="100%" stop-color="#0C1220" />
     </linearGradient>
     <linearGradient id="foodgo_grad_primary" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#35B86B" />
-      <stop offset="100%" stop-color="#289A57" />
+      <stop offset="0%" stop-color="#2A52BE" />
+      <stop offset="100%" stop-color="#1D3FA4" />
     </linearGradient>
     <linearGradient id="foodgo_grad_leaf" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7FFFB3" />
-      <stop offset="100%" stop-color="#35B86B" />
+      <stop offset="0%" stop-color="#A9B7E1" />
+      <stop offset="100%" stop-color="#2A52BE" />
     </linearGradient>
     <linearGradient id="foodgo_grad_accent" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFB800" />
@@ -26,16 +26,16 @@ SVG_CONTENT = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" w
   </defs>
 
   <!-- Dark Background Squircle -->
-  <rect x="16" y="16" width="480" height="480" rx="110" fill="url(#bg_grad)" stroke="#35B86B" stroke-width="8" stroke-opacity="0.35" />
+  <rect x="16" y="16" width="480" height="480" rx="110" fill="url(#bg_grad)" stroke="#2A52BE" stroke-width="8" stroke-opacity="0.35" />
 
-  <!-- Inner Soft Green Glow Circle -->
+  <!-- Inner Soft Blue Glow Circle -->
   <circle cx="256" cy="256" r="190" fill="url(#foodgo_grad_primary)" fill-opacity="0.12" stroke="url(#foodgo_grad_primary)" stroke-width="4" stroke-opacity="0.3" />
 
   <!-- Burger & Leaf Icon Scaled in Center -->
   <g transform="translate(96, 96) scale(3.2)">
     <!-- Fresh Leaf at Top -->
     <path d="M50 14 C56 12, 64 16, 62 25 C55 26, 49 20, 50 14 Z" fill="url(#foodgo_grad_leaf)" />
-    <path d="M50 20 Q56 22 62 25" stroke="#35B86B" stroke-width="1.2" stroke-linecap="round" />
+    <path d="M50 20 Q56 22 62 25" stroke="#2A52BE" stroke-width="1.2" stroke-linecap="round" />
 
     <!-- Burger Top Bun -->
     <path d="M26 40 C26 27, 74 27, 74 40 C74 42, 26 42, 26 40 Z" fill="url(#foodgo_grad_primary)" />

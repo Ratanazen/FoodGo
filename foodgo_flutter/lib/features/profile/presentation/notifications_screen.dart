@@ -30,32 +30,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   void _clearAll(BuildContext context) {
     final provider = context.read<NotificationProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2C),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
           'Clear All Notifications?',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: isDark ? Colors.white : GlassTheme.textDark,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to remove all notifications?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(
+            color: isDark ? Colors.white70 : const Color(0xFF64748B),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: TextStyle(
+                color: isDark ? Colors.white60 : const Color(0xFF64748B),
+              ),
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-            ),
+          GlassButton(
+            text: 'Clear All',
+            variant: GlassButtonVariant.danger,
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             onPressed: () {
               Navigator.pop(ctx);
               provider.clearAll();
@@ -66,7 +74,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
               );
             },
-            child: const Text('Clear All'),
           ),
         ],
       ),
@@ -75,6 +82,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   void _handleNotificationTap(NotificationModel notif) {
     final provider = context.read<NotificationProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (!notif.isRead) {
       provider.markAsRead(notif.id);
     }
@@ -90,9 +98,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         builder: (ctx) => ResponsiveBottomSheet(
           child: Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Color(0xFF161622),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            decoration: BoxDecoration(
+              color: isDark ? GlassTheme.dialogDark : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, -4),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -114,60 +131,90 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   'Promo Code Copied!',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Voucher "$code" has been copied to your clipboard. Apply it during checkout to save big!',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.discount_outlined,
+                        color: GlassTheme.royalSmalt,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        code,
+                        style: TextStyle(
+                          color: isDark
+                              ? GlassTheme.limeAccentBright
+                              : GlassTheme.royalSmalt,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.copy_rounded,
+                        color: isDark
+                            ? Colors.white60
+                            : const Color(0xFF64748B),
+                        size: 16,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.2),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: GlassButton(
+                        text: 'Explore Menu',
+                        variant: GlassButtonVariant.secondary,
+                        height: 50,
+                        isFullWidth: true,
                         onPressed: () {
                           Navigator.pop(ctx);
                           context.go('/explore');
                         },
-                        child: const Text(
-                          'Explore Menu',
-                          style: TextStyle(color: Colors.white),
-                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          backgroundColor: GlassTheme.primaryGreen,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: GlassButton(
+                        text: 'Apply in Cart',
+                        variant: GlassButtonVariant.primary,
+                        height: 50,
+                        isFullWidth: true,
                         onPressed: () {
                           Navigator.pop(ctx);
                           context.go('/cart');
                         },
-                        child: const Text(
-                          'Apply in Cart',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                       ),
                     ),
                   ],
@@ -189,9 +236,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         builder: (ctx) => ResponsiveBottomSheet(
           child: Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Color(0xFF161622),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            decoration: BoxDecoration(
+              color: isDark ? GlassTheme.dialogDark : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, -4),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -199,12 +255,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                    color: GlassTheme.royalSmalt.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.delivery_dining,
-                    color: GlassTheme.primaryGreen,
+                    color: GlassTheme.royalSmalt,
                     size: 36,
                   ),
                 ),
@@ -213,14 +269,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   notif.title,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   notif.message,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Container(
@@ -229,17 +288,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white12),
+                    border: Border.all(
+                      color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         restName,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : GlassTheme.textDark,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -250,13 +313,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                          color: GlassTheme.royalSmalt.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           statusStr.toUpperCase(),
                           style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
+                            color: GlassTheme.royalSmalt,
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
                           ),
@@ -269,48 +332,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.2),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: GlassButton(
+                        text: 'All Orders',
+                        variant: GlassButtonVariant.secondary,
+                        height: 50,
+                        isFullWidth: true,
                         onPressed: () {
                           Navigator.pop(ctx);
                           context.go('/orders');
                         },
-                        child: const Text(
-                          'All Orders',
-                          style: TextStyle(color: Colors.white),
-                        ),
                       ),
                     ),
                     if (orderId != null) ...[
                       const SizedBox(width: 12),
                       Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor: GlassTheme.primaryGreen,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                        child: GlassButton(
+                          text: 'Track Order',
+                          variant: GlassButtonVariant.primary,
+                          height: 50,
+                          isFullWidth: true,
                           onPressed: () {
                             Navigator.pop(ctx);
                             context.push('/map/$orderId');
                           },
-                          child: const Text(
-                            'Track Order',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                         ),
                       ),
                     ],
@@ -328,23 +372,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         context: context,
         builder: (ctx) => StatefulBuilder(
           builder: (ctx, setDialogState) => AlertDialog(
-            backgroundColor: const Color(0xFF1E1E2C),
+            backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            title: const Text(
+            title: Text(
               'Rate Your Experience',
               style: TextStyle(
-                color: Colors.white,
+                color: isDark ? Colors.white : GlassTheme.textDark,
                 fontWeight: FontWeight.bold,
               ),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'How was your recent meal?',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -363,36 +409,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   }),
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                GlassTextField(
                   controller: feedbackController,
                   maxLines: 2,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: 'Share your feedback (optional)...',
-                    hintStyle: const TextStyle(color: Colors.white38),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  hintText: 'Share your feedback (optional)...',
                 ),
               ],
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text(
+                child: Text(
                   'Cancel',
-                  style: TextStyle(color: Colors.white60),
+                  style: TextStyle(
+                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                  ),
                 ),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                ),
+              GlassButton(
+                text: 'Submit',
+                variant: GlassButtonVariant.primary,
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 onPressed: () {
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -404,12 +442,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           Text('Thank you! $rating-star review submitted.'),
                         ],
                       ),
-                      backgroundColor: GlassTheme.primaryGreen,
+                      backgroundColor: GlassTheme.royalSmalt,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
                 },
-                child: const Text('Submit'),
               ),
             ],
           ),
@@ -422,6 +459,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer<NotificationProvider>(
       builder: (context, notifProvider, child) {
         final allItems = notifProvider.notifications;
@@ -440,13 +478,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           appBar: GlassAppBar(
             title: 'Notifications',
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: Icon(
+                Icons.arrow_back,
+                color: isDark ? Colors.white : GlassTheme.textDark,
+              ),
               onPressed: () => context.pop(),
             ),
             actions: [
               if (allItems.isNotEmpty)
                 IconButton(
-                  icon: const Icon(Icons.delete_sweep_outlined),
+                  icon: Icon(
+                    Icons.delete_sweep_outlined,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
+                  ),
                   tooltip: 'Clear All',
                   onPressed: () => _clearAll(context),
                 ),
@@ -457,7 +501,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: notifProvider.isLoading && allItems.isEmpty
                 ? const Center(
                     child: CircularProgressIndicator(
-                      color: GlassTheme.primaryGreen,
+                      color: GlassTheme.royalSmalt,
                     ),
                   )
                 : Column(
@@ -473,6 +517,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               isSelected: _activeFilter == 'All',
                               onTap: () =>
                                   setState(() => _activeFilter = 'All'),
+                              isDark: isDark,
                             ),
                             const SizedBox(width: 8),
                             _buildFilterChip(
@@ -481,6 +526,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               isSelected: _activeFilter == 'Orders',
                               onTap: () =>
                                   setState(() => _activeFilter = 'Orders'),
+                              isDark: isDark,
                             ),
                             const SizedBox(width: 8),
                             _buildFilterChip(
@@ -489,6 +535,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               isSelected: _activeFilter == 'Promos',
                               onTap: () =>
                                   setState(() => _activeFilter = 'Promos'),
+                              isDark: isDark,
                             ),
                           ],
                         ),
@@ -504,20 +551,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               vertical: 10,
                             ),
                             borderRadius: GlassTheme.borderRadiusSmall,
-                            customColor: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.1,
+                            customColor: GlassTheme.royalSmalt.withValues(
+                              alpha: isDark ? 0.12 : 0.08,
                             ),
                             child: Row(
                               children: [
                                 const Icon(
                                   Icons.circle_notifications,
-                                  color: GlassTheme.primaryGreen,
+                                  color: GlassTheme.royalSmalt,
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
                                   '$unread unread notification${unread > 1 ? 's' : ''}',
                                   style: const TextStyle(
-                                    color: GlassTheme.primaryGreen,
+                                    color: GlassTheme.royalSmalt,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -540,8 +587,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                             ),
                                           ],
                                         ),
-                                        backgroundColor:
-                                            GlassTheme.primaryGreen,
+                                        backgroundColor: GlassTheme.royalSmalt,
                                         behavior: SnackBarBehavior.floating,
                                         duration: Duration(seconds: 2),
                                       ),
@@ -550,7 +596,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   child: const Text(
                                     'Mark all read',
                                     style: TextStyle(
-                                      color: GlassTheme.primaryGreen,
+                                      color: GlassTheme.royalSmalt,
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -571,26 +617,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     Icon(
                                       Icons.notifications_off_outlined,
                                       size: 72,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.3,
-                                      ),
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.3)
+                                          : const Color(0xFF94A3B8),
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
                                       _activeFilter == 'All'
                                           ? 'No notifications yet'
                                           : 'No ${_activeFilter.toLowerCase()} notifications',
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : GlassTheme.textDark,
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    const Text(
+                                    Text(
                                       "You're completely caught up!",
                                       style: TextStyle(
-                                        color: Colors.white54,
+                                        color: isDark
+                                            ? Colors.white54
+                                            : const Color(0xFF64748B),
                                         fontSize: 14,
                                       ),
                                     ),
@@ -600,8 +650,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             : RefreshIndicator(
                                 onRefresh: () =>
                                     notifProvider.fetchNotifications(),
-                                color: GlassTheme.primaryGreen,
-                                backgroundColor: GlassTheme.dialogDark,
+                                color: GlassTheme.royalSmalt,
+                                backgroundColor: isDark
+                                    ? GlassTheme.dialogDark
+                                    : Colors.white,
                                 child: ListView.builder(
                                   padding: const EdgeInsets.all(16),
                                   itemCount: displayedItems.length,
@@ -650,20 +702,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                         padding: const EdgeInsets.only(
                                           bottom: 12,
                                         ),
-                                        child: InkWell(
-                                          borderRadius:
-                                              GlassTheme.borderRadiusSmall,
+                                        child: AnimatedPressable(
                                           onTap: () =>
                                               _handleNotificationTap(n),
+                                          pressedScale: 0.98,
                                           child: GlassContainer(
                                             borderRadius:
                                                 GlassTheme.borderRadiusSmall,
                                             padding: const EdgeInsets.all(16),
                                             customColor: n.isRead
-                                                ? null
-                                                : n.color.withValues(
-                                                    alpha: 0.08,
-                                                  ),
+                                                ? (isDark ? null : Colors.white)
+                                                : (isDark
+                                                      ? n.color.withValues(
+                                                          alpha: 0.08,
+                                                        )
+                                                      : Colors.white),
+                                            customBorder: Border.all(
+                                              color: isDark
+                                                  ? (n.isRead
+                                                        ? Colors.white12
+                                                        : n.color.withValues(
+                                                            alpha: 0.25,
+                                                          ))
+                                                  : const Color(0xFFE2E8F0),
+                                              width: 1.2,
+                                            ),
                                             child: Row(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
@@ -706,8 +769,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                                     : FontWeight
                                                                           .w700,
                                                                 fontSize: 14,
-                                                                color: Colors
-                                                                    .white,
+                                                                color: isDark
+                                                                    ? Colors
+                                                                          .white
+                                                                    : GlassTheme
+                                                                          .textDark,
                                                               ),
                                                             ),
                                                           ),
@@ -728,9 +794,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                       const SizedBox(height: 4),
                                                       Text(
                                                         n.message,
-                                                        style: const TextStyle(
-                                                          color: GlassTheme
-                                                              .textMuted,
+                                                        style: TextStyle(
+                                                          color: isDark
+                                                              ? Colors.white70
+                                                              : const Color(
+                                                                  0xFF64748B,
+                                                                ),
                                                           fontSize: 13,
                                                           height: 1.4,
                                                         ),
@@ -740,9 +809,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                         children: [
                                                           Text(
                                                             n.timeAgo,
-                                                            style: const TextStyle(
-                                                              color: GlassTheme
-                                                                  .textMuted,
+                                                            style: TextStyle(
+                                                              color: isDark
+                                                                  ? Colors
+                                                                        .white38
+                                                                  : const Color(
+                                                                      0xFF94A3B8,
+                                                                    ),
                                                               fontSize: 11,
                                                             ),
                                                           ),
@@ -750,10 +823,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                           Text(
                                                             'Tap to view',
                                                             style: TextStyle(
-                                                              color: n.color
-                                                                  .withValues(
-                                                                    alpha: 0.8,
-                                                                  ),
+                                                              color: n.color,
                                                               fontSize: 11,
                                                               fontWeight:
                                                                   FontWeight
@@ -788,23 +858,49 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     required int count,
     required bool isSelected,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
-    return InkWell(
+    final selectedBg = GlassTheme.royalSmalt;
+    final unselectedBg = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.white;
+    final selectedBorder = GlassTheme.royalSmalt;
+    final unselectedBorder = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : const Color(0xFFE2E8F0);
+    final selectedTextColor = Colors.white;
+    final unselectedTextColor = isDark
+        ? Colors.white70
+        : const Color(0xFF475569);
+
+    return AnimatedPressable(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      pressedScale: 0.94,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? GlassTheme.primaryGreen
-              : Colors.white.withValues(alpha: 0.08),
+          color: isSelected ? selectedBg : unselectedBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected
-                ? GlassTheme.primaryGreen
-                : Colors.white.withValues(alpha: 0.15),
+            color: isSelected ? selectedBorder : unselectedBorder,
+            width: 1.2,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: GlassTheme.royalSmalt.withValues(alpha: 0.28),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.03),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -812,8 +908,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.black : Colors.white,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? selectedTextColor : unselectedTextColor,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 fontSize: 13,
               ),
             ),
@@ -823,14 +919,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : Colors.white.withValues(alpha: 0.15),
+                      ? Colors.white.withValues(alpha: 0.25)
+                      : (isDark
+                            ? Colors.white.withValues(alpha: 0.15)
+                            : const Color(0xFFEEF2F6)),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '$count',
                   style: TextStyle(
-                    color: isSelected ? Colors.black : Colors.white70,
+                    color: isSelected ? Colors.white : const Color(0xFF64748B),
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),

@@ -55,11 +55,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'proteins': '28.0',
       'fats': '14.0',
       'carbo': '18.0',
-      'location': 'Naperville, Illinois',
+      'location': 'Daun Penh, Phnom Penh',
       'description':
           'Indulge in our succulent Golden Spicy Chicken, marinated in chef-special aromatic spices, battered to a crisp golden crunch, and served piping hot with garlic dip.',
       'restaurantId': 101,
-      'restaurantName': 'Naperville Crispy Chicken',
+      'restaurantName': 'Daun Penh Crispy Chicken',
     },
     {
       'id': 102,
@@ -73,11 +73,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'proteins': '22.0',
       'fats': '15.0',
       'carbo': '26.0',
-      'location': 'Naperville, Illinois',
+      'location': 'BKK1, Phnom Penh',
       'description':
           'Signature black charcoal sesame bun burger with juicy prime beef patty filled with melted Wisconsin cheddar, caramelized red onions, and house sauce.',
       'restaurantId': 102,
-      'restaurantName': 'Nagi Burger House',
+      'restaurantName': 'Nagi Burger House BKK1',
     },
     {
       'id': 103,
@@ -91,11 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'proteins': '25.2',
       'fats': '13.8',
       'carbo': '23.7',
-      'location': 'Naperville, Illinois',
+      'location': 'Toul Kork, Phnom Penh',
       'description':
           'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft sesame burger bun with melted cheddar cheese and crispy garden greens.',
       'restaurantId': 103,
-      'restaurantName': 'Naperville Gourmet Burgers',
+      'restaurantName': 'Toul Kork Gourmet Burgers',
     },
     {
       'id': 104,
@@ -109,11 +109,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'proteins': '3.4',
       'fats': '8.2',
       'carbo': '29.1',
-      'location': 'Naperville, Illinois',
+      'location': 'Koh Pich, Phnom Penh',
       'description':
           'Hand-cut russet potatoes fried to golden perfection, tossed with mineral sea salt and rosemary, served with tangy dipping sauces.',
       'restaurantId': 104,
-      'restaurantName': 'Golden Fry Shack',
+      'restaurantName': 'Golden Fry Shack Koh Pich',
     },
   ];
 
@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, dynamic>> _fastDeliveryRestaurants = [
     {
       'id': 101,
-      'name': 'Tealive - Jalan Ampang',
+      'name': 'Tealive - BKK1 Phnom Penh',
       'discount': '5% OFF',
       'rating': 4.6,
       'timeMin': 10,
@@ -164,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
     },
     {
       'id': 102,
-      'name': 'KFC - Jalan Ampang',
+      'name': 'KFC - Norodom Boulevard',
       'discount': '20% OFF',
       'rating': 4.5,
       'timeMin': 15,
@@ -378,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ? '${activeAddress!.street}, ${activeAddress.city}'
         : (activeAddress?.city.isNotEmpty == true
               ? activeAddress!.city
-              : 'Home 12 Jalan Ampang, Kuala L...');
+              : 'Street 240, Daun Penh, Phnom Penh');
 
     return Container(
       decoration: BoxDecoration(
@@ -1181,13 +1181,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '\$${(item['price'] as double).toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '\$${(item['price'] as double).toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            Text(
+                              KhmerCurrency.formatKhr(item['price'] as double),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? Colors.white54
+                                    : const Color(0xFF6B7280),
+                              ),
+                            ),
+                          ],
                         ),
                         AnimatedPressable(
                           pressedScale: 0.88,

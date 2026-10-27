@@ -559,19 +559,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ],
                       ),
                     ),
-                    InkWell(
+                    AnimatedPressable(
+                      pressedScale: 0.92,
                       onTap: _showAddressPickerModal,
-                      borderRadius: BorderRadius.circular(8),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
+                          horizontal: 12,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
                           color: GlassTheme.primaryGreen.withValues(
-                            alpha: 0.15,
+                            alpha: 0.18,
                           ),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.35,
+                            ),
+                            width: 1.2,
+                          ),
                         ),
                         child: const Text(
                           'Change',
@@ -683,9 +689,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 12),
 
               // Option 1: Auto-assign fastest driver
-              GestureDetector(
+              AnimatedPressable(
+                pressedScale: 0.98,
                 onTap: () => setState(() => _selectedDriverId = null),
                 child: GlassCard(
+                  border: Border.all(
+                    color: _selectedDriverId == null
+                        ? GlassTheme.primaryGreen
+                        : Colors.white.withValues(alpha: 0.14),
+                    width: _selectedDriverId == null ? 1.6 : 1.2,
+                  ),
                   padding: const EdgeInsets.all(14),
                   child: Row(
                     children: [
@@ -805,9 +818,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 10.0),
-                    child: GestureDetector(
+                    child: AnimatedPressable(
+                      pressedScale: 0.98,
                       onTap: () => setState(() => _selectedDriverId = driverId),
                       child: GlassCard(
+                        border: Border.all(
+                          color: isSelected
+                              ? GlassTheme.primaryGreen
+                              : Colors.white.withValues(alpha: 0.14),
+                          width: isSelected ? 1.6 : 1.2,
+                        ),
                         padding: const EdgeInsets.all(14),
                         child: Row(
                           children: [
@@ -1305,6 +1325,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             child: GlassButton(
                               text: buttonText,
                               icon: buttonIcon,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.4),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: GlassTheme.primaryGreen.withValues(
+                                    alpha: 0.35,
+                                  ),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                               onPressed: _isProcessing
                                   ? () {}
                                   : () => _handlePlaceOrder(cart, total),
@@ -1374,9 +1407,16 @@ class _PaymentOptionTile extends StatelessWidget {
       button: true,
       selected: isSelected,
       label: '$title, $subtitle',
-      child: GestureDetector(
+      child: AnimatedPressable(
+        pressedScale: 0.97,
         onTap: onTap,
         child: GlassCard(
+          border: Border.all(
+            color: isSelected
+                ? GlassTheme.primaryGreen
+                : Colors.white.withValues(alpha: 0.14),
+            width: isSelected ? 1.6 : 1.2,
+          ),
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [

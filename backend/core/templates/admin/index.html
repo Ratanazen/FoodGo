@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --green:  #35B86B;
+    --green:  #2A52BE;
     --orange: #FF6F00;
     --red:    #E53935;
     --blue:   #1E88E5;
@@ -19,8 +19,8 @@
 
   .dash-container {
     width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
     padding: 0 4px;
     box-sizing: border-box;
   }
@@ -128,7 +128,7 @@
   .stat-label { font-size: 12px; opacity: .88; margin-top: 3px; font-weight: 500; }
   .stat-sub   { font-size: 10px; opacity: .75; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  .card-green  { background: linear-gradient(135deg, #35B86B, #289A57); }
+  .card-green  { background: linear-gradient(135deg, #2A52BE, #1D3FA4); }
   .card-orange { background: linear-gradient(135deg, #FF8F00, #E65100); }
   .card-blue   { background: linear-gradient(135deg, #1E88E5, #1565C0); }
   .card-red    { background: linear-gradient(135deg, #E53935, #B71C1C); }
@@ -143,12 +143,64 @@
     margin-bottom: 20px;
   }
   .chart-card {
-    background: var(--body-bg, #fff);
-    border: 1px solid rgba(0,0,0,0.08);
+    background: var(--bs-card-bg, #ffffff);
+    color: var(--bs-body-color, #1a202c);
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.08));
     border-radius: 14px;
     padding: 20px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.04);
     box-sizing: border-box;
+    transition: background-color .2s ease, border-color .2s ease;
+  }
+
+  /* Support Jazzmin / Bootstrap 5 Dark Theme */
+  [data-bs-theme="dark"] .chart-card,
+  body.dark-mode .chart-card {
+    background: #1e1e2d !important;
+    color: #f1f1f5 !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+  }
+  [data-bs-theme="dark"] .section-heading,
+  body.dark-mode .section-heading {
+    color: #f8fafc;
+  }
+  [data-bs-theme="dark"] .dash-table th,
+  body.dark-mode .dash-table th {
+    color: #94a3b8 !important;
+    border-bottom: 2px solid rgba(255,255,255,0.08) !important;
+  }
+  [data-bs-theme="dark"] .dash-table td,
+  body.dark-mode .dash-table td {
+    color: #e2e8f0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  }
+  [data-bs-theme="dark"] .dash-table tr:hover td,
+  body.dark-mode .dash-table tr:hover td {
+    background: rgba(255,255,255,0.03);
+  }
+  [data-bs-theme="dark"] .chart-sub,
+  body.dark-mode .chart-sub {
+    color: #94a3b8 !important;
+  }
+  [data-bs-theme="dark"] .dash-table tr:last-child td,
+  body.dark-mode .dash-table tr:last-child td {
+    border-bottom: none !important;
+  }
+
+  /* Light Theme */
+  [data-bs-theme="light"] .chart-card {
+    background: #ffffff;
+    color: #1a202c;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  [data-bs-theme="light"] .dash-table th {
+    color: #64748b;
+    border-bottom: 2px solid rgba(0,0,0,0.06);
+  }
+  [data-bs-theme="light"] .dash-table td {
+    color: #1e293b;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
   }
   .chart-title {
     font-size: 15px;
@@ -732,6 +784,11 @@
 </div>
 
 <script>
+// Dynamic color theme detection for Chart.js
+const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark' || document.body.classList.contains('dark-mode');
+const chartTextColor = isDarkMode ? '#cbd5e1' : '#64748b';
+const chartGridColor = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
+
 // Responsive Orders bar chart
 const ordersCtx = document.getElementById('ordersChart').getContext('2d');
 new Chart(ordersCtx, {
@@ -741,8 +798,8 @@ new Chart(ordersCtx, {
     datasets: [{
       label: 'Orders',
       data: {{ chart_data|safe }},
-      backgroundColor: 'rgba(53,184,107,0.75)',
-      borderColor: '#35B86B',
+      backgroundColor: 'rgba(42,82,190,0.85)',
+      borderColor: '#2A52BE',
       borderWidth: 2,
       borderRadius: 6,
       borderSkipped: false,
@@ -751,10 +808,26 @@ new Chart(ordersCtx, {
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: isDarkMode ? '#1e293b' : '#334155',
+        titleColor: '#ffffff',
+        bodyColor: '#f8fafc',
+        padding: 10,
+        cornerRadius: 8
+      }
+    },
     scales: {
-      y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
-      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1, font: { size: 11 }, color: chartTextColor },
+        grid: { color: chartGridColor }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 11 }, color: chartTextColor }
+      }
     }
   }
 });
@@ -767,7 +840,7 @@ new Chart(statusCtx, {
     labels: ['Delivered', 'Pending', 'Preparing', 'On the Way', 'Cancelled'],
     datasets: [{
       data: {{ status_data|safe }},
-      backgroundColor: ['#35B86B','#FF8F00','#1E88E5','#8E24AA','#E53935'],
+      backgroundColor: ['#2A52BE','#FF8F00','#1E88E5','#8E24AA','#E53935'],
       borderWidth: 0,
       hoverOffset: 6,
     }]
@@ -779,7 +852,14 @@ new Chart(statusCtx, {
     plugins: {
       legend: {
         position: 'bottom',
-        labels: { padding: 10, font: { size: 11 }, boxWidth: 12 }
+        labels: { padding: 10, font: { size: 11 }, boxWidth: 12, color: chartTextColor }
+      },
+      tooltip: {
+        backgroundColor: isDarkMode ? '#1e293b' : '#334155',
+        titleColor: '#ffffff',
+        bodyColor: '#f8fafc',
+        padding: 10,
+        cornerRadius: 8
       }
     }
   }

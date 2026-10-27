@@ -365,6 +365,50 @@ class FoodGoCoreAPITests(TestCase):
         self.assertIsNotNone(notif)
         self.assertIn('Confirmed', notif.title)
 
+    def test_order_save_automated_milestone_dispatch(self):
+        # 1. Order.objects.create triggers automated milestone notification
+        order = Order.objects.create(
+            customer=self.customer,
+            restaurant=self.restaurant,
+            total_amount=Decimal('28.50'),
+            status='pending'
+        )
+        placed_notif = Notification.objects.filter(
+            user=self.customer,
+            data__order_id=order.id,
+            data__status='pending'
+        ).first()
+        self.assertIsNotNone(placed_notif)
+        self.assertEqual(placed_notif.title, 'Order Placed')
+
+        # 2. Status transition on Order.save triggers next milestone
+        order.status = 'confirmed'
+        order.save()
+        confirmed_notif = Notification.objects.filter(
+            user=self.customer,
+            data__order_id=order.id,
+            data__status='confirmed'
+        ).first()
+        self.assertIsNotNone(confirmed_notif)
+        self.assertEqual(confirmed_notif.title, 'Order Confirmed')
+
+        # 3. Saving without status change does not duplicate
+        initial_count = Notification.objects.filter(user=self.customer, data__order_id=order.id).count()
+        order.special_instructions = 'Extra sauce please'
+        order.save()
+        after_count = Notification.objects.filter(user=self.customer, data__order_id=order.id).count()
+        self.assertEqual(initial_count, after_count)
+
+        # 4. Rapid manual dispatch does not create duplicate
+        from core.notifications import dispatch_order_notification
+        dup_check = dispatch_order_notification(order, status_key='confirmed')
+        self.assertIsNotNone(dup_check)
+        self.assertEqual(
+            Notification.objects.filter(user=self.customer, data__order_id=order.id, data__status='confirmed').count(),
+            1
+        )
+
+
     def test_notification_apis_and_unread_count(self):
         Notification.objects.create(
             user=self.customer,

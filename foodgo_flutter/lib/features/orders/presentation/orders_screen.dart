@@ -404,6 +404,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: GlassCard(
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.16),
+          width: 1.2,
+        ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -628,146 +632,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
               alignment: WrapAlignment.start,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.25),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                  ),
-                  icon: const Icon(
-                    Icons.receipt_long,
-                    size: 16,
-                    color: GlassTheme.primaryGreen,
-                  ),
-                  label: const Text(
-                    'View Bill',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                  onPressed: () => _showOrderBillDialog(order),
-                ),
-                if ((order['payment_status'] as String? ?? 'UNPAID') !=
-                        'PAID' &&
-                    status != 'cancelled') ...[
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlassTheme.primaryGreen,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                    ),
-                    icon: const Icon(Icons.qr_code_2, size: 16),
-                    label: const Text(
-                      'Pay KHQR',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () => _resumeKhqrPayment(order),
-                  ),
-                ],
-                if (_isInProgress(status) ||
-                    status == 'on_delivery' ||
-                    status == 'picked_up' ||
-                    status == 'arrived') ...[
-                  if (status == 'pending' || status == 'confirmed') ...[
-                    OutlinedButton(
+                AnimatedPressable(
+                  pressedScale: 0.94,
+                  onTap: () => _showOrderBillDialog(order),
+                  child: IgnorePointer(
+                    child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
                         side: BorderSide(
-                          color: Colors.redAccent.withValues(alpha: 0.6),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                      ),
-                      onPressed: () => _confirmCancelOrder(order),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: GlassTheme.primaryGreen,
-                      side: const BorderSide(color: GlassTheme.primaryGreen),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                    ),
-                    icon: const Icon(Icons.qr_code_2, size: 16),
-                    label: const Text(
-                      'Delivery QR',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () => DeliveryQrModal.show(
-                      context,
-                      orderId: order['id'].toString(),
-                      isDriver: false,
-                      onDelivered: () => _fetchOrders(),
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.12),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                    ),
-                    icon: const Icon(
-                      Icons.map_outlined,
-                      size: 16,
-                      color: GlassTheme.limeAccent,
-                    ),
-                    label: const Text(
-                      'Track Order',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () => context.push('/map/${order['id']}'),
-                  ),
-                ] else ...[
-                  if (status == 'delivered') ...[
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.amber,
-                        side: BorderSide(
-                          color: Colors.amber.withValues(alpha: 0.6),
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 1.2,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -778,47 +652,240 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                       ),
                       icon: const Icon(
-                        Icons.star,
+                        Icons.receipt_long,
                         size: 16,
-                        color: Colors.amber,
+                        color: GlassTheme.primaryGreen,
                       ),
                       label: const Text(
-                        'Rate',
+                        'View Bill',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      onPressed: () => _showRatingDialog(order),
+                      onPressed: () {},
+                    ),
+                  ),
+                ),
+                if ((order['payment_status'] as String? ?? 'UNPAID') !=
+                        'PAID' &&
+                    status != 'cancelled') ...[
+                  AnimatedPressable(
+                    pressedScale: 0.94,
+                    onTap: () => _resumeKhqrPayment(order),
+                    child: IgnorePointer(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlassTheme.primaryGreen,
+                          foregroundColor: Colors.black,
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                        icon: const Icon(Icons.qr_code_2, size: 16),
+                        label: const Text(
+                          'Pay KHQR',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ),
+                ],
+                if (_isInProgress(status) ||
+                    status == 'on_delivery' ||
+                    status == 'picked_up' ||
+                    status == 'arrived') ...[
+                  if (status == 'pending' || status == 'confirmed') ...[
+                    AnimatedPressable(
+                      pressedScale: 0.94,
+                      onTap: () => _confirmCancelOrder(order),
+                      child: IgnorePointer(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.redAccent,
+                            side: BorderSide(
+                              color: Colors.redAccent.withValues(alpha: 0.6),
+                              width: 1.2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                          ),
+                          onPressed: () {},
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlassTheme.limeAccent,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      elevation: 0,
+                  AnimatedPressable(
+                    pressedScale: 0.94,
+                    onTap: () => DeliveryQrModal.show(
+                      context,
+                      orderId: order['id'].toString(),
+                      isDriver: false,
+                      onDelivered: () => _fetchOrders(),
                     ),
-                    icon: const Icon(
-                      Icons.refresh,
-                      size: 16,
-                      color: Colors.black,
-                    ),
-                    label: const Text(
-                      'Order Again',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
+                    child: IgnorePointer(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: GlassTheme.primaryGreen,
+                          side: const BorderSide(
+                            color: GlassTheme.primaryGreen,
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                        icon: const Icon(Icons.qr_code_2, size: 16),
+                        label: const Text(
+                          'Delivery QR',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {},
                       ),
                     ),
-                    onPressed: () => _reorderItems(order),
+                  ),
+                  AnimatedPressable(
+                    pressedScale: 0.94,
+                    onTap: () => context.push('/map/${order['id']}'),
+                    child: IgnorePointer(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.12),
+                          foregroundColor: Colors.white,
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.map_outlined,
+                          size: 16,
+                          color: GlassTheme.limeAccent,
+                        ),
+                        label: const Text(
+                          'Track Order',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  if (status == 'delivered') ...[
+                    AnimatedPressable(
+                      pressedScale: 0.94,
+                      onTap: () => _showRatingDialog(order),
+                      child: IgnorePointer(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.amber,
+                            side: BorderSide(
+                              color: Colors.amber.withValues(alpha: 0.6),
+                              width: 1.2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.star,
+                            size: 16,
+                            color: Colors.amber,
+                          ),
+                          label: const Text(
+                            'Rate',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () {},
+                        ),
+                      ),
+                    ),
+                  ],
+                  AnimatedPressable(
+                    pressedScale: 0.94,
+                    onTap: () => _reorderItems(order),
+                    child: IgnorePointer(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlassTheme.limeAccent,
+                          foregroundColor: Colors.black,
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(
+                          Icons.refresh,
+                          size: 16,
+                          color: Colors.black,
+                        ),
+                        label: const Text(
+                          'Order Again',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                          ),
+                        ),
+                        onPressed: () {},
+                      ),
+                    ),
                   ),
                 ],
               ],
@@ -1619,12 +1686,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
           final isSelected = _selectedFilter == filter;
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: InkWell(
+            child: AnimatedPressable(
+              pressedScale: 0.94,
               onTap: () {
                 HapticFeedback.lightImpact();
                 setState(() => _selectedFilter = filter);
               },
-              borderRadius: BorderRadius.circular(20),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(
@@ -1638,9 +1705,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? GlassTheme.limeAccent
+                        ? Colors.white.withValues(alpha: 0.4)
                         : Colors.white.withValues(alpha: 0.12),
+                    width: isSelected ? 1.5 : 1.0,
                   ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: GlassTheme.limeAccent.withValues(
+                              alpha: 0.35,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
                 ),
                 child: Text(
                   filter,

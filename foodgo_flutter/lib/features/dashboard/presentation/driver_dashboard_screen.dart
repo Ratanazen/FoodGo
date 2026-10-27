@@ -1945,35 +1945,47 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 children: [
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white60,
-                      side: const BorderSide(color: Colors.white24),
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white38, width: 1.2),
+                      minimumSize: const Size(80, 48),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
-                        vertical: 8,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     onPressed: () => _declineOrder(orderId),
                     child: const Text(
                       'Decline',
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: GlassTheme.primaryGreen,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      minimumSize: const Size(96, 48),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 8,
+                        vertical: 12,
                       ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 2,
                     ),
-                    icon: const Icon(Icons.check, size: 16),
+                    icon: const Icon(Icons.check, size: 18),
                     label: const Text(
                       'Accept',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
                       ),
                     ),
                     onPressed: () => _acceptOrder(orderId),

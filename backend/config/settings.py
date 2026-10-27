@@ -66,6 +66,7 @@ INSTALLED_APPS = [
 ASGI_APPLICATION = 'config.asgi.application'
 
 MIDDLEWARE = [
+    'core.middleware.RequestTimingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -124,6 +125,8 @@ if os.environ.get('DATABASE_URL'):
     from urllib.parse import urlparse
 
     parsed_database_url = urlparse(os.environ['DATABASE_URL'])
+    is_testing = 'test' in sys.argv
+    conn_max_age = 0 if is_testing else int(os.environ.get('CONN_MAX_AGE', '600'))
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': parsed_database_url.path.removeprefix('/'),
@@ -131,8 +134,12 @@ if os.environ.get('DATABASE_URL'):
         'PASSWORD': parsed_database_url.password,
         'HOST': parsed_database_url.hostname,
         'PORT': parsed_database_url.port or 5432,
+        'CONN_MAX_AGE': conn_max_age,
+        'CONN_HEALTH_CHECKS': not is_testing,
     }
 elif os.environ.get('DB_NAME') and os.environ.get('DB_HOST'):
+    is_testing = 'test' in sys.argv
+    conn_max_age = 0 if is_testing else int(os.environ.get('CONN_MAX_AGE', '600'))
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME'),
@@ -140,6 +147,8 @@ elif os.environ.get('DB_NAME') and os.environ.get('DB_HOST'):
         'PASSWORD': os.environ.get('DB_PASS', os.environ.get('DB_PASSWORD', '')),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': int(os.environ.get('DB_PORT', '5432')),
+        'CONN_MAX_AGE': conn_max_age,
+        'CONN_HEALTH_CHECKS': not is_testing,
     }
 
 AUTH_USER_MODEL = 'core.User'
@@ -325,6 +334,36 @@ REST_FRAMEWORK = {
     },
 }
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'core': {
+            'handlers': ['console'],
+            'level': os.environ.get('LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
+
+# MongoDB sync can be disabled for latency-sensitive deployments
+MONGO_SYNC_ENABLED = os.environ.get('MONGO_SYNC_ENABLED', 'true').lower() in ('true', '1', 'yes')
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -347,7 +386,7 @@ JAZZMIN_SETTINGS = {
     "site_icon": None,
     "welcome_sign": "Welcome to FoodGo Admin Console",
     "copyright": "FoodGo Ltd (c) 2026",
-    "search_model": ["core.User", "core.Order", "core.Restaurant", "core.FoodItem"],
+    "search_model": ["core.Order"],
     "user_avatar": None,
 
     ############
@@ -416,14 +455,14 @@ JAZZMIN_SETTINGS = {
     },
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
-    "default_theme_mode": "auto",
+    "default_theme_mode": "dark",
     "related_modal_active": True,
     "custom_css": "core/css/admin_svg.css",
     "custom_js": "core/js/admin_svg.js",
     "use_google_fonts_cdn": True,
 
-    # Enable the UI builder so you can tweak the theme live from the sidebar
-    "show_ui_builder": True,
+    # Disable the live UI builder in production to prevent layout displacement
+    "show_ui_builder": False,
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {
         "auth.user": "collapsible",

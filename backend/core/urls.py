@@ -90,9 +90,13 @@ urlpatterns = [
     # Multi-Currency NBC Exchange Rate Endpoint
     path('currency/rates/', CurrencyRateView.as_view(), name='currency_rates'),
     # Multi-Cloud Uptime & Telemetry Health Checks
+    path('health', HealthCheckView.as_view(), name='api_health_check_no_slash'),
     path('health/', HealthCheckView.as_view(), name='api_health_check'),
+    path('health/mongodb', MongoHealthCheckView.as_view(), name='api_health_mongodb_no_slash'),
     path('health/mongodb/', MongoHealthCheckView.as_view(), name='api_health_mongodb'),
+    path('health/live', HealthLiveView.as_view(), name='api_health_live_no_slash'),
     path('health/live/', HealthLiveView.as_view(), name='api_health_live'),
+    path('health/ready', HealthReadyView.as_view(), name='api_health_ready_no_slash'),
     path('health/ready/', HealthReadyView.as_view(), name='api_health_ready'),
     # MongoDB Atlas Media & Sync Services
     path('media/mongo/upload/', MongoImageUploadView.as_view(), name='mongo_image_upload'),

@@ -8,16 +8,109 @@ class AppTheme {
   static const Color primaryDark = GlassTheme.primaryGreenDark;
   static const Color accentColor = GlassTheme.ratingAmber;
 
-  static ThemeData get lightTheme {
-    final baseTextTheme = ThemeData.light().textTheme;
-    final interTextTheme = GoogleFonts.interTextTheme(baseTextTheme).copyWith(
-      bodyLarge: const TextStyle(color: GlassTheme.textDark),
-      bodyMedium: const TextStyle(color: GlassTheme.textDark),
-      titleLarge: const TextStyle(
-        color: GlassTheme.textDark,
-        fontWeight: FontWeight.bold,
+  // Standard font family fallbacks for Khmer script support
+  static const List<String> khmerFontFallbacks = [
+    'Kantumruy Pro',
+    'Battambang',
+    'Noto Sans Khmer',
+    'sans-serif',
+  ];
+
+  static TextTheme _buildTextTheme(Brightness brightness) {
+    final base = brightness == Brightness.dark
+        ? ThemeData.dark().textTheme
+        : ThemeData.light().textTheme;
+
+    final primaryTextColor = brightness == Brightness.dark
+        ? GlassTheme.textLight
+        : GlassTheme.textDark;
+
+    final secondaryTextColor = brightness == Brightness.dark
+        ? GlassTheme.textMutedLight
+        : GlassTheme.textMuted;
+
+    return GoogleFonts.interTextTheme(base).copyWith(
+      displayLarge: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.8,
+        height: 1.2,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      displayMedium: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.6,
+        height: 1.25,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.4,
+        height: 1.3,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
+        height: 1.35,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      titleSmall: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        height: 1.4,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        height: 1.5,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 13.5,
+        fontWeight: FontWeight.w400,
+        height: 1.5,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        height: 1.45,
+        color: secondaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      labelLarge: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.2,
+        height: 1.2,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      labelSmall: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.4,
+        height: 1.2,
+        color: secondaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
       ),
     );
+  }
+
+  static ThemeData get lightTheme {
+    final textTheme = _buildTextTheme(Brightness.light);
 
     return ThemeData(
       useMaterial3: true,
@@ -36,16 +129,33 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: GlassTheme.textDark,
       ),
-      textTheme: interTextTheme,
+      textTheme: textTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
+          minimumSize: const Size(88, 48),
           shape: RoundedRectangleBorder(
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryColor,
+          minimumSize: const Size(88, 48),
+          side: const BorderSide(color: primaryColor, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: GlassTheme.borderRadiusSmall,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         ),
       ),
       cardTheme: CardThemeData(
@@ -66,7 +176,10 @@ class AppTheme {
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: GlassTheme.surfaceDark,
-        contentTextStyle: TextStyle(color: Colors.white),
+        contentTextStyle: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       dividerTheme: const DividerThemeData(
         color: GlassTheme.borderLight,
@@ -75,6 +188,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: GlassTheme.glassWhite,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 15,
+        ),
         border: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
           borderSide: const BorderSide(color: GlassTheme.borderLight),
@@ -87,20 +204,19 @@ class AppTheme {
           borderRadius: GlassTheme.borderRadiusSmall,
           borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: GlassTheme.borderRadiusSmall,
+          borderSide: const BorderSide(
+            color: GlassTheme.discountRed,
+            width: 1.5,
+          ),
+        ),
       ),
     );
   }
 
   static ThemeData get darkTheme {
-    final baseTextTheme = ThemeData.dark().textTheme;
-    final interTextTheme = GoogleFonts.interTextTheme(baseTextTheme).copyWith(
-      bodyLarge: const TextStyle(color: GlassTheme.textLight),
-      bodyMedium: const TextStyle(color: GlassTheme.textLight),
-      titleLarge: const TextStyle(
-        color: GlassTheme.textLight,
-        fontWeight: FontWeight.bold,
-      ),
-    );
+    final textTheme = _buildTextTheme(Brightness.dark);
 
     return ThemeData(
       useMaterial3: true,
@@ -119,16 +235,36 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
       ),
-      textTheme: interTextTheme,
+      textTheme: textTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
+          minimumSize: const Size(88, 48),
           shape: RoundedRectangleBorder(
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          minimumSize: const Size(88, 48),
+          side: BorderSide(
+            color: Colors.white.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: GlassTheme.borderRadiusSmall,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         ),
       ),
       cardTheme: CardThemeData(
@@ -149,7 +285,10 @@ class AppTheme {
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: GlassTheme.surfaceDark,
-        contentTextStyle: TextStyle(color: Colors.white),
+        contentTextStyle: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       dividerTheme: const DividerThemeData(
         color: GlassTheme.borderDark,
@@ -158,6 +297,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: GlassTheme.glassDark,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 15,
+        ),
         border: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
           borderSide: const BorderSide(color: GlassTheme.borderDark),
@@ -169,6 +312,13 @@ class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
           borderSide: const BorderSide(color: primaryColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: GlassTheme.borderRadiusSmall,
+          borderSide: const BorderSide(
+            color: GlassTheme.discountRed,
+            width: 1.5,
+          ),
         ),
       ),
     );

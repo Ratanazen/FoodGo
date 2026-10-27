@@ -1,4 +1,37 @@
+import time
+import logging
+
 from django.middleware.csrf import get_token
+
+logger = logging.getLogger(__name__)
+
+
+class RequestTimingMiddleware:
+    """
+    Measures request processing time and adds X-Response-Time header (in milliseconds).
+    Logs slow requests (>2s) for performance monitoring and alerting.
+    """
+    SLOW_REQUEST_THRESHOLD_MS = 2000
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        start_time = time.monotonic()
+        response = self.get_response(request)
+        elapsed_ms = (time.monotonic() - start_time) * 1000.0
+
+        response['X-Response-Time'] = f'{elapsed_ms:.0f}ms'
+
+        if elapsed_ms > self.SLOW_REQUEST_THRESHOLD_MS:
+            logger.warning(
+                'Slow request: %s %s took %.0fms (user=%s)',
+                request.method, request.path, elapsed_ms,
+                getattr(request.user, 'username', 'anonymous') if hasattr(request, 'user') else 'unknown'
+            )
+
+        return response
+
 
 class AdminNoCacheMiddleware:
     """

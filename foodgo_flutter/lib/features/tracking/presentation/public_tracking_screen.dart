@@ -82,21 +82,28 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundDark,
+      backgroundColor: isDark
+          ? GlassTheme.backgroundDark
+          : GlassTheme.backgroundLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Live Delivery Tracking',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: isDark ? Colors.white : GlassTheme.textDark,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : GlassTheme.textDark,
+          ),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -121,12 +128,12 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Public Order Tracker',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: isDark ? Colors.white : GlassTheme.textDark,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -134,7 +141,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                         'Enter your FoodGo order reference number to view real-time delivery status.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.65),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.65)
+                              : GlassTheme.textMuted,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -144,7 +153,11 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                             child: TextField(
                               controller: _orderIdController,
                               keyboardType: TextInputType.number,
-                              style: const TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white
+                                    : GlassTheme.textDark,
+                              ),
                               decoration: InputDecoration(
                                 prefixIcon: const Icon(
                                   Icons.search,
@@ -152,14 +165,20 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                                 ),
                                 hintText: 'Enter Order ID (e.g. 101)',
                                 hintStyle: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.4),
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.4)
+                                      : GlassTheme.textMuted,
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.05),
+                                fillColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.black.withValues(alpha: 0.03),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
                                   borderSide: BorderSide(
-                                    color: Colors.white.withValues(alpha: 0.15),
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.15)
+                                        : Colors.black.withValues(alpha: 0.1),
                                   ),
                                 ),
                               ),
@@ -242,13 +261,14 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
 
                 // Tracking Results
                 if (_trackingData != null) ...[
-                  _buildOrderOverviewCard(_trackingData!),
+                  _buildOrderOverviewCard(_trackingData!, isDark),
                   const SizedBox(height: 16),
-                  _buildDeliveryProgressCard(_trackingData!),
+                  _buildDeliveryProgressCard(_trackingData!, isDark),
                   const SizedBox(height: 16),
                   if (_trackingData!['driver'] != null)
                     _buildDriverCard(
                       _trackingData!['driver'] as Map<String, dynamic>,
+                      isDark,
                     ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
@@ -282,7 +302,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
     );
   }
 
-  Widget _buildOrderOverviewCard(Map<String, dynamic> data) {
+  Widget _buildOrderOverviewCard(Map<String, dynamic> data, bool isDark) {
     final status = (data['status'] ?? '').toString();
     final restaurant = data['restaurant_name'] ?? 'Restaurant';
     final address = data['delivery_address'] ?? 'Destination address';
@@ -298,16 +318,16 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
             children: [
               Text(
                 'Order #${data['order_id']}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: isDark ? Colors.white : GlassTheme.textDark,
                 ),
               ),
               _buildStatusBadge(status),
             ],
           ),
-          const Divider(height: 24, color: Colors.white12),
+          Divider(height: 24, color: isDark ? Colors.white12 : Colors.black12),
           Row(
             children: [
               const Icon(
@@ -319,7 +339,10 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
               Expanded(
                 child: Text(
                   'Merchant: $restaurant',
-                  style: const TextStyle(fontSize: 14, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
+                  ),
                 ),
               ),
             ],
@@ -338,7 +361,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                   'Delivery: $address',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.8)
+                        : const Color(0xFF475569),
                   ),
                 ),
               ),
@@ -349,7 +374,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
     );
   }
 
-  Widget _buildDeliveryProgressCard(Map<String, dynamic> data) {
+  Widget _buildDeliveryProgressCard(Map<String, dynamic> data, bool isDark) {
     final status = (data['status'] ?? '').toString().toLowerCase();
 
     final steps = [
@@ -380,12 +405,12 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Delivery Milestones',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: isDark ? Colors.white : GlassTheme.textDark,
             ),
           ),
           const SizedBox(height: 16),
@@ -406,7 +431,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                         shape: BoxShape.circle,
                         color: isDone
                             ? GlassTheme.primaryGreen
-                            : Colors.white.withValues(alpha: 0.2),
+                            : (isDark
+                                  ? Colors.white.withValues(alpha: 0.2)
+                                  : Colors.black.withValues(alpha: 0.12)),
                       ),
                       child: isDone
                           ? const Icon(
@@ -422,7 +449,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                         height: 30,
                         color: index < currentStep
                             ? GlassTheme.primaryGreen
-                            : Colors.white.withValues(alpha: 0.15),
+                            : (isDark
+                                  ? Colors.white.withValues(alpha: 0.15)
+                                  : Colors.black.withValues(alpha: 0.1)),
                       ),
                   ],
                 ),
@@ -436,7 +465,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                       fontWeight: isCurrent
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: isDone ? Colors.white : Colors.white38,
+                      color: isDone
+                          ? (isDark ? Colors.white : GlassTheme.textDark)
+                          : (isDark ? Colors.white38 : Colors.black38),
                     ),
                   ),
                 ),
@@ -448,19 +479,19 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
     );
   }
 
-  Widget _buildDriverCard(Map<String, dynamic> driver) {
+  Widget _buildDriverCard(Map<String, dynamic> driver, bool isDark) {
     return GlassContainer(
       borderRadius: BorderRadius.circular(16),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Assigned Courier Details',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: isDark ? Colors.white : GlassTheme.textDark,
             ),
           ),
           const SizedBox(height: 12),
@@ -481,10 +512,10 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                   children: [
                     Text(
                       driver['name'] ?? 'Driver Partner',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: isDark ? Colors.white : GlassTheme.textDark,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -492,7 +523,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                       '${driver['vehicle_type'] ?? 'Motorcycle'} • ${driver['license_plate'] ?? 'Phnom Penh'}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.6)
+                            : GlassTheme.textMuted,
                       ),
                     ),
                   ],

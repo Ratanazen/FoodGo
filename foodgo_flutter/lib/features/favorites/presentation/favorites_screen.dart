@@ -16,6 +16,7 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final favorites = context.watch<FavoritesProvider>();
     final restaurants = favorites.favoriteRestaurants;
     final foods = favorites.favoriteFoodItems;
@@ -30,21 +31,28 @@ class FavoritesScreen extends StatelessWidget {
           leading: Navigator.of(context).canPop()
               ? Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.15),
+                  child: AnimatedPressable(
+                    pressedScale: 0.9,
+                    onTap: () => context.pop(),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.05),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.black.withValues(alpha: 0.1),
+                        ),
                       ),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 16,
-                        color: Colors.white,
+                      child: Center(
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 16,
+                          color: isDark ? Colors.white : GlassTheme.textDark,
+                        ),
                       ),
-                      onPressed: () => context.pop(),
                     ),
                   ),
                 )
@@ -52,17 +60,23 @@ class FavoritesScreen extends StatelessWidget {
           centerTitle: true,
           title: Text(
             'Favorites (${favorites.totalFavoritesCount})',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 19,
-              color: Colors.white,
+              color: isDark ? Colors.white : GlassTheme.textDark,
             ),
           ),
           bottom: TabBar(
-            indicatorColor: GlassTheme.limeAccent,
+            indicatorColor: isDark
+                ? GlassTheme.limeAccent
+                : GlassTheme.primaryGreen,
             indicatorWeight: 3,
-            labelColor: GlassTheme.limeAccent,
-            unselectedLabelColor: Colors.white60,
+            labelColor: isDark
+                ? GlassTheme.limeAccent
+                : GlassTheme.primaryGreen,
+            unselectedLabelColor: isDark
+                ? Colors.white60
+                : const Color(0xFF64748B),
             labelStyle: const TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 14,
@@ -136,11 +150,26 @@ class FavoritesScreen extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: GlassTheme.surfaceCardDark,
+                            color: isDark
+                                ? GlassTheme.surfaceCardDark
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.black.withValues(alpha: 0.08),
                             ),
+                            boxShadow: isDark
+                                ? null
+                                : [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.04,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                           ),
                           child: Row(
                             children: [
@@ -155,7 +184,9 @@ class FavoritesScreen extends StatelessWidget {
                                         errorWidget: (_, _, _) => Container(
                                           width: 70,
                                           height: 70,
-                                          color: Colors.white10,
+                                          color: isDark
+                                              ? Colors.white10
+                                              : Colors.black12,
                                           child: const Icon(
                                             Icons.fastfood,
                                             color: GlassTheme.textMuted,
@@ -165,7 +196,9 @@ class FavoritesScreen extends StatelessWidget {
                                     : Container(
                                         width: 70,
                                         height: 70,
-                                        color: Colors.white10,
+                                        color: isDark
+                                            ? Colors.white10
+                                            : Colors.black12,
                                         child: const Icon(
                                           Icons.fastfood,
                                           color: GlassTheme.textMuted,
@@ -201,8 +234,10 @@ class FavoritesScreen extends StatelessWidget {
                                     const SizedBox(height: 6),
                                     Text(
                                       '\$${price.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        color: GlassTheme.limeAccentBright,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? GlassTheme.limeAccentBright
+                                            : GlassTheme.primaryGreen,
                                         fontWeight: FontWeight.w900,
                                         fontSize: 15,
                                       ),
@@ -232,7 +267,8 @@ class FavoritesScreen extends StatelessWidget {
                                 },
                               ),
                               const SizedBox(width: 4),
-                              InkWell(
+                              AnimatedPressable(
+                                pressedScale: 0.88,
                                 onTap: () {
                                   HapticFeedback.lightImpact();
                                   final cart = context.read<CartProvider>();
@@ -252,19 +288,26 @@ class FavoritesScreen extends StatelessWidget {
                                       behavior: SnackBarBehavior.floating,
                                       action: SnackBarAction(
                                         label: 'View Cart',
-                                        textColor: GlassTheme.limeAccent,
+                                        textColor: isDark
+                                            ? GlassTheme.limeAccent
+                                            : Colors.white,
                                         onPressed: () => context.push('/cart'),
                                       ),
                                     ),
                                   );
                                 },
-                                borderRadius: BorderRadius.circular(16),
                                 child: Container(
                                   width: 32,
                                   height: 32,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: GlassTheme.limeAccent,
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                      width: 1.0,
+                                    ),
                                   ),
                                   child: const Icon(
                                     Icons.add,

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../widgets/glass_container.dart';
+import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
@@ -39,6 +40,10 @@ class ProfileScreen extends StatelessWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
+              side: BorderSide(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 1.2,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -328,11 +333,15 @@ class ProfileScreen extends StatelessWidget {
                     GlassContainer(
                       padding: const EdgeInsets.all(24),
                       borderRadius: BorderRadius.circular(32),
+                      customBorder: Border.all(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        width: 1.2,
+                      ),
                       child: Column(
                         children: [
-                          InkWell(
+                          AnimatedPressable(
+                            pressedScale: 0.93,
                             onTap: () => context.push('/edit-profile'),
-                            borderRadius: BorderRadius.circular(45),
                             child: Stack(
                               children: [
                                 Container(
@@ -514,17 +523,17 @@ class ProfileScreen extends StatelessWidget {
                                   ),
                                 )
                               else
-                                InkWell(
+                                AnimatedPressable(
+                                  pressedScale: 0.92,
                                   onTap: () => PhoneVerificationModal.show(
                                     context,
                                     initialPhone: phone,
                                     purpose: 'customer_verification',
                                   ),
-                                  borderRadius: BorderRadius.circular(6),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
+                                      horizontal: 8,
+                                      vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
                                       color: Colors.amber.withValues(
@@ -533,8 +542,9 @@ class ProfileScreen extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
                                         color: Colors.amber.withValues(
-                                          alpha: 0.3,
+                                          alpha: 0.5,
                                         ),
+                                        width: 1.2,
                                       ),
                                     ),
                                     child: const Row(
@@ -600,9 +610,9 @@ class ProfileScreen extends StatelessWidget {
                           Row(
                             children: [
                               Expanded(
-                                child: InkWell(
+                                child: AnimatedPressable(
+                                  pressedScale: 0.94,
                                   onTap: () => context.push('/addresses'),
-                                  borderRadius: BorderRadius.circular(16),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
@@ -614,8 +624,9 @@ class ProfileScreen extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
                                         color: Colors.white.withValues(
-                                          alpha: 0.08,
+                                          alpha: 0.16,
                                         ),
+                                        width: 1.2,
                                       ),
                                     ),
                                     child: const Column(
@@ -641,9 +652,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: InkWell(
+                                child: AnimatedPressable(
+                                  pressedScale: 0.94,
                                   onTap: () => context.push('/orders'),
-                                  borderRadius: BorderRadius.circular(16),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
@@ -655,8 +666,9 @@ class ProfileScreen extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
                                         color: Colors.white.withValues(
-                                          alpha: 0.08,
+                                          alpha: 0.16,
                                         ),
+                                        width: 1.2,
                                       ),
                                     ),
                                     child: const Column(
@@ -1184,15 +1196,18 @@ class _ProfileOption extends StatelessWidget {
     final effectiveColor = iconColor ?? GlassTheme.limeAccent;
     return Padding(
           padding: const EdgeInsets.only(bottom: 10.0),
-          child: InkWell(
+          child: AnimatedPressable(
+            pressedScale: 0.97,
             onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  width: 1.2,
+                ),
               ),
               child: Row(
                 children: [
@@ -1202,6 +1217,10 @@ class _ProfileOption extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: effectiveColor.withValues(alpha: 0.15),
+                      border: Border.all(
+                        color: effectiveColor.withValues(alpha: 0.3),
+                        width: 1.0,
+                      ),
                     ),
                     child: Icon(icon, color: effectiveColor, size: 20),
                   ),

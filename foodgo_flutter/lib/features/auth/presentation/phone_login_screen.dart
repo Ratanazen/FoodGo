@@ -138,7 +138,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                               height: 80,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: const Color(0xFF13231B),
+                                color: GlassTheme.midnightSmalt,
                                 border: Border.all(
                                   color: GlassTheme.primaryGreen.withValues(
                                     alpha: 0.55,
@@ -263,14 +263,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                   ),
                                 ),
                               ),
-                              InkWell(
+                              AnimatedPressable(
+                                pressedScale: 0.92,
                                 onTap: () {
                                   setState(() {
                                     _otpSent = false;
                                     _otpController.clear();
                                   });
                                 },
-                                borderRadius: BorderRadius.circular(6),
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
                                     horizontal: 6,
@@ -310,19 +310,32 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            TextButton.icon(
-                              onPressed: _isLoading ? null : _sendOTP,
-                              icon: const Icon(
-                                Icons.refresh_rounded,
-                                size: 15,
-                                color: GlassTheme.primaryGreen,
-                              ),
-                              label: const Text(
-                                'Resend SMS',
-                                style: TextStyle(
-                                  color: GlassTheme.primaryGreen,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
+                            AnimatedPressable(
+                              pressedScale: 0.94,
+                              onTap: _isLoading ? null : _sendOTP,
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.refresh_rounded,
+                                      size: 15,
+                                      color: GlassTheme.primaryGreen,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Resend SMS',
+                                      style: TextStyle(
+                                        color: GlassTheme.primaryGreen,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

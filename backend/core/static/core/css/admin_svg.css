@@ -443,3 +443,56 @@ body.popup #jazzy-navbar {
     display: none !important;
 }
 
+/* ==========================================================================
+   UI BUILDER SUPPRESSION & FULL-WIDTH DASHBOARD LAYOUT
+   ========================================================================== */
+
+/* Completely hide Jazzmin UI Customizer drawer if rendered or cached */
+.control-sidebar,
+.control-sidebar-dark,
+.ui-customiser,
+aside.control-sidebar,
+#codeBox,
+[data-widget="control-sidebar"],
+.nav-link[data-widget="control-sidebar"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+/* Main app layout: ensure smooth full width */
+.app-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    background-color: var(--bs-body-bg, #0f172a);
+}
+
+.app-main {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+.app-content {
+    padding: 16px 20px;
+}
+
+/* Top Navbar Search Form polish */
+#jazzy-navbar .form-control-navbar {
+    border-radius: 8px 0 0 8px;
+    font-size: 13px;
+    min-width: 160px;
+    max-width: 260px;
+}
+
+#jazzy-navbar .btn-navbar {
+    border-radius: 0 8px 8px 0;
+}
+
+

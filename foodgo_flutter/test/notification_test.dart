@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:foodgo_flutter/providers/notification_provider.dart';
 import 'package:foodgo_flutter/features/profile/presentation/notifications_screen.dart';
+import 'package:foodgo_flutter/widgets/glass/glass_widgets.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -130,5 +131,81 @@ void main() {
       await tester.tap(find.text('Promos'));
       await tester.pumpAndSettle();
     });
+
+    testWidgets(
+      'Tapping Clear All button displays theme-adaptive dialog with buttons',
+      (tester) async {
+        await tester.pumpWidget(
+          ChangeNotifierProvider<NotificationProvider>(
+            create: (_) => NotificationProvider(),
+            child: const MaterialApp(home: NotificationsScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(Icons.delete_sweep_outlined));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Clear All Notifications?'), findsOneWidget);
+        expect(find.text('Cancel'), findsOneWidget);
+        expect(find.text('Clear All'), findsWidgets);
+      },
+    );
+  });
+
+  group('GlassButton & GlassTextField Mobile Flow Ergonomics', () {
+    testWidgets(
+      'GlassButton renders with mobile touch target height and variants',
+      (tester) async {
+        bool tapped = false;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: GlassButton(
+                  text: 'Order Now',
+                  variant: GlassButtonVariant.accent,
+                  isFullWidth: true,
+                  onPressed: () => tapped = true,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Order Now'), findsOneWidget);
+        final size = tester.getSize(find.byType(GlassButton));
+        expect(size.height, greaterThanOrEqualTo(48.0));
+
+        await tester.tap(find.text('Order Now'));
+        await tester.pumpAndSettle();
+        expect(tapped, true);
+      },
+    );
+
+    testWidgets(
+      'GlassTextField renders with ergonomic form styling and controller binding',
+      (tester) async {
+        final controller = TextEditingController(text: 'Great food!');
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: GlassTextField(
+                  controller: controller,
+                  hintText: 'Feedback',
+                  prefixIcon: Icons.feedback_outlined,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Great food!'), findsOneWidget);
+        expect(find.byIcon(Icons.feedback_outlined), findsOneWidget);
+      },
+    );
   });
 }

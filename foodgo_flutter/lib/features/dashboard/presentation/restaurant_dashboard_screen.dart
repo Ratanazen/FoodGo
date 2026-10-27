@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/glass_theme.dart';
 import 'package:provider/provider.dart';
+import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -105,10 +106,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
     final shouldReject = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2C),
+        backgroundColor: GlassTheme.dialogDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+        ),
         title: const Text(
           'Reject Order',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -118,13 +123,20 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
               'Please provide a rejection reason (prepaid orders are automatically refunded):',
               style: TextStyle(color: Colors.white70, fontSize: 13),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             TextField(
               controller: reasonController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'e.g., Kitchen at full capacity',
+                hintStyle: TextStyle(color: GlassTheme.textMuted),
                 filled: true,
-                fillColor: Colors.black26,
+                fillColor: Colors.white.withValues(alpha: 0.06),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                ),
               ),
               style: const TextStyle(color: Colors.white),
             ),
@@ -139,11 +151,20 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
             ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              minimumSize: const Size(130, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text(
               'Reject & Refund',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -838,9 +859,17 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            'Total: \$${order['total_amount']} • Status: ${order['payment_status'] ?? 'UNPAID'}',
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          Builder(
+            builder: (context) {
+              final double amount =
+                  double.tryParse(order['total_amount']?.toString() ?? '0') ??
+                  0.0;
+              final khr = KhmerCurrency.formatKhr(amount);
+              return Text(
+                'Total: \$${order['total_amount']} ($khr) • Status: ${order['payment_status'] ?? 'UNPAID'}',
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              );
+            },
           ),
           if (order['delivery_address_snapshot'] != null &&
               order['delivery_address_snapshot'].toString().isNotEmpty) ...[

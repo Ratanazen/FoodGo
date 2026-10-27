@@ -101,7 +101,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     return Scaffold(
       backgroundColor: GlassTheme.backgroundDark,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A3A2A),
+        backgroundColor: GlassTheme.surfaceDark,
         surfaceTintColor: Colors.transparent,
         shape: Border(
           bottom: BorderSide(
@@ -1640,7 +1640,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                   value: isActive,
                                   activeThumbColor: GlassTheme.limeAccent,
                                   onChanged: (_) {
-                                    admin.toggleUserStatus(user['id']);
+                                    if (isActive) {
+                                      _confirmToggleUser(context, user, admin);
+                                    } else {
+                                      admin.toggleUserStatus(user['id']);
+                                    }
                                   },
                                 ),
                               ],
@@ -1685,6 +1689,58 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  void _confirmToggleUser(
+    BuildContext context,
+    Map<String, dynamic> user,
+    AdminProvider admin,
+  ) {
+    final username = user['username'] ?? 'this user';
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: GlassTheme.heroDarkCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
+            SizedBox(width: 8),
+            Text(
+              'Deactivate Account',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to deactivate $username? They will immediately lose access to place or fulfill orders.',
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white60),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              admin.toggleUserStatus(user['id']);
+            },
+            child: const Text('Deactivate'),
+          ),
+        ],
       ),
     );
   }

@@ -57,12 +57,15 @@ class GlassCard extends StatelessWidget {
   }
 }
 
+enum GlassButtonVariant { primary, accent, secondary, frosted, danger }
+
 class GlassButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final IconData? icon;
   final Widget? trailingIcon;
   final Color? color;
+  final Color? textColor;
   final Gradient? gradient;
   final Border? border;
   final BorderRadius? borderRadius;
@@ -70,6 +73,11 @@ class GlassButton extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final List<BoxShadow>? boxShadow;
   final bool isLoading;
+  final double? width;
+  final double? height;
+  final bool isFullWidth;
+  final GlassButtonVariant variant;
+  final double? fontSize;
 
   const GlassButton({
     super.key,
@@ -78,6 +86,7 @@ class GlassButton extends StatelessWidget {
     this.icon,
     this.trailingIcon,
     this.color,
+    this.textColor,
     this.gradient,
     this.border,
     this.borderRadius,
@@ -85,77 +94,161 @@ class GlassButton extends StatelessWidget {
     this.padding,
     this.boxShadow,
     this.isLoading = false,
+    this.width,
+    this.height,
+    this.isFullWidth = false,
+    this.variant = GlassButtonVariant.primary,
+    this.fontSize,
   });
 
   @override
   Widget build(BuildContext context) {
     final isEnabled = onPressed != null && !isLoading;
-    final baseColor = color ?? GlassTheme.primaryGreen.withValues(alpha: 0.85);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Resolve color and styling by variant
+    Color baseColor;
+    Color defaultTextColor;
+    Border? defaultBorder;
+    List<BoxShadow>? defaultShadow;
+
+    switch (variant) {
+      case GlassButtonVariant.accent:
+        baseColor = color ?? GlassTheme.limeAccent;
+        defaultTextColor = textColor ?? const Color(0xFF17201B);
+        defaultBorder =
+            border ??
+            Border.all(
+              color: const Color(
+                0xFFD7FB00,
+              ).withValues(alpha: isEnabled ? 0.6 : 0.2),
+              width: 1.2,
+            );
+        defaultShadow =
+            boxShadow ??
+            [
+              BoxShadow(
+                color: GlassTheme.limeAccent.withValues(alpha: 0.25),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ];
+        break;
+      case GlassButtonVariant.secondary:
+      case GlassButtonVariant.frosted:
+        baseColor =
+            color ??
+            (isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.05));
+        defaultTextColor =
+            textColor ?? (isDark ? Colors.white : GlassTheme.textDark);
+        defaultBorder =
+            border ??
+            Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.18)
+                  : Colors.black.withValues(alpha: 0.12),
+              width: 1.2,
+            );
+        defaultShadow = boxShadow ?? [];
+        break;
+      case GlassButtonVariant.danger:
+        baseColor = color ?? const Color(0xFFE53935);
+        defaultTextColor = textColor ?? Colors.white;
+        defaultBorder =
+            border ??
+            Border.all(
+              color: Colors.white.withValues(alpha: isEnabled ? 0.3 : 0.12),
+              width: 1.2,
+            );
+        defaultShadow =
+            boxShadow ??
+            [
+              BoxShadow(
+                color: const Color(0xFFE53935).withValues(alpha: 0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ];
+        break;
+      case GlassButtonVariant.primary:
+        baseColor = color ?? GlassTheme.royalSmalt;
+        defaultTextColor = textColor ?? Colors.white;
+        defaultBorder =
+            border ??
+            Border.all(
+              color: Colors.white.withValues(alpha: isEnabled ? 0.28 : 0.12),
+              width: 1.2,
+            );
+        defaultShadow =
+            boxShadow ??
+            [
+              BoxShadow(
+                color: baseColor.withValues(alpha: 0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ];
+        break;
+    }
+
     final effectiveColor = isEnabled
         ? baseColor
         : baseColor.withValues(alpha: 0.4);
+    final effectiveTextColor = isEnabled
+        ? defaultTextColor
+        : defaultTextColor.withValues(alpha: 0.5);
 
     final effectiveRadius = borderRadius ?? GlassTheme.borderRadiusSmall;
+    final effectiveHeight = height ?? 52.0;
 
-    return Semantics(
-      button: true,
-      enabled: isEnabled,
-      label: text,
-      child: AnimatedPressable(
-        onTap: isEnabled ? onPressed : null,
-        pressedScale: 0.96,
-        child: Container(
-          margin: margin,
-          child: Material(
-            color: Colors.transparent,
+    Widget buttonContent = AnimatedPressable(
+      onTap: isEnabled ? onPressed : null,
+      pressedScale: 0.96,
+      child: Container(
+        margin: margin,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: effectiveRadius,
+          child: InkWell(
+            onTap: isEnabled ? onPressed : null,
             borderRadius: effectiveRadius,
-            child: InkWell(
-              onTap: isEnabled ? onPressed : null,
+            splashColor: Colors.white.withValues(alpha: 0.15),
+            highlightColor: Colors.white.withValues(alpha: 0.08),
+            child: GlassContainer(
               borderRadius: effectiveRadius,
-              splashColor: Colors.white.withValues(alpha: 0.15),
-              highlightColor: Colors.white.withValues(alpha: 0.08),
-              child: GlassContainer(
-                borderRadius: effectiveRadius,
-                customColor: effectiveColor,
-                customGradient: gradient,
-                customBorder:
-                    border ??
-                    Border.all(
-                      color: Colors.white.withValues(
-                        alpha: isEnabled ? 0.28 : 0.12,
-                      ),
-                      width: 1.2,
-                    ),
-                customShadow:
-                    boxShadow ??
-                    [
-                      BoxShadow(
-                        color: effectiveColor.withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                padding:
-                    padding ??
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              customColor: effectiveColor,
+              customGradient: gradient,
+              customBorder: defaultBorder,
+              customShadow: defaultShadow,
+              padding:
+                  padding ??
+                  const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: effectiveHeight - (padding != null ? 0 : 28),
+                ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize: isFullWidth || width != null
+                      ? MainAxisSize.max
+                      : MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (isLoading) ...[
-                      const SizedBox(
+                      SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+                            effectiveTextColor,
                           ),
                         ),
                       ),
                       const SizedBox(width: 10),
                     ] else if (icon != null) ...[
-                      Icon(icon, color: Colors.white, size: 20),
+                      Icon(icon, color: effectiveTextColor, size: 20),
                       const SizedBox(width: 8),
                     ],
                     Flexible(
@@ -164,9 +257,9 @@ class GlassButton extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: TextStyle(
-                          color: isEnabled ? Colors.white : Colors.white60,
+                          color: effectiveTextColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: fontSize ?? 15,
                           letterSpacing: 0.2,
                         ),
                       ),
@@ -182,6 +275,20 @@ class GlassButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    if (isFullWidth || width != null) {
+      buttonContent = SizedBox(
+        width: width ?? double.infinity,
+        child: buttonContent,
+      );
+    }
+
+    return Semantics(
+      button: true,
+      enabled: isEnabled,
+      label: text,
+      child: buttonContent,
     );
   }
 }

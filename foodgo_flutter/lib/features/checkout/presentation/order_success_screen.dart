@@ -17,6 +17,7 @@ class OrderSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectiveOrderId =
         orderId ?? context.read<CartProvider>().lastOrderId;
     final String displayOrderNum = effectiveOrderId != null
@@ -70,14 +71,19 @@ class OrderSuccessScreen extends StatelessWidget {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          SvgAssetIcon(assetName: 'delivery_bike', size: 20),
-                          SizedBox(width: 8),
+                        children: [
+                          const SvgAssetIcon(
+                            assetName: 'delivery_bike',
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
                           Text(
                             'Estimated delivery · Phnom Penh',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white70,
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF475569),
                             ),
                           ),
                         ],
@@ -110,16 +116,37 @@ class OrderSuccessScreen extends StatelessWidget {
                   ),
                 ).animate().fade(delay: 700.ms),
                 const SizedBox(height: 16),
-                TextButton.icon(
-                  onPressed: () => context.go('/home'),
-                  icon: const Icon(
-                    Icons.home_outlined,
-                    size: 18,
-                    color: Colors.white70,
-                  ),
-                  label: const Text(
-                    'Back to Home',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                AnimatedPressable(
+                  pressedScale: 0.94,
+                  onTap: () => context.go('/home'),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.home_outlined,
+                          size: 18,
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF475569),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Back to Home',
+                          style: TextStyle(
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF475569),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ).animate().fade(delay: 800.ms),
               ],

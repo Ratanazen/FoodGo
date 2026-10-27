@@ -155,7 +155,13 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._initial_status = getattr(self, 'status', 'pending')
+
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        status_changed = not is_new and hasattr(self, '_initial_status') and self._initial_status != self.status
         if not self.order_reference:
             import secrets
             from django.utils import timezone
@@ -163,6 +169,15 @@ class Order(models.Model):
             rand_hex = secrets.token_hex(3).upper()
             self.order_reference = f"FG-{date_str}-{rand_hex}"
         super().save(*args, **kwargs)
+
+        if is_new or status_changed:
+            if getattr(self, '_notification_dispatched_for_status', None) != self.status:
+                try:
+                    from .notifications import dispatch_order_notification
+                    dispatch_order_notification(self, status_key=self.status)
+                except Exception:
+                    pass
+            self._initial_status = self.status
 
     def __str__(self):
         ref = self.order_reference or f"#{self.id}"

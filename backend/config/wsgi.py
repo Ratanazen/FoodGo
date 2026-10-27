@@ -25,7 +25,9 @@ application = get_wsgi_application()
 app = application
 
 # Vercel serverless cold-start initialization
-if 'VERCEL' in os.environ:
+# Gated behind AUTO_MIGRATE to avoid 5-15s cold start penalty.
+# Migrations should be run during deployment (start.sh / deploy hook), not on every cold start.
+if 'VERCEL' in os.environ and os.environ.get('AUTO_MIGRATE', 'false').lower() in ('true', '1', 'yes'):
     try:
         from django.core.management import call_command
         from django.db import connection

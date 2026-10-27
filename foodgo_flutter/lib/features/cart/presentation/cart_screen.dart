@@ -59,6 +59,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildFreeDeliveryBar(CartProvider cart) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const threshold = 20.0;
     final isFree = cart.deliveryFee <= 0 || cart.totalAmount >= threshold;
     final remaining = (threshold - cart.totalAmount).clamp(0.0, threshold);
@@ -71,13 +72,17 @@ class _CartScreenState extends State<CartScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isFree
-            ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
-            : Colors.white.withValues(alpha: 0.05),
+            ? GlassTheme.primaryGreen.withValues(alpha: isDark ? 0.15 : 0.08)
+            : (isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.03)),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isFree
-              ? GlassTheme.primaryGreen.withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.1),
+              ? GlassTheme.primaryGreen.withValues(alpha: isDark ? 0.4 : 0.3)
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.08)),
         ),
       ),
       child: Column(
@@ -87,7 +92,9 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               Icon(
                 isFree ? Icons.check_circle : Icons.delivery_dining,
-                color: isFree ? GlassTheme.primaryGreen : Colors.amberAccent,
+                color: isFree
+                    ? GlassTheme.primaryGreen
+                    : (isDark ? Colors.amberAccent : Colors.amber.shade800),
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -99,7 +106,9 @@ class _CartScreenState extends State<CartScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isFree ? GlassTheme.primaryGreen : Colors.white,
+                    color: isFree
+                        ? GlassTheme.primaryGreen
+                        : (isDark ? Colors.white : GlassTheme.textDark),
                   ),
                 ),
               ),
@@ -110,9 +119,13 @@ class _CartScreenState extends State<CartScreen> {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              backgroundColor: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.08),
               valueColor: AlwaysStoppedAnimation<Color>(
-                isFree ? GlassTheme.primaryGreen : Colors.amberAccent,
+                isFree
+                    ? GlassTheme.primaryGreen
+                    : (isDark ? Colors.amberAccent : Colors.amber.shade700),
               ),
               minHeight: 6,
             ),
@@ -123,6 +136,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCartItemCard(CartProvider cart, CartItem item, int index) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Dismissible(
@@ -220,24 +234,46 @@ class _CartScreenState extends State<CartScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '\$${item.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: GlassTheme.limeAccentBright,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                      ),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          '\$${item.price.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: isDark
+                                ? GlassTheme.limeAccentBright
+                                : GlassTheme.primaryGreen,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
+                        ),
+                        Text(
+                          KhmerCurrency.formatKhr(item.price),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? Colors.white54
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.black.withValues(alpha: 0.08),
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
@@ -255,16 +291,20 @@ class _CartScreenState extends State<CartScreen> {
                         height: 28,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.12),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : Colors.black.withValues(alpha: 0.06),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.2)
+                                : Colors.black.withValues(alpha: 0.12),
                             width: 1.0,
                           ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.remove,
                           size: 16,
-                          color: Colors.white,
+                          color: isDark ? Colors.white : GlassTheme.textDark,
                         ),
                       ),
                     ),
@@ -272,10 +312,10 @@ class _CartScreenState extends State<CartScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
                       child: Text(
                         '${item.quantity}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                          color: isDark ? Colors.white : GlassTheme.textDark,
                         ),
                       ),
                     ),
@@ -360,15 +400,19 @@ class _CartScreenState extends State<CartScreen> {
                   height: 36,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.04),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.06),
                     ),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.delete_outline,
                     size: 18,
-                    color: Colors.white60,
+                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
                   ),
                 ),
               ),
@@ -384,6 +428,7 @@ class _CartScreenState extends State<CartScreen> {
     CartProvider cart, {
     bool isDesktop = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasDiscount = cart.discountAmount > 0;
     final promoCode = cart.appliedPromoCode;
 
@@ -411,9 +456,15 @@ class _CartScreenState extends State<CartScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : Colors.black.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.06),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,11 +493,13 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         InkWell(
                           onTap: () => cart.removePromoCode(),
-                          child: const Padding(
-                            padding: EdgeInsets.all(4.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
                             child: Icon(
                               Icons.close,
-                              color: Colors.white60,
+                              color: isDark
+                                  ? Colors.white60
+                                  : const Color(0xFF64748B),
                               size: 18,
                             ),
                           ),
@@ -466,9 +519,11 @@ class _CartScreenState extends State<CartScreen> {
                           child: TextField(
                             controller: _voucherController,
                             textCapitalization: TextCapitalization.characters,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: Colors.white,
+                              color: isDark
+                                  ? Colors.white
+                                  : GlassTheme.textDark,
                               fontWeight: FontWeight.bold,
                             ),
                             decoration: InputDecoration(
@@ -608,12 +663,12 @@ class _CartScreenState extends State<CartScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Total',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                   ),
                 ),
                 Column(
@@ -621,10 +676,12 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Text(
                       '\$${cart.grandTotal.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
-                        color: GlassTheme.limeAccentBright,
+                        color: isDark
+                            ? GlassTheme.limeAccentBright
+                            : GlassTheme.primaryGreen,
                       ),
                     ),
                     Text(
@@ -632,7 +689,9 @@ class _CartScreenState extends State<CartScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.7)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -696,6 +755,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildPromoChip(String label, String code, CartProvider cart) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedPressable(
       pressedScale: 0.93,
       onTap: () {
@@ -705,17 +765,21 @@ class _CartScreenState extends State<CartScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.14),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.14)
+                : Colors.black.withValues(alpha: 0.1),
             width: 1.0,
           ),
         ),
         child: Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
+          style: TextStyle(
+            color: isDark ? Colors.white70 : const Color(0xFF64748B),
             fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
@@ -726,6 +790,7 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer<CartProvider>(
       builder: (context, cart, child) {
         return Scaffold(
@@ -741,18 +806,22 @@ class _CartScreenState extends State<CartScreen> {
                       onTap: () => context.pop(),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.05),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.18),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.18)
+                                : Colors.black.withValues(alpha: 0.1),
                             width: 1.0,
                           ),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Icon(
                             Icons.arrow_back_ios_new,
                             size: 16,
-                            color: Colors.white,
+                            color: isDark ? Colors.white : GlassTheme.textDark,
                           ),
                         ),
                       ),
@@ -760,12 +829,12 @@ class _CartScreenState extends State<CartScreen> {
                   )
                 : null,
             centerTitle: true,
-            title: const Text(
+            title: Text(
               'Your Cart',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 20,
-                color: Colors.white,
+                color: isDark ? Colors.white : GlassTheme.textDark,
               ),
             ),
             actions: [
@@ -815,18 +884,24 @@ class _CartScreenState extends State<CartScreen> {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.05),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.18),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.18)
+                              : Colors.black.withValues(alpha: 0.1),
                           width: 1.0,
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.delete_outline,
                           size: 18,
-                          color: Colors.white70,
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ),

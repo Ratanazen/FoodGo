@@ -88,21 +88,28 @@ class _SupportScreenState extends State<SupportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundDark,
+      backgroundColor: isDark
+          ? GlassTheme.backgroundDark
+          : GlassTheme.backgroundLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Help & Support',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: isDark ? Colors.white : GlassTheme.textDark,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : GlassTheme.textDark,
+          ),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -127,12 +134,12 @@ class _SupportScreenState extends State<SupportScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'FoodGo Customer Support Center',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: isDark ? Colors.white : GlassTheme.textDark,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -140,7 +147,9 @@ class _SupportScreenState extends State<SupportScreen> {
                         'Assisting customers, drivers, and restaurant partners across Phnom Penh and provincial hubs.',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : GlassTheme.textMuted,
                         ),
                       ),
                     ],
@@ -149,12 +158,12 @@ class _SupportScreenState extends State<SupportScreen> {
                 const SizedBox(height: 24),
 
                 // Fast Contact Channels
-                const Text(
+                Text(
                   'Contact Channels',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -166,6 +175,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         title: 'Phone Hotline',
                         detail: '+855 23 999 888',
                         subtitle: 'Mon-Sun, 7:00 AM - 11:00 PM',
+                        isDark: isDark,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -175,6 +185,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         title: 'Telegram Support',
                         detail: '@foodgo_kh_support',
                         subtitle: 'Instant messaging support',
+                        isDark: isDark,
                       ),
                     ),
                   ],
@@ -188,6 +199,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         title: 'Email Inquiries',
                         detail: 'support@foodgo.kh',
                         subtitle: 'Replies within 2 hours',
+                        isDark: isDark,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -197,6 +209,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         title: 'Head Office',
                         detail: 'BKK1, Phnom Penh',
                         subtitle: '#240 St 63, Boeung Keng Kang 1',
+                        isDark: isDark,
                       ),
                     ),
                   ],
@@ -204,12 +217,12 @@ class _SupportScreenState extends State<SupportScreen> {
                 const SizedBox(height: 32),
 
                 // FAQ Section
-                const Text(
+                Text(
                   'Frequently Asked Questions',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -217,22 +230,28 @@ class _SupportScreenState extends State<SupportScreen> {
                   (faq) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Material(
-                      color: Colors.white.withValues(alpha: 0.04),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.04)
+                          : Colors.black.withValues(alpha: 0.03),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06),
                         ),
                       ),
                       child: ExpansionTile(
                         iconColor: GlassTheme.primaryGreen,
-                        collapsedIconColor: Colors.white70,
+                        collapsedIconColor: isDark
+                            ? Colors.white70
+                            : const Color(0xFF64748B),
                         title: Text(
                           faq['question']!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: isDark ? Colors.white : GlassTheme.textDark,
                           ),
                         ),
                         children: [
@@ -247,7 +266,9 @@ class _SupportScreenState extends State<SupportScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 height: 1.5,
-                                color: Colors.white.withValues(alpha: 0.75),
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.75)
+                                    : const Color(0xFF475569),
                               ),
                             ),
                           ),
@@ -259,12 +280,12 @@ class _SupportScreenState extends State<SupportScreen> {
                 const SizedBox(height: 32),
 
                 // Inquiry Form
-                const Text(
+                Text(
                   'Send an Inquiry',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : GlassTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -276,15 +297,23 @@ class _SupportScreenState extends State<SupportScreen> {
                     children: [
                       DropdownButtonFormField<String>(
                         initialValue: _selectedCategory,
-                        dropdownColor: GlassTheme.dropdownDark,
-                        style: const TextStyle(color: Colors.white),
+                        dropdownColor: isDark
+                            ? GlassTheme.dropdownDark
+                            : Colors.white,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : GlassTheme.textDark,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Inquiry Category',
                           labelStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.6)
+                                : GlassTheme.textMuted,
                           ),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.04),
+                          fillColor: isDark
+                              ? Colors.white.withValues(alpha: 0.04)
+                              : Colors.black.withValues(alpha: 0.03),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -320,14 +349,20 @@ class _SupportScreenState extends State<SupportScreen> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _nameController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : GlassTheme.textDark,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Your Name',
                           labelStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.6)
+                                : GlassTheme.textMuted,
                           ),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.04),
+                          fillColor: isDark
+                              ? Colors.white.withValues(alpha: 0.04)
+                              : Colors.black.withValues(alpha: 0.03),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -336,14 +371,20 @@ class _SupportScreenState extends State<SupportScreen> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _contactController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : GlassTheme.textDark,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Phone (+855...) or Email',
                           labelStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.6)
+                                : GlassTheme.textMuted,
                           ),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.04),
+                          fillColor: isDark
+                              ? Colors.white.withValues(alpha: 0.04)
+                              : Colors.black.withValues(alpha: 0.03),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -353,14 +394,20 @@ class _SupportScreenState extends State<SupportScreen> {
                       TextField(
                         controller: _messageController,
                         maxLines: 4,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : GlassTheme.textDark,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'How can we help you?',
                           labelStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.6)
+                                : GlassTheme.textMuted,
                           ),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.04),
+                          fillColor: isDark
+                              ? Colors.white.withValues(alpha: 0.04)
+                              : Colors.black.withValues(alpha: 0.03),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -413,13 +460,20 @@ class _SupportScreenState extends State<SupportScreen> {
     required String title,
     required String detail,
     required String subtitle,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.04)
+            : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.06),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,10 +484,10 @@ class _SupportScreenState extends State<SupportScreen> {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: isDark ? Colors.white : GlassTheme.textDark,
                 ),
               ),
             ],
@@ -444,7 +498,7 @@ class _SupportScreenState extends State<SupportScreen> {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: GlassTheme.primaryGreenAccent,
+              color: GlassTheme.primaryGreen,
             ),
           ),
           const SizedBox(height: 4),
@@ -452,7 +506,9 @@ class _SupportScreenState extends State<SupportScreen> {
             subtitle,
             style: TextStyle(
               fontSize: 11,
-              color: Colors.white.withValues(alpha: 0.5),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.5)
+                  : GlassTheme.textMuted,
             ),
           ),
         ],

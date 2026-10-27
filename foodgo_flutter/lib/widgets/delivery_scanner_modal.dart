@@ -931,16 +931,16 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
       decoration: BoxDecoration(
         border: Border(
           top: isTop
-              ? const BorderSide(color: GlassTheme.primaryGreen, width: 3)
+              ? BorderSide(color: GlassTheme.primaryGreen, width: 3)
               : BorderSide.none,
           bottom: !isTop
-              ? const BorderSide(color: GlassTheme.primaryGreen, width: 3)
+              ? BorderSide(color: GlassTheme.primaryGreen, width: 3)
               : BorderSide.none,
           left: isLeft
-              ? const BorderSide(color: GlassTheme.primaryGreen, width: 3)
+              ? BorderSide(color: GlassTheme.primaryGreen, width: 3)
               : BorderSide.none,
           right: !isLeft
-              ? const BorderSide(color: GlassTheme.primaryGreen, width: 3)
+              ? BorderSide(color: GlassTheme.primaryGreen, width: 3)
               : BorderSide.none,
         ),
       ),

@@ -1260,7 +1260,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: GlassTheme.primaryGreen,
-                        side: const BorderSide(color: GlassTheme.primaryGreen),
+                        side: BorderSide(color: GlassTheme.primaryGreen),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -1856,7 +1856,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.store, color: GlassTheme.primaryGreen, size: 16),
+              Icon(Icons.store, color: GlassTheme.primaryGreen, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(

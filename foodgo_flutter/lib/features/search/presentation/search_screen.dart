@@ -1170,7 +1170,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: GlassContainer(
                 borderRadius: BorderRadius.circular(20),
                 padding: const EdgeInsets.all(8),
-                child: const Icon(Icons.add, color: GlassTheme.primaryGreen),
+                child: Icon(Icons.add, color: GlassTheme.primaryGreen),
               ),
             ),
           ],
@@ -1227,7 +1227,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: GlassTheme.primaryGreen,
-                        side: const BorderSide(color: GlassTheme.primaryGreen),
+                        side: BorderSide(color: GlassTheme.primaryGreen),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),

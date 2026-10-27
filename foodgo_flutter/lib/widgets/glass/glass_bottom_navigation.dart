@@ -191,8 +191,8 @@ class _PillNavItemState extends State<_PillNavItem>
 
     final activePillGradient = LinearGradient(
       colors: isDark
-          ? const [GlassTheme.royalSmalt, GlassTheme.deepSmalt]
-          : const [GlassTheme.royalSmalt, GlassTheme.cobaltSmalt],
+          ? [GlassTheme.primaryGreen, GlassTheme.primaryGreenDark]
+          : [GlassTheme.primaryGreen, GlassTheme.primaryGreenDark],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );

@@ -1106,8 +1106,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       return Scaffold(
         appBar: const GlassAppBar(title: 'Scan to Pay'),
         body: Container(
-          decoration: const BoxDecoration(color: GlassTheme.backgroundDark),
-          child: const Center(
+          decoration: BoxDecoration(color: GlassTheme.backgroundDark),
+          child: Center(
             child: CircularProgressIndicator(color: GlassTheme.primaryGreen),
           ),
         ),
@@ -1118,7 +1118,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       return Scaffold(
         appBar: const GlassAppBar(title: 'Scan to Pay'),
         body: Container(
-          decoration: const BoxDecoration(color: GlassTheme.backgroundDark),
+          decoration: BoxDecoration(color: GlassTheme.backgroundDark),
           padding: const EdgeInsets.all(24),
           child: Center(
             child: Column(
@@ -1193,7 +1193,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(color: GlassTheme.backgroundDark),
+        decoration: BoxDecoration(color: GlassTheme.backgroundDark),
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(

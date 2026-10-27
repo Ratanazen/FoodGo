@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_palette.dart';
 
 class GlassTheme {
   // 21 Smalt Blue Palette Tokens (from reference media_1792722551337.png)
@@ -26,12 +27,28 @@ class GlassTheme {
   static const Color smaltShadow = Color(0xFF202E5F);
   static const Color midnightSmalt = Color(0xFF1A2653);
 
-  // App Backgrounds (Smalt Blue Dark Theme)
+  // Active dynamic color palette (managed by ThemeProvider)
+  static PaletteData _activePalette = PaletteData.orangeCoral;
+
+  static PaletteData get activePalette => _activePalette;
+
+  static void setActivePalette(AppColorPalette palette) {
+    _activePalette = PaletteData.fromId(palette);
+  }
+
+  /// Context-aware palette helper for dynamic components
+  static Color dynamicPrimary(BuildContext context) =>
+      Theme.of(context).colorScheme.primary;
+
+  static Color dynamicBackground(BuildContext context) =>
+      Theme.of(context).scaffoldBackgroundColor;
+
+  // App Backgrounds (Smalt Blue Dark Theme baseline)
   static const Color backgroundLight = Color(0xFFF4F6FC);
   static const Color backgroundDark = Color(0xFF0C1220);
   static const Color outerBackground = Color(0xFF080C16);
 
-  // Brand Smalt Blue (Rebound across all 500+ widget references seamlessly)
+  // Brand Smalt Blue baseline tokens (constant for const widget trees)
   static const Color primarySmalt = royalSmalt; // 0xFF2A52BE
   static const Color primaryGreen = royalSmalt; // 0xFF2A52BE
   static const Color primaryGreenDark = cobaltSmalt; // 0xFF0047AB
@@ -73,7 +90,7 @@ class GlassTheme {
   static const Color ratingAmber = Color(0xFFFFB800);
   static const Color discountRed = Color(0xFFE53935);
 
-  // Surfaces, Cards & Sheets (Smalt Dark Surface Architecture)
+  // Surfaces, Cards & Sheets (Smalt Dark Surface Architecture baseline)
   static const Color surfaceDark = midnightSmalt; // 0xFF1A2653
   static const Color surfaceCardDark = smaltShadow; // 0xFF202E5F
   static const Color cardDark = inkSmalt; // 0xFF1F2847
@@ -149,6 +166,8 @@ class GlassTheme {
     ],
     stops: [0.0, 0.4, 0.7, 1.0],
   );
+
+  static Color get auraColor => _activePalette.auraColor;
 
   static const LinearGradient liquidGlassBorderLight = LinearGradient(
     begin: Alignment.topLeft,

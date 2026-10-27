@@ -271,7 +271,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Navigator.pop(ctx);
                     context.push('/addresses');
                   },
-                  icon: const Icon(Icons.add, color: GlassTheme.primaryGreen),
+                  icon: Icon(Icons.add, color: GlassTheme.primaryGreen),
                   label: const Text(
                     'Manage & Add Addresses',
                     style: TextStyle(color: Colors.white),

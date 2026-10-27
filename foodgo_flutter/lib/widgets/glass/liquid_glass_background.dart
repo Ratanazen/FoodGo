@@ -46,56 +46,56 @@ class _LiquidOrbsPainter extends CustomPainter {
     final rect = Offset.zero & size;
 
     if (isDark) {
-      // Top-Right Ambient Orb: Deep Smalt Glow
+      // Top-Right Ambient Orb: Primary Dark Glow
       final topGlow = Paint()
         ..shader = RadialGradient(
           center: const Alignment(0.85, -0.75),
           radius: 1.1,
           colors: [
-            GlassTheme.deepSmalt.withValues(alpha: 0.38),
-            GlassTheme.midnightSmalt.withValues(alpha: 0.18),
+            GlassTheme.primaryGreenDark.withValues(alpha: 0.38),
+            GlassTheme.surfaceDark.withValues(alpha: 0.18),
             Colors.transparent,
           ],
           stops: const [0.0, 0.45, 1.0],
         ).createShader(rect);
       canvas.drawRect(rect, topGlow);
 
-      // Mid-Left Ambient Orb: Royal Smalt Liquid Accent
+      // Mid-Left Ambient Orb: Primary Liquid Accent
       final midGlow = Paint()
         ..shader = RadialGradient(
           center: const Alignment(-0.95, 0.15),
           radius: 0.95,
           colors: [
-            GlassTheme.royalSmalt.withValues(alpha: 0.22),
-            GlassTheme.stormySmalt.withValues(alpha: 0.10),
+            GlassTheme.primaryGreen.withValues(alpha: 0.22),
+            GlassTheme.primaryGreenAccent.withValues(alpha: 0.10),
             Colors.transparent,
           ],
           stops: const [0.0, 0.4, 1.0],
         ).createShader(rect);
       canvas.drawRect(rect, midGlow);
 
-      // Bottom-Right Ambient Orb: Twilight Smalt Depth
+      // Bottom-Right Ambient Orb: Surface Depth
       final bottomGlow = Paint()
         ..shader = RadialGradient(
           center: const Alignment(0.65, 0.95),
           radius: 1.0,
           colors: [
-            GlassTheme.twilightSmalt.withValues(alpha: 0.32),
-            GlassTheme.smaltShadow.withValues(alpha: 0.12),
+            GlassTheme.primaryGreenDark.withValues(alpha: 0.32),
+            GlassTheme.surfaceDark.withValues(alpha: 0.12),
             Colors.transparent,
           ],
           stops: const [0.0, 0.5, 1.0],
         ).createShader(rect);
       canvas.drawRect(rect, bottomGlow);
     } else {
-      // Light Mode: Luminous Frosted Smalt Diffusions
+      // Light Mode: Luminous Frosted Diffusions
       final topGlow = Paint()
         ..shader = RadialGradient(
           center: const Alignment(0.8, -0.8),
           radius: 1.0,
           colors: [
-            GlassTheme.paleSmalt.withValues(alpha: 0.45),
-            GlassTheme.smaltTint.withValues(alpha: 0.15),
+            GlassTheme.primaryGreenAccent.withValues(alpha: 0.35),
+            GlassTheme.primaryGreen.withValues(alpha: 0.10),
             Colors.transparent,
           ],
           stops: const [0.0, 0.45, 1.0],
@@ -107,7 +107,7 @@ class _LiquidOrbsPainter extends CustomPainter {
           center: const Alignment(-0.85, 0.25),
           radius: 0.9,
           colors: [
-            GlassTheme.smaltBlueMist.withValues(alpha: 0.30),
+            GlassTheme.primaryGreenAccent.withValues(alpha: 0.20),
             Colors.transparent,
           ],
           stops: const [0.0, 0.6],

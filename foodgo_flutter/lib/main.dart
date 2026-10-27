@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'app/router/app_router.dart';
 import 'app/theme/app_theme.dart';
 import 'core/config/app_config.dart';
-import 'core/theme/glass_theme.dart';
 import 'providers/address_provider.dart';
 import 'providers/admin_provider.dart';
 import 'providers/auth_provider.dart';
@@ -62,19 +61,19 @@ class FoodGoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
+        final palette = themeProvider.paletteData;
+        final isDark = themeProvider.isDarkMode;
+
         return MaterialApp.router(
           title: 'FoodGo',
           debugShowCheckedModeBanner: false,
           themeMode: themeProvider.themeMode,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
+          theme: AppTheme.getLightTheme(themeProvider.currentPalette),
+          darkTheme: AppTheme.getDarkTheme(themeProvider.currentPalette),
           routerConfig: appRouter,
           builder: (context, child) {
-            final isDark = themeProvider.isDarkMode;
             return Container(
-              color: isDark
-                  ? GlassTheme.backgroundDark
-                  : const Color(0xFFF8F9FA),
+              color: isDark ? palette.backgroundDark : palette.backgroundLight,
               child: ConnectivityBanner(child: child!),
             );
           },

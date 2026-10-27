@@ -631,10 +631,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(color: GlassTheme.backgroundDark),
+        decoration: BoxDecoration(color: GlassTheme.backgroundDark),
         child: SafeArea(
           child: _isLoading
-              ? const Center(
+              ? Center(
                   child: CircularProgressIndicator(
                     color: GlassTheme.primaryGreen,
                   ),
@@ -1338,12 +1338,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                           ),
                         ),
                       ),
-                      errorWidget: (context, url, error) => const Icon(
-                        Icons.fastfood,
-                        color: GlassTheme.primaryGreen,
-                      ),
+                      errorWidget: (context, url, error) =>
+                          Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
                     )
-                  : const Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
+                  : Icon(Icons.fastfood, color: GlassTheme.primaryGreen),
             ),
           ),
           const SizedBox(width: 12),

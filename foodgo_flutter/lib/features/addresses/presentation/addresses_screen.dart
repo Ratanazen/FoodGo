@@ -444,7 +444,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, color: GlassTheme.primaryGreen),
+            icon: Icon(Icons.add, color: GlassTheme.primaryGreen),
             tooltip: 'Add Address',
             onPressed: () => _showAddAddressSheet(context),
           ),

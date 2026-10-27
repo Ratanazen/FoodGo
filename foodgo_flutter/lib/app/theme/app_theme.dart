@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/theme/app_palette.dart';
 import '../../core/theme/glass_theme.dart';
 
 class AppTheme {
-  static const Color primaryColor = GlassTheme.primaryGreen;
-  static const Color primaryDark = GlassTheme.primaryGreenDark;
+  static Color get primaryColor => GlassTheme.primaryGreen;
+  static Color get primaryDark => GlassTheme.primaryGreenDark;
   static const Color accentColor = GlassTheme.ratingAmber;
 
   // Standard font family fallbacks for Khmer script support
@@ -109,20 +110,27 @@ class AppTheme {
     );
   }
 
-  static ThemeData get lightTheme {
+  static ThemeData get lightTheme => getLightTheme();
+  static ThemeData get darkTheme => getDarkTheme();
+
+  static ThemeData getLightTheme([AppColorPalette? palette]) {
+    final active = palette != null
+        ? PaletteData.fromId(palette)
+        : GlassTheme.activePalette;
+    final primary = active.primary;
     final textTheme = _buildTextTheme(Brightness.light);
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
-        primary: primaryColor,
-        secondary: accentColor,
+        seedColor: primary,
+        primary: primary,
+        secondary: active.secondary,
         error: GlassTheme.discountRed,
         brightness: Brightness.light,
-        surface: GlassTheme.backgroundLight,
+        surface: active.backgroundLight,
       ),
-      scaffoldBackgroundColor: GlassTheme.backgroundLight,
+      scaffoldBackgroundColor: active.backgroundLight,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -132,7 +140,7 @@ class AppTheme {
       textTheme: textTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: primary,
           foregroundColor: Colors.white,
           elevation: 0,
           minimumSize: const Size(88, 48),
@@ -149,9 +157,9 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primaryColor,
+          foregroundColor: primary,
           minimumSize: const Size(88, 48),
-          side: const BorderSide(color: primaryColor, width: 1.5),
+          side: BorderSide(color: primary, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
@@ -173,10 +181,10 @@ class AppTheme {
         backgroundColor: Colors.white,
         modalBackgroundColor: Colors.white,
       ),
-      snackBarTheme: const SnackBarThemeData(
+      snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: GlassTheme.surfaceDark,
-        contentTextStyle: TextStyle(
+        backgroundColor: active.surfaceDark,
+        contentTextStyle: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
@@ -202,7 +210,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
-          borderSide: const BorderSide(color: primaryColor, width: 2),
+          borderSide: BorderSide(color: primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
@@ -215,20 +223,24 @@ class AppTheme {
     );
   }
 
-  static ThemeData get darkTheme {
+  static ThemeData getDarkTheme([AppColorPalette? palette]) {
+    final active = palette != null
+        ? PaletteData.fromId(palette)
+        : GlassTheme.activePalette;
+    final primary = active.primary;
     final textTheme = _buildTextTheme(Brightness.dark);
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
-        primary: primaryColor,
-        secondary: accentColor,
+        seedColor: primary,
+        primary: primary,
+        secondary: active.secondary,
         error: GlassTheme.discountRed,
         brightness: Brightness.dark,
-        surface: GlassTheme.backgroundDark,
+        surface: active.backgroundDark,
       ),
-      scaffoldBackgroundColor: GlassTheme.backgroundDark,
+      scaffoldBackgroundColor: active.backgroundDark,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -238,7 +250,7 @@ class AppTheme {
       textTheme: textTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: primary,
           foregroundColor: Colors.white,
           elevation: 0,
           minimumSize: const Size(88, 48),
@@ -273,27 +285,24 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: GlassTheme.borderRadius),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: GlassTheme.dialogDark,
+        backgroundColor: active.dialogDark,
         shape: RoundedRectangleBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
         ),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: GlassTheme.surfaceDark,
-        modalBackgroundColor: GlassTheme.surfaceDark,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: active.surfaceDark,
+        modalBackgroundColor: active.surfaceDark,
       ),
-      snackBarTheme: const SnackBarThemeData(
+      snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: GlassTheme.surfaceDark,
-        contentTextStyle: TextStyle(
+        backgroundColor: active.surfaceDark,
+        contentTextStyle: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
       ),
-      dividerTheme: const DividerThemeData(
-        color: GlassTheme.borderDark,
-        thickness: 1,
-      ),
+      dividerTheme: DividerThemeData(color: active.borderDark, thickness: 1),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: GlassTheme.glassDark,
@@ -303,15 +312,15 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
-          borderSide: const BorderSide(color: GlassTheme.borderDark),
+          borderSide: BorderSide(color: active.borderDark),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
-          borderSide: const BorderSide(color: GlassTheme.borderDark),
+          borderSide: BorderSide(color: active.borderDark),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,
-          borderSide: const BorderSide(color: primaryColor, width: 2),
+          borderSide: BorderSide(color: primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: GlassTheme.borderRadiusSmall,

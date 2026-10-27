@@ -852,7 +852,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: GlassTheme.primaryGreen),
+          borderSide: BorderSide(color: GlassTheme.primaryGreen),
         ),
       ),
     );

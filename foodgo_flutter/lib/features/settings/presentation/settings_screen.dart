@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../core/theme/app_palette.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -239,6 +240,161 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               }),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showColorPaletteDialog(BuildContext context) {
+    final themeProvider = context.read<ThemeProvider>();
+    final current = themeProvider.currentPalette;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: GlassTheme.dialogDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: themeProvider.paletteData.primary.withValues(
+                  alpha: 0.15,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.palette,
+                color: themeProvider.paletteData.primary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Brand Color Theme',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 360,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: PaletteData.allPalettes.map((palette) {
+              final isSelected = palette.id == current;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: isSelected
+                      ? palette.primary.withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.04),
+                  border: Border.all(
+                    color: isSelected
+                        ? palette.primary
+                        : Colors.white.withValues(alpha: 0.08),
+                    width: isSelected ? 1.5 : 1.0,
+                  ),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 4,
+                  ),
+                  leading: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      gradient: palette.headerGradient,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: palette.primary.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  title: Row(
+                    children: [
+                      Text(
+                        palette.nameEn,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '(${palette.nameKh})',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      palette.descriptionEn,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.55),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: palette.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        )
+                      : Icon(
+                          Icons.circle_outlined,
+                          color: Colors.white.withValues(alpha: 0.3),
+                          size: 20,
+                        ),
+                  onTap: () {
+                    themeProvider.setPalette(palette.id);
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Theme updated to ${palette.nameEn} (${palette.nameKh})',
+                        ),
+                        duration: const Duration(seconds: 2),
+                        backgroundColor: palette.primary,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
+              );
+            }).toList(),
           ),
         ),
       ),
@@ -738,6 +894,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       activeTrackColor: GlassTheme.primaryGreen,
                       onChanged: (_) => themeProvider.toggleTheme(),
                     ),
+                  ),
+                  _Divider(),
+                  _SettingsTile(
+                    icon: Icons.palette_outlined,
+                    iconColor: themeProvider.paletteData.primary,
+                    title: 'Brand Color Theme',
+                    subtitle:
+                        '${themeProvider.paletteData.nameEn} • ${themeProvider.paletteData.nameKh}',
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            gradient: themeProvider.paletteData.headerGradient,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: themeProvider.paletteData.primary
+                                    .withValues(alpha: 0.5),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                    onTap: () => _showColorPaletteDialog(context),
                   ),
                   _Divider(),
                   _SettingsTile(

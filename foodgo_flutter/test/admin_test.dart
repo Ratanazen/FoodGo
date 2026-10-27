@@ -19,7 +19,10 @@ class MockPaymentService extends FlutterPaymentService {
   MockPaymentService({this.shouldThrow = false, this.returnPayment});
 
   @override
-  Future<PaymentModel> getPaymentStatus(int paymentId) async {
+  Future<PaymentModel> getPaymentStatus(
+    int paymentId, {
+    bool simulate = false,
+  }) async {
     if (shouldThrow) {
       throw Exception('Network connection timed out');
     }

@@ -462,4 +462,20 @@ class PaymentWebSocketConsumerTests(TransactionTestCase):
 
         asyncio.run(run_ws_check())
 
+    def test_payment_status_simulation_in_sandbox(self):
+        """Simulate=True on status endpoint marks payment as PAID in sandbox mode."""
+        self.client.force_authenticate(user=self.user)
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+        self.assertEqual(create_res.data['status'], 'PENDING')
+
+        status_url = reverse('payment_status', args=[payment_id])
+        status_res = self.client.post(status_url, {'simulate': True}, format='json')
+        self.assertEqual(status_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(status_res.data['status'], 'PAID')
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, 'PAID')
+        self.assertEqual(self.order.status, 'confirmed')
+
 

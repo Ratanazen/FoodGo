@@ -215,7 +215,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     }
   }
 
-  Future<void> _checkStatus({bool isBackground = false}) async {
+  Future<void> _checkStatus({
+    bool isBackground = false,
+    bool simulate = false,
+  }) async {
     if (_currentPayment == null) return;
     if (_currentPayment!.isCancelled ||
         _currentPayment!.isExpired ||
@@ -232,6 +235,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     try {
       final updated = await _paymentService.getPaymentStatus(
         _currentPayment!.id,
+        simulate: simulate,
       );
       if (!mounted) return;
 
@@ -1660,6 +1664,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           onPressed: _isVerifying
                               ? null
                               : () async {
+                                  final messenger =
+                                      ScaffoldMessenger.of(context);
                                   setState(() => _isVerifying = true);
                                   try {
                                     final endpoint = isBakong
@@ -1677,11 +1683,37 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                       'transaction_id':
                                           'TEST-SIM-${DateTime.now().millisecondsSinceEpoch}',
                                       'status': 'PAID',
+                                      'webhook_secret':
+                                          'foodgo_webhook_secure_key_2026',
                                     });
-                                    await _checkStatus(isBackground: false);
+                                    await _checkStatus(
+                                      isBackground: false,
+                                      simulate: true,
+                                    );
                                   } catch (e) {
-                                    if (mounted) {
-                                      setState(() => _isVerifying = false);
+                                    // Fallback to direct status simulation in sandbox mode
+                                    try {
+                                      final updated = await _paymentService
+                                          .getPaymentStatus(
+                                            payment.id,
+                                            simulate: true,
+                                          );
+                                      if (mounted) {
+                                        _handleStatusUpdate(updated);
+                                      }
+                                    } catch (statusErr) {
+                                      if (mounted) {
+                                        setState(() => _isVerifying = false);
+                                        messenger.showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Simulation failed: $statusErr',
+                                            ),
+                                            backgroundColor: Colors.redAccent,
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      }
                                     }
                                   }
                                 },

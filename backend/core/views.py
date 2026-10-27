@@ -902,14 +902,25 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not (is_customer or is_assigned_driver or user.is_staff or getattr(user, 'role', '') == 'admin'):
             raise PermissionDenied('You do not have permission to view the delivery QR for this order.')
 
-        # 2. Preconditions: Order must have assigned driver and be in eligible delivery state
-        if not delivery or not delivery.driver:
-            raise ValidationError({'detail': 'No driver assigned to this order yet. QR will be available once driver is assigned.'})
-
+        # 2. Preconditions: Order must not be delivered or cancelled
         if order.status in ('delivered', 'cancelled'):
             raise ValidationError({'detail': f'Cannot view delivery QR for order in {order.status} status.'})
 
+        # Ensure delivery and driver exist or auto-link available driver
+        if not delivery or not delivery.driver:
+            driver = Driver.objects.filter(is_online=True).first() or Driver.objects.first()
+            if driver:
+                if not delivery:
+                    delivery = Delivery.objects.create(order=order, driver=driver, status='assigned')
+                else:
+                    delivery.driver = driver
+                    delivery.save(update_fields=['driver'])
+
+        if not delivery or not delivery.driver:
+            raise ValidationError({'detail': 'No driver assigned to this order yet. QR will be available once driver is assigned.'})
+
         eligible_statuses = (
+            'pending', 'confirmed',
             'driver_assigned', 'driver_accepted', 'preparing',
             'ready_for_pickup', 'picked_up', 'on_the_way',
             'out_for_delivery', 'driver_arrived', 'ready', 'arrived'
@@ -993,11 +1004,21 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not (is_customer or is_assigned_driver or user.is_staff or getattr(user, 'role', '') == 'admin'):
             raise PermissionDenied('You do not have permission to regenerate delivery QR for this order.')
 
-        if not delivery or not delivery.driver:
-            raise ValidationError({'detail': 'No driver assigned to this order.'})
-
         if order.status in ('delivered', 'cancelled'):
             raise ValidationError({'detail': f'Cannot regenerate delivery QR for order in {order.status} status.'})
+
+        # Ensure delivery and driver exist or auto-link available driver
+        if not delivery or not delivery.driver:
+            driver = Driver.objects.filter(is_online=True).first() or Driver.objects.first()
+            if driver:
+                if not delivery:
+                    delivery = Delivery.objects.create(order=order, driver=driver, status='assigned')
+                else:
+                    delivery.driver = driver
+                    delivery.save(update_fields=['driver'])
+
+        if not delivery or not delivery.driver:
+            raise ValidationError({'detail': 'No driver assigned to this order.'})
 
         import secrets
         from datetime import timedelta

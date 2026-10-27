@@ -17,6 +17,7 @@ import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/delivery_qr_modal.dart';
 import '../../../core/utils/khmer_currency.dart';
+import '../../payment/models/payment_model.dart';
 import '../../payment/services/payment_service.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -67,11 +68,31 @@ class _OrdersScreenState extends State<OrdersScreen> {
       final orderId = order['id'] is int
           ? order['id'] as int
           : int.parse(order['id'].toString());
+      final payInfo =
+          (order['payment_info'] is Map
+              ? Map<String, dynamic>.from(order['payment_info'] as Map)
+              : null) ??
+          (order['payment'] is Map
+              ? Map<String, dynamic>.from(order['payment'] as Map)
+              : null);
+
+      if (payInfo != null &&
+          payInfo['qr_payload'] != null &&
+          payInfo['qr_payload'].toString().isNotEmpty &&
+          payInfo['status'] == 'PENDING') {
+        payInfo['order_id'] ??= orderId;
+        final payment = PaymentModel.fromJson(payInfo);
+        if (mounted) {
+          context.push('/qr-payment', extra: payment);
+          return;
+        }
+      }
+
       final String provider =
-          (order['payment'] is Map &&
-              order['payment']['provider'] != null &&
-              order['payment']['provider'].toString().isNotEmpty)
-          ? order['payment']['provider'].toString().toUpperCase()
+          (payInfo != null &&
+              payInfo['provider'] != null &&
+              payInfo['provider'].toString().isNotEmpty)
+          ? payInfo['provider'].toString().toUpperCase()
           : 'ABA';
       final payment = await paymentService.createPayment(
         orderId: orderId,

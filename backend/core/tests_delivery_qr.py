@@ -395,6 +395,25 @@ class DeliveryConfirmationQRTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_customer_can_retrieve_delivery_qr_for_pending_order(self):
+        """Customer can retrieve delivery QR even if order is freshly pending or confirmed."""
+        from core.models import Order
+        pending_order = Order.objects.create(
+            customer=self.customer,
+            restaurant=self.restaurant,
+            total_amount=Decimal('10.00'),
+            status='pending',
+            payment_status='PAID'
+        )
+        self.client.force_authenticate(user=self.customer)
+        url = reverse('order-customer-delivery-qr', args=[pending_order.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('token', response.data)
+        self.assertIn('verification_pin', response.data)
+
+
     def test_customer_can_regenerate_expired_delivery_qr(self):
         """Customer can rotate/regenerate delivery QR, invalidating previous token."""
         self.client.force_authenticate(user=self.customer)

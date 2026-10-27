@@ -24,7 +24,10 @@ class MockPaymentService extends FlutterPaymentService {
   }
 
   @override
-  Future<PaymentModel> getPaymentStatus(int paymentId) async {
+  Future<PaymentModel> getPaymentStatus(
+    int paymentId, {
+    bool simulate = false,
+  }) async {
     return statusResponse ??
         PaymentModel(
           id: paymentId,

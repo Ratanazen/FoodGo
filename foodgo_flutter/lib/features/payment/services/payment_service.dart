@@ -28,8 +28,14 @@ class FlutterPaymentService {
     return PaymentModel.fromJson(response);
   }
 
-  Future<PaymentModel> getPaymentStatus(int paymentId) async {
-    final response = await _api.post('payments/$paymentId/status/', {});
+  Future<PaymentModel> getPaymentStatus(
+    int paymentId, {
+    bool simulate = false,
+  }) async {
+    final body = simulate
+        ? {'simulate': true, 'status': 'PAID'}
+        : <String, dynamic>{};
+    final response = await _api.post('payments/$paymentId/status/', body);
     return PaymentModel.fromJson(response);
   }
 

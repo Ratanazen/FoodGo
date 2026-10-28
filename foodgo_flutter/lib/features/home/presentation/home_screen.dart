@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Map<String, dynamic>> _popularMenuItems = [
     {
-      'id': 201,
+      'id': 1,
       'name': 'Garden Fresh Salad',
       'subtitle': 'Crisp greens, avocado & vinaigrette',
       'price': 4.50,
@@ -59,11 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'BKK1, Phnom Penh',
       'description':
           'Crisp romaine lettuce, baby spinach, organic avocado, cherry tomatoes, and cucumber drizzled with extra virgin olive oil vinaigrette.',
-      'restaurantId': 201,
-      'restaurantName': 'Green Vitality Organics BKK1',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 202,
+      'id': 2,
       'name': 'Fresh Fruit Salad',
       'subtitle': 'Melon, kiwi, dragon fruit & berries',
       'price': 5.00,
@@ -77,11 +77,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'Daun Penh, Phnom Penh',
       'description':
           'Freshly chopped organic cantaloupe, kiwi, Cambodian sweet mango, dragon fruit, and blueberries with a honey lime drizzle.',
-      'restaurantId': 202,
-      'restaurantName': 'Fresh Harvest Fruit Bar',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 203,
+      'id': 3,
       'name': 'Tomato Basil Bowl',
       'subtitle': 'Vine-ripened tomatoes & roasted quinoa',
       'price': 4.00,
@@ -95,11 +95,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'Toul Kork, Phnom Penh',
       'description':
           'Warm roasted vine tomatoes blended with fresh basil, topped with toasted pine nuts, organic quinoa, and goat cheese crumbles.',
-      'restaurantId': 203,
-      'restaurantName': 'Botanica Healthy Eats Toul Kork',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 204,
+      'id': 4,
       'name': 'Salmon Avocado Bowl',
       'subtitle': 'Pan-seared Atlantic salmon & edamame',
       'price': 6.50,
@@ -113,11 +113,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'Koh Pich, Phnom Penh',
       'description':
           'Pan-seared Atlantic salmon fillet on a bed of seasoned brown rice, organic avocado slices, edamame, and sesame ginger glaze.',
-      'restaurantId': 204,
-      'restaurantName': 'Ocean Greens Kitchen Koh Pich',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 205,
+      'id': 5,
       'name': 'Organic Oatmeal Bowl',
       'subtitle': 'Rolled oats, almond butter & berries',
       'price': 3.50,
@@ -131,14 +131,14 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'BKK2, Phnom Penh',
       'description':
           'Slow-cooked steel cut rolled oats served with organic almond butter, chia seeds, fresh blueberries, and raw honey.',
-      'restaurantId': 205,
-      'restaurantName': 'Nourish Organic Bowls BKK2',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
   ];
 
   final List<Map<String, dynamic>> _recommendedDishes = [
     {
-      'id': 101,
+      'id': 1,
       'name': 'Garden Fresh Salad',
       'subtitle': 'Crisp romaine, avocado & herbs',
       'price': 4.50,
@@ -152,11 +152,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'BKK1, Phnom Penh',
       'description':
           'Crisp romaine lettuce, baby spinach, organic avocado, cherry tomatoes, and cucumber drizzled with extra virgin olive oil vinaigrette.',
-      'restaurantId': 201,
-      'restaurantName': 'Green Vitality Organics BKK1',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 102,
+      'id': 2,
       'name': 'Fresh Fruit Salad',
       'subtitle': 'Kiwi, dragon fruit, melon & berries',
       'price': 5.00,
@@ -170,11 +170,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'Daun Penh, Phnom Penh',
       'description':
           'Freshly chopped organic cantaloupe, kiwi, Cambodian sweet mango, dragon fruit, and blueberries with a honey lime drizzle.',
-      'restaurantId': 202,
-      'restaurantName': 'Fresh Harvest Fruit Bar',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 103,
+      'id': 3,
       'name': 'Tomato Basil Bowl',
       'subtitle': 'Roasted tomatoes & warm quinoa',
       'price': 4.00,
@@ -188,11 +188,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'Toul Kork, Phnom Penh',
       'description':
           'Warm roasted vine tomatoes blended with fresh basil, topped with toasted pine nuts, organic quinoa, and goat cheese crumbles.',
-      'restaurantId': 203,
-      'restaurantName': 'Botanica Healthy Eats Toul Kork',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 104,
+      'id': 4,
       'name': 'Salmon Avocado Bowl',
       'subtitle': 'Pan-seared Atlantic salmon & rice',
       'price': 6.50,
@@ -206,11 +206,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'Koh Pich, Phnom Penh',
       'description':
           'Pan-seared Atlantic salmon fillet on a bed of seasoned brown rice, organic avocado slices, edamame, and sesame ginger glaze.',
-      'restaurantId': 204,
-      'restaurantName': 'Ocean Greens Kitchen Koh Pich',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 105,
+      'id': 5,
       'name': 'Golden Herb Chicken',
       'subtitle': 'Herb roasted breast & greens',
       'price': 5.50,
@@ -224,11 +224,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'Daun Penh, Phnom Penh',
       'description':
           'Tender pasture-raised chicken breast marinated with rosemary and thyme, oven roasted and served with steamed broccoli and lemon tahini dressing.',
-      'restaurantId': 101,
-      'restaurantName': 'Daun Penh Organic Kitchen',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
     {
-      'id': 106,
+      'id': 6,
       'name': 'Organic Oatmeal Bowl',
       'subtitle': 'Rolled oats, almond butter & berries',
       'price': 3.50,
@@ -242,8 +242,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'location': 'BKK2, Phnom Penh',
       'description':
           'Slow-cooked steel cut rolled oats served with organic almond butter, chia seeds, fresh blueberries, and raw honey.',
-      'restaurantId': 205,
-      'restaurantName': 'Nourish Organic Bowls BKK2',
+      'restaurantId': 1,
+      'restaurantName': 'Glass Burger Organic Greens',
     },
   ];
 

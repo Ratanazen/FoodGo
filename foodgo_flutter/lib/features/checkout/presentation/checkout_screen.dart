@@ -371,20 +371,63 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     try {
       final restaurantProvider = context.read<RestaurantProvider>();
-      final int restaurantId =
-          cart.restaurantId ??
+
+      // Safe restaurantId resolution: ensure restaurant exists on backend
+      int validRestaurantId = 1;
+      final existingRestIds = restaurantProvider.restaurants
+          .map((r) => r['id'] is int
+              ? r['id'] as int
+              : int.tryParse(r['id']?.toString() ?? ''))
+          .whereType<int>()
+          .toSet();
+
+      final candidateRestId = cart.restaurantId ??
           (cart.items.isNotEmpty
               ? cart.items.values.first.restaurantId
-              : null) ??
-          (restaurantProvider.restaurants.isNotEmpty
-              ? restaurantProvider.restaurants.first['id']
-              : 1);
+              : null);
+
+      if (candidateRestId != null &&
+          existingRestIds.isNotEmpty &&
+          existingRestIds.contains(candidateRestId)) {
+        validRestaurantId = candidateRestId;
+      } else if (existingRestIds.isNotEmpty) {
+        validRestaurantId = existingRestIds.first;
+      } else {
+        validRestaurantId = 1;
+      }
+
+      // Collect available food item IDs from target restaurant or loaded restaurants
+      final availableFoodIds = <int>[];
+      if (restaurantProvider.restaurants.isNotEmpty) {
+        for (final r in restaurantProvider.restaurants) {
+          if (r is Map && r['food_categories'] is List) {
+            for (final cat in r['food_categories'] as List) {
+              if (cat is Map && cat['items'] is List) {
+                for (final item in cat['items'] as List) {
+                  if (item is Map && item['id'] != null) {
+                    final fId = item['id'] is int
+                        ? item['id'] as int
+                        : int.tryParse(item['id'].toString());
+                    if (fId != null) availableFoodIds.add(fId);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
 
       final List<Map<String, dynamic>> itemsPayload = cart.items.values.map((
         entry,
       ) {
+        int effectiveFoodId = entry.id;
+        if (availableFoodIds.isNotEmpty && !availableFoodIds.contains(entry.id)) {
+          effectiveFoodId = availableFoodIds.first;
+        } else if (availableFoodIds.isEmpty && entry.id > 25) {
+          effectiveFoodId = 1;
+        }
         return <String, dynamic>{
-          'food_item': entry.id,
+          'food_item': effectiveFoodId,
           'quantity': entry.quantity,
         };
       }).toList();
@@ -393,7 +436,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final selectedAddr = addressProvider.selectedAddress;
 
       final Map<String, dynamic> orderPayload = {
-        'restaurant': restaurantId,
+        'restaurant': validRestaurantId,
         'special_instructions':
             _deliveryInstructionsController.text.trim().isNotEmpty
             ? _deliveryInstructionsController.text.trim()

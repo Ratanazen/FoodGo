@@ -271,7 +271,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: const BorderSide(
-                            color: GlassTheme.authBlue,
+                            color: GlassTheme.primaryGreen,
                             width: 1.5,
                           ),
                         ),
@@ -336,7 +336,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: const BorderSide(
-                            color: GlassTheme.authBlue,
+                            color: GlassTheme.primaryGreen,
                             width: 1.5,
                           ),
                         ),
@@ -421,7 +421,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: const BorderSide(
-                            color: GlassTheme.authBlue,
+                            color: GlassTheme.primaryGreen,
                             width: 1.5,
                           ),
                         ),
@@ -469,7 +469,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             TextSpan(
                               text: 'Terms & Conditions',
                               style: TextStyle(
-                                color: GlassTheme.authBlue,
+                                color: GlassTheme.primaryGreen,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -477,7 +477,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             TextSpan(
                               text: 'Privacy Policy',
                               style: TextStyle(
-                                color: GlassTheme.authBlue,
+                                color: GlassTheme.primaryGreen,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -497,7 +497,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _register,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: GlassTheme.authBlue,
+                            backgroundColor: GlassTheme.primaryGreen,
                             foregroundColor: Colors.white,
                             side: BorderSide(
                               color: Colors.white.withValues(alpha: 0.35),
@@ -507,7 +507,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            shadowColor: GlassTheme.authBlue.withValues(
+                            shadowColor: GlassTheme.primaryGreen.withValues(
                               alpha: 0.4,
                             ),
                           ),
@@ -558,23 +558,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Container(
-                                width: 20,
-                                height: 20,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  'G',
-                                  style: TextStyle(
-                                    color: Color(0xFF4285F4),
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
+                              const GoogleLogo(size: 20),
                               const SizedBox(width: 8),
                               Text(
                                 'Sign up with Google',
@@ -618,7 +602,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: Text(
                               'Sign in',
                               style: TextStyle(
-                                color: GlassTheme.authBlue,
+                                color: GlassTheme.primaryGreen,
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                               ),

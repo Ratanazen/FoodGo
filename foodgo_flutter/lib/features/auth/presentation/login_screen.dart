@@ -158,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.dns, color: GlassTheme.authBlue, size: 20),
+            Icon(Icons.dns, color: GlassTheme.primaryGreen, size: 20),
             SizedBox(width: 8),
             Text(
               'API Server URL',
@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Base URL',
-                labelStyle: const TextStyle(color: GlassTheme.authBlue),
+                labelStyle: const TextStyle(color: GlassTheme.primaryGreen),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -248,7 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: GlassTheme.authBlue,
+              backgroundColor: GlassTheme.primaryGreen,
             ),
             onPressed: () async {
               final newUrl = controller.text;
@@ -261,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Server URL updated successfully!'),
-                  backgroundColor: GlassTheme.authBlue,
+                  backgroundColor: GlassTheme.primaryGreen,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -503,7 +503,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: const BorderSide(
-                              color: GlassTheme.authBlue,
+                              color: GlassTheme.primaryGreen,
                               width: 1.5,
                             ),
                           ),
@@ -603,7 +603,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: const BorderSide(
-                              color: GlassTheme.authBlue,
+                              color: GlassTheme.primaryGreen,
                               width: 1.5,
                             ),
                           ),
@@ -651,7 +651,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       materialTapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
                                       visualDensity: VisualDensity.compact,
-                                      activeColor: GlassTheme.authBlue,
+                                      activeColor: GlassTheme.primaryGreen,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(4),
                                       ),
@@ -691,7 +691,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: const Text(
                               'Forgot password?',
                               style: TextStyle(
-                                color: GlassTheme.authBlue,
+                                color: GlassTheme.primaryGreen,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -711,20 +711,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _login,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: GlassTheme.authBlue,
+                              backgroundColor: GlassTheme.primaryGreen,
                               foregroundColor: Colors.white,
                               side: BorderSide(
                                 color: Colors.white.withValues(alpha: 0.35),
                                 width: 1.2,
                               ),
-                              disabledBackgroundColor: GlassTheme.authBlue
+                              disabledBackgroundColor: GlassTheme.primaryGreen
                                   .withValues(alpha: 0.5),
                               disabledForegroundColor: Colors.white70,
                               elevation: 2,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              shadowColor: GlassTheme.authBlue.withValues(
+                              shadowColor: GlassTheme.primaryGreen.withValues(
                                 alpha: 0.4,
                               ),
                             ),
@@ -819,23 +819,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: const Text(
-                                          'G',
-                                          style: TextStyle(
-                                            color: Color(0xFF4285F4),
-                                            fontWeight: FontWeight.w900,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
+                                      const GoogleLogo(size: 20),
                                       const SizedBox(width: 8),
                                       Text(
                                         'Google',
@@ -888,7 +872,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   icon: const Icon(
                                     Icons.phone_iphone_rounded,
                                     size: 18,
-                                    color: GlassTheme.authBlue,
+                                    color: GlassTheme.primaryGreen,
                                   ),
                                   label: Text(
                                     'Phone OTP',
@@ -934,7 +918,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Text(
                                 'Sign up',
                                 style: TextStyle(
-                                  color: GlassTheme.authBlue,
+                                  color: GlassTheme.primaryGreen,
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                 ),

@@ -13,6 +13,8 @@ import '../../../services/api_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/svg_icon.dart';
+import '../../../widgets/about_foodgo_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -1065,11 +1067,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     children: [
                       _SettingsTile(
+                        leadingWidget: const FoodGoLogo(size: 22),
+                        iconColor: GlassTheme.primaryGreen,
+                        title: 'About FoodGo',
+                        subtitle: 'Overview, capabilities & banking partners',
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => showAboutFoodGoDialog(context),
+                      ),
+                      _Divider(),
+                      _SettingsTile(
                         icon: Icons.info_outline,
                         iconColor: GlassTheme.primaryGreen,
                         title: 'App Version',
                         subtitle: '1.0.0 (Build 12) • Production Ready',
-                        trailing: const SizedBox.shrink(),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => showAboutFoodGoDialog(context),
                       ),
                       _Divider(),
                       _SettingsTile(
@@ -1172,7 +1184,8 @@ class _Divider extends StatelessWidget {
 }
 
 class _SettingsTile extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? leadingWidget;
   final Color iconColor;
   final String title;
   final String? subtitle;
@@ -1180,13 +1193,14 @@ class _SettingsTile extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _SettingsTile({
-    required this.icon,
-    required this.iconColor,
+    this.icon,
+    this.leadingWidget,
+    this.iconColor = GlassTheme.primaryGreen,
     required this.title,
     this.subtitle,
     this.trailing,
     this.onTap,
-  });
+  }) : assert(icon != null || leadingWidget != null, 'Either icon or leadingWidget must be provided');
 
   @override
   Widget build(BuildContext context) {
@@ -1197,11 +1211,17 @@ class _SettingsTile extends StatelessWidget {
         leading: Container(
           width: 36,
           height: 36,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             color: iconColor.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: iconColor, size: 20),
+          child: leadingWidget ??
+              Icon(
+                icon ?? Icons.circle,
+                color: iconColor,
+                size: 20,
+              ),
         ),
         title: Text(
           title,

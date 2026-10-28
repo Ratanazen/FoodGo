@@ -69,4 +69,29 @@ class GoogleLogo extends StatelessWidget {
   }
 }
 
+/// Renders the official FoodGo app icon vector.
+class FoodGoAppIcon extends StatelessWidget {
+  final double size;
+  final double borderRadius;
+
+  const FoodGoAppIcon({
+    super.key,
+    this.size = 64.0,
+    this.borderRadius = 16.0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: SvgPicture.asset(
+        'assets/svg/foodgo_app_icon.svg',
+        width: size,
+        height: size,
+      ),
+    );
+  }
+}
+
+
 

@@ -11,6 +11,8 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../widgets/phone_verification_modal.dart';
+import '../../../widgets/svg_icon.dart';
+import '../../../widgets/about_foodgo_dialog.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -1151,6 +1153,11 @@ class ProfileScreen extends StatelessWidget {
                 );
               },
             ),
+            _ProfileOption(
+              leadingWidget: const FoodGoLogo(size: 22),
+              title: 'About FoodGo',
+              onTap: () => showAboutFoodGoDialog(context),
+            ),
             Consumer<AuthProvider>(
               builder: (context, auth, child) {
                 if (auth.isAuthenticated) {
@@ -1176,6 +1183,29 @@ class ProfileScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
+                  GestureDetector(
+                    onTap: () => showAboutFoodGoDialog(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: GlassTheme.lightGreenSurface,
+                        border: Border.all(
+                          color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const FoodGoLogo(size: 32),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     'FoodGo Enterprise Delivery v1.0.0',
                     style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
@@ -1217,7 +1247,8 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _ProfileOption extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? leadingWidget;
   final String title;
   final VoidCallback onTap;
   final Color? textColor;
@@ -1225,13 +1256,14 @@ class _ProfileOption extends StatelessWidget {
   final Widget? trailing;
 
   const _ProfileOption({
-    required this.icon,
+    this.icon,
+    this.leadingWidget,
     required this.title,
     required this.onTap,
     this.textColor,
     this.iconColor,
     this.trailing,
-  });
+  }) : assert(icon != null || leadingWidget != null, 'Either icon or leadingWidget must be provided');
 
   @override
   Widget build(BuildContext context) {
@@ -1277,19 +1309,21 @@ class _ProfileOption extends StatelessWidget {
                   Container(
                     width: 40,
                     height: 40,
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isDestructive
                           ? const Color(0xFFFEE2E2)
                           : GlassTheme.lightGreenSurface,
                     ),
-                    child: Icon(
-                      icon,
-                      color: isDestructive
-                          ? const Color(0xFFEF4444)
-                          : GlassTheme.primaryGreen,
-                      size: 20,
-                    ),
+                    child: leadingWidget ??
+                        Icon(
+                          icon ?? Icons.circle,
+                          color: isDestructive
+                              ? const Color(0xFFEF4444)
+                              : GlassTheme.primaryGreen,
+                          size: 20,
+                        ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(

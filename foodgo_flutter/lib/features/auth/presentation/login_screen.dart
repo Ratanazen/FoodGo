@@ -285,26 +285,33 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 68,
+            height: 68,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isDark ? const Color(0xFF13231B) : const Color(0xFFE8F7EE),
               border: Border.all(
-                color: GlassTheme.primaryGreen.withValues(alpha: 0.55),
-                width: 2.0,
+                color: GlassTheme.primaryGreen.withValues(alpha: 0.65),
+                width: 2.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: GlassTheme.primaryGreen.withValues(alpha: 0.28),
-                  blurRadius: 18,
+                  color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                  blurRadius: 20,
                   spreadRadius: 2,
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(7),
-            child: const FoodGoLogo(size: 48),
-          ),
+            padding: const EdgeInsets.all(8),
+            child: const FoodGoLogo(size: 50),
+          )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(
+                begin: const Offset(1, 1),
+                end: const Offset(1.05, 1.05),
+                duration: 2200.ms,
+                curve: Curves.easeInOut,
+              ),
           const SizedBox(height: 6),
           RichText(
             text: TextSpan(
@@ -349,109 +356,181 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28.0,
-                  vertical: 6.0,
+      body: Stack(
+        children: [
+          // Ambient soft glowing orbs in the background
+          Positioned(
+            top: -50,
+            right: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    GlassTheme.primaryGreen.withValues(
+                      alpha: isDark ? 0.16 : 0.08,
+                    ),
+                    Colors.transparent,
+                  ],
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // FoodGo Brand Hero Logo Header
-                      _buildBrandHeroLogo(isDark)
-                          .animate()
-                          .fade(duration: 400.ms)
-                          .scale(
-                            begin: const Offset(0.9, 0.9),
-                            end: const Offset(1, 1),
-                            curve: Curves.easeOutBack,
-                          ),
+              ),
+            )
+                .animate()
+                .fade(duration: 700.ms)
+                .scale(
+                  begin: const Offset(0.85, 0.85),
+                  end: const Offset(1, 1),
+                  curve: Curves.easeOutBack,
+                ),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -30,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    GlassTheme.primaryGreenAccent.withValues(
+                      alpha: isDark ? 0.12 : 0.06,
+                    ),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            )
+                .animate()
+                .fade(duration: 700.ms)
+                .scale(
+                  begin: const Offset(0.85, 0.85),
+                  end: const Offset(1, 1),
+                  curve: Curves.easeOutBack,
+                ),
+          ),
 
-                      const SizedBox(height: 10),
+          // Main Form Content
+          SafeArea(
+            child: GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 28.0,
+                      vertical: 6.0,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // FoodGo Brand Hero Logo Header
+                          _buildBrandHeroLogo(isDark)
+                              .animate()
+                              .fade(duration: 450.ms)
+                              .scale(
+                                begin: const Offset(0.88, 0.88),
+                                end: const Offset(1, 1),
+                                curve: Curves.easeOutBack,
+                              ),
 
-                      // Welcome Heading
-                      Text(
-                        'Welcome Back',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: isDark
-                              ? Colors.white
-                              : GlassTheme.authTitleDark,
-                        ),
-                        textAlign: TextAlign.center,
-                      ).animate().fade(delay: 150.ms),
+                          const SizedBox(height: 12),
 
-                      const SizedBox(height: 4),
-
-                      // Supporting Subtitle
-                      Text(
-                        'Sign in with your username or email to continue',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: isDark
-                              ? Colors.grey[400]
-                              : GlassTheme.authSubtitle,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
-                      ).animate().fade(delay: 200.ms),
-
-                      const SizedBox(height: 14),
-
-                      // Error Notification Banner
-                      if (_loginErrorMessage != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.redAccent.withValues(alpha: 0.35),
+                          // Welcome Heading
+                          Text(
+                            'Welcome Back',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? Colors.white
+                                  : GlassTheme.authTitleDark,
                             ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 2),
-                                child: Icon(
-                                  Icons.error_outline_rounded,
-                                  color: Colors.redAccent,
-                                  size: 18,
-                                ),
+                            textAlign: TextAlign.center,
+                          ).animate().fade(delay: 150.ms, duration: 400.ms).slideY(
+                                begin: 0.15,
+                                end: 0,
+                                curve: Curves.easeOutCubic,
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  _loginErrorMessage!,
-                                  style: const TextStyle(
-                                    color: Colors.redAccent,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ).animate().fade(duration: 250.ms).slideY(begin: -0.1),
-                        const SizedBox(height: 16),
-                      ],
 
-                      // Input 1: Username or Email
+                          const SizedBox(height: 4),
+
+                          // Supporting Subtitle
+                          Text(
+                            'Sign in with your username or email to continue',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : GlassTheme.authSubtitle,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            textAlign: TextAlign.center,
+                          ).animate().fade(delay: 200.ms, duration: 400.ms).slideY(
+                                begin: 0.15,
+                                end: 0,
+                                curve: Curves.easeOutCubic,
+                              ),
+
+                          const SizedBox(height: 14),
+
+                          // Error Notification Banner with shake animation
+                          if (_loginErrorMessage != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.redAccent.withValues(alpha: 0.35),
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 2),
+                                    child: Icon(
+                                      Icons.error_outline_rounded,
+                                      color: Colors.redAccent,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      _loginErrorMessage!,
+                                      style: const TextStyle(
+                                        color: Colors.redAccent,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                                .animate()
+                                .shake(
+                                  duration: 450.ms,
+                                  hz: 4,
+                                  curve: Curves.easeInOut,
+                                )
+                                .fade(duration: 250.ms),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // Input 1: Username or Email
                       TextFormField(
                         controller: _usernameController,
                         textInputAction: TextInputAction.next,
@@ -746,7 +825,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                           ),
                         ),
-                      ).animate().fade(delay: 400.ms).scale(),
+                      ).animate().fade(delay: 400.ms).scale().shimmer(
+                        delay: 500.ms,
+                        duration: 1200.ms,
+                        color: Colors.white24,
+                      ),
 
                       const SizedBox(height: 22),
 
@@ -935,6 +1018,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
+    ],
+  ),
+);
+}
 }

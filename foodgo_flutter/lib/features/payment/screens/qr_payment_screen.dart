@@ -1635,6 +1635,14 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                 : 'Check Payment Status',
                             icon: Icons.check_circle_outline,
                             isLoading: _isVerifying,
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFF22C55E),
+                                Color(0xFF16A34A),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             onPressed: _isVerifying
                                 ? null
                                 : () => _checkStatus(isBackground: false),
@@ -1668,49 +1676,61 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                       ScaffoldMessenger.of(context);
                                   setState(() => _isVerifying = true);
                                   try {
-                                    final endpoint = isBakong
-                                        ? 'payments/bakong/callback/'
-                                        : (isAba
-                                              ? 'payments/aba/callback/'
-                                              : 'payments/acleda/callback/');
-                                    await ApiService().post(endpoint, {
-                                      'merchant_reference':
-                                          payment.merchantReference,
-                                      'amount': payment.amount.toStringAsFixed(
-                                        2,
-                                      ),
-                                      'currency': payment.currency,
-                                      'transaction_id':
-                                          'TEST-SIM-${DateTime.now().millisecondsSinceEpoch}',
-                                      'status': 'PAID',
-                                      'webhook_secret':
-                                          'foodgo_webhook_secure_key_2026',
-                                    });
-                                    await _checkStatus(
-                                      isBackground: false,
-                                      simulate: true,
-                                    );
+                                    // Direct simulation endpoint triggers status transition to PAID immediately
+                                    final updated = await _paymentService
+                                        .getPaymentStatus(
+                                          payment.id,
+                                          simulate: true,
+                                        );
+                                    if (mounted) {
+                                      _handleStatusUpdate(updated);
+                                      messenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Payment confirmed successfully via simulation!',
+                                          ),
+                                          backgroundColor:
+                                              GlassTheme.primaryGreen,
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
                                   } catch (e) {
-                                    // Fallback to direct status simulation in sandbox mode
+                                    // Fallback to webhook callback endpoint
                                     try {
-                                      final updated = await _paymentService
-                                          .getPaymentStatus(
-                                            payment.id,
-                                            simulate: true,
-                                          );
-                                      if (mounted) {
-                                        _handleStatusUpdate(updated);
-                                      }
-                                    } catch (statusErr) {
+                                      final endpoint = isBakong
+                                          ? 'payments/bakong/callback/'
+                                          : (isAba
+                                                ? 'payments/aba/callback/'
+                                                : 'payments/acleda/callback/');
+                                      await ApiService().post(endpoint, {
+                                        'merchant_reference':
+                                            payment.merchantReference,
+                                        'amount': payment.amount
+                                            .toStringAsFixed(2),
+                                        'currency': payment.currency,
+                                        'transaction_id':
+                                            'TEST-SIM-${DateTime.now().millisecondsSinceEpoch}',
+                                        'status': 'PAID',
+                                        'webhook_secret':
+                                            'foodgo_webhook_secure_key_2026',
+                                      });
+                                      await _checkStatus(
+                                        isBackground: false,
+                                        simulate: true,
+                                      );
+                                    } catch (fallbackErr) {
                                       if (mounted) {
                                         setState(() => _isVerifying = false);
                                         messenger.showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              'Simulation failed: $statusErr',
+                                              'Simulation failed: $e',
                                             ),
                                             backgroundColor: Colors.redAccent,
-                                            behavior: SnackBarBehavior.floating,
+                                            behavior:
+                                                SnackBarBehavior.floating,
                                           ),
                                         );
                                       }

@@ -199,30 +199,55 @@ class _CartScreenState extends State<CartScreen> {
             ),
           );
         },
-        child: GlassCard(
+        child: Container(
           padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : const Color(0xFFE5E7EB),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
           child: Row(
             children: [
+              // Circular food thumbnail
               Container(
-                width: 76,
-                height: 76,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.2),
-                  borderRadius: GlassTheme.borderRadiusSmall,
-                  image: item.image != null && item.image!.isNotEmpty
-                      ? DecorationImage(
-                          image: CachedNetworkImageProvider(item.image!),
+                width: 68,
+                height: 68,
+                decoration: const BoxDecoration(shape: BoxShape.circle),
+                child: ClipOval(
+                  child: item.image != null && item.image!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: item.image!,
                           fit: BoxFit.cover,
+                          errorWidget: (context, url, error) => Container(
+                            color: GlassTheme.lightGreenSurface,
+                            child: const Icon(
+                              Icons.eco,
+                              color: GlassTheme.primaryGreen,
+                              size: 28,
+                            ),
+                          ),
                         )
-                      : null,
+                      : Container(
+                          color: GlassTheme.lightGreenSurface,
+                          child: const Icon(
+                            Icons.eco,
+                            color: GlassTheme.primaryGreen,
+                            size: 28,
+                          ),
+                        ),
                 ),
-                child: item.image == null || item.image!.isEmpty
-                    ? Icon(
-                        Icons.fastfood,
-                        size: 36,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -231,24 +256,23 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Text(
                       item.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 15,
+                        color: isDark ? Colors.white : const Color(0xFF111827),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 4),
                     Wrap(
-                      spacing: 4,
-                      runSpacing: 2,
+                      spacing: 6,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           '\$${item.price.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            color: isDark
-                                ? GlassTheme.activePalette.primaryAccent
-                                : Theme.of(context).colorScheme.primary,
+                          style: const TextStyle(
+                            color: GlassTheme.primaryGreen,
                             fontWeight: FontWeight.w900,
                             fontSize: 15,
                           ),
@@ -260,7 +284,7 @@ class _CartScreenState extends State<CartScreen> {
                             fontWeight: FontWeight.w600,
                             color: isDark
                                 ? Colors.white54
-                                : const Color(0xFF64748B),
+                                : const Color(0xFF6B7280),
                           ),
                         ),
                       ],
@@ -268,105 +292,71 @@ class _CartScreenState extends State<CartScreen> {
                   ],
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.black.withValues(alpha: 0.04),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.12)
-                        : Colors.black.withValues(alpha: 0.08),
+              // Stepper: Red circular (-) and Green circular (+)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedPressable(
+                    pressedScale: 0.86,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      cart.decrementItem(item.id);
+                    },
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFEF4444),
+                      ),
+                      child: const Icon(
+                        Icons.remove,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedPressable(
-                      pressedScale: 0.86,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        cart.decrementItem(item.id);
-                      },
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.12)
-                              : Colors.black.withValues(alpha: 0.06),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.2)
-                                : Colors.black.withValues(alpha: 0.12),
-                            width: 1.0,
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.remove,
-                          size: 16,
-                          color: isDark ? Colors.white : GlassTheme.textDark,
-                        ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Text(
+                      '${item.quantity}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : const Color(0xFF111827),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: Text(
-                        '${item.quantity}',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : GlassTheme.textDark,
-                        ),
+                  ),
+                  AnimatedPressable(
+                    pressedScale: 0.86,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      cart.addItem(
+                        item.id,
+                        item.name,
+                        item.price,
+                        item.image,
+                        restaurantId: item.restaurantId,
+                        restaurantName: item.restaurantName,
+                      );
+                    },
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: GlassTheme.primaryGreen,
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        size: 16,
+                        color: Colors.white,
                       ),
                     ),
-                    AnimatedPressable(
-                      pressedScale: 0.86,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        cart.addItem(
-                          item.id,
-                          item.name,
-                          item.price,
-                          item.image,
-                          restaurantId: item.restaurantId,
-                          restaurantName: item.restaurantName,
-                        );
-                      },
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: GlassTheme.limeAccent,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.4),
-                            width: 1.2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: GlassTheme.limeAccent.withValues(
-                                alpha: 0.4,
-                              ),
-                              blurRadius: 6,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          size: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
               AnimatedPressable(
                 pressedScale: 0.88,
                 onTap: () {
@@ -378,11 +368,11 @@ class _CartScreenState extends State<CartScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${removedItem.name} removed from cart'),
-                      backgroundColor: GlassTheme.dialogDark,
+                      backgroundColor: GlassTheme.primaryGreen,
                       behavior: SnackBarBehavior.floating,
                       action: SnackBarAction(
                         label: 'UNDO',
-                        textColor: GlassTheme.primaryGreen,
+                        textColor: Colors.white,
                         onPressed: () {
                           for (int i = 0; i < qty; i++) {
                             cart.addItem(
@@ -400,23 +390,18 @@ class _CartScreenState extends State<CartScreen> {
                   );
                 },
                 child: Container(
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.04),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.black.withValues(alpha: 0.06),
-                    ),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : const Color(0xFFF3F4F6),
                   ),
                   child: Icon(
-                    Icons.delete_outline,
-                    size: 18,
-                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                    Icons.delete_outline_rounded,
+                    size: 17,
+                    color: isDark ? Colors.white60 : const Color(0xFF9CA3AF),
                   ),
                 ),
               ),
@@ -835,13 +820,39 @@ class _CartScreenState extends State<CartScreen> {
                   )
                 : null,
             centerTitle: true,
-            title: Text(
-              'Your Cart',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                color: isDark ? Colors.white : GlassTheme.textDark,
-              ),
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'My Cart',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                    color: isDark ? Colors.white : const Color(0xFF111827),
+                  ),
+                ),
+                if (cart.items.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.lightGreenSurface,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${cart.itemCount} ${cart.itemCount == 1 ? "Product" : "Products"}',
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
             actions: [
               if (cart.items.isNotEmpty)

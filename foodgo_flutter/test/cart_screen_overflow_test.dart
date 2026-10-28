@@ -76,7 +76,7 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    expect(find.text('Your Cart'), findsOneWidget);
+    expect(find.text('My Cart'), findsOneWidget);
     expect(find.text('Proceed to Checkout'), findsOneWidget);
   });
 }

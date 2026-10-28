@@ -230,7 +230,7 @@ class _PillNavItemState extends State<_PillNavItem>
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: GlassTheme.royalSmalt.withValues(
+                        color: GlassTheme.primaryGreen.withValues(
                           alpha: isDark ? 0.45 : 0.30,
                         ),
                         blurRadius: 10,

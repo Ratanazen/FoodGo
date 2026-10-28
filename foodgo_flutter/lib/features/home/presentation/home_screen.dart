@@ -32,88 +32,218 @@ class _HomeScreenState extends State<HomeScreen> {
   int _activeOrderEta = 11;
   Timer? _etaUpdateTimer;
 
-  // TikTok Reference 5 Quick Categories & Recommended Dishes
+  // Healthy & Organic Quick Categories
   final List<Map<String, dynamic>> _quickCategories = [
     {'name': 'All', 'icon': Icons.restaurant_rounded},
-    {'name': 'Burger', 'icon': Icons.lunch_dining_rounded},
-    {'name': 'Pizza', 'icon': Icons.local_pizza_rounded},
+    {'name': 'Salad', 'icon': Icons.eco_rounded},
+    {'name': 'Fruit Salad', 'icon': Icons.apple_rounded},
+    {'name': 'Healthy Bowls', 'icon': Icons.rice_bowl_rounded},
     {'name': 'Sushi', 'icon': Icons.set_meal_rounded},
     {'name': 'Chicken', 'icon': Icons.kebab_dining_rounded},
   ];
   int _selectedQuickCategoryIndex = 0;
 
+  final List<Map<String, dynamic>> _popularMenuItems = [
+    {
+      'id': 201,
+      'name': 'Garden Fresh Salad',
+      'subtitle': 'Crisp greens, avocado & vinaigrette',
+      'price': 4.50,
+      'image':
+          'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500&q=80',
+      'category': 'Salad',
+      'calories': '180',
+      'proteins': '6.0',
+      'fats': '9.0',
+      'carbo': '14.0',
+      'location': 'BKK1, Phnom Penh',
+      'description':
+          'Crisp romaine lettuce, baby spinach, organic avocado, cherry tomatoes, and cucumber drizzled with extra virgin olive oil vinaigrette.',
+      'restaurantId': 201,
+      'restaurantName': 'Green Vitality Organics BKK1',
+    },
+    {
+      'id': 202,
+      'name': 'Fresh Fruit Salad',
+      'subtitle': 'Melon, kiwi, dragon fruit & berries',
+      'price': 5.00,
+      'image':
+          'https://images.unsplash.com/photo-1519996529931-28324d5a630e?w=500&q=80',
+      'category': 'Fruit Salad',
+      'calories': '150',
+      'proteins': '3.0',
+      'fats': '1.0',
+      'carbo': '32.0',
+      'location': 'Daun Penh, Phnom Penh',
+      'description':
+          'Freshly chopped organic cantaloupe, kiwi, Cambodian sweet mango, dragon fruit, and blueberries with a honey lime drizzle.',
+      'restaurantId': 202,
+      'restaurantName': 'Fresh Harvest Fruit Bar',
+    },
+    {
+      'id': 203,
+      'name': 'Tomato Basil Bowl',
+      'subtitle': 'Vine-ripened tomatoes & roasted quinoa',
+      'price': 4.00,
+      'image':
+          'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80',
+      'category': 'Healthy Bowls',
+      'calories': '210',
+      'proteins': '8.0',
+      'fats': '5.0',
+      'carbo': '28.0',
+      'location': 'Toul Kork, Phnom Penh',
+      'description':
+          'Warm roasted vine tomatoes blended with fresh basil, topped with toasted pine nuts, organic quinoa, and goat cheese crumbles.',
+      'restaurantId': 203,
+      'restaurantName': 'Botanica Healthy Eats Toul Kork',
+    },
+    {
+      'id': 204,
+      'name': 'Salmon Avocado Bowl',
+      'subtitle': 'Pan-seared Atlantic salmon & edamame',
+      'price': 6.50,
+      'image':
+          'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500&q=80',
+      'category': 'Salad',
+      'calories': '290',
+      'proteins': '26.0',
+      'fats': '14.0',
+      'carbo': '16.0',
+      'location': 'Koh Pich, Phnom Penh',
+      'description':
+          'Pan-seared Atlantic salmon fillet on a bed of seasoned brown rice, organic avocado slices, edamame, and sesame ginger glaze.',
+      'restaurantId': 204,
+      'restaurantName': 'Ocean Greens Kitchen Koh Pich',
+    },
+    {
+      'id': 205,
+      'name': 'Organic Oatmeal Bowl',
+      'subtitle': 'Rolled oats, almond butter & berries',
+      'price': 3.50,
+      'image':
+          'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=500&q=80',
+      'category': 'Healthy Bowls',
+      'calories': '190',
+      'proteins': '7.0',
+      'fats': '4.5',
+      'carbo': '34.0',
+      'location': 'BKK2, Phnom Penh',
+      'description':
+          'Slow-cooked steel cut rolled oats served with organic almond butter, chia seeds, fresh blueberries, and raw honey.',
+      'restaurantId': 205,
+      'restaurantName': 'Nourish Organic Bowls BKK2',
+    },
+  ];
+
   final List<Map<String, dynamic>> _recommendedDishes = [
     {
       'id': 101,
-      'name': 'Golden Spicy Chicken',
-      'subtitle': 'Indulge in our succulent G...',
-      'price': 5.00,
+      'name': 'Garden Fresh Salad',
+      'subtitle': 'Crisp romaine, avocado & herbs',
+      'price': 4.50,
       'image':
-          'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&q=80',
-      'category': 'Chicken',
-      'calories': '220',
-      'proteins': '28.0',
-      'fats': '14.0',
-      'carbo': '18.0',
-      'location': 'Daun Penh, Phnom Penh',
+          'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500&q=80',
+      'category': 'Salad',
+      'calories': '180',
+      'proteins': '6.0',
+      'fats': '9.0',
+      'carbo': '14.0',
+      'location': 'BKK1, Phnom Penh',
       'description':
-          'Indulge in our succulent Golden Spicy Chicken, marinated in chef-special aromatic spices, battered to a crisp golden crunch, and served piping hot with garlic dip.',
-      'restaurantId': 101,
-      'restaurantName': 'Daun Penh Crispy Chicken',
+          'Crisp romaine lettuce, baby spinach, organic avocado, cherry tomatoes, and cucumber drizzled with extra virgin olive oil vinaigrette.',
+      'restaurantId': 201,
+      'restaurantName': 'Green Vitality Organics BKK1',
     },
     {
       'id': 102,
-      'name': 'Cheese Burger Nagi',
-      'subtitle': 'Burger with Patty filled wit...',
-      'price': 4.50,
+      'name': 'Fresh Fruit Salad',
+      'subtitle': 'Kiwi, dragon fruit, melon & berries',
+      'price': 5.00,
       'image':
-          'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=500&q=80',
-      'category': 'Burger',
-      'calories': '210',
-      'proteins': '22.0',
-      'fats': '15.0',
-      'carbo': '26.0',
-      'location': 'BKK1, Phnom Penh',
+          'https://images.unsplash.com/photo-1519996529931-28324d5a630e?w=500&q=80',
+      'category': 'Fruit Salad',
+      'calories': '150',
+      'proteins': '3.0',
+      'fats': '1.0',
+      'carbo': '32.0',
+      'location': 'Daun Penh, Phnom Penh',
       'description':
-          'Signature black charcoal sesame bun burger with juicy prime beef patty filled with melted Wisconsin cheddar, caramelized red onions, and house sauce.',
-      'restaurantId': 102,
-      'restaurantName': 'Nagi Burger House BKK1',
+          'Freshly chopped organic cantaloupe, kiwi, Cambodian sweet mango, dragon fruit, and blueberries with a honey lime drizzle.',
+      'restaurantId': 202,
+      'restaurantName': 'Fresh Harvest Fruit Bar',
     },
     {
       'id': 103,
-      'name': 'Double Beef Cheese Burger',
-      'subtitle': 'Burger with patty filled with...',
-      'price': 6.50,
+      'name': 'Tomato Basil Bowl',
+      'subtitle': 'Roasted tomatoes & warm quinoa',
+      'price': 4.00,
       'image':
-          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
-      'category': 'Burger',
-      'calories': '198',
-      'proteins': '25.2',
-      'fats': '13.8',
-      'carbo': '23.7',
+          'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80',
+      'category': 'Healthy Bowls',
+      'calories': '210',
+      'proteins': '8.0',
+      'fats': '5.0',
+      'carbo': '28.0',
       'location': 'Toul Kork, Phnom Penh',
       'description':
-          'Burger with patty filled with macaroni & cheese and real beef, Stroganoff sauce, topped with onions, served on a soft sesame burger bun with melted cheddar cheese and crispy garden greens.',
-      'restaurantId': 103,
-      'restaurantName': 'Toul Kork Gourmet Burgers',
+          'Warm roasted vine tomatoes blended with fresh basil, topped with toasted pine nuts, organic quinoa, and goat cheese crumbles.',
+      'restaurantId': 203,
+      'restaurantName': 'Botanica Healthy Eats Toul Kork',
     },
     {
       'id': 104,
-      'name': 'Crispy French Fries',
-      'subtitle': 'Freshly cut french fries with...',
-      'price': 3.00,
+      'name': 'Salmon Avocado Bowl',
+      'subtitle': 'Pan-seared Atlantic salmon & rice',
+      'price': 6.50,
       'image':
-          'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500&q=80',
-      'category': 'Fries',
-      'calories': '145',
-      'proteins': '3.4',
-      'fats': '8.2',
-      'carbo': '29.1',
+          'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500&q=80',
+      'category': 'Sushi',
+      'calories': '290',
+      'proteins': '26.0',
+      'fats': '14.0',
+      'carbo': '16.0',
       'location': 'Koh Pich, Phnom Penh',
       'description':
-          'Hand-cut russet potatoes fried to golden perfection, tossed with mineral sea salt and rosemary, served with tangy dipping sauces.',
-      'restaurantId': 104,
-      'restaurantName': 'Golden Fry Shack Koh Pich',
+          'Pan-seared Atlantic salmon fillet on a bed of seasoned brown rice, organic avocado slices, edamame, and sesame ginger glaze.',
+      'restaurantId': 204,
+      'restaurantName': 'Ocean Greens Kitchen Koh Pich',
+    },
+    {
+      'id': 105,
+      'name': 'Golden Herb Chicken',
+      'subtitle': 'Herb roasted breast & greens',
+      'price': 5.50,
+      'image':
+          'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&q=80',
+      'category': 'Chicken',
+      'calories': '240',
+      'proteins': '32.0',
+      'fats': '8.0',
+      'carbo': '10.0',
+      'location': 'Daun Penh, Phnom Penh',
+      'description':
+          'Tender pasture-raised chicken breast marinated with rosemary and thyme, oven roasted and served with steamed broccoli and lemon tahini dressing.',
+      'restaurantId': 101,
+      'restaurantName': 'Daun Penh Organic Kitchen',
+    },
+    {
+      'id': 106,
+      'name': 'Organic Oatmeal Bowl',
+      'subtitle': 'Rolled oats, almond butter & berries',
+      'price': 3.50,
+      'image':
+          'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=500&q=80',
+      'category': 'Healthy Bowls',
+      'calories': '190',
+      'proteins': '7.0',
+      'fats': '4.5',
+      'carbo': '34.0',
+      'location': 'BKK2, Phnom Penh',
+      'description':
+          'Slow-cooked steel cut rolled oats served with organic almond butter, chia seeds, fresh blueberries, and raw honey.',
+      'restaurantId': 205,
+      'restaurantName': 'Nourish Organic Bowls BKK2',
     },
   ];
 
@@ -256,12 +386,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         delegate: SliverChildListDelegate([
                           const SizedBox(height: 16),
 
-                          // ── Hero Promo: "FAST & FREE DELIVERY!" (TikTok Reference) ───
+                          // ── Hero Promo: 50% OFF Your First Healthy Meal! ───
                           _buildFastAndFreeHeroPromo(context, isDark)
                               .animate()
                               .fadeIn(duration: 450.ms, delay: 100.ms)
                               .slideY(
                                 begin: 0.08,
+                                end: 0,
+                                curve: Curves.easeOutCubic,
+                              ),
+                          const SizedBox(height: 22),
+
+                          // ── Popular Menu Section ──────────────────────────
+                          _buildSectionHeader(
+                            'Popular Menu',
+                            () => context.push('/explore'),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildPopularMenuHorizontal(isDark)
+                              .animate()
+                              .fadeIn(duration: 450.ms, delay: 150.ms)
+                              .slideX(
+                                begin: 0.05,
                                 end: 0,
                                 curve: Curves.easeOutCubic,
                               ),
@@ -274,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 12),
 
-                          // ── 5 Modern Categories: All, Burger, Pizza, Sushi, Chicken ──
+                          // ── Quick Categories: All, Salad, Fruit Salad, etc. ──
                           _buildModernFourCategories(isDark)
                               .animate()
                               .fadeIn(duration: 450.ms, delay: 180.ms)
@@ -285,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                           const SizedBox(height: 24),
 
-                          // ── "Recommended for you" Section Header ─────────
+                          // ── "Recomended" Section Header ───────────────────
                           _buildRecommendedHeader(
                             context,
                             isDark,
@@ -378,306 +524,245 @@ class _HomeScreenState extends State<HomeScreen> {
         ? '${activeAddress!.street}, ${activeAddress.city}'
         : (activeAddress?.city.isNotEmpty == true
               ? activeAddress!.city
-              : 'Street 240, Daun Penh, Phnom Penh');
+              : 'Phnom Penh, Cambodia');
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: GlassTheme.headerGradient,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: GlassTheme.deepSmalt.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+      color: isDark ? GlassTheme.surfaceDark : Colors.white,
       padding: EdgeInsets.only(
         top: topPadding + 10,
-        left: 16,
-        right: 16,
-        bottom: 20,
+        left: 20,
+        right: 20,
+        bottom: 16,
       ),
       child: Column(
         children: [
-          // Top Row: Avatar + Deliver-To + Notification Bell
+          // Top Row: Location on Left, Notification & Profile Avatar on Right
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left: Avatar with green active dot + Deliver to dropdown
-              Expanded(
+              // Left: Location Icon + "Your Location" + City dropdown
+              AnimatedPressable(
+                pressedScale: 0.96,
+                onTap: () => context.push('/addresses'),
                 child: Row(
                   children: [
-                    // Circular Avatar with online dot & profile link
-                    AnimatedPressable(
-                      onTap: () => context.push('/profile'),
-                      pressedScale: 0.92,
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: const Color(0xFFCCFF00),
-                                width: 1.8,
-                              ),
-                            ),
-                            child: ClipOval(
-                              child:
-                                  avatarUrl != null &&
-                                      avatarUrl.toString().isNotEmpty
-                                  ? CachedNetworkImage(
-                                      imageUrl: avatarUrl.toString(),
-                                      fit: BoxFit.cover,
-                                      placeholder: (ctx, url) => Container(
-                                        color: Colors.white12,
-                                        alignment: Alignment.center,
-                                        child: const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Color(0xFFCCFF00),
-                                          ),
-                                        ),
-                                      ),
-                                      errorWidget: (ctx, url, err) => Container(
-                                        color: GlassTheme.deepSmalt,
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          username.isNotEmpty
-                                              ? username[0].toUpperCase()
-                                              : 'F',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  : Container(
-                                      color: GlassTheme.deepSmalt,
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        username.isNotEmpty
-                                            ? username[0].toUpperCase()
-                                            : 'F',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFCCFF00),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: const Color(0xFF1B5E20),
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: const BoxDecoration(
+                        color: GlassTheme.lightGreenSurface,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.location_on_rounded,
+                        color: GlassTheme.primaryGreen,
+                        size: 20,
                       ),
                     ),
                     const SizedBox(width: 10),
-
-                    // Deliver To Column
-                    Expanded(
-                      child: AnimatedPressable(
-                        pressedScale: 0.96,
-                        onTap: () => context.push('/addresses'),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFCCFF00),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Hi, $username - Deliver to',
-                                    style: const TextStyle(
-                                      color: Color(0xFFC8E6C9),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      locationName,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  const Icon(
-                                    Icons.keyboard_arrow_down_rounded,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                ],
-                              ),
-                            ],
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your Location',
+                          style: TextStyle(
+                            color: isDark
+                                ? Colors.white60
+                                : const Color(0xFF9CA3AF),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text(
+                              locationName,
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF374151),
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
 
-              // Right: Notification Bell in Translucent Circle Button
-              Consumer<NotificationProvider>(
-                builder: (context, notifProvider, child) {
-                  final unread = notifProvider.unreadCount;
-                  return AnimatedPressable(
-                    onTap: () => context.push('/notifications'),
+              // Right: Notification Bell & Profile Avatar
+              Row(
+                children: [
+                  Consumer<NotificationProvider>(
+                    builder: (context, notifProvider, child) {
+                      final unread = notifProvider.unreadCount;
+                      return AnimatedPressable(
+                        onTap: () => context.push('/notifications'),
+                        pressedScale: 0.92,
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          margin: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.08)
+                                : const Color(0xFFF3F4F6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.notifications_none_rounded,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1F2937),
+                                size: 20,
+                              ),
+                              if (unread > 0)
+                                Positioned(
+                                  top: 6,
+                                  right: 6,
+                                  child: Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFEF4444),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  AnimatedPressable(
+                    onTap: () => context.push('/profile'),
                     pressedScale: 0.92,
                     child: Container(
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.25),
+                          color: GlassTheme.primaryGreen,
+                          width: 2,
                         ),
                       ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const Icon(
-                            Icons.notifications_none_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                          if (unread > 0)
-                            Positioned(
-                              top: 6,
-                              right: 6,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 2,
+                      child: ClipOval(
+                        child:
+                            avatarUrl != null && avatarUrl.toString().isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: avatarUrl.toString(),
+                                fit: BoxFit.cover,
+                                placeholder: (ctx, url) => Container(
+                                  color: Colors.grey[200],
+                                  alignment: Alignment.center,
+                                  child: const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: GlassTheme.primaryGreen,
+                                    ),
+                                  ),
                                 ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 16,
-                                  minHeight: 16,
+                                errorWidget: (ctx, url, err) => Container(
+                                  color: GlassTheme.lightGreenSurface,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    username.isNotEmpty
+                                        ? username[0].toUpperCase()
+                                        : 'F',
+                                    style: const TextStyle(
+                                      color: GlassTheme.primaryGreen,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 ),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFFF4842),
-                                  shape: BoxShape.circle,
-                                ),
+                              )
+                            : Container(
+                                color: GlassTheme.lightGreenSurface,
                                 alignment: Alignment.center,
                                 child: Text(
-                                  unread > 9 ? '9+' : '$unread',
+                                  username.isNotEmpty
+                                      ? username[0].toUpperCase()
+                                      : 'F',
                                   style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
+                                    color: GlassTheme.primaryGreen,
                                     fontWeight: FontWeight.bold,
-                                    height: 1.0,
+                                    fontSize: 16,
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-          // Second Row: Full-width Rounded White Pill Search Bar
+          // Second Row: Rounded Clean Pill Search Bar
           AnimatedPressable(
             pressedScale: 0.98,
             onTap: () => context.push('/search'),
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
+                color: isDark
+                    ? const Color(0xFF1E2922)
+                    : const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.4),
-                  width: 1.2,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : const Color(0xFFE5E7EB),
+                  width: 1.0,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.search_rounded,
-                    color: Color(0xFF757575),
-                    size: 22,
+                    color: isDark ? Colors.white60 : const Color(0xFF9CA3AF),
+                    size: 20,
                   ),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Search restaurants or dishes',
+                      'Search food...',
                       style: TextStyle(
-                        color: Color(0xFF757575),
-                        fontSize: 13,
+                        color: isDark
+                            ? Colors.white60
+                            : const Color(0xFF9CA3AF),
+                        fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.tune_rounded,
-                      color: Color(0xFF757575),
-                      size: 18,
-                    ),
+                  Icon(
+                    Icons.tune_rounded,
+                    color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+                    size: 18,
                   ),
                 ],
               ),
@@ -689,25 +774,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 2. Fast & Free Delivery Promo Hero Card (TikTok Reference Style)
+  // 2. 50% OFF Healthy Promo Hero Card
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildFastAndFreeHeroPromo(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
-      height: 152,
+      height: 145,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            GlassTheme.activePalette.primaryDark,
-            Theme.of(context).colorScheme.primary,
-          ],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: GlassTheme.activePalette.primaryDark.withValues(alpha: 0.35),
+            color: const Color(0xFF22C55E).withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -718,157 +800,83 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Decorative background circles
           Positioned(
-            left: -20,
-            top: -20,
+            right: -20,
+            bottom: -20,
             child: Container(
-              width: 120,
-              height: 120,
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
-          Positioned(
-            right: -30,
-            bottom: -30,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
+                color: Colors.white.withValues(alpha: 0.1),
               ),
             ),
           ),
 
-          // Left: Delivery Courier on Scooter Illustration
+          // Left: Promo Texts & Buy Now button
           Positioned(
-            left: 14,
-            top: 14,
-            bottom: 14,
-            child: SizedBox(
-              width: 110,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.two_wheeler_rounded,
-                    size: 64,
-                    color: Colors.white,
-                  ),
-                  Positioned(
-                    top: 22,
-                    left: 20,
-                    child: Container(
-                      width: 16,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF4B26),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.white, width: 1.2),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.flash_on,
-                          color: Colors.white,
-                          size: 10,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Right: Bold Display Text & Order Now Button
-          Positioned(
-            left: 136,
-            top: 16,
-            bottom: 16,
-            right: 16,
+            left: 20,
+            top: 18,
+            bottom: 18,
+            right: 140,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'FAST & FREE',
-                  style: TextStyle(
-                    color: Color(0xFFFFDE00),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 19,
-                    height: 1.1,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const Text(
-                  'DELIVERY!',
-                  style: TextStyle(
-                    color: Color(0xFFFFDE00),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 19,
-                    height: 1.1,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'On all orders this week!',
+                  '50% OFF',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 22,
+                    letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 2),
+                const Text(
+                  'Your First Healthy Meal!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
                 AnimatedPressable(
-                  onTap: () => _claimCoupon('FREESHIP'),
+                  onTap: () => _claimCoupon('HEALTHY50'),
                   pressedScale: 0.94,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 8,
+                      horizontal: 16,
+                      vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF4B26),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.35),
-                        width: 1.2,
-                      ),
-                      boxShadow: const [
+                      boxShadow: [
                         BoxShadow(
-                          color: Color(0x66FF4B26),
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Text(
-                          'ORDER NOW',
+                          'Buy Now',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 11,
-                            letterSpacing: 0.5,
+                            color: Color(0xFF16A34A),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
                           ),
                         ),
-                        SizedBox(width: 6),
+                        SizedBox(width: 4),
                         Icon(
                           Icons.arrow_forward_rounded,
-                          color: Colors.white,
+                          color: Color(0xFF16A34A),
                           size: 14,
                         ),
                       ],
@@ -878,7 +886,253 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+
+          // Right: Large Appetizing Circular Salad Bowl
+          Positioned(
+            right: 12,
+            top: 12,
+            bottom: 12,
+            child: Center(
+              child: Container(
+                width: 118,
+                height: 118,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: CachedNetworkImage(
+                    imageUrl:
+                        'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500&q=80',
+                    fit: BoxFit.cover,
+                    errorWidget: (c, u, e) => Container(
+                      color: Colors.white24,
+                      child: const Icon(
+                        Icons.eco,
+                        color: Colors.white,
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 3. Popular Menu Horizontal Carousel (Mockup Style)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildPopularMenuHorizontal(bool isDark) {
+    return SizedBox(
+      height: 215,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _popularMenuItems.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          final item = _popularMenuItems[index];
+          final favoritesProvider = context.watch<FavoritesProvider>();
+          final isFav = favoritesProvider.isFoodFavorite(item['id'] as int);
+
+          return AnimatedPressable(
+            pressedScale: 0.96,
+            onTap: () => context.push('/food-details', extra: item),
+            child: Container(
+              width: 165,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : const Color(0xFFE5E7EB),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Circular image with top-right green heart button
+                  Stack(
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 86,
+                          height: 86,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                          ),
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: item['image'] as String,
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.grey.withValues(alpha: 0.1),
+                                child: const Icon(
+                                  Icons.eco,
+                                  color: GlassTheme.primaryGreen,
+                                  size: 32,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: AnimatedPressable(
+                          pressedScale: 0.82,
+                          onTap: () => favoritesProvider.toggleFoodItem(item),
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: isFav
+                                  ? const Color(0xFFDCFCE7)
+                                  : (isDark
+                                        ? Colors.white.withValues(alpha: 0.12)
+                                        : const Color(0xFFF3F4F6)),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isFav
+                                  ? Icons.favorite
+                                  : Icons.favorite_border_rounded,
+                              size: 16,
+                              color: isFav
+                                  ? GlassTheme.primaryGreen
+                                  : (isDark
+                                        ? Colors.white60
+                                        : const Color(0xFF9CA3AF)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Item Name
+                  Text(
+                    item['name'] as String,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      color: isDark ? Colors.white : const Color(0xFF111827),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+
+                  // Rating row
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star_rounded,
+                        color: Color(0xFFFBBF24),
+                        size: 15,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '4.8',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF6B7280),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '• 15 min',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0xFF9CA3AF),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+
+                  // Green Price
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '\$${(item['price'] as double).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: GlassTheme.primaryGreen,
+                        ),
+                      ),
+                      AnimatedPressable(
+                        pressedScale: 0.88,
+                        onTap: () {
+                          context.read<CartProvider>().addItem(
+                            item['id'] as int,
+                            item['name'] as String,
+                            item['price'] as double,
+                            item['image'] as String,
+                          );
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${item['name']} added to cart!'),
+                              backgroundColor: GlassTheme.primaryGreen,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: const BoxDecoration(
+                            color: GlassTheme.primaryGreen,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -977,48 +1231,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 4. "Recommended for you" Section Header
+  // 4. "Recomended" Section Header (Mockup Style)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildRecommendedHeader(BuildContext context, bool isDark) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Recommended for you',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-        ),
-        AnimatedPressable(
-          pressedScale: 0.92,
-          onTap: () => context.push('/explore'),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'See More',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 11,
-                  color: isDark ? Colors.grey[400] : const Color(0xFF8E8E93),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+    return _buildSectionHeader('Recomended', () => context.push('/explore'));
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -1111,42 +1327,48 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.black.withValues(alpha: 0.4)
-                                : Colors.black.withValues(alpha: 0.05),
+                            color: isFav
+                                ? const Color(0xFFDCFCE7)
+                                : (isDark
+                                      ? Colors.white.withValues(alpha: 0.12)
+                                      : const Color(0xFFF3F4F6)),
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.12)
-                                  : Colors.black.withValues(alpha: 0.06),
-                            ),
                           ),
                           child: Icon(
-                            isFav ? Icons.favorite : Icons.favorite_border,
-                            size: 18,
+                            isFav
+                                ? Icons.favorite
+                                : Icons.favorite_border_rounded,
+                            size: 16,
                             color: isFav
-                                ? const Color(0xFFFF4842)
-                                : const Color(0xFFD0D0D0),
+                                ? GlassTheme.primaryGreen
+                                : (isDark
+                                      ? Colors.white60
+                                      : const Color(0xFF9CA3AF)),
                           ),
                         ),
                       ),
                     ),
 
-                    // Dish Centered Image
+                    // Centered Circular Dish Image
                     Expanded(
                       child: Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: CachedNetworkImage(
-                            imageUrl: item['image'],
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorWidget: (context, url, error) => Container(
-                              color: Colors.grey.withValues(alpha: 0.1),
-                              child: const Icon(
-                                Icons.fastfood,
-                                size: 36,
-                                color: Colors.grey,
+                        child: Container(
+                          width: 86,
+                          height: 86,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                          ),
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: item['image'],
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.grey.withValues(alpha: 0.1),
+                                child: const Icon(
+                                  Icons.eco,
+                                  size: 32,
+                                  color: GlassTheme.primaryGreen,
+                                ),
                               ),
                             ),
                           ),
@@ -1182,7 +1404,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Price & Lime '+' Button
+                    // Green Price & '+' Button
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -1192,10 +1414,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               '\$${(item['price'] as double).toStringAsFixed(2)}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 15,
-                                color: isDark ? Colors.white : Colors.black,
+                                color: GlassTheme.primaryGreen,
                               ),
                             ),
                             Text(
@@ -1237,9 +1459,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary,
+                                backgroundColor: GlassTheme.primaryGreen,
                                 behavior: SnackBarBehavior.floating,
                                 duration: const Duration(seconds: 2),
                                 action: SnackBarAction(
@@ -1251,29 +1471,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                           },
                           child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: GlassTheme.limeAccent,
+                            width: 30,
+                            height: 30,
+                            decoration: const BoxDecoration(
+                              color: GlassTheme.primaryGreen,
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.4),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: GlassTheme.limeAccent.withValues(
-                                    alpha: 0.45,
-                                  ),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
                             ),
                             child: const Icon(
                               Icons.add_rounded,
-                              color: Colors.black,
-                              size: 20,
+                              color: Colors.white,
+                              size: 18,
                             ),
                           ),
                         ),

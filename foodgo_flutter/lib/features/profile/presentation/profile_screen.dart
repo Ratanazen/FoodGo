@@ -305,6 +305,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SafeArea(
       child: ResponsiveWebContainer(
         maxWidth: 760,
@@ -330,373 +332,409 @@ class ProfileScreen extends StatelessWidget {
 
                 return Column(
                   children: [
-                    GlassContainer(
-                      padding: const EdgeInsets.all(24),
-                      borderRadius: BorderRadius.circular(32),
-                      customBorder: Border.all(
-                        color: Colors.white.withValues(alpha: 0.16),
-                        width: 1.2,
-                      ),
-                      child: Column(
-                        children: [
-                          AnimatedPressable(
-                            pressedScale: 0.93,
-                            onTap: () => context.push('/edit-profile'),
-                            child: Stack(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(3),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: GlassTheme.limeAccent,
-                                      width: 2.5,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: GlassTheme.limeAccent.withValues(
-                                          alpha: 0.25,
+                    Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? GlassTheme.surfaceCardDark
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(28),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : const Color(0xFFE5E7EB),
+                              width: 1.0,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.25 : 0.04,
+                                ),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              AnimatedPressable(
+                                pressedScale: 0.93,
+                                onTap: () => context.push('/edit-profile'),
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(3),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: GlassTheme.primaryGreen,
+                                          width: 2.5,
                                         ),
-                                        blurRadius: 16,
-                                        spreadRadius: 2,
-                                      ),
-                                    ],
-                                  ),
-                                  child:
-                                      avatarUrl != null && avatarUrl.isNotEmpty
-                                      ? CachedNetworkImage(
-                                          imageUrl: avatarUrl,
-                                          imageBuilder: (ctx, imageProvider) =>
-                                              CircleAvatar(
-                                                radius: 40,
-                                                backgroundImage: imageProvider,
-                                              ),
-                                          placeholder: (ctx, url) => CircleAvatar(
-                                            radius: 40,
-                                            backgroundColor: GlassTheme
-                                                .limeAccent
-                                                .withValues(alpha: 0.15),
-                                            child:
-                                                const CircularProgressIndicator(
-                                                  color: GlassTheme.limeAccent,
-                                                  strokeWidth: 2,
-                                                ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: GlassTheme.primaryGreen
+                                                .withValues(alpha: 0.25),
+                                            blurRadius: 12,
+                                            spreadRadius: 2,
                                           ),
-                                          errorWidget: (ctx, url, err) =>
-                                              CircleAvatar(
-                                                radius: 40,
-                                                backgroundColor: GlassTheme
-                                                    .limeAccent
-                                                    .withValues(alpha: 0.15),
-                                                child: Text(
-                                                  username.isNotEmpty
-                                                      ? username[0]
-                                                            .toUpperCase()
-                                                      : 'G',
-                                                  style: const TextStyle(
-                                                    fontSize: 32,
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        GlassTheme.limeAccent,
+                                        ],
+                                      ),
+                                      child:
+                                          avatarUrl != null &&
+                                              avatarUrl.isNotEmpty
+                                          ? CachedNetworkImage(
+                                              imageUrl: avatarUrl,
+                                              imageBuilder:
+                                                  (ctx, imageProvider) =>
+                                                      CircleAvatar(
+                                                        radius: 40,
+                                                        backgroundImage:
+                                                            imageProvider,
+                                                      ),
+                                              placeholder: (ctx, url) =>
+                                                  const CircleAvatar(
+                                                    radius: 40,
+                                                    backgroundColor: GlassTheme
+                                                        .lightGreenSurface,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          color: GlassTheme
+                                                              .primaryGreen,
+                                                          strokeWidth: 2,
+                                                        ),
                                                   ),
+                                              errorWidget: (ctx, url, err) =>
+                                                  CircleAvatar(
+                                                    radius: 40,
+                                                    backgroundColor: GlassTheme
+                                                        .lightGreenSurface,
+                                                    child: Text(
+                                                      username.isNotEmpty
+                                                          ? username[0]
+                                                                .toUpperCase()
+                                                          : 'G',
+                                                      style: const TextStyle(
+                                                        fontSize: 32,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: GlassTheme
+                                                            .primaryGreen,
+                                                      ),
+                                                    ),
+                                                  ),
+                                            )
+                                          : CircleAvatar(
+                                              radius: 40,
+                                              backgroundColor:
+                                                  GlassTheme.lightGreenSurface,
+                                              child: Text(
+                                                username.isNotEmpty
+                                                    ? username[0].toUpperCase()
+                                                    : 'G',
+                                                style: const TextStyle(
+                                                  fontSize: 32,
+                                                  fontWeight: FontWeight.bold,
+                                                  color:
+                                                      GlassTheme.primaryGreen,
                                                 ),
                                               ),
-                                        )
-                                      : CircleAvatar(
-                                          radius: 40,
-                                          backgroundColor: GlassTheme.limeAccent
-                                              .withValues(alpha: 0.15),
-                                          child: Text(
-                                            username.isNotEmpty
-                                                ? username[0].toUpperCase()
-                                                : 'G',
-                                            style: const TextStyle(
-                                              fontSize: 32,
+                                            ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: const BoxDecoration(
+                                          color: GlassTheme.primaryGreen,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.edit,
+                                          size: 13,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                username,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF111827),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                email,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white60
+                                      : const Color(0xFF6B7280),
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.phone_outlined,
+                                    size: 14,
+                                    color: GlassTheme.primaryGreen,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    phone.isNotEmpty
+                                        ? phone
+                                        : 'No phone linked',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white70
+                                          : const Color(0xFF374151),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  if (isPhoneVerified)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: GlassTheme.primaryGreen
+                                            .withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: GlassTheme.primaryGreen
+                                              .withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            size: 10,
+                                            color: GlassTheme.primaryGreen,
+                                          ),
+                                          SizedBox(width: 3),
+                                          Text(
+                                            'Verified',
+                                            style: TextStyle(
+                                              color: GlassTheme.primaryGreen,
+                                              fontSize: 10,
                                               fontWeight: FontWeight.bold,
-                                              color: GlassTheme.limeAccent,
                                             ),
                                           ),
-                                        ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: GlassTheme.limeAccent,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: GlassTheme.dialogDark,
-                                        width: 2,
+                                        ],
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.35,
-                                          ),
-                                          blurRadius: 6,
+                                    )
+                                  else
+                                    AnimatedPressable(
+                                      pressedScale: 0.92,
+                                      onTap: () => PhoneVerificationModal.show(
+                                        context,
+                                        initialPhone: phone,
+                                        purpose: 'customer_verification',
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
                                         ),
-                                      ],
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.amber.withValues(
+                                              alpha: 0.5,
+                                            ),
+                                            width: 1.2,
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.warning_amber_rounded,
+                                              size: 10,
+                                              color: Colors.amber,
+                                            ),
+                                            SizedBox(width: 3),
+                                            Text(
+                                              'Verify SMS',
+                                              style: TextStyle(
+                                                color: Colors.amber,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                    child: const Icon(
-                                      Icons.edit,
-                                      size: 13,
-                                      color: Colors.black,
-                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: () => context.push('/edit-profile'),
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  size: 14,
+                                  color: GlassTheme.primaryGreen,
+                                ),
+                                label: Text(
+                                  'Edit Profile',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF111827),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Text(
-                            username,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            email,
-                            style: const TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.phone_outlined,
-                                size: 14,
-                                color: GlassTheme.limeAccent,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                phone.isNotEmpty ? phone : 'No phone linked',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              if (isPhoneVerified)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
                                     color: GlassTheme.primaryGreen.withValues(
-                                      alpha: 0.15,
+                                      alpha: 0.5,
                                     ),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: GlassTheme.primaryGreen.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                    ),
+                                    width: 1.2,
                                   ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.check_circle,
-                                        size: 10,
-                                        color: GlassTheme.primaryGreen,
-                                      ),
-                                      SizedBox(width: 3),
-                                      Text(
-                                        'Verified',
-                                        style: TextStyle(
-                                          color: GlassTheme.primaryGreen,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                )
-                              else
-                                AnimatedPressable(
-                                  pressedScale: 0.92,
-                                  onTap: () => PhoneVerificationModal.show(
-                                    context,
-                                    initialPhone: phone,
-                                    purpose: 'customer_verification',
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 8,
                                   ),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(
-                                        color: Colors.amber.withValues(
-                                          alpha: 0.5,
+                                  backgroundColor: GlassTheme.primaryGreen
+                                      .withValues(alpha: 0.08),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              // Quick Action Shortcuts: Addresses, Orders, KHQR
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: AnimatedPressable(
+                                      pressedScale: 0.94,
+                                      onTap: () => context.push('/addresses'),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
                                         ),
-                                        width: 1.2,
-                                      ),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.warning_amber_rounded,
-                                          size: 10,
-                                          color: Colors.amber,
-                                        ),
-                                        SizedBox(width: 3),
-                                        Text(
-                                          'Verify SMS',
-                                          style: TextStyle(
-                                            color: Colors.amber,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.05,
+                                                )
+                                              : const Color(0xFFF9FAFB),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.12,
+                                                  )
+                                                : const Color(0xFFE5E7EB),
+                                            width: 1.2,
                                           ),
                                         ),
-                                      ],
+                                        child: Column(
+                                          children: [
+                                            const Icon(
+                                              Icons.location_on_outlined,
+                                              color: GlassTheme.primaryGreen,
+                                              size: 22,
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Addresses',
+                                              style: TextStyle(
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF111827),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          OutlinedButton.icon(
-                            onPressed: () => context.push('/edit-profile'),
-                            icon: const Icon(
-                              Icons.edit_outlined,
-                              size: 14,
-                              color: GlassTheme.limeAccent,
-                            ),
-                            label: const Text(
-                              'Edit Profile',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(
-                                color: GlassTheme.limeAccent.withValues(
-                                  alpha: 0.5,
-                                ),
-                                width: 1.2,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 8,
-                              ),
-                              backgroundColor: GlassTheme.limeAccent.withValues(
-                                alpha: 0.08,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Quick Action Shortcuts: Addresses, Orders, KHQR
-                          Row(
-                            children: [
-                              Expanded(
-                                child: AnimatedPressable(
-                                  pressedScale: 0.94,
-                                  onTap: () => context.push('/addresses'),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.05,
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.16,
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: AnimatedPressable(
+                                      pressedScale: 0.94,
+                                      onTap: () => context.push('/orders'),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
                                         ),
-                                        width: 1.2,
-                                      ),
-                                    ),
-                                    child: const Column(
-                                      children: [
-                                        Icon(
-                                          Icons.location_on_outlined,
-                                          color: GlassTheme.limeAccent,
-                                          size: 22,
-                                        ),
-                                        SizedBox(height: 6),
-                                        Text(
-                                          'Addresses',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.05,
+                                                )
+                                              : const Color(0xFFF9FAFB),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.12,
+                                                  )
+                                                : const Color(0xFFE5E7EB),
+                                            width: 1.2,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: AnimatedPressable(
-                                  pressedScale: 0.94,
-                                  onTap: () => context.push('/orders'),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.05,
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.16,
+                                        child: Column(
+                                          children: [
+                                            const Icon(
+                                              Icons.receipt_long_outlined,
+                                              color: GlassTheme.primaryGreen,
+                                              size: 22,
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Orders',
+                                              style: TextStyle(
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF111827),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        width: 1.2,
                                       ),
                                     ),
-                                    child: const Column(
-                                      children: [
-                                        Icon(
-                                          Icons.receipt_long_outlined,
-                                          color: Colors.amberAccent,
-                                          size: 22,
-                                        ),
-                                        SizedBox(height: 6),
-                                        Text(
-                                          'Orders',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.08, end: 0),
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .slideY(begin: -0.08, end: 0),
                     if (user?['role'] == 'restaurant_owner' ||
                         user?['role'] == 'admin') ...[
                       const SizedBox(height: 16),
@@ -787,12 +825,12 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Account',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDark ? Colors.white : const Color(0xFF111827),
               ),
             ),
             const SizedBox(height: 12),
@@ -925,9 +963,13 @@ class ProfileScreen extends StatelessWidget {
               onTap: () => context.push('/favorites'),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Settings & Preferences',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF111827),
+              ),
             ),
             const SizedBox(height: 12),
             _ProfileOption(
@@ -1193,7 +1235,13 @@ class _ProfileOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = iconColor ?? GlassTheme.limeAccent;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveColor = iconColor ?? GlassTheme.primaryGreen;
+    final bool isDestructive =
+        effectiveColor == Colors.red ||
+        textColor == Colors.red ||
+        effectiveColor == const Color(0xFFEF4444);
+
     return Padding(
           padding: const EdgeInsets.only(bottom: 10.0),
           child: AnimatedPressable(
@@ -1202,27 +1250,46 @@ class _ProfileOption extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
+                color: isDestructive
+                    ? (isDark
+                          ? const Color(0xFF2D1214)
+                          : const Color(0xFFFEF2F2))
+                    : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  width: 1.2,
+                  color: isDestructive
+                      ? const Color(0xFFFCA5A5)
+                      : (isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : const Color(0xFFE5E7EB)),
+                  width: 1.0,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 42,
-                    height: 42,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: effectiveColor.withValues(alpha: 0.15),
-                      border: Border.all(
-                        color: effectiveColor.withValues(alpha: 0.3),
-                        width: 1.0,
-                      ),
+                      color: isDestructive
+                          ? const Color(0xFFFEE2E2)
+                          : GlassTheme.lightGreenSurface,
                     ),
-                    child: Icon(icon, color: effectiveColor, size: 20),
+                    child: Icon(
+                      icon,
+                      color: isDestructive
+                          ? const Color(0xFFEF4444)
+                          : GlassTheme.primaryGreen,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -1231,7 +1298,9 @@ class _ProfileOption extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
-                        color: textColor ?? Colors.white,
+                        color:
+                            textColor ??
+                            (isDark ? Colors.white : const Color(0xFF111827)),
                       ),
                     ),
                   ),
@@ -1240,9 +1309,9 @@ class _ProfileOption extends StatelessWidget {
                     const SizedBox(width: 8),
                   ],
                   Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white.withValues(alpha: 0.35),
-                    size: 14,
+                    Icons.chevron_right_rounded,
+                    color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
+                    size: 20,
                   ),
                 ],
               ),

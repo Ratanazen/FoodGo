@@ -100,41 +100,41 @@ class PaletteData {
 
   static const PaletteData emeraldGreen = PaletteData(
     id: AppColorPalette.emeraldGreen,
-    nameEn: 'Emerald Green',
-    nameKh: 'ពណ៌បៃតងត្បូងមរកត',
-    descriptionEn: 'Fresh, organic, and eco-friendly dining',
+    nameEn: 'Healthy Organic Green',
+    nameKh: 'ពណ៌បៃតងធម្មជាតិ / Organic',
+    descriptionEn: 'Fresh, organic, and clean healthy food dining',
     descriptionKh: 'រចនាបថពណ៌បៃតងធម្មជាតិ ស្រស់ថ្លា និងសុខភាព',
-    primary: Color(0xFF00A86B),
-    primaryDark: Color(0xFF007A4D),
-    primaryAccent: Color(0xFF66E2B1),
+    primary: Color(0xFF22C55E),
+    primaryDark: Color(0xFF16A34A),
+    primaryAccent: Color(0xFF86EFAC),
     secondary: Color(0xFFFFB800),
     ratingAccent: Color(0xFFFFB800),
-    backgroundLight: Color(0xFFF4FAF6),
-    backgroundDark: Color(0xFF0A1610),
-    surfaceDark: Color(0xFF102219),
-    surfaceCardDark: Color(0xFF162E22),
-    cardDark: Color(0xFF12261C),
-    dialogDark: Color(0xFF12261C),
+    backgroundLight: Color(0xFFF8FAF8),
+    backgroundDark: Color(0xFF0B1710),
+    surfaceDark: Color(0xFF12231A),
+    surfaceCardDark: Color(0xFF182D22),
+    cardDark: Color(0xFF14271D),
+    dialogDark: Color(0xFF14271D),
     borderLight: Color(0x80FFFFFF),
-    borderDark: Color(0x4066E2B1),
+    borderDark: Color(0x4086EFAC),
     liquidGlassBorderDark: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        Color(0x6666E2B1),
-        Color(0x20A7F3D0),
-        Color(0x1000A86B),
-        Color(0x4D007A4D),
+        Color(0x6686EFAC),
+        Color(0x20DCFCE7),
+        Color(0x1022C55E),
+        Color(0x4D16A34A),
       ],
       stops: [0.0, 0.4, 0.7, 1.0],
     ),
     headerGradient: LinearGradient(
-      colors: [Color(0xFF004D31), Color(0xFF007A4D), Color(0xFF00A86B)],
+      colors: [Color(0xFF15803D), Color(0xFF16A34A), Color(0xFF22C55E)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     ),
-    auraColor: Color(0xFF00E676),
-    pillCardShadowColor: Color(0x3300A86B),
+    auraColor: Color(0xFF4ADE80),
+    pillCardShadowColor: Color(0x3322C55E),
   );
 
   static const PaletteData smaltBlue = PaletteData(
@@ -236,10 +236,10 @@ class PaletteData {
   }
 
   static PaletteData fromString(String? key) {
-    if (key == null) return orangeCoral;
+    if (key == null) return emeraldGreen;
     for (final palette in allPalettes) {
       if (palette.id.name == key) return palette;
     }
-    return orangeCoral;
+    return emeraldGreen;
   }
 }

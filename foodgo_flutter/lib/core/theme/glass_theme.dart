@@ -28,7 +28,7 @@ class GlassTheme {
   static const Color midnightSmalt = Color(0xFF1A2653);
 
   // Active dynamic color palette (managed by ThemeProvider)
-  static PaletteData _activePalette = PaletteData.orangeCoral;
+  static PaletteData _activePalette = PaletteData.emeraldGreen;
 
   static PaletteData get activePalette => _activePalette;
 
@@ -43,18 +43,18 @@ class GlassTheme {
   static Color dynamicBackground(BuildContext context) =>
       Theme.of(context).scaffoldBackgroundColor;
 
-  // App Backgrounds (Smalt Blue Dark Theme baseline)
-  static const Color backgroundLight = Color(0xFFF4F6FC);
-  static const Color backgroundDark = Color(0xFF0C1220);
-  static const Color outerBackground = Color(0xFF080C16);
+  // App Backgrounds (Healthy Organic baseline)
+  static const Color backgroundLight = Color(0xFFF8FAF8);
+  static const Color backgroundDark = Color(0xFF0B1710);
+  static const Color outerBackground = Color(0xFF07100A);
 
-  // Brand Smalt Blue baseline tokens (constant for const widget trees)
-  static const Color primarySmalt = royalSmalt; // 0xFF2A52BE
-  static const Color primaryGreen = royalSmalt; // 0xFF2A52BE
-  static const Color primaryGreenDark = cobaltSmalt; // 0xFF0047AB
-  static const Color primaryGreenAccent = smaltTint; // 0xFFA9B7E1
+  // Healthy & Organic Green baseline tokens
+  static const Color primarySmalt = Color(0xFF22C55E);
+  static const Color primaryGreen = Color(0xFF22C55E);
+  static const Color primaryGreenDark = Color(0xFF16A34A);
+  static const Color primaryGreenAccent = Color(0xFF86EFAC);
 
-  // TikTok Reference Delivery Tokens
+  // Organic Fresh Delivery Tokens
   static const Color headerGreenStart = Color(0xFF236E31);
   static const Color headerGreenMid = Color(0xFF2E7D32);
   static const Color headerGreenEnd = Color(0xFF388E3C);
@@ -63,7 +63,7 @@ class GlassTheme {
   static const Color lightGreenBorder = Color(0xFFC8E6C9);
 
   static const LinearGradient headerGradient = LinearGradient(
-    colors: [twilightSmalt, deepSmalt, royalSmalt],
+    colors: [headerGreenStart, headerGreenMid, headerGreenEnd],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

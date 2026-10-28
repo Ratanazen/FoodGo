@@ -6,7 +6,7 @@ import '../core/theme/glass_theme.dart';
 
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
-  AppColorPalette _palette = AppColorPalette.orangeCoral;
+  AppColorPalette _palette = AppColorPalette.emeraldGreen;
 
   ThemeMode get themeMode => _themeMode;
   bool get isDarkMode => _themeMode == ThemeMode.dark;

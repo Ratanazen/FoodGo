@@ -13,6 +13,7 @@ import '../../../../providers/cart_provider.dart';
 import '../../../../providers/restaurant_provider.dart';
 import '../../../../providers/address_provider.dart';
 import '../../../../services/api_service.dart';
+import '../../../../core/storage/secure_storage.dart';
 import '../../payment/services/payment_service.dart';
 import '../../../../core/utils/khmer_currency.dart';
 
@@ -63,6 +64,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _fetchWalletBalance() async {
     try {
+      final hasToken = await SecureStorage().hasAccessToken();
+      if (!hasToken) {
+        if (!mounted) return;
+        setState(() => _isLoadingWallet = false);
+        return;
+      }
       final res = await _api.get('wallets/my_wallet/');
       if (!mounted) return;
       if (res != null && res['balance'] != null) {
@@ -354,11 +361,86 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  void _showLoginRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.lock_outline_rounded,
+                color: GlassTheme.primaryGreen,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Sign In Required',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Please sign in or create an account to place your order and track live delivery.',
+              style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: GlassTheme.primaryGreen,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.push('/login');
+            },
+            child: const Text(
+              'Sign In / Register',
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handlePlaceOrder(CartProvider cart, double total) async {
     if (cart.items.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Your cart is empty.')));
+      return;
+    }
+
+    final restaurantProvider = context.read<RestaurantProvider>();
+    final addressProvider = context.read<AddressProvider>();
+
+    final hasToken = await SecureStorage().hasAccessToken();
+    if (!hasToken) {
+      if (!mounted) return;
+      _showLoginRequiredDialog();
       return;
     }
 
@@ -370,8 +452,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      final restaurantProvider = context.read<RestaurantProvider>();
-
       // Safe restaurantId resolution: ensure restaurant exists on backend
       int validRestaurantId = 1;
       final existingRestIds = restaurantProvider.restaurants
@@ -432,7 +512,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         };
       }).toList();
 
-      final addressProvider = context.read<AddressProvider>();
       final selectedAddr = addressProvider.selectedAddress;
 
       final Map<String, dynamic> orderPayload = {
@@ -483,31 +562,51 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (mounted) {
         setState(() => _isProcessing = false);
         String errorMsg = e.toString();
+        bool isAuthError = false;
         if (e is DioException) {
-          final resData = e.response?.data;
-          if (resData is Map) {
-            final parts = <String>[];
-            resData.forEach((key, val) {
-              if (val is List) {
-                parts.add('$key: ${val.join(", ")}');
-              } else {
-                parts.add('$key: $val');
+          if (e.response?.statusCode == 401 ||
+              e.message?.contains('refresh token') == true ||
+              e.message?.contains('Unauthorized') == true) {
+            isAuthError = true;
+            errorMsg = 'Session expired. Please sign in to place your order.';
+          } else {
+            final resData = e.response?.data;
+            if (resData is Map) {
+              final parts = <String>[];
+              resData.forEach((key, val) {
+                if (val is List) {
+                  parts.add('$key: ${val.join(", ")}');
+                } else {
+                  parts.add('$key: $val');
+                }
+              });
+              if (parts.isNotEmpty) {
+                errorMsg = parts.join(' | ');
               }
-            });
-            if (parts.isNotEmpty) {
-              errorMsg = parts.join(' | ');
+            } else if (resData is String && resData.isNotEmpty) {
+              errorMsg = resData;
             }
-          } else if (resData is String && resData.isNotEmpty) {
-            errorMsg = resData;
           }
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Order placement failed: $errorMsg'),
+            content: Text(
+              isAuthError ? errorMsg : 'Order placement failed: $errorMsg',
+            ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
+            action: isAuthError
+                ? SnackBarAction(
+                    label: 'Sign In',
+                    textColor: Colors.white,
+                    onPressed: () => context.push('/login'),
+                  )
+                : null,
           ),
         );
+        if (isAuthError) {
+          _showLoginRequiredDialog();
+        }
       }
     }
   }

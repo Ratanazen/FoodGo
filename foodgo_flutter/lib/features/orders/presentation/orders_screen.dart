@@ -16,6 +16,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/delivery_qr_modal.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../payment/models/payment_model.dart';
 import '../../payment/services/payment_service.dart';
@@ -51,6 +52,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<void> _fetchOrdersSilently() async {
     try {
+      final hasToken = await SecureStorage().hasAccessToken();
+      if (!hasToken) return;
       final data = await ApiService().get('orders/');
       final List<dynamic> orders = data is List
           ? data
@@ -192,6 +195,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
       _error = null;
     });
     try {
+      final hasToken = await SecureStorage().hasAccessToken();
+      if (!hasToken) {
+        if (!mounted) return;
+        setState(() {
+          _orders = [];
+          _isLoading = false;
+          _error = 'Please sign in to view your orders.';
+        });
+        return;
+      }
       final data = await ApiService().get('orders/');
       final List<dynamic> orders = data is List
           ? data
@@ -203,8 +216,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
       });
     } catch (e) {
       if (!mounted) return;
+      String errorMsg = e.toString();
+      if (errorMsg.contains('401') ||
+          errorMsg.contains('refresh token') ||
+          errorMsg.contains('Unauthorized')) {
+        errorMsg = 'Please sign in to view your orders.';
+      }
       setState(() {
-        _error = e.toString();
+        _error = errorMsg;
         _isLoading = false;
       });
     }

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
+import '../core/network/api_client.dart';
 import '../core/storage/secure_storage.dart';
 import '../services/api_service.dart';
 
@@ -14,6 +15,12 @@ class AuthProvider with ChangeNotifier {
   String? get lastAuthError => _lastAuthError;
 
   AuthProvider() {
+    ApiClient.onSessionExpired = () {
+      if (_isAuthenticated) {
+        _isAuthenticated = false;
+        notifyListeners();
+      }
+    };
     checkAuth();
   }
 

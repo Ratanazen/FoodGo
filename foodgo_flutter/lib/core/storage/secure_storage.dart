@@ -10,10 +10,12 @@ class SecureStorage {
 
   Future<void> saveTokens({
     required String accessToken,
-    required String refreshToken,
+    String? refreshToken,
   }) async {
     await _storage.write(key: _accessTokenKey, value: accessToken);
-    await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    if (refreshToken != null && refreshToken.trim().isNotEmpty) {
+      await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    }
   }
 
   Future<String?> getAccessToken() async {
@@ -22,6 +24,16 @@ class SecureStorage {
 
   Future<String?> getRefreshToken() async {
     return await _storage.read(key: _refreshTokenKey);
+  }
+
+  Future<bool> hasAccessToken() async {
+    final t = await getAccessToken();
+    return t != null && t.trim().isNotEmpty;
+  }
+
+  Future<bool> hasRefreshToken() async {
+    final t = await getRefreshToken();
+    return t != null && t.trim().isNotEmpty;
   }
 
   Future<void> clearTokens() async {

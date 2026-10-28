@@ -9,6 +9,7 @@ import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/svg_icon.dart';
 import '../../../services/api_service.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../core/utils/khmer_currency.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -44,6 +45,12 @@ class _WalletScreenState extends State<WalletScreen> {
   Future<void> _fetchWallet() async {
     setState(() => _isLoading = true);
     try {
+      final hasToken = await SecureStorage().hasAccessToken();
+      if (!hasToken) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        return;
+      }
       final data = await _api.get('wallets/my_wallet/');
       if (!mounted) return;
       setState(() {

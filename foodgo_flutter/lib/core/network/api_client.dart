@@ -17,6 +17,9 @@ class ApiClient {
   /// Each completer resolves with the new access token or an error.
   final List<Completer<String>> _pendingRequests = [];
 
+  /// Optional listener called when the user session has expired or cannot be refreshed.
+  static void Function()? onSessionExpired;
+
   ApiClient(this._secureStorage)
     : _dio = Dio(
         BaseOptions(
@@ -38,7 +41,7 @@ class ApiClient {
               options.path.contains('auth/register');
           if (!isAuthEndpoint) {
             final token = await _secureStorage.getAccessToken();
-            if (token != null) {
+            if (token != null && token.isNotEmpty) {
               options.headers['Authorization'] = 'Bearer $token';
             }
           }
@@ -64,14 +67,39 @@ class ApiClient {
             return handler.next(e);
           }
 
+          // Do not retry if request already underwent a refresh retry
+          if (requestOptions.extra['is_retry'] == true) {
+            onSessionExpired?.call();
+            return handler.next(e);
+          }
+
+          // Check if there is an active refresh token stored.
+          // If none exists, this is an unauthenticated request or the user has logged out.
+          // In that case, DO NOT attempt to refresh or throw "No refresh token available".
+          // Pass through the original 401 error so the app/caller receives standard 401 response.
+          final refreshToken = await _secureStorage.getRefreshToken();
+          if (refreshToken == null || refreshToken.trim().isEmpty) {
+            onSessionExpired?.call();
+            return handler.next(e);
+          }
+
           try {
             final newAccessToken = await _refreshToken();
             // Retry the original request with the new access token
             requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+            requestOptions.extra['is_retry'] = true;
             final response = await _dio.fetch(requestOptions);
             return handler.resolve(response);
           } on DioException catch (refreshError) {
-            return handler.reject(refreshError);
+            onSessionExpired?.call();
+            // If the refresh failed with a response, return it, otherwise return original 401
+            if (refreshError.response != null) {
+              return handler.reject(refreshError);
+            }
+            return handler.reject(e);
+          } catch (unexpected) {
+            onSessionExpired?.call();
+            return handler.reject(e);
           }
         },
       ),
@@ -104,9 +132,14 @@ class ApiClient {
 
     try {
       final refreshToken = await _secureStorage.getRefreshToken();
-      if (refreshToken == null) {
+      if (refreshToken == null || refreshToken.trim().isEmpty) {
         throw DioException(
           requestOptions: RequestOptions(path: 'token/refresh/'),
+          response: Response(
+            requestOptions: RequestOptions(path: 'token/refresh/'),
+            statusCode: 401,
+            data: {'detail': 'No refresh token available. Please log in.'},
+          ),
           message: 'No refresh token available',
         );
       }

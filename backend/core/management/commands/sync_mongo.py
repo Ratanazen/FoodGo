@@ -7,6 +7,7 @@ from core.models import Order, Restaurant, FoodItem, User
 from core.mongodb import (
     save_order_mongo,
     sync_catalog_to_mongo,
+    sync_all_users_to_mongo,
     save_image_mongo,
     get_mongo_stats,
     check_mongo_connection
@@ -38,7 +39,14 @@ class Command(BaseCommand):
             f"Catalog synced: {cat_res.get('restaurants', 0)} restaurants, {cat_res.get('food_items', 0)} food items."
         ))
 
-        # 2. Sync Orders
+        # 2. Sync Users
+        self.stdout.write("Syncing users to MongoDB Atlas...")
+        user_res = sync_all_users_to_mongo()
+        self.stdout.write(self.style.SUCCESS(
+            f"Users synced: {user_res.get('synced', 0)}/{user_res.get('total', 0)} accounts."
+        ))
+
+        # 3. Sync Orders
         self.stdout.write("Syncing orders to MongoDB Atlas...")
         orders = Order.objects.all()
         synced_orders = 0
@@ -47,7 +55,7 @@ class Command(BaseCommand):
                 synced_orders += 1
         self.stdout.write(self.style.SUCCESS(f"Orders synced: {synced_orders}/{orders.count()} orders."))
 
-        # 3. Optional: Sync Media Images
+        # 4. Optional: Sync Media Images
         media_count = 0
         if options.get('include_media'):
             media_root = Path(settings.MEDIA_ROOT)

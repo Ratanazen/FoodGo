@@ -262,6 +262,18 @@ class VerifyPhoneOTPView(APIView):
                     'is_phone_verified': True,
                 }
 
+                # Record phone OTP login event to MongoDB Atlas (non-blocking)
+                try:
+                    from .mongodb import record_user_login_mongo
+                    from .signals import _run_async
+                    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+                    if ip and ',' in ip:
+                        ip = ip.split(',')[0].strip()
+                    ua = request.META.get('HTTP_USER_AGENT', '')
+                    _run_async(record_user_login_mongo, args=(target_user, 'phone_otp', ip, ua))
+                except Exception:
+                    pass
+
             return Response(response_data, status=status.HTTP_200_OK)
 
 

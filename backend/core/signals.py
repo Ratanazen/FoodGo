@@ -3,9 +3,10 @@ import sys
 import logging
 import threading
 from django.db.models.signals import post_save
+from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from .models import Order, FoodItem, Restaurant, User
-from .mongodb import save_order_mongo, save_image_mongo, get_mongo_db
+from .mongodb import save_order_mongo, save_image_mongo, save_user_mongo, record_user_login_mongo, get_mongo_db
 
 logger = logging.getLogger(__name__)
 
@@ -114,18 +115,22 @@ def _sync_food_item(instance_id):
         logger.warning(f"Failed to auto-sync food item #{instance_id} to MongoDB: {e}")
 
 
-def _sync_user_avatar(instance_id):
-    """Sync user avatar to MongoDB in background thread."""
+def _sync_user(instance_id):
+    """Sync user account details and avatar to MongoDB in background thread."""
     try:
         from .models import User as UserModel
-        instance = UserModel.objects.get(id=instance_id)
+        instance = UserModel.objects.prefetch_related('addresses').get(id=instance_id)
+        # 1. Sync full user profile document to MongoDB Atlas users collection
+        save_user_mongo(instance)
+
+        # 2. Sync avatar image to GridFS if uploaded
         if instance.avatar and hasattr(instance.avatar, 'file'):
             try:
                 save_image_mongo(instance.avatar.name, instance.avatar.file, metadata={'type': 'user_avatar', 'user_id': instance.id})
             except Exception:
                 pass
     except Exception as e:
-        logger.warning(f"Failed to auto-sync avatar for user #{instance_id} to MongoDB: {e}")
+        logger.warning(f"Failed to auto-sync user #{instance_id} to MongoDB: {e}")
 
 
 @receiver(post_save, sender=Order)
@@ -147,6 +152,22 @@ def sync_food_item_to_mongo(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=User)
-def sync_user_avatar_to_mongo(sender, instance, **kwargs):
-    """Mirror user profile avatar to MongoDB Atlas GridFS on save (non-blocking)."""
-    _run_async(_sync_user_avatar, args=(instance.id,))
+def sync_user_to_mongo(sender, instance, **kwargs):
+    """Mirror user profile and avatar to MongoDB Atlas on save/update (non-blocking)."""
+    _run_async(_sync_user, args=(instance.id,))
+
+
+@receiver(user_logged_in)
+def on_user_logged_in(sender, request, user, **kwargs):
+    """Record login activity in MongoDB Atlas when a user logs in via Django authentication (non-blocking)."""
+    ip = None
+    ua = None
+    if request:
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        ua = request.META.get('HTTP_USER_AGENT', '')
+    _run_async(record_user_login_mongo, args=(user, 'django_login', ip, ua))
+

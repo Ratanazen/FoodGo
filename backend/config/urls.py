@@ -14,6 +14,7 @@ def profile_redirect(request):
     return redirect('/')
 
 from core.views import HealthCheckView, HealthLiveView, HealthReadyView, MongoHealthCheckView, MongoImageView
+from core.auth_views import FoodGoTokenObtainPairView
 
 urlpatterns = [
     path('', api_root, name='api-root'),
@@ -34,6 +35,6 @@ urlpatterns = [
     path('api/health', HealthCheckView.as_view(), name='root-api-health-no-slash'),
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', FoodGoTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

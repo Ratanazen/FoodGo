@@ -114,6 +114,8 @@ def get_mongo_stats() -> Dict[str, Any]:
                 'delivery_events': db.delivery_events.estimated_document_count() if 'delivery_events' in colls else 0,
                 'restaurants': db.restaurants.estimated_document_count() if 'restaurants' in colls else 0,
                 'food_items': db.food_items.estimated_document_count() if 'food_items' in colls else 0,
+                'users': db.users.estimated_document_count() if 'users' in colls else 0,
+                'user_logins': db.user_logins.estimated_document_count() if 'user_logins' in colls else 0,
                 'media_files': db['fs.files'].estimated_document_count() if 'fs.files' in colls else 0,
             }
         }
@@ -619,4 +621,228 @@ def record_delivery_event_mongo(order_id: int, event_type: str, actor_id: Option
     except Exception as e:
         logger.warning(f"record_delivery_event_mongo failed: {e}")
         return False
+
+
+# ==============================================================================
+# User Accounts & Login Activity Helpers
+# ==============================================================================
+
+def save_user_mongo(user: Any) -> bool:
+    """
+    Save or update a user account in MongoDB Atlas `users` collection.
+    Accepts a User model instance or a user dictionary.
+    Safe against missing attributes and handles related addresses safely.
+    """
+    db = get_mongo_db()
+    if db is None:
+        return False
+
+    try:
+        from django.utils import timezone
+        now = timezone.now()
+
+        if hasattr(user, 'id'):
+            # It's a Django User model instance
+            avatar_url = getattr(user, 'avatar_url', None) or ''
+            if not avatar_url and getattr(user, 'avatar', None):
+                try:
+                    avatar_url = user.avatar.url
+                except Exception:
+                    avatar_url = ''
+
+            # Try to get default address
+            default_address = None
+            try:
+                addr = user.addresses.filter(is_default=True).first() or user.addresses.first()
+                if addr:
+                    default_address = {
+                        'id': addr.id,
+                        'street': addr.street,
+                        'city': addr.city,
+                        'state': addr.state,
+                        'label': addr.label,
+                        'lat': float(addr.lat) if addr.lat is not None else None,
+                        'lng': float(addr.lng) if addr.lng is not None else None,
+                    }
+            except Exception:
+                pass
+
+            user_doc = {
+                'user_id': user.id,
+                'username': user.username,
+                'email': user.email or '',
+                'first_name': user.first_name or '',
+                'last_name': user.last_name or '',
+                'full_name': f"{user.first_name or ''} {user.last_name or ''}".strip() or user.username,
+                'role': getattr(user, 'role', 'customer'),
+                'phone': getattr(user, 'phone', '') or '',
+                'phone_normalized': getattr(user, 'phone_normalized', '') or '',
+                'is_phone_verified': bool(getattr(user, 'is_phone_verified', False)),
+                'phone_verified_at': user.phone_verified_at.isoformat() if getattr(user, 'phone_verified_at', None) else None,
+                'avatar_url': avatar_url,
+                'is_active': bool(user.is_active),
+                'is_staff': bool(user.is_staff),
+                'is_superuser': bool(user.is_superuser),
+                'date_joined': user.date_joined.isoformat() if getattr(user, 'date_joined', None) else None,
+                'last_login': user.last_login.isoformat() if getattr(user, 'last_login', None) else None,
+                'updated_at': now.isoformat(),
+            }
+            if default_address:
+                user_doc['default_address'] = default_address
+            user_id = user.id
+        elif isinstance(user, dict):
+            user_id = user.get('user_id') or user.get('id')
+            if not user_id:
+                return False
+            user_doc = dict(user)
+            user_doc['user_id'] = user_id
+            user_doc['updated_at'] = now.isoformat()
+        else:
+            return False
+
+        # Upsert user document
+        db.users.update_one(
+            {'user_id': user_id},
+            {
+                '$set': user_doc,
+                '$setOnInsert': {
+                    'created_at': now.isoformat(),
+                    'login_count': 0
+                }
+            },
+            upsert=True
+        )
+        return True
+    except Exception as e:
+        logger.warning(f"save_user_mongo failed for user {getattr(user, 'id', user)}: {e}")
+        return False
+
+
+def get_user_mongo(user_id: int) -> Optional[Dict[str, Any]]:
+    """Fetch user document from MongoDB Atlas `users` collection."""
+    db = get_mongo_db()
+    if db is None:
+        return None
+    try:
+        doc = db.users.find_one({'user_id': user_id}, {'_id': 0})
+        return doc
+    except Exception as e:
+        logger.warning(f"get_user_mongo failed for user #{user_id}: {e}")
+        return None
+
+
+def record_user_login_mongo(user: Any, login_method: str = 'jwt_password',
+                            ip_address: Optional[str] = None,
+                            user_agent: Optional[str] = None,
+                            extra_data: Optional[Dict[str, Any]] = None) -> bool:
+    """
+    Record an authentication/login event in MongoDB Atlas `user_logins` collection
+    and update login stats in `users` collection.
+    """
+    db = get_mongo_db()
+    if db is None:
+        return False
+
+    try:
+        from django.utils import timezone
+        now = timezone.now()
+
+        if hasattr(user, 'id'):
+            user_id = user.id
+            username = user.username
+            email = getattr(user, 'email', '') or ''
+            role = getattr(user, 'role', 'customer')
+            phone = getattr(user, 'phone', '') or ''
+        elif isinstance(user, dict):
+            user_id = user.get('user_id') or user.get('id')
+            username = user.get('username', '')
+            email = user.get('email', '')
+            role = user.get('role', 'customer')
+            phone = user.get('phone', '')
+        else:
+            return False
+
+        if not user_id:
+            return False
+
+        login_doc = {
+            'user_id': user_id,
+            'username': username,
+            'email': email,
+            'role': role,
+            'phone': phone,
+            'login_method': login_method,
+            'ip_address': ip_address or '',
+            'user_agent': user_agent or '',
+            'timestamp': now.isoformat(),
+            'status': 'SUCCESS',
+            'extra_data': extra_data or {}
+        }
+
+        # 1. Append audit trail in user_logins
+        db.user_logins.insert_one(login_doc)
+
+        # 2. Update user doc with latest login info and increment login_count
+        db.users.update_one(
+            {'user_id': user_id},
+            {
+                '$set': {
+                    'last_login_at': now.isoformat(),
+                    'last_login_method': login_method,
+                    'last_login_ip': ip_address or '',
+                    'last_login_user_agent': user_agent or '',
+                    'updated_at': now.isoformat(),
+                },
+                '$inc': {'login_count': 1}
+            },
+            upsert=True
+        )
+
+        return True
+    except Exception as e:
+        logger.warning(f"record_user_login_mongo failed for user {getattr(user, 'id', user)}: {e}")
+        return False
+
+
+def get_user_logins_mongo(user_id: int, limit: int = 20) -> List[Dict[str, Any]]:
+    """Fetch recent login history for a user from MongoDB Atlas `user_logins` collection."""
+    db = get_mongo_db()
+    if db is None:
+        return []
+    try:
+        cursor = db.user_logins.find(
+            {'user_id': user_id},
+            {'_id': 0}
+        ).sort('timestamp', -1).limit(limit)
+        return list(cursor)
+    except Exception as e:
+        logger.warning(f"get_user_logins_mongo failed for user #{user_id}: {e}")
+        return []
+
+
+def sync_all_users_to_mongo() -> Dict[str, Any]:
+    """
+    Backfill all PostgreSQL users to MongoDB Atlas `users` collection.
+    Returns summary dict of total and successfully synced users.
+    """
+    db = get_mongo_db()
+    if db is None:
+        return {'total': 0, 'synced': 0, 'failed': 0, 'status': 'no_mongo'}
+
+    try:
+        from .models import User as UserModel
+        users = UserModel.objects.all().prefetch_related('addresses')
+        total = users.count()
+        synced = 0
+        failed = 0
+        for u in users:
+            if save_user_mongo(u):
+                synced += 1
+            else:
+                failed += 1
+        return {'total': total, 'synced': synced, 'failed': failed, 'status': 'success'}
+    except Exception as e:
+        logger.warning(f"sync_all_users_to_mongo failed: {e}")
+        return {'total': 0, 'synced': 0, 'failed': 0, 'error': str(e)}
+
 

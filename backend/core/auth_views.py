@@ -1,4 +1,5 @@
 import random
+import logging
 import requests
 import sys
 from django.conf import settings
@@ -7,8 +8,42 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.cache import cache
 from .models import User
+
+logger = logging.getLogger(__name__)
+
+
+def _extract_request_meta(request):
+    """Extract client IP address and user-agent string from request."""
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+    if ip and ',' in ip:
+        ip = ip.split(',')[0].strip()
+    ua = request.META.get('HTTP_USER_AGENT', '')
+    return ip, ua
+
+
+class FoodGoTokenObtainPairView(TokenObtainPairView):
+    """
+    Subclass of SimpleJWT TokenObtainPairView that records login audit logs
+    and syncs user state to MongoDB Atlas on successful authentication.
+    """
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            try:
+                from .mongodb import record_user_login_mongo
+                from .signals import _run_async
+                identifier = request.data.get('username') or request.data.get('email')
+                if identifier:
+                    user = User.objects.filter(username=identifier).first() or User.objects.filter(email=identifier).first()
+                    if user:
+                        ip, ua = _extract_request_meta(request)
+                        _run_async(record_user_login_mongo, args=(user, 'jwt_password', ip, ua))
+            except Exception as e:
+                logger.warning(f"Failed to record JWT login to MongoDB: {e}")
+        return response
 
 class RequestOTPView(APIView):
     permission_classes = [AllowAny]
@@ -58,7 +93,16 @@ class VerifyOTPView(APIView):
         
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
-        
+
+        # Record login event to MongoDB Atlas (non-blocking)
+        try:
+            from .mongodb import record_user_login_mongo
+            from .signals import _run_async
+            ip, ua = _extract_request_meta(request)
+            _run_async(record_user_login_mongo, args=(user, 'phone_otp_debug', ip, ua))
+        except Exception:
+            pass
+
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
@@ -159,6 +203,15 @@ class GoogleLoginView(APIView):
 
         # 3. Issue FoodGo JWT tokens
         refresh = RefreshToken.for_user(user)
+
+        # Record Google OAuth login event to MongoDB Atlas (non-blocking)
+        try:
+            from .mongodb import record_user_login_mongo
+            from .signals import _run_async
+            ip, ua = _extract_request_meta(request)
+            _run_async(record_user_login_mongo, args=(user, 'google_oauth', ip, ua))
+        except Exception:
+            pass
 
         user_photo = user.avatar_url or (user.avatar.url if user.avatar else None)
 

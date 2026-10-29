@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../widgets/glass/animated_pressable.dart';
 import 'app_palette.dart';
 import 'glass_theme.dart';
@@ -11,6 +13,10 @@ class ThemeStyles {
     switch (p.id) {
       case AppColorPalette.khmerNewYear:
         return 'សួស្តីឆ្នាំថ្មី! Happy Khmer New Year!';
+      case AppColorPalette.khmerHeritage:
+        return 'មរតកវប្បធម៌ខ្មែរ! Majestic Khmer Heritage 🏛️';
+      case AppColorPalette.songkranNewYear:
+        return 'រីករាយពិធីបុណ្យចូលឆ្នាំថ្មី សង្ក្រាន្តត្រជាក់ចិត្ត! 💦';
       case AppColorPalette.christmas:
         return 'Merry Christmas & Happy Holidays! 🎄';
       case AppColorPalette.waterFestival:
@@ -19,14 +25,23 @@ class ThemeStyles {
         return 'ពិធីបុណ្យភ្ជុំបិណ្ឌ! Pchum Ben Blessings! 🪷';
       case AppColorPalette.angkorHeritage:
         return 'មោទនភាពជាតិខ្មែរ! Majestic Angkor Heritage 🏛️';
+      case AppColorPalette.modernFoodGo:
       case AppColorPalette.emeraldGreen:
         return 'Fresh & Healthy Organic Food Dining 🌿';
       case AppColorPalette.orangeCoral:
         return 'Delicious Food Delivered Hot & Fresh 🍔';
+      case AppColorPalette.darkPremium:
+        return 'Prestige Onyx & Champagne Gourmet ✨';
+      case AppColorPalette.softMinimal:
+        return 'Calm, Mindful & Organic Living 🍃';
       case AppColorPalette.smaltBlue:
         return 'Modern Cyber Dining Experience ⚡';
       case AppColorPalette.darkGold:
         return 'Prestige Gourmet Dining & Luxury ✨';
+      case AppColorPalette.monochrome:
+        return 'Editorial Studio Precision & Clarity 🏁';
+      case AppColorPalette.highContrast:
+        return 'Maximum Contrast Accessible Experience 👁️';
     }
   }
 
@@ -36,6 +51,10 @@ class ThemeStyles {
     switch (p.id) {
       case AppColorPalette.khmerNewYear:
         return 'អបអរសាទរទេវតាឆ្នាំថ្មី សិរីសួស្តី វិបុលសុខគ្រប់ប្រការ';
+      case AppColorPalette.khmerHeritage:
+        return 'មោទនភាពសម្បត្តិបេតិកភណ្ឌ និងអរិយធម៌ខ្មែរដ៏រុងរឿង';
+      case AppColorPalette.songkranNewYear:
+        return 'ត្រជាក់ត្រជុំ សិរីសួស្តី និងភាពរីករាយពេញមួយឆ្នាំ';
       case AppColorPalette.christmas:
         return 'ជូនពរសេចក្តីសុខ សុភមង្គល និងភាពកក់ក្តៅក្នុងរដូវកាលបុណ្យ';
       case AppColorPalette.waterFestival:
@@ -148,7 +167,12 @@ class FestivalThemeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = GlassTheme.activePalette;
+    final themeProvider = context.watch<ThemeProvider?>();
+    final palette = themeProvider?.paletteData ?? GlassTheme.activePalette;
+    if (palette.isFestive && themeProvider != null && !themeProvider.seasonalDecorationsEnabled) {
+      return const SizedBox.shrink();
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedPressable(

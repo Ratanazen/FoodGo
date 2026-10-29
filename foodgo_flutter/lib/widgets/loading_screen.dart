@@ -46,8 +46,11 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = GlassTheme.activePalette;
+
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundDark,
+      backgroundColor: isDark ? palette.backgroundDark : palette.backgroundLight,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -90,11 +93,14 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
           ),
 
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Glowing pulsating logo card
-                AnimatedBuilder(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Glowing pulsating logo card
+                  AnimatedBuilder(
                   animation: _pulseAnimation,
                   builder: (context, _) => Transform.scale(
                     scale: _pulseAnimation.value,
@@ -166,6 +172,7 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
               ],
             ),
           ),
+        ),
         ],
       ),
     );

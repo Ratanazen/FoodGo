@@ -29,6 +29,7 @@ import '../../features/profile/presentation/edit_profile_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/addresses/presentation/addresses_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/settings/presentation/theme_center_screen.dart';
 import '../../screens/map_screen.dart';
 import '../../features/dashboard/presentation/restaurant_dashboard_screen.dart';
 import '../../features/dashboard/presentation/driver_dashboard_screen.dart';
@@ -314,6 +315,18 @@ final GoRouter appRouter = GoRouter(
         child: const SettingsScreen(),
         type: PageTransitionType.slideUp,
       ),
+    ),
+    GoRoute(
+      path: '/theme-center',
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const ThemeCenterScreen(),
+        type: PageTransitionType.slideRight,
+      ),
+    ),
+    GoRoute(
+      path: '/settings/theme',
+      redirect: (context, state) => '/theme-center',
     ),
     GoRoute(
       path: '/search',

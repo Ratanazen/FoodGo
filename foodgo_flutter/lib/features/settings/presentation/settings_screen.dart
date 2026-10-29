@@ -1051,27 +1051,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 22,
-                          height: 22,
-                          decoration: BoxDecoration(
-                            gradient: themeProvider.paletteData.headerGradient,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: themeProvider.paletteData.primary
-                                    .withValues(alpha: 0.5),
-                                blurRadius: 6,
-                              ),
-                            ],
+                        GestureDetector(
+                          onTap: () => _showColorPaletteDialog(context),
+                          child: Container(
+                            width: 22,
+                            height: 22,
+                            decoration: BoxDecoration(
+                              gradient: themeProvider.paletteData.headerGradient,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: themeProvider.paletteData.primary
+                                      .withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         const Icon(Icons.chevron_right),
                       ],
                     ),
-                    onTap: () => _showColorPaletteDialog(context),
+                    onTap: () => context.push('/theme-center'),
                   ),
                   _Divider(),
                   _SettingsTile(

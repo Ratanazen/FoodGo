@@ -982,7 +982,7 @@ class ProfileScreen extends StatelessWidget {
             _ProfileOption(
               icon: Icons.palette_outlined,
               title: 'Theme & Khmer Festivals',
-              onTap: () => context.push('/settings'),
+              onTap: () => context.push('/theme-center'),
             ),
             _ProfileOption(
               icon: Icons.language,

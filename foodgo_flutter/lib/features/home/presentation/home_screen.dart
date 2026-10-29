@@ -387,7 +387,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         delegate: SliverChildListDelegate([
                           // ── Active Festival / Theme Greeting Banner ────────
                           FestivalThemeBanner(
-                            onTap: () => context.push('/settings'),
+                            onTap: () => context.push('/theme-center'),
                           ).animate().fadeIn(duration: 400.ms),
                           const SizedBox(height: 12),
 

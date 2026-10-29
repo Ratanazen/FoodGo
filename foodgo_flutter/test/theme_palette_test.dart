@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:foodgo_flutter/app/theme/app_theme.dart';
 import 'package:foodgo_flutter/core/theme/app_palette.dart';
 import 'package:foodgo_flutter/core/theme/glass_theme.dart';
 import 'package:foodgo_flutter/core/theme/theme_styles.dart';
+import 'package:foodgo_flutter/features/settings/presentation/theme_center_screen.dart';
 import 'package:foodgo_flutter/providers/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,8 +15,8 @@ void main() {
   });
 
   group('Dynamic Theme & Color Palette Tests', () {
-    test('PaletteData defines 9 complete brand and festival color palettes', () {
-      expect(PaletteData.allPalettes.length, 9);
+    test('PaletteData defines 16 complete brand and festival color palettes', () {
+      expect(PaletteData.allPalettes.length, 16);
 
       for (final palette in PaletteData.allPalettes) {
         expect(palette.nameEn.isNotEmpty, isTrue);
@@ -29,11 +31,11 @@ void main() {
         expect(palette.categoryKh.isNotEmpty, isTrue);
       }
 
-      // Verify festive count vs signature count
+      // Verify festive count vs non-festive count
       final festive = PaletteData.allPalettes.where((p) => p.isFestive).toList();
-      final signature = PaletteData.allPalettes.where((p) => !p.isFestive).toList();
-      expect(festive.length, 5); // Khmer New Year, Christmas, Water Festival, Pchum Ben, Angkor
-      expect(signature.length, 4); // Organic Green, Warm Coral, Smalt Blue, Dark Gold
+      final nonFestive = PaletteData.allPalettes.where((p) => !p.isFestive).toList();
+      expect(festive.length, 7);
+      expect(nonFestive.length, 9);
     });
 
     test('PaletteData fromId and fromString serialization for all 9 themes', () {
@@ -218,6 +220,75 @@ void main() {
       await tester.tap(find.byType(FestivalThemeBanner));
       expect(tapped, isTrue);
     });
+
+    test('PaletteData supports 7 new modern and cultural palettes', () {
+      expect(PaletteData.fromId(AppColorPalette.khmerHeritage).nameEn, contains('Khmer Heritage'));
+      expect(PaletteData.fromId(AppColorPalette.modernFoodGo).nameEn, contains('Modern FoodGo'));
+      expect(PaletteData.fromId(AppColorPalette.darkPremium).nameEn, contains('Dark Premium'));
+      expect(PaletteData.fromId(AppColorPalette.softMinimal).nameEn, contains('Soft Minimal'));
+      expect(PaletteData.fromId(AppColorPalette.songkranNewYear).nameEn, contains('Songkran'));
+      expect(PaletteData.fromId(AppColorPalette.monochrome).nameEn, contains('Monochrome'));
+      expect(PaletteData.fromId(AppColorPalette.highContrast).nameEn, contains('High Contrast'));
+
+      expect(PaletteData.fromString('khmerHeritage').id, AppColorPalette.khmerHeritage);
+      expect(PaletteData.fromString('modernFoodGo').id, AppColorPalette.modernFoodGo);
+      expect(PaletteData.fromString('darkPremium').id, AppColorPalette.darkPremium);
+      expect(PaletteData.fromString('softMinimal').id, AppColorPalette.softMinimal);
+      expect(PaletteData.fromString('songkranNewYear').id, AppColorPalette.songkranNewYear);
+      expect(PaletteData.fromString('monochrome').id, AppColorPalette.monochrome);
+      expect(PaletteData.fromString('highContrast').id, AppColorPalette.highContrast);
+    });
+
+    test('ThemeProvider supports setThemeMode, seasonal toggle, and resetToDefaults', () {
+      final provider = ThemeProvider();
+
+      provider.setThemeMode(ThemeMode.light);
+      expect(provider.themeMode, ThemeMode.light);
+      expect(provider.isDarkMode, isFalse);
+
+      provider.setThemeMode(ThemeMode.dark);
+      expect(provider.themeMode, ThemeMode.dark);
+      expect(provider.isDarkMode, isTrue);
+
+      provider.setSeasonalDecorationsEnabled(false);
+      expect(provider.seasonalDecorationsEnabled, isFalse);
+
+      provider.setReducedMotion(true);
+      expect(provider.reducedMotion, isTrue);
+
+      provider.resetToDefaults();
+      expect(provider.themeMode, ThemeMode.system);
+      expect(provider.currentPalette, AppColorPalette.modernFoodGo);
+      expect(provider.seasonalDecorationsEnabled, isTrue);
+      expect(provider.reducedMotion, isFalse);
+    });
+
+    testWidgets('ThemeCenterScreen renders title, live preview, appearance modes, and theme gallery', (tester) async {
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+          child: const MaterialApp(
+            home: ThemeCenterScreen(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Theme Center'), findsOneWidget);
+      expect(find.text('មជ្ឈមណ្ឌលរចនាបថ និងរូបរាង'), findsOneWidget);
+      expect(find.text('Appearance Mode'), findsOneWidget);
+      expect(find.text('System'), findsOneWidget);
+      expect(find.text('Light'), findsOneWidget);
+      expect(find.text('Dark'), findsOneWidget);
+      expect(find.text('Theme & Cultural Palettes'), findsOneWidget);
+
+      // Verify some of the themes render in the list
+      expect(find.text('Khmer New Year (Sangkran)'), findsOneWidget);
+      expect(find.text('Modern FoodGo'), findsOneWidget);
+    });
   });
 }
+
 

@@ -15,14 +15,15 @@ const CACHEABLE_PATTERNS = [
   { pattern: /^\/api\/recommendations\//, ttl: 120 },
   { pattern: /^\/api\/coupons\/$/, ttl: 120 },
   { pattern: /^\/api\/live-items\//, ttl: 60 },
-  { pattern: /^\/health/, ttl: 30 },
-  { pattern: /^\/api\/health\//, ttl: 30 },
   { pattern: /^\/media\/mongo\//, ttl: 3600 },
   { pattern: /^\/api\/media\/mongo\//, ttl: 3600 },
+  { pattern: /^\/static\//, ttl: 86400 },
 ];
 
 // Endpoints that must NEVER be cached regardless of method
 const NEVER_CACHE_PATTERNS = [
+  /^\/health/,
+  /^\/api\/health/,
   /^\/api\/token/,
   /^\/api\/auth\//,
   /^\/api\/register/,
@@ -47,18 +48,24 @@ const NEVER_CACHE_PATTERNS = [
 // Request timeout for backend fetch (milliseconds)
 const BACKEND_TIMEOUT_MS = 25000;
 
+const ALLOWED_ORIGIN_HOSTS = new Set([
+  'foodgo.rtnaeam611.workers.dev',
+  'food-go-app.vercel.app',
+  'foodgo-backend-a.vercel.app',
+  'foodgo-backend-b.vercel.app',
+  'foodgo-53pl.onrender.com',
+  'localhost',
+  '127.0.0.1',
+  '0.0.0.0',
+]);
+
 function isAuthorizedOrigin(origin) {
   if (!origin) return false;
   try {
     const parsed = new URL(origin);
     const host = parsed.hostname;
-    if (host === 'foodgo.rtnaeam611.workers.dev') return true;
-    if (host === 'food-go-app.vercel.app') return true;
-    if (host.endsWith('.workers.dev')) return true;
-    if (host.endsWith('.vercel.app')) return true;
-    if (host.endsWith('foodgo.app')) return true;
-    if (host.endsWith('.onrender.com')) return true;
-    if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') return true;
+    if (ALLOWED_ORIGIN_HOSTS.has(host)) return true;
+    if (host === 'foodgo.app' || host.endsWith('.foodgo.app')) return true;
   } catch (_) {
     return false;
   }
@@ -142,12 +149,13 @@ export default {
       });
     }
 
-    // 2. Proxy API, Health, and Admin endpoints with 50/50 dual-backend load balancing and active failover
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz') || url.pathname.startsWith('/admin') || url.pathname.startsWith('/static/admin/')) {
+    // 2. Proxy API, Health, Admin, Static, and Media endpoints with 50/50 dual-backend load balancing
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz') || url.pathname.startsWith('/admin') || url.pathname.startsWith('/static/') || url.pathname.startsWith('/media/')) {
 
       // --- Edge Cache Check ---
       const hasAuthHeader = request.headers.has('Authorization');
-      const cacheTtl = getCacheTtl(request.method, url.pathname, hasAuthHeader);
+      const hasCookieHeader = request.headers.has('Cookie') && (request.headers.get('Cookie') || '').includes('sessionid');
+      const cacheTtl = getCacheTtl(request.method, url.pathname, hasAuthHeader, hasCookieHeader);
       const cache = caches.default;
 
       if (cacheTtl > 0) {
@@ -289,12 +297,14 @@ export default {
       resHeaders.set('X-FoodGo-Origin', activeTag);
       resHeaders.set('Vary', 'Origin');
 
+      resHeaders.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+
       if (didFailover) {
         resHeaders.set('X-FoodGo-Failover', 'true');
       }
 
       // Add appropriate Cache-Control headers based on endpoint type
-      if (hasAuthHeader || NEVER_CACHE_PATTERNS.some(p => p.test(url.pathname))) {
+      if (hasAuthHeader || hasCookieHeader || NEVER_CACHE_PATTERNS.some(p => p.test(url.pathname))) {
         resHeaders.set('Cache-Control', 'no-store, private');
       }
 

@@ -11,11 +11,17 @@ class RestaurantProvider with ChangeNotifier {
   List<dynamic> _restaurants = [];
   bool _isLoading = false;
   bool _hasError = false;
+  bool _isDemo = false;
   String? _errorMessage;
 
   List<dynamic> get restaurants => _restaurants;
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
+
+  /// True only after the user explicitly loaded the offline demo catalogue.
+  /// Demo data must never be treated as live availability, especially at
+  /// checkout.
+  bool get isDemo => _isDemo;
   String? get errorMessage => _errorMessage;
 
   RestaurantProvider() {
@@ -66,29 +72,31 @@ class RestaurantProvider with ChangeNotifier {
       final data = await _apiService.get('restaurants/');
       if (data is List && data.isNotEmpty) {
         _restaurants = data;
+        _isDemo = false;
         _saveToCache(data);
         _hasError = false;
-      } else if (_restaurants.isEmpty) {
-        // If server returned empty, fallback to rich offline catalog
-        _restaurants = _defaultFallbackRestaurants;
+        _errorMessage = null;
+      } else {
+        _hasError = true;
+        _errorMessage = 'No restaurants are available right now.';
       }
     } catch (e) {
       debugPrint('Error fetching restaurants: $e');
       _hasError = true;
-      _errorMessage = 'Could not connect to restaurant catalog';
-
-      // If we don't have cached data, populate default catalog so user is never stuck
-      if (_restaurants.isEmpty) {
-        _restaurants = _defaultFallbackRestaurants;
-      }
+      _errorMessage = 'Could not connect to the restaurant catalogue.';
+      // Keep any previously cached live data; never substitute invented
+      // restaurants for a failed request.
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
+  /// Explicit opt-in for browsing the offline demo catalogue. This is only
+  /// reachable from the "Load demo menu" action and is surfaced as demo data.
   void loadDemoFallback() {
     _restaurants = _defaultFallbackRestaurants;
+    _isDemo = true;
     _hasError = false;
     _errorMessage = null;
     notifyListeners();

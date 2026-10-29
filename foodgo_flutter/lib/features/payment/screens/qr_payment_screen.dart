@@ -10,7 +10,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../core/utils/khmer_currency.dart';
 import '../../../../providers/cart_provider.dart';
-import '../../../../services/api_service.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/svg_icon.dart';
@@ -215,10 +214,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     }
   }
 
-  Future<void> _checkStatus({
-    bool isBackground = false,
-    bool simulate = false,
-  }) async {
+  Future<void> _checkStatus({bool isBackground = false}) async {
     if (_currentPayment == null) return;
     if (_currentPayment!.isCancelled ||
         _currentPayment!.isExpired ||
@@ -235,7 +231,6 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     try {
       final updated = await _paymentService.getPaymentStatus(
         _currentPayment!.id,
-        simulate: simulate,
       );
       if (!mounted) return;
 
@@ -1636,10 +1631,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                             icon: Icons.check_circle_outline,
                             isLoading: _isVerifying,
                             gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF22C55E),
-                                Color(0xFF16A34A),
-                              ],
+                              colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -1650,94 +1642,6 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        // Sandbox Webhook Simulator for Web/Test Mode
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: GlassTheme.primaryGreen,
-                            side: BorderSide(
-                              color: GlassTheme.primaryGreen.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          icon: const Icon(Icons.bolt, size: 18),
-                          label: const Text(
-                            'Simulate Webhook Pay (Test Mode)',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          onPressed: _isVerifying
-                              ? null
-                              : () async {
-                                  final messenger =
-                                      ScaffoldMessenger.of(context);
-                                  setState(() => _isVerifying = true);
-                                  try {
-                                    // Direct simulation endpoint triggers status transition to PAID immediately
-                                    final updated = await _paymentService
-                                        .getPaymentStatus(
-                                          payment.id,
-                                          simulate: true,
-                                        );
-                                    if (mounted) {
-                                      _handleStatusUpdate(updated);
-                                      messenger.showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Payment confirmed successfully via simulation!',
-                                          ),
-                                          backgroundColor:
-                                              GlassTheme.primaryGreen,
-                                          behavior: SnackBarBehavior.floating,
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    // Fallback to webhook callback endpoint
-                                    try {
-                                      final endpoint = isBakong
-                                          ? 'payments/bakong/callback/'
-                                          : (isAba
-                                                ? 'payments/aba/callback/'
-                                                : 'payments/acleda/callback/');
-                                      await ApiService().post(endpoint, {
-                                        'merchant_reference':
-                                            payment.merchantReference,
-                                        'amount': payment.amount
-                                            .toStringAsFixed(2),
-                                        'currency': payment.currency,
-                                        'transaction_id':
-                                            'TEST-SIM-${DateTime.now().millisecondsSinceEpoch}',
-                                        'status': 'PAID',
-                                        'webhook_secret':
-                                            'foodgo_webhook_secure_key_2026',
-                                      });
-                                      await _checkStatus(
-                                        isBackground: false,
-                                        simulate: true,
-                                      );
-                                    } catch (fallbackErr) {
-                                      if (mounted) {
-                                        setState(() => _isVerifying = false);
-                                        messenger.showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Simulation failed: $e',
-                                            ),
-                                            backgroundColor: Colors.redAccent,
-                                            behavior:
-                                                SnackBarBehavior.floating,
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  }
-                                },
-                        ),
                         const SizedBox(height: 10),
 
                         TextButton(

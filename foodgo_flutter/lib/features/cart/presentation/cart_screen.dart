@@ -425,6 +425,30 @@ class _CartScreenState extends State<CartScreen> {
       borderRadius: isDesktop
           ? BorderRadius.circular(24)
           : const BorderRadius.vertical(top: Radius.circular(32)),
+      customColor: isDark ? null : Colors.white,
+      customShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(
+            alpha: isDark ? 0.35 : 0.08,
+          ),
+          blurRadius: 20,
+          offset: const Offset(0, -4),
+        ),
+      ],
+      customBorder: isDesktop
+          ? Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : const Color(0xFFE5E7EB),
+            )
+          : Border(
+              top: BorderSide(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : const Color(0xFFE5E7EB),
+                width: 1.0,
+              ),
+            ),
       padding: const EdgeInsets.all(24.0),
       child: SafeArea(
         top: false,
@@ -647,7 +671,12 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ],
             const SizedBox(height: 14),
-            Container(height: 1, color: GlassTheme.borderLight),
+            Container(
+              height: 1,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : const Color(0xFFE5E7EB),
+            ),
             const SizedBox(height: 14),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

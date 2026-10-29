@@ -4,6 +4,7 @@ from urllib.parse import parse_qs
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from rest_framework_simplejwt.tokens import AccessToken
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from core.models import Order, Payment
 
@@ -74,7 +75,8 @@ class OrderTrackingConsumer(AsyncWebsocketConsumer):
             return
 
         # Development / Simulation bypass for testing and simulator script
-        if token.startswith('mock-') or token in ('simulator-token', 'dev-token'):
+        allow_dev_tokens = bool(settings.DEBUG or getattr(settings, 'IS_TESTING', False))
+        if allow_dev_tokens and (token.startswith('mock-') or token in ('simulator-token', 'dev-token')):
             self.user = None
             self.is_assigned_driver = True
             await self.channel_layer.group_add(
@@ -216,7 +218,8 @@ class PaymentConsumer(AsyncWebsocketConsumer):
             await self.close(code=4001)
             return
 
-        if token.startswith('mock-') or token in ('simulator-token', 'dev-token', 'test-token'):
+        allow_dev_tokens = bool(settings.DEBUG or getattr(settings, 'IS_TESTING', False))
+        if allow_dev_tokens and (token.startswith('mock-') or token in ('simulator-token', 'dev-token', 'test-token')):
             self.user = None
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             await self.accept()

@@ -50,16 +50,38 @@ void main() {
   });
 
   group('NotificationProvider Tests', () {
-    test('Initializes with default items and computes unreadCount', () {
+    test('Initializes empty and waits for server data', () {
       final provider = NotificationProvider();
       expect(provider.isInitialized, true);
-      expect(provider.notifications.isNotEmpty, true);
-      expect(provider.unreadCount, greaterThanOrEqualTo(1));
-      expect(provider.orderNotifications.isNotEmpty, true);
+      expect(provider.notifications, isEmpty);
+      expect(provider.unreadCount, 0);
+      expect(provider.orderNotifications, isEmpty);
     });
 
+    test(
+      'Seeds caller-supplied notifications without inventing order data',
+      () {
+        final provider = NotificationProvider(
+          initialNotifications: [
+            NotificationModel(
+              id: 'api-1',
+              title: 'Order Confirmed',
+              message: 'Restaurant accepted your order.',
+              notificationType: 'order',
+              orderId: 1050,
+              isRead: false,
+            ),
+          ],
+        );
+
+        expect(provider.notifications, hasLength(1));
+        expect(provider.orderNotifications.single.orderId, 1050);
+        expect(provider.unreadCount, 1);
+      },
+    );
+
     test('markAllAsRead marks all notifications as read', () async {
-      final provider = NotificationProvider();
+      final provider = _seededProvider();
       expect(provider.unreadCount, greaterThan(0));
 
       await provider.markAllAsRead();
@@ -68,7 +90,7 @@ void main() {
     });
 
     test('dismiss removes item from list', () {
-      final provider = NotificationProvider();
+      final provider = _seededProvider();
       final initialCount = provider.notifications.length;
       final firstId = provider.notifications.first.id;
 
@@ -78,7 +100,7 @@ void main() {
     });
 
     test('clearAll empties the notification list', () {
-      final provider = NotificationProvider();
+      final provider = _seededProvider();
       expect(provider.notifications.isNotEmpty, true);
 
       provider.clearAll();
@@ -93,7 +115,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         ChangeNotifierProvider<NotificationProvider>(
-          create: (_) => NotificationProvider(),
+          create: (_) => _seededProvider(),
           child: const MaterialApp(home: NotificationsScreen()),
         ),
       );
@@ -117,7 +139,7 @@ void main() {
     testWidgets('Tapping filter chip updates active filter', (tester) async {
       await tester.pumpWidget(
         ChangeNotifierProvider<NotificationProvider>(
-          create: (_) => NotificationProvider(),
+          create: (_) => _seededProvider(),
           child: const MaterialApp(home: NotificationsScreen()),
         ),
       );
@@ -137,7 +159,7 @@ void main() {
       (tester) async {
         await tester.pumpWidget(
           ChangeNotifierProvider<NotificationProvider>(
-            create: (_) => NotificationProvider(),
+            create: (_) => _seededProvider(),
             child: const MaterialApp(home: NotificationsScreen()),
           ),
         );
@@ -208,4 +230,29 @@ void main() {
       },
     );
   });
+}
+
+NotificationProvider _seededProvider() {
+  return NotificationProvider(
+    initialNotifications: [
+      NotificationModel(
+        id: 'api-1',
+        title: 'Order Confirmed',
+        message: 'Restaurant accepted your order.',
+        notificationType: 'order',
+        orderId: 1050,
+        isRead: false,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
+      ),
+      NotificationModel(
+        id: 'api-2',
+        title: 'Weekend Promo',
+        message: 'Use code KHQR30 for 30% off.',
+        notificationType: 'promo',
+        data: {'code': 'KHQR30'},
+        isRead: true,
+        createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+      ),
+    ],
+  );
 }

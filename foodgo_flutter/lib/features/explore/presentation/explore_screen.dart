@@ -361,7 +361,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             size: 18,
                                           ),
                                           label: const Text(
-                                            'Load Menu',
+                                            'Load demo menu',
                                             style: TextStyle(
                                               color: Colors.white,
                                             ),
@@ -391,6 +391,44 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (provider.isDemo) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.amber.withValues(alpha: 0.35),
+                                  ),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: Colors.amber,
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Demo menu — not live availability. '
+                                        'Reconnect to FoodGo before ordering.',
+                                        style: TextStyle(
+                                          color: Colors.amber,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                             Text(
                               'Showing ${restaurants.length} restaurants',
                               style: TextStyle(

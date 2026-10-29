@@ -6,16 +6,24 @@ import '../core/theme/glass_theme.dart';
 
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
-  AppColorPalette _palette = AppColorPalette.emeraldGreen;
+  AppColorPalette _palette = AppColorPalette.modernFoodGo;
   bool _seasonalDecorationsEnabled = true;
   bool _reducedMotion = false;
+  bool _snowfallEnabled = true;
 
   ThemeMode get themeMode => _themeMode;
-  bool get isDarkMode => _themeMode == ThemeMode.dark;
+  bool get isDarkMode {
+    if (_themeMode == ThemeMode.dark) return true;
+    if (_themeMode == ThemeMode.light) return false;
+    return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+        Brightness.dark;
+  }
+
   AppColorPalette get currentPalette => _palette;
   PaletteData get paletteData => PaletteData.fromId(_palette);
   bool get seasonalDecorationsEnabled => _seasonalDecorationsEnabled;
   bool get reducedMotion => _reducedMotion;
+  bool get snowfallEnabled => _snowfallEnabled;
 
   ThemeProvider() {
     _loadTheme();
@@ -74,11 +82,23 @@ class ThemeProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
+  void setSnowfallEnabled(bool enabled) async {
+    if (_snowfallEnabled == enabled) return;
+    _snowfallEnabled = enabled;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('snowfall_enabled', enabled);
+    } catch (_) {}
+  }
+
   void resetToDefaults() async {
     _themeMode = ThemeMode.system;
     _palette = AppColorPalette.modernFoodGo;
     _seasonalDecorationsEnabled = true;
     _reducedMotion = false;
+    _snowfallEnabled = true;
     GlassTheme.setActivePalette(_palette);
     notifyListeners();
 
@@ -89,6 +109,7 @@ class ThemeProvider extends ChangeNotifier {
       await prefs.setString('app_color_palette', AppColorPalette.modernFoodGo.name);
       await prefs.setBool('seasonal_decorations_enabled', true);
       await prefs.setBool('reduced_motion', false);
+      await prefs.setBool('snowfall_enabled', true);
     } catch (_) {}
   }
 
@@ -100,6 +121,7 @@ class ThemeProvider extends ChangeNotifier {
       final savedPalette = prefs.getString('app_color_palette');
       final savedSeasonal = prefs.getBool('seasonal_decorations_enabled');
       final savedMotion = prefs.getBool('reduced_motion');
+      final savedSnowfall = prefs.getBool('snowfall_enabled');
 
       if (savedThemeMode != null) {
         if (savedThemeMode == ThemeMode.light.name) {
@@ -129,6 +151,9 @@ class ThemeProvider extends ChangeNotifier {
       }
       if (savedMotion != null) {
         _reducedMotion = savedMotion;
+      }
+      if (savedSnowfall != null) {
+        _snowfallEnabled = savedSnowfall;
       }
     } catch (_) {
       GlassTheme.setActivePalette(_palette);

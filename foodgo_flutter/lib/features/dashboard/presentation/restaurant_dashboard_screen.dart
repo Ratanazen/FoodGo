@@ -65,9 +65,16 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
       }
 
       if (!mounted) return;
+      List<dynamic> rawOrders = [];
+      if (ordData is List) {
+        rawOrders = ordData;
+      } else if (ordData is Map && ordData['results'] is List) {
+        rawOrders = ordData['results'] as List;
+      }
+
       setState(() {
         _restaurant = resData;
-        _orders = (ordData as List).reversed.toList();
+        _orders = rawOrders.reversed.toList();
         _categories = cats;
         _foodItems = items;
         _isLoading = false;

@@ -25,6 +25,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   bool _isLoading = false;
   bool _otpSent = false;
 
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _otpController.dispose();
+    super.dispose();
+  }
+
   void _sendOTP() async {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) return;

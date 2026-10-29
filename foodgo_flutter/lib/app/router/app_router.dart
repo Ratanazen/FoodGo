@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
 
 // Auth & Onboarding
 import '../../features/splash/presentation/splash_screen.dart';
@@ -161,6 +164,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/restaurant-dashboard',
+      redirect: (context, state) {
+        final auth = context.read<AuthProvider>();
+        if (!auth.isAuthenticated) return '/login';
+        final role = context.read<UserProvider>().user?['role'];
+        if (role != 'restaurant_owner' && role != 'admin') return '/home';
+        return null;
+      },
       pageBuilder: (context, state) => _buildPage(
         state: state,
         child: const RestaurantDashboardScreen(),
@@ -169,6 +179,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/driver-dashboard',
+      redirect: (context, state) {
+        final auth = context.read<AuthProvider>();
+        if (!auth.isAuthenticated) return '/login';
+        final role = context.read<UserProvider>().user?['role'];
+        if (role != 'driver' && role != 'admin') return '/home';
+        return null;
+      },
       pageBuilder: (context, state) => _buildPage(
         state: state,
         child: const DriverDashboardScreen(),
@@ -177,6 +194,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/admin-dashboard',
+      redirect: (context, state) {
+        final auth = context.read<AuthProvider>();
+        if (!auth.isAuthenticated) return '/login';
+        final userProvider = context.read<UserProvider>();
+        if (!userProvider.isAdmin) return '/home';
+        return null;
+      },
       pageBuilder: (context, state) => _buildPage(
         state: state,
         child: const AdminDashboardScreen(),
@@ -208,7 +232,9 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/food/:id',
       pageBuilder: (context, state) {
-        final itemData = state.extra as Map<String, dynamic>?;
+        final rawId = state.pathParameters['id'];
+        final id = int.tryParse(rawId ?? '1') ?? 1;
+        final itemData = (state.extra as Map<String, dynamic>?) ?? {'id': id};
         return _buildPage(
           state: state,
           child: FoodItemDetailsScreen(itemData: itemData),

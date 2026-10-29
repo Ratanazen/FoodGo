@@ -15,11 +15,14 @@ import 'providers/restaurant_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'widgets/connectivity_banner.dart';
+import 'widgets/snowfall_effect.dart';
 
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = true;
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -62,7 +65,6 @@ class FoodGoApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         final palette = themeProvider.paletteData;
-        final isDark = themeProvider.isDarkMode;
 
         return MaterialApp.router(
           title: 'FoodGo',
@@ -70,11 +72,27 @@ class FoodGoApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           theme: AppTheme.getLightTheme(themeProvider.currentPalette),
           darkTheme: AppTheme.getDarkTheme(themeProvider.currentPalette),
+          themeAnimationDuration: themeProvider.reducedMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 300),
+          themeAnimationCurve: Curves.easeOutCubic,
           routerConfig: appRouter,
           builder: (context, child) {
-            return Container(
-              color: isDark ? palette.backgroundDark : palette.backgroundLight,
-              child: ConnectivityBanner(child: child!),
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final media = MediaQuery.of(context);
+            final effectiveMedia = themeProvider.reducedMotion
+                ? media.copyWith(disableAnimations: true)
+                : media;
+            return MediaQuery(
+              data: effectiveMedia,
+              child: Container(
+                color: isDark
+                    ? palette.backgroundDark
+                    : palette.backgroundLight,
+                child: ConnectivityBanner(
+                  child: Stack(children: [child!, const SnowfallEffect()]),
+                ),
+              ),
             );
           },
         );

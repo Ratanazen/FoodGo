@@ -108,42 +108,13 @@ class NotificationProvider with ChangeNotifier {
   List<NotificationModel> get promoNotifications =>
       _notifications.where((n) => n.notificationType == 'promo').toList();
 
-  NotificationProvider() {
-    _initDefaults();
-  }
-
-  void _initDefaults() {
-    _notifications = [
-      NotificationModel(
-        id: 'default_1',
-        title: 'Order Delivered',
-        message:
-            'Your order #1024 has been delivered. Tap to view your order details.',
-        notificationType: 'order',
-        isRead: false,
-        createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
-        orderId: 1024,
-      ),
-      NotificationModel(
-        id: 'default_2',
-        title: 'Special Discount Voucher',
-        message: 'Use code FOODGO50 for 50% off your next meal in Phnom Penh.',
-        notificationType: 'promo',
-        isRead: false,
-        createdAt: DateTime.now().subtract(const Duration(hours: 1)),
-        data: {'code': 'FOODGO50'},
-      ),
-      NotificationModel(
-        id: 'default_3',
-        title: 'Order Confirmed',
-        message:
-            'Your order from Angkor Delights has been confirmed and is being prepared.',
-        notificationType: 'order',
-        isRead: true,
-        createdAt: DateTime.now().subtract(const Duration(hours: 3)),
-        orderId: 1025,
-      ),
-    ];
+  /// Creates an empty inbox and waits for the authenticated API response.
+  /// [initialNotifications] exists so tests (and future deep-link flows) can
+  /// seed real, caller-supplied data without shipping fabricated notifications.
+  NotificationProvider({List<NotificationModel>? initialNotifications}) {
+    if (initialNotifications != null) {
+      _notifications = List<NotificationModel>.from(initialNotifications);
+    }
     _isInitialized = true;
   }
 

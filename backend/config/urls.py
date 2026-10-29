@@ -33,6 +33,8 @@ urlpatterns = [
     path('media/mongo/<path:filename>', MongoImageView.as_view(), name='root_mongo_image'),
     path('api/health/', HealthCheckView.as_view(), name='root-api-health'),
     path('api/health', HealthCheckView.as_view(), name='root-api-health-no-slash'),
+    path('api/healthz/', HealthCheckView.as_view(), name='root-api-healthz'),
+    path('api/healthz', HealthCheckView.as_view(), name='root-api-healthz-no-slash'),
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),
     path('api/token/', FoodGoTokenObtainPairView.as_view(), name='token_obtain_pair'),

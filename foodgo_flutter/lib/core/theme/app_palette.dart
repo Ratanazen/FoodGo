@@ -17,6 +17,21 @@ enum AppColorPalette {
   songkranNewYear,
   monochrome,
   highContrast,
+  // 18 Seasonal & Cultural Expansion additions
+  christmasWonderland,
+  newYearCelebration,
+  halloweenNight,
+  valentinesDay,
+  easterSpring,
+  summerTropical,
+  lunarNewYear,
+  blackFridayCyber,
+  ramadanEid,
+  natureOrganic,
+  glassmorphism,
+  minimalPremium,
+  retroPop,
+  neonNight,
 }
 
 class PaletteData {
@@ -87,6 +102,66 @@ class PaletteData {
     this.badgeText = '',
     this.isFestive = false,
   });
+
+  /// Check whether this theme is seasonally active on a given date (defaults to today).
+  bool isSeasonallyActiveAt([DateTime? date]) {
+    final now = date ?? DateTime.now();
+    final m = now.month;
+    final d = now.day;
+    switch (id) {
+      case AppColorPalette.christmas:
+      case AppColorPalette.christmasWonderland:
+        return m == 12;
+      case AppColorPalette.newYearCelebration:
+        return (m == 12 && d >= 26) || (m == 1 && d <= 7);
+      case AppColorPalette.halloweenNight:
+        return m == 10;
+      case AppColorPalette.valentinesDay:
+        return m == 2 && d <= 20;
+      case AppColorPalette.easterSpring:
+        return m == 3 || m == 4;
+      case AppColorPalette.summerTropical:
+        return m >= 6 && m <= 8;
+      case AppColorPalette.lunarNewYear:
+        return (m == 1 && d >= 15) || (m == 2 && d <= 25);
+      case AppColorPalette.blackFridayCyber:
+        return m == 11 && d >= 15;
+      case AppColorPalette.ramadanEid:
+        return m == 3 || m == 4;
+      case AppColorPalette.khmerNewYear:
+      case AppColorPalette.songkranNewYear:
+        return m == 4;
+      case AppColorPalette.pchumBen:
+        return m == 9 || m == 10;
+      case AppColorPalette.waterFestival:
+        return m == 11;
+      default:
+        return false;
+    }
+  }
+
+  /// Whether this theme is currently in-season today.
+  bool get isSeasonallyActive => isSeasonallyActiveAt();
+
+  /// Accessible foreground colour for content placed on [primary].
+  /// Chooses between white and a near-black ink based on WCAG contrast.
+  Color get onPrimary {
+    const ink = Color(0xFF0B1220);
+    final whiteContrast = _contrastRatio(primary, Colors.white);
+    final inkContrast = _contrastRatio(primary, ink);
+    return whiteContrast >= inkContrast ? Colors.white : ink;
+  }
+
+  /// WCAG 2.1 relative contrast ratio between two opaque colours.
+  static double contrastRatio(Color a, Color b) => _contrastRatio(a, b);
+
+  static double _contrastRatio(Color a, Color b) {
+    final la = a.computeLuminance();
+    final lb = b.computeLuminance();
+    final lighter = la > lb ? la : lb;
+    final darker = la > lb ? lb : la;
+    return (lighter + 0.05) / (darker + 0.05);
+  }
 
   // ---------------------------------------------------------------------------
   // Signature Brand Themes
@@ -318,21 +393,21 @@ class PaletteData {
 
   static const PaletteData christmas = PaletteData(
     id: AppColorPalette.christmas,
-    nameEn: 'Christmas Festive',
+    nameEn: 'Christmas Wonderland',
     nameKh: 'បុណ្យគ្រីស្ទម៉ាស / ណូអែល',
-    descriptionEn: 'Warm holiday cheer, evergreen pine & holly berry red',
-    descriptionKh: 'បរិយាកាសបុណ្យណូអែល ស្រស់បំព្រងដោយពណ៌ក្រហម និងបៃតងស្រល់',
+    descriptionEn: 'Magical snowfall, crimson ribbons, pine forests and warm holiday cheer',
+    descriptionKh: 'ព្រិលធ្លាក់ត្រជាក់ស្រស់ថ្លា និងបរិយាកាសកក់ក្តៅនៃបុណ្យណូអែល',
     primary: Color(0xFFDC2626),
     primaryDark: Color(0xFF991B1B),
     primaryAccent: Color(0xFF86EFAC),
     secondary: Color(0xFF16A34A),
     ratingAccent: Color(0xFFFBBF24),
     backgroundLight: Color(0xFFF9FBFA),
-    backgroundDark: Color(0xFF0F1712),
-    surfaceDark: Color(0xFF16231B),
-    surfaceCardDark: Color(0xFF1E2E24),
-    cardDark: Color(0xFF18261E),
-    dialogDark: Color(0xFF18261E),
+    backgroundDark: Color(0xFF0C1410),
+    surfaceDark: Color(0xFF131E18),
+    surfaceCardDark: Color(0xFF1A2A22),
+    cardDark: Color(0xFF17241D),
+    dialogDark: Color(0xFF17241D),
     borderLight: Color(0x80FFFFFF),
     borderDark: Color(0x40FCA5A5),
     liquidGlassBorderDark: LinearGradient(
@@ -353,10 +428,54 @@ class PaletteData {
     ),
     auraColor: Color(0xFFF87171),
     pillCardShadowColor: Color(0x33DC2626),
-    icon: Icons.park_rounded,
+    icon: Icons.ac_unit_rounded,
     categoryEn: 'Khmer & Festive',
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'CHRISTMAS',
+    isFestive: true,
+  );
+
+  static const PaletteData christmasWonderland = PaletteData(
+    id: AppColorPalette.christmasWonderland,
+    nameEn: 'Christmas Wonderland',
+    nameKh: 'បុណ្យណូអែល និងរដូវរងា',
+    descriptionEn: 'Magical snowfall, crimson ribbons, pine forests and warm holiday cheer',
+    descriptionKh: 'ព្រិលធ្លាក់ត្រជាក់ស្រស់ថ្លា និងបរិយាកាសកក់ក្តៅនៃបុណ្យណូអែល',
+    primary: Color(0xFFDC2626),
+    primaryDark: Color(0xFF991B1B),
+    primaryAccent: Color(0xFF86EFAC),
+    secondary: Color(0xFF16A34A),
+    ratingAccent: Color(0xFFFBBF24),
+    backgroundLight: Color(0xFFF9FBFA),
+    backgroundDark: Color(0xFF0C1410),
+    surfaceDark: Color(0xFF131E18),
+    surfaceCardDark: Color(0xFF1A2A22),
+    cardDark: Color(0xFF17241D),
+    dialogDark: Color(0xFF17241D),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x40FCA5A5),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x66FCA5A5),
+        Color(0x20FEE2E2),
+        Color(0x10DC2626),
+        Color(0x4D991B1B),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF14532D), Color(0xFF991B1B), Color(0xFFDC2626)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFF87171),
+    pillCardShadowColor: Color(0x33DC2626),
+    icon: Icons.ac_unit_rounded,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'WONDERLAND',
     isFestive: true,
   );
 
@@ -801,27 +920,620 @@ class PaletteData {
   );
 
   // ---------------------------------------------------------------------------
+  // Advanced Seasonal Themes Expansion
+  // ---------------------------------------------------------------------------
+
+  static const PaletteData newYearCelebration = PaletteData(
+    id: AppColorPalette.newYearCelebration,
+    nameEn: 'New Year Celebration',
+    nameKh: 'អបអរសាទរឆ្លងឆ្នាំសកល',
+    descriptionEn: 'Midnight navy sky illuminated with glittering champagne gold fireworks',
+    descriptionKh: 'រាត្រីឆ្លងឆ្នាំសកល ពោរពេញដោយកាំជ្រួច និងពន្លឺមាសចែងចាំង',
+    primary: Color(0xFFF59E0B),
+    primaryDark: Color(0xFFD97706),
+    primaryAccent: Color(0xFFFDE68A),
+    secondary: Color(0xFF3B82F6),
+    ratingAccent: Color(0xFFF59E0B),
+    backgroundLight: Color(0xFFFFFBEB),
+    backgroundDark: Color(0xFF0B0F19),
+    surfaceDark: Color(0xFF111827),
+    surfaceCardDark: Color(0xFF1F2937),
+    cardDark: Color(0xFF192231),
+    dialogDark: Color(0xFF192231),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x40F59E0B),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x66FDE68A),
+        Color(0x20FEF3C7),
+        Color(0x10F59E0B),
+        Color(0x4DD97706),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF0B172E), Color(0xFF1E3A8A), Color(0xFFF59E0B)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFFBBF24),
+    pillCardShadowColor: Color(0x33F59E0B),
+    icon: Icons.celebration_rounded,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'NEW YEAR',
+    isFestive: true,
+  );
+
+  static const PaletteData halloweenNight = PaletteData(
+    id: AppColorPalette.halloweenNight,
+    nameEn: 'Halloween Night',
+    nameKh: 'រាត្រីបុណ្យហាឡូវីន',
+    descriptionEn: 'Mystic haunted shadows, eerie jack-o\'-lantern glow, and violet fog',
+    descriptionKh: 'រាត្រីអាថ៌កំបាំង ផ្លែឃ្លោកភ្លើង និងបរិយាកាសភ័យរន្ធត់បែបកម្សាន្ត',
+    primary: Color(0xFFEA580C),
+    primaryDark: Color(0xFFC2410C),
+    primaryAccent: Color(0xFFA855F7),
+    secondary: Color(0xFF7E22CE),
+    ratingAccent: Color(0xFFF59E0B),
+    backgroundLight: Color(0xFFFAF5FF),
+    backgroundDark: Color(0xFF0F0B18),
+    surfaceDark: Color(0xFF181126),
+    surfaceCardDark: Color(0xFF241938),
+    cardDark: Color(0xFF1E1530),
+    dialogDark: Color(0xFF1E1530),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x40EA580C),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x66A855F7),
+        Color(0x20F3E8FF),
+        Color(0x10EA580C),
+        Color(0x4DC2410C),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF3B0764), Color(0xFF7E22CE), Color(0xFFEA580C)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFF97316),
+    pillCardShadowColor: Color(0x33EA580C),
+    icon: Icons.nightlight_round,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'HALLOWEEN',
+    isFestive: true,
+  );
+
+  static const PaletteData valentinesDay = PaletteData(
+    id: AppColorPalette.valentinesDay,
+    nameEn: 'Valentine\'s Day',
+    nameKh: 'ទិវានៃក្តីស្រឡាញ់',
+    descriptionEn: 'Tender ruby petals, sweet strawberry chocolate, and heartfelt warmth',
+    descriptionKh: 'ផ្កាកុលាបក្រហមឆ្អៅ ក្តីស្រឡាញ់ដ៏ផ្អែមល្ហែម និងភាពកក់ក្តៅ',
+    primary: Color(0xFFE11D48),
+    primaryDark: Color(0xFFBE123C),
+    primaryAccent: Color(0xFFFDA4AF),
+    secondary: Color(0xFFEC4899),
+    ratingAccent: Color(0xFFF59E0B),
+    backgroundLight: Color(0xFFFFF1F2),
+    backgroundDark: Color(0xFF190B10),
+    surfaceDark: Color(0xFF261019),
+    surfaceCardDark: Color(0xFF381725),
+    cardDark: Color(0xFF2E131E),
+    dialogDark: Color(0xFF2E131E),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x40E11D48),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x66FDA4AF),
+        Color(0x20FFE4E6),
+        Color(0x10E11D48),
+        Color(0x4DBE123C),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF881337), Color(0xFFBE123C), Color(0xFFFB7185)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFFB7185),
+    pillCardShadowColor: Color(0x33E11D48),
+    icon: Icons.favorite_rounded,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'VALENTINE',
+    isFestive: true,
+  );
+
+  static const PaletteData easterSpring = PaletteData(
+    id: AppColorPalette.easterSpring,
+    nameEn: 'Easter & Spring',
+    nameKh: 'រដូវផ្ការីក និងបុណ្យអ៊ីស្ទ័រ',
+    descriptionEn: 'Blossoming lilac meadows, sweet pastels, and fresh vernal renewal',
+    descriptionKh: 'រដូវផ្ការីកស្រស់បំព្រង ពណ៌ប៉ាស្តែលផ្អែម និងភាពស្រស់ថ្លា',
+    primary: Color(0xFF7C3AED),
+    primaryDark: Color(0xFF6D28D9),
+    primaryAccent: Color(0xFF86EFAC),
+    secondary: Color(0xFFFDE047),
+    ratingAccent: Color(0xFFF59E0B),
+    backgroundLight: Color(0xFFF5F3FF),
+    backgroundDark: Color(0xFF0F0E1A),
+    surfaceDark: Color(0xFF19172B),
+    surfaceCardDark: Color(0xFF252240),
+    cardDark: Color(0xFF1F1C36),
+    dialogDark: Color(0xFF1F1C36),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x408B5CF6),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x66C4B5FD),
+        Color(0x20EDE9FE),
+        Color(0x108B5CF6),
+        Color(0x4D6D28D9),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF4C1D95), Color(0xFF7C3AED), Color(0xFF10B981)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFA78BFA),
+    pillCardShadowColor: Color(0x338B5CF6),
+    icon: Icons.eco_rounded,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'EASTER',
+    isFestive: true,
+  );
+
+  static const PaletteData summerTropical = PaletteData(
+    id: AppColorPalette.summerTropical,
+    nameEn: 'Summer Tropical',
+    nameKh: 'រដូវក្តៅត្រូពិច និងសមុទ្រ',
+    descriptionEn: 'Sun-drenched golden mango, cooling coconut water, and azure waves',
+    descriptionKh: 'រដូវក្តៅត្រូពិច ទឹកសមុទ្រខៀវស្រងាត់ និងផ្លែស្វាយទុំផ្អែម',
+    primary: Color(0xFFF97316),
+    primaryDark: Color(0xFFC2410C),
+    primaryAccent: Color(0xFF06B6D4),
+    secondary: Color(0xFFF43F5E),
+    ratingAccent: Color(0xFFFBBF24),
+    backgroundLight: Color(0xFFFFF7ED),
+    backgroundDark: Color(0xFF08131A),
+    surfaceDark: Color(0xFF0E202B),
+    surfaceCardDark: Color(0xFF163142),
+    cardDark: Color(0xFF122836),
+    dialogDark: Color(0xFF122836),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x4006B6D4),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x6667E8F9),
+        Color(0x20CFFAFE),
+        Color(0x10F97316),
+        Color(0x4DC2410C),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF0E7490), Color(0xFF0284C7), Color(0xFFF97316)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFF22D3EE),
+    pillCardShadowColor: Color(0x33F97316),
+    icon: Icons.wb_sunny_rounded,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'TROPICAL',
+    isFestive: true,
+  );
+
+  static const PaletteData lunarNewYear = PaletteData(
+    id: AppColorPalette.lunarNewYear,
+    nameEn: 'Lunar New Year',
+    nameKh: 'បុណ្យចូលឆ្នាំប្រពៃណីចិន',
+    descriptionEn: 'Imperial vermilion, lantern glow, good fortune envelopes, and festive feasts',
+    descriptionKh: 'អាំងប៉ាវក្រហម គោមមាស និងសិរីសួស្តីវិបុលសុខនៃឆ្នាំថ្មី',
+    primary: Color(0xFFDC2626),
+    primaryDark: Color(0xFF991B1B),
+    primaryAccent: Color(0xFFF59E0B),
+    secondary: Color(0xFFFBBF24),
+    ratingAccent: Color(0xFFFBBF24),
+    backgroundLight: Color(0xFFFEF2F2),
+    backgroundDark: Color(0xFF170909),
+    surfaceDark: Color(0xFF241010),
+    surfaceCardDark: Color(0xFF331717),
+    cardDark: Color(0xFF2B1414),
+    dialogDark: Color(0xFF2B1414),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x40F59E0B),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x66FDE68A),
+        Color(0x20FEF2F2),
+        Color(0x10DC2626),
+        Color(0x4D991B1B),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF7F1D1D), Color(0xFFDC2626), Color(0xFFF59E0B)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFEF4444),
+    pillCardShadowColor: Color(0x33DC2626),
+    icon: Icons.local_fire_department_rounded,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'ចូលឆ្នាំចិន',
+    isFestive: true,
+  );
+
+  static const PaletteData blackFridayCyber = PaletteData(
+    id: AppColorPalette.blackFridayCyber,
+    nameEn: 'Black Friday & Cyber Sale',
+    nameKh: 'មហាមហោស្រពទិញទំនិញ Black Friday',
+    descriptionEn: 'Sleek dark obsidian with electric neon discounts and flash deals',
+    descriptionKh: 'រចនាបថខ្មៅរលោង ភ្លើងណេអុងខៀវ និងការបញ្ចុះតម្លៃពិសេស',
+    primary: Color(0xFF00E5FF),
+    primaryDark: Color(0xFF00B0FF),
+    primaryAccent: Color(0xFFFFB300),
+    secondary: Color(0xFFFF0055),
+    ratingAccent: Color(0xFFFFB300),
+    backgroundLight: Color(0xFFF8FAFC),
+    backgroundDark: Color(0xFF050507),
+    surfaceDark: Color(0xFF101014),
+    surfaceCardDark: Color(0xFF181820),
+    cardDark: Color(0xFF14141B),
+    dialogDark: Color(0xFF14141B),
+    borderLight: Color(0xFFE2E8F0),
+    borderDark: Color(0x6000E5FF),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x8000E5FF),
+        Color(0x2000B0FF),
+        Color(0x20FF0055),
+        Color(0x80000000),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF000000), Color(0xFF111827), Color(0xFF00E5FF)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFF00E5FF),
+    pillCardShadowColor: Color(0x4000E5FF),
+    icon: Icons.shopping_bag_rounded,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'CYBER SALE',
+    isFestive: true,
+  );
+
+  static const PaletteData ramadanEid = PaletteData(
+    id: AppColorPalette.ramadanEid,
+    nameEn: 'Ramadan & Eid',
+    nameKh: 'ពិធីបុណ្យរ៉ាម៉ាដាន និងអេត',
+    descriptionEn: 'Sacred crescent moon, glowing lanterns, dates, and joyous community iftar',
+    descriptionKh: 'ព្រះចន្ទអឌ្ឍចន្ទ គោមបំភ្លឺរាត្រី និងពរជ័យដ៏បរិសុទ្ធ',
+    primary: Color(0xFF059669),
+    primaryDark: Color(0xFF047857),
+    primaryAccent: Color(0xFFF59E0B),
+    secondary: Color(0xFFFDE68A),
+    ratingAccent: Color(0xFFF59E0B),
+    backgroundLight: Color(0xFFF0FDF4),
+    backgroundDark: Color(0xFF06140F),
+    surfaceDark: Color(0xFF0C1F18),
+    surfaceCardDark: Color(0xFF132F25),
+    cardDark: Color(0xFF0F261E),
+    dialogDark: Color(0xFF0F261E),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x40F59E0B),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x66FDE68A),
+        Color(0x20F0FDF4),
+        Color(0x10059669),
+        Color(0x4D047857),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF064E3B), Color(0xFF059669), Color(0xFFF59E0B)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFF10B981),
+    pillCardShadowColor: Color(0x33059669),
+    icon: Icons.nights_stay_rounded,
+    categoryEn: 'Khmer & Festive',
+    categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
+    badgeText: 'RAMADAN',
+    isFestive: true,
+  );
+
+  static const PaletteData natureOrganic = PaletteData(
+    id: AppColorPalette.natureOrganic,
+    nameEn: 'Nature & Organic',
+    nameKh: 'ធម្មជាតិ និងសរីរាង្គ',
+    descriptionEn: 'Wholesome botanicals, fresh organic produce, and earthy sustainability',
+    descriptionKh: 'បន្លែផ្លែឈើធម្មជាតិស្រស់ៗ និងការរស់នៅបែបសុខភាព',
+    primary: Color(0xFF15803D),
+    primaryDark: Color(0xFF166534),
+    primaryAccent: Color(0xFF84CC16),
+    secondary: Color(0xFFB45309),
+    ratingAccent: Color(0xFFEAB308),
+    backgroundLight: Color(0xFFF7FEE7),
+    backgroundDark: Color(0xFF0B140B),
+    surfaceDark: Color(0xFF122013),
+    surfaceCardDark: Color(0xFF1B2F1C),
+    cardDark: Color(0xFF162717),
+    dialogDark: Color(0xFF162717),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x4084CC16),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x66BEF264),
+        Color(0x20ECFCCB),
+        Color(0x1015803D),
+        Color(0x4D166534),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF14532D), Color(0xFF15803D), Color(0xFF84CC16)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFF4ADE80),
+    pillCardShadowColor: Color(0x3315803D),
+    icon: Icons.grass_rounded,
+    categoryEn: 'Signature Brand',
+    categoryKh: 'រចនាបថដើម',
+    badgeText: 'ORGANIC',
+    isFestive: false,
+  );
+
+  static const PaletteData glassmorphism = PaletteData(
+    id: AppColorPalette.glassmorphism,
+    nameEn: 'Glassmorphism',
+    nameKh: 'កញ្ចក់ថ្លាទំនើប / Glassmorphism',
+    descriptionEn: 'Translucent frosted glass, specular highlights, and multi-depth blur',
+    descriptionKh: 'រចនាបថកញ្ចក់ថ្លាទាន់សម័យ ពន្លឺចែងចាំង និងស្រទាប់ស៊ីជម្រៅ',
+    primary: Color(0xFF2563EB),
+    primaryDark: Color(0xFF1D4ED8),
+    primaryAccent: Color(0xFF67E8F9),
+    secondary: Color(0xFF818CF8),
+    ratingAccent: Color(0xFFF59E0B),
+    backgroundLight: Color(0xFFF1F5F9),
+    backgroundDark: Color(0xFF0A0F1D),
+    surfaceDark: Color(0xFF111A30),
+    surfaceCardDark: Color(0xFF192545),
+    cardDark: Color(0xFF141F3A),
+    dialogDark: Color(0xFF141F3A),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x5067E8F9),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x8067E8F9),
+        Color(0x30E0F2FE),
+        Color(0x202563EB),
+        Color(0x601D4ED8),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF0F172A), Color(0xFF1E40AF), Color(0xFF06B6D4)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFF38BDF8),
+    pillCardShadowColor: Color(0x332563EB),
+    icon: Icons.blur_on_rounded,
+    categoryEn: 'Signature Brand',
+    categoryKh: 'រចនាបថដើម',
+    badgeText: 'AERO GLASS',
+    isFestive: false,
+  );
+
+  static const PaletteData minimalPremium = PaletteData(
+    id: AppColorPalette.minimalPremium,
+    nameEn: 'Minimal Premium',
+    nameKh: 'សាមញ្ញប្រណិត / Minimal',
+    descriptionEn: 'Quiet luxury, refined Scandinavian restraint, and editorial clarity',
+    descriptionKh: 'ភាពសាមញ្ញតែប្រណិត ស្ងប់ស្ងាត់ ផាសុកភាព និងទាន់សម័យ',
+    primary: Color(0xFF334155),
+    primaryDark: Color(0xFF1E293B),
+    primaryAccent: Color(0xFF94A3B8),
+    secondary: Color(0xFFCBD5E1),
+    ratingAccent: Color(0xFFEAB308),
+    backgroundLight: Color(0xFFFAFBFD),
+    backgroundDark: Color(0xFF0F141C),
+    surfaceDark: Color(0xFF171F2C),
+    surfaceCardDark: Color(0xFF222C3D),
+    cardDark: Color(0xFF1D2635),
+    dialogDark: Color(0xFF1D2635),
+    borderLight: Color(0xFFE2E8F0),
+    borderDark: Color(0x4094A3B8),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x6694A3B8),
+        Color(0x20E2E8F0),
+        Color(0x10334155),
+        Color(0x4D1E293B),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF475569)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFF94A3B8),
+    pillCardShadowColor: Color(0x20334155),
+    icon: Icons.spa_rounded,
+    categoryEn: 'Signature Brand',
+    categoryKh: 'រចនាបថដើម',
+    badgeText: 'MINIMAL',
+    isFestive: false,
+  );
+
+  static const PaletteData retroPop = PaletteData(
+    id: AppColorPalette.retroPop,
+    nameEn: 'Retro Pop',
+    nameKh: 'បែបអតីតកាលទសវត្សរ៍ ៨០',
+    descriptionEn: 'Vibrant 80s synthwave, punchy arcade contrast, and nostalgic rhythm',
+    descriptionKh: 'រចនាបថទសវត្សរ៍ ៨០ ពណ៌ដិតស្រស់ស្អាត បែបយុវវ័យ និងតន្ត្រី',
+    primary: Color(0xFFE11D74),
+    primaryDark: Color(0xFFBE125E),
+    primaryAccent: Color(0xFFFFDE59),
+    secondary: Color(0xFF00F0FF),
+    ratingAccent: Color(0xFFFFDE59),
+    backgroundLight: Color(0xFFFFF5F8),
+    backgroundDark: Color(0xFF140817),
+    surfaceDark: Color(0xFF200F25),
+    surfaceCardDark: Color(0xFF301738),
+    cardDark: Color(0xFF28132F),
+    dialogDark: Color(0xFF28132F),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x50FFDE59),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x80FFDE59),
+        Color(0x3000F0FF),
+        Color(0x20E11D74),
+        Color(0x60BE125E),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF4A0E4E), Color(0xFFE11D74), Color(0xFFFFDE59)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFFF2A85),
+    pillCardShadowColor: Color(0x40E11D74),
+    icon: Icons.music_note_rounded,
+    categoryEn: 'Creative & Pop',
+    categoryKh: 'ការច្នៃប្រឌិត និងសិល្បៈ',
+    badgeText: '80s RETRO',
+    isFestive: false,
+  );
+
+  static const PaletteData neonNight = PaletteData(
+    id: AppColorPalette.neonNight,
+    nameEn: 'Neon Night',
+    nameKh: 'រាត្រីពន្លឺណេអុង / Cyberpunk',
+    descriptionEn: 'Ultra-vivid cyberpunk glow, matrix cyan streaks, and night city pulse',
+    descriptionKh: 'ពន្លឺណេអុងនាពេលរាត្រី បច្ចេកវិទ្យាអនាគត និងភាពរស់រវើក',
+    primary: Color(0xFF00FFCC),
+    primaryDark: Color(0xFF00C896),
+    primaryAccent: Color(0xFFFF007F),
+    secondary: Color(0xFFFFE600),
+    ratingAccent: Color(0xFFFFE600),
+    backgroundLight: Color(0xFFF5F7FB),
+    backgroundDark: Color(0xFF05080E),
+    surfaceDark: Color(0xFF0B101D),
+    surfaceCardDark: Color(0xFF131A2F),
+    cardDark: Color(0xFF0F1526),
+    dialogDark: Color(0xFF0F1526),
+    borderLight: Color(0x80FFFFFF),
+    borderDark: Color(0x6000FFCC),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x8000FFCC),
+        Color(0x40FF007F),
+        Color(0x2005080E),
+        Color(0x8000C896),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF05080E), Color(0xFF4C0519), Color(0xFF00FFCC)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFF00FFCC),
+    pillCardShadowColor: Color(0x4000FFCC),
+    icon: Icons.bolt_rounded,
+    categoryEn: 'Creative & Pop',
+    categoryKh: 'ការច្នៃប្រឌិត និងសិល្បៈ',
+    badgeText: 'CYBERPUNK',
+    isFestive: false,
+  );
+
+  // ---------------------------------------------------------------------------
   // Palette Registry & Lookups
   // ---------------------------------------------------------------------------
 
   static const List<PaletteData> allPalettes = [
-    // Khmer & Festive Themes
+    // ── Khmer & Festive Themes ──────────────────────────────────────────────
     khmerNewYear,
     khmerHeritage,
     songkranNewYear,
     pchumBen,
     waterFestival,
     angkorHeritage,
-    christmas,
-    // Signature Brand Themes
+    christmasWonderland,
+    newYearCelebration,
+    halloweenNight,
+    valentinesDay,
+    easterSpring,
+    summerTropical,
+    lunarNewYear,
+    blackFridayCyber,
+    ramadanEid,
+
+    // ── Signature Brand & Modern Themes ─────────────────────────────────────
     modernFoodGo,
+    natureOrganic,
+    glassmorphism,
+    minimalPremium,
     emeraldGreen,
     orangeCoral,
     darkPremium,
     softMinimal,
     smaltBlue,
     darkGold,
-    // Accessibility & Special
+
+    // ── Creative & Pop Themes ───────────────────────────────────────────────
+    retroPop,
+    neonNight,
+
+    // ── Accessibility & Special ─────────────────────────────────────────────
     monochrome,
     highContrast,
   ];
@@ -860,14 +1572,44 @@ class PaletteData {
         return monochrome;
       case AppColorPalette.highContrast:
         return highContrast;
+      case AppColorPalette.christmasWonderland:
+        return christmasWonderland;
+      case AppColorPalette.newYearCelebration:
+        return newYearCelebration;
+      case AppColorPalette.halloweenNight:
+        return halloweenNight;
+      case AppColorPalette.valentinesDay:
+        return valentinesDay;
+      case AppColorPalette.easterSpring:
+        return easterSpring;
+      case AppColorPalette.summerTropical:
+        return summerTropical;
+      case AppColorPalette.lunarNewYear:
+        return lunarNewYear;
+      case AppColorPalette.blackFridayCyber:
+        return blackFridayCyber;
+      case AppColorPalette.ramadanEid:
+        return ramadanEid;
+      case AppColorPalette.natureOrganic:
+        return natureOrganic;
+      case AppColorPalette.glassmorphism:
+        return glassmorphism;
+      case AppColorPalette.minimalPremium:
+        return minimalPremium;
+      case AppColorPalette.retroPop:
+        return retroPop;
+      case AppColorPalette.neonNight:
+        return neonNight;
     }
   }
 
   static PaletteData fromString(String? key) {
-    if (key == null) return emeraldGreen;
+    if (key == null) return modernFoodGo;
+    if (key == 'christmas') return christmas;
+    if (key == 'christmasWonderland') return christmasWonderland;
     for (final palette in allPalettes) {
       if (palette.id.name == key) return palette;
     }
-    return emeraldGreen;
+    return modernFoodGo;
   }
 }

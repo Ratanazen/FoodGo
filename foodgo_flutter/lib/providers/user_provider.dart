@@ -106,18 +106,9 @@ class UserProvider with ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Error updating profile: $e');
-      // Local fallback so user updates persist in memory even if offline
-      final updatedUser = Map<String, dynamic>.from(_user ?? {});
-      if (firstName != null) updatedUser['first_name'] = firstName;
-      if (lastName != null) updatedUser['last_name'] = lastName;
-      if (email != null) updatedUser['email'] = email;
-      if (phone != null) updatedUser['phone'] = phone;
-      if (role != null) updatedUser['role'] = role;
-      if (avatarUrl != null) updatedUser['avatar_url'] = avatarUrl;
-      _user = updatedUser;
       _isLoading = false;
       notifyListeners();
-      return true;
+      return false;
     }
   }
 
@@ -136,12 +127,9 @@ class UserProvider with ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Error updating role: $e');
-      if (_user != null) {
-        _user!['role'] = newRole;
-      }
       _isLoading = false;
       notifyListeners();
-      return true;
+      return false;
     }
   }
 }

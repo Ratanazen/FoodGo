@@ -28,14 +28,15 @@ class FlutterPaymentService {
     return PaymentModel.fromJson(response);
   }
 
-  Future<PaymentModel> getPaymentStatus(
-    int paymentId, {
-    bool simulate = false,
-  }) async {
-    final body = simulate
-        ? {'simulate': true, 'status': 'PAID'}
-        : <String, dynamic>{};
-    final response = await _api.post('payments/$paymentId/status/', body);
+  /// Reads the authoritative payment status from the backend.
+  ///
+  /// There is deliberately no client-side "mark as paid" path: payment
+  /// confirmation can only come from the provider callback/webhook.
+  Future<PaymentModel> getPaymentStatus(int paymentId) async {
+    final response = await _api.post(
+      'payments/$paymentId/status/',
+      <String, dynamic>{},
+    );
     return PaymentModel.fromJson(response);
   }
 
@@ -51,12 +52,12 @@ class FlutterPaymentService {
     WebSocketChannel? channel;
     try {
       final token = await SecureStorage().getAccessToken() ?? '';
+      if (token.isEmpty) {
+        throw StateError('Sign in required to subscribe to payment status.');
+      }
       final wsBase = customWsUrl ?? AppConfig.wsPaymentBaseUrl;
       final normalizedWsBase = wsBase.endsWith('/') ? wsBase : '$wsBase/';
-      final tokenParam = token.isNotEmpty
-          ? '?token=$token'
-          : '?token=simulator-token';
-      final wsUri = Uri.parse('$normalizedWsBase$paymentId/$tokenParam');
+      final wsUri = Uri.parse('$normalizedWsBase$paymentId/?token=$token');
 
       channel = WebSocketChannel.connect(wsUri);
       await for (final rawMessage in channel.stream) {

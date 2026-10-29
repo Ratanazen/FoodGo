@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:foodgo_flutter/providers/cart_provider.dart';
 import 'package:foodgo_flutter/providers/theme_provider.dart';
@@ -94,6 +95,8 @@ void main() {
                 isDriver: false,
                 autoFetch: false,
                 initialPin: '123456',
+                initialQrPayload:
+                    'FOODGO:DELIVERY:CONFIRM:v1?order_id=42&token=test',
               ),
             ),
           ),
@@ -109,9 +112,13 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.text(
-            'Show this QR code to your assigned FoodGo delivery driver upon arrival. The driver will scan it to verify and complete your delivery.',
+          find.textContaining(
+            'Show this code to your assigned FoodGo driver on arrival.',
           ),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('only marked complete after FoodGo confirms it'),
           findsOneWidget,
         );
       },
@@ -128,6 +135,8 @@ void main() {
                 isDriver: true,
                 autoFetch: false,
                 initialPin: '654321',
+                initialQrPayload:
+                    'FOODGO:DELIVERY:CONFIRM:v1?order_id=88&token=test',
               ),
             ),
           ),
@@ -140,11 +149,41 @@ void main() {
         expect(find.text('Order #88 • Show to customer'), findsOneWidget);
         expect(find.text('Delivery Confirmation (Not Payment)'), findsNothing);
         expect(
-          find.text(
-            'Present this code at customer doorstep. Customer will scan with FoodGo app to confirm handover.',
-          ),
+          find.textContaining('Present this code at the customer doorstep.'),
           findsOneWidget,
         );
+        expect(
+          find.textContaining('only marked complete after FoodGo confirms it'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'Shows a retryable error and never fabricates a QR when no verified payload exists',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DeliveryQrModal(
+                orderId: '91',
+                isDriver: true,
+                autoFetch: false,
+              ),
+            ),
+          ),
+        );
+
+        await tester.pump();
+
+        expect(find.text('Verified code unavailable'), findsOneWidget);
+        expect(find.byType(QrImageView), findsNothing);
+        expect(
+          find.textContaining('A code can only be issued by FoodGo'),
+          findsOneWidget,
+        );
+        // autoFetch is off, so there is no misleading retry button.
+        expect(find.text('Try again'), findsNothing);
       },
     );
   });

@@ -39,8 +39,7 @@ class DriverDashboardScreen extends StatefulWidget {
   State<DriverDashboardScreen> createState() => _DriverDashboardScreenState();
 }
 
-class _DriverDashboardScreenState extends State<DriverDashboardScreen>
-    with SingleTickerProviderStateMixin {
+class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   final ApiService _api = ApiService();
 
   int _selectedTab =
@@ -595,14 +594,28 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 ),
                 onTap: () async {
                   Navigator.pop(ctx);
+                  final confirmed = await _confirmDirectHandover(
+                    orderId: orderId,
+                    paymentDue: isUnpaid,
+                    amount: order['total_amount']?.toString(),
+                  );
+                  if (!confirmed || !mounted) return;
+
                   try {
-                    await _api.post('drivers/orders/$orderId/deliver/', {
-                      'payment_collected': true,
-                    });
+                    final response = await _api.post(
+                      'drivers/orders/$orderId/deliver/',
+                      {'payment_collected': isUnpaid},
+                    );
                     if (!mounted) return;
+                    final fee = response['fee_earned'];
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Delivery completed successfully.'),
+                      SnackBar(
+                        content: Text(
+                          fee != null
+                              ? 'Delivery confirmed by FoodGo. '
+                                    'Fee earned: \$$fee'
+                              : 'Delivery confirmed by FoodGo.',
+                        ),
                         backgroundColor: GlassTheme.primaryGreen,
                       ),
                     );
@@ -611,7 +624,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Confirmation failed. Please retry.'),
+                        content: Text(
+                          'FoodGo did not confirm this delivery. '
+                          'Nothing was marked complete — please retry.',
+                        ),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
@@ -624,6 +640,70 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         ),
       ),
     );
+  }
+
+  /// Asks the driver to explicitly confirm a direct handover before the
+  /// irreversible `deliver/` call. When cash is still due, the driver must
+  /// also confirm that the payment was collected.
+  Future<bool> _confirmDirectHandover({
+    required String orderId,
+    required bool paymentDue,
+    String? amount,
+  }) async {
+    var cashCollected = false;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final canConfirm = !paymentDue || cashCollected;
+          return AlertDialog(
+            title: Text('Confirm delivery #$orderId'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'This marks the order as delivered on FoodGo and cannot be '
+                  'undone from the app. Only continue once the customer has '
+                  'the package in hand.',
+                ),
+                if (paymentDue) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Cash payment due: \$${amount ?? '—'}',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: cashCollected,
+                    onChanged: (value) {
+                      setDialogState(() => cashCollected = value ?? false);
+                    },
+                    title: const Text(
+                      'I collected the cash payment from the customer',
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: canConfirm ? () => Navigator.pop(ctx, true) : null,
+                child: const Text('Confirm delivered'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    return confirmed ?? false;
   }
 
   void _showCancelOrderDialog(String orderId) {

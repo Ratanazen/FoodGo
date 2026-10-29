@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/theme/theme_styles.dart';
 import '../../../providers/theme_provider.dart';
@@ -86,24 +87,29 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasUnsavedChanges = _stagedPalette != themeProvider.currentPalette;
 
-    final categories = ['All', 'Khmer & Festive', 'Signature Brand', 'Accessibility & Special'];
+    final categories = [
+      'All',
+      ...PaletteData.allPalettes.map((p) => p.categoryEn).toSet(),
+    ];
 
     final filteredPalettes = _activeCategoryFilter == 'All'
         ? PaletteData.allPalettes
         : PaletteData.allPalettes
-            .where((p) => p.categoryEn == _activeCategoryFilter)
-            .toList();
+              .where((p) => p.categoryEn == _activeCategoryFilter)
+              .toList();
 
     return Scaffold(
-      backgroundColor: isDark ? activeData.backgroundDark : activeData.backgroundLight,
+      backgroundColor: isDark
+          ? activeData.backgroundDark
+          : activeData.backgroundLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
+            AppIcons.back,
             color: isDark ? Colors.white : Colors.black87,
-            size: 20,
+            size: AppIconSizes.sm,
           ),
           onPressed: () => context.pop(),
           tooltip: 'Back',
@@ -130,94 +136,153 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
           ],
         ),
         actions: [
-          TextButton.icon(
-            onPressed: _restoreDefaults,
-            icon: const Icon(Icons.refresh_rounded, size: 16),
-            label: const Text('Reset All', style: TextStyle(fontSize: 12)),
-            style: TextButton.styleFrom(
-              foregroundColor: isDark ? Colors.white70 : Colors.black54,
+          if (MediaQuery.sizeOf(context).width >= 420)
+            TextButton.icon(
+              onPressed: _restoreDefaults,
+              icon: const Icon(AppIcons.reset, size: AppIconSizes.xs),
+              label: const Text('Reset All', style: TextStyle(fontSize: 12)),
+              style: TextButton.styleFrom(
+                foregroundColor: isDark ? Colors.white70 : Colors.black54,
+              ),
+            )
+          else
+            IconButton(
+              onPressed: _restoreDefaults,
+              icon: const Icon(AppIcons.reset, size: AppIconSizes.md),
+              tooltip: 'Reset all themes',
             ),
-          ),
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── 1. Live Preview Sandbox ──────────────────────────────────
-            _buildLivePreviewCard(stagedData, isDark, hasUnsavedChanges),
-            const SizedBox(height: 24),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 980),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── 1. Live Preview Sandbox ──────────────────────────────────
+                _buildLivePreviewCard(stagedData, isDark, hasUnsavedChanges),
+                const SizedBox(height: 24),
 
-            // ── 2. Appearance Mode (Light / Dark / System) ───────────────
-            _buildSectionHeader('Appearance Mode', 'របៀបបង្ហាញពន្លឺ និងរាត្រី'),
-            const SizedBox(height: 12),
-            _buildAppearanceModeSelector(themeProvider, isDark),
-            const SizedBox(height: 24),
+                // ── 2. Appearance Mode (Light / Dark / System) ───────────────
+                _buildSectionHeader(
+                  'Appearance Mode',
+                  'របៀបបង្ហាញពន្លឺ និងរាត្រី',
+                ),
+                const SizedBox(height: 12),
+                _buildAppearanceModeSelector(themeProvider, isDark),
+                const SizedBox(height: 24),
 
-            // ── 3. Festive & Motion Preferences ─────────────────────────
-            _buildSectionHeader('Experience Preferences', 'ជម្រើសពិធីបុណ្យ និងចលនា'),
-            const SizedBox(height: 12),
-            _buildPreferencesCard(themeProvider, isDark, activeData),
-            const SizedBox(height: 24),
+                // ── 3. Festive & Motion Preferences ─────────────────────────
+                _buildSectionHeader(
+                  'Experience Preferences',
+                  'ជម្រើសពិធីបុណ្យ និងចលនា',
+                ),
+                const SizedBox(height: 12),
+                _buildPreferencesCard(themeProvider, isDark, activeData),
+                const SizedBox(height: 24),
 
-            // ── 4. Theme Preset Gallery ─────────────────────────────────
-            _buildSectionHeader('Theme & Cultural Palettes', 'កម្រងរចនាបថ និងពណ៌ប្រពៃណី'),
-            const SizedBox(height: 12),
+                // ── 4. Theme Preset Gallery ─────────────────────────────────
+                _buildSectionHeader(
+                  'Theme & Cultural Palettes',
+                  'កម្រងរចនាបថ និងពណ៌ប្រពៃណី',
+                ),
+                const SizedBox(height: 12),
 
-            // Category Filter Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: categories.map((cat) {
-                  final isSelected = _activeCategoryFilter == cat;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(cat),
-                      selected: isSelected,
-                      onSelected: (_) => setState(() => _activeCategoryFilter = cat),
-                      selectedColor: stagedData.primary,
-                      backgroundColor: isDark
-                          ? activeData.surfaceCardDark
-                          : Colors.grey.withValues(alpha: 0.12),
-                      labelStyle: TextStyle(
-                        color: isSelected
-                            ? Colors.white
-                            : (isDark ? Colors.white70 : Colors.black87),
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      showCheckmark: false,
-                    ),
-                  );
-                }).toList(),
-              ),
+                // Category Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: categories.map((cat) {
+                      final isSelected = _activeCategoryFilter == cat;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(cat),
+                          selected: isSelected,
+                          onSelected: (_) =>
+                              setState(() => _activeCategoryFilter = cat),
+                          selectedColor: stagedData.primary,
+                          backgroundColor: isDark
+                              ? activeData.surfaceCardDark
+                              : Colors.grey.withValues(alpha: 0.12),
+                          labelStyle: TextStyle(
+                            color: isSelected
+                                ? stagedData.onPrimary
+                                : (isDark ? Colors.white70 : Colors.black87),
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          showCheckmark: false,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Theme Cards Grid / List
+                _buildThemeGallery(filteredPalettes, themeProvider, isDark),
+                const SizedBox(height: 40),
+              ],
             ),
-            const SizedBox(height: 16),
-
-            // Theme Cards Grid / List
-            ...filteredPalettes.map((p) {
-              final isStaged = _stagedPalette == p.id;
-              final isCurrentlyApplied = themeProvider.currentPalette == p.id;
-              return _buildThemeCard(
-                palette: p,
-                isStaged: isStaged,
-                isApplied: isCurrentlyApplied,
-                isDark: isDark,
-                onTap: () => _stageTheme(p.id),
-              );
-            }),
-            const SizedBox(height: 40),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildThemeGallery(
+    List<PaletteData> palettes,
+    ThemeProvider themeProvider,
+    bool isDark,
+  ) {
+    final cards = palettes.map((p) {
+      final isStaged = _stagedPalette == p.id;
+      final isCurrentlyApplied = themeProvider.currentPalette == p.id;
+      return _buildThemeCard(
+        palette: p,
+        isStaged: isStaged,
+        isApplied: isCurrentlyApplied,
+        isDark: isDark,
+        onTap: () => _stageTheme(p.id),
+      );
+    }).toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 720) {
+          return Column(
+            children: cards
+                .map(
+                  (card) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: card,
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        final cardWidth = (constraints.maxWidth - 12) / 2;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: cards
+              .map((card) => SizedBox(width: cardWidth, child: card))
+              .toList(),
+        );
+      },
     );
   }
 
@@ -246,11 +311,26 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     );
   }
 
-  Widget _buildAppearanceModeSelector(ThemeProvider themeProvider, bool isDark) {
+  Widget _buildAppearanceModeSelector(
+    ThemeProvider themeProvider,
+    bool isDark,
+  ) {
     final modes = [
-      {'mode': ThemeMode.system, 'label': 'System', 'icon': Icons.brightness_auto_rounded},
-      {'mode': ThemeMode.light, 'label': 'Light', 'icon': Icons.light_mode_rounded},
-      {'mode': ThemeMode.dark, 'label': 'Dark', 'icon': Icons.dark_mode_rounded},
+      {
+        'mode': ThemeMode.system,
+        'label': 'System',
+        'icon': Icons.brightness_auto_rounded,
+      },
+      {
+        'mode': ThemeMode.light,
+        'label': 'Light',
+        'icon': Icons.light_mode_rounded,
+      },
+      {
+        'mode': ThemeMode.dark,
+        'label': 'Dark',
+        'icon': Icons.dark_mode_rounded,
+      },
     ];
 
     return Container(
@@ -258,9 +338,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF181F2A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white12 : Colors.black12,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
       ),
       child: Row(
         children: modes.map((m) {
@@ -286,20 +364,26 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   children: [
                     Icon(
                       m['icon'] as IconData,
-                      size: 16,
+                      size: AppIconSizes.sm,
                       color: isSelected
-                          ? Colors.white
+                          ? activePalette.onPrimary
                           : (isDark ? Colors.white60 : Colors.black54),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      m['label'] as String,
-                      style: TextStyle(
-                        color: isSelected
-                            ? Colors.white
-                            : (isDark ? Colors.white70 : Colors.black87),
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        fontSize: 13,
+                    Flexible(
+                      child: Text(
+                        m['label'] as String,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: isSelected
+                              ? activePalette.onPrimary
+                              : (isDark ? Colors.white70 : Colors.black87),
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -312,16 +396,18 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     );
   }
 
-  Widget _buildPreferencesCard(ThemeProvider provider, bool isDark, PaletteData palette) {
+  Widget _buildPreferencesCard(
+    ThemeProvider provider,
+    bool isDark,
+    PaletteData palette,
+  ) {
     return Material(
       color: isDark ? palette.surfaceCardDark : Colors.white,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isDark ? Colors.white10 : Colors.black12,
-          ),
+          border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
         ),
         child: Column(
           children: [
@@ -352,13 +438,31 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               ),
               onChanged: (val) => provider.setReducedMotion(val),
             ),
+            Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+            SwitchListTile(
+              value: provider.snowfallEnabled,
+              activeThumbColor: palette.primary,
+              title: const Text(
+                'Christmas Snowfall Animation',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              subtitle: const Text(
+                'ធ្លាក់ព្រិលបែបវេទមន្តសម្រាប់រដូវកាលណូអែល (Snowfall Effect)',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+              onChanged: (val) => provider.setSnowfallEnabled(val),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLivePreviewCard(PaletteData staged, bool isDark, bool hasUnsavedChanges) {
+  Widget _buildLivePreviewCard(
+    PaletteData staged,
+    bool isDark,
+    bool hasUnsavedChanges,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? staged.surfaceCardDark : Colors.white,
@@ -383,7 +487,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               gradient: staged.headerGradient,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
             ),
             child: Row(
               children: [
@@ -416,13 +522,18 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    staged.badgeText.isNotEmpty ? staged.badgeText : 'LIVE PREVIEW',
+                    staged.badgeText.isNotEmpty
+                        ? staged.badgeText
+                        : 'LIVE PREVIEW',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -510,7 +621,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: staged.primary,
                           foregroundColor: Colors.white,
-                          disabledBackgroundColor: staged.primary.withValues(alpha: 0.4),
+                          disabledBackgroundColor: staged.primary.withValues(
+                            alpha: 0.4,
+                          ),
                           disabledForegroundColor: Colors.white70,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -541,175 +654,240 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     required bool isDark,
     required VoidCallback onTap,
   }) {
-    return AnimatedPressable(
-      onTap: onTap,
-      pressedScale: 0.98,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isDark ? palette.surfaceCardDark : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isStaged
-                ? palette.primary
-                : (isDark ? Colors.white10 : Colors.black12),
-            width: isStaged ? 2.0 : 1.0,
-          ),
-          boxShadow: isStaged
-              ? [
-                  BoxShadow(
-                    color: palette.primary.withValues(alpha: 0.2),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          children: [
-            // Theme Icon with Header gradient background
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                gradient: palette.headerGradient,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: palette.primary.withValues(alpha: 0.35),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      selected: isApplied,
+      label:
+          '${palette.nameEn}. ${palette.descriptionEn}'
+          '${isApplied
+              ? '. Active theme.'
+              : isStaged
+              ? '. Previewing.'
+              : ''}',
+      child: ExcludeSemantics(
+        child: AnimatedPressable(
+          onTap: onTap,
+          pressedScale: 0.98,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark ? palette.surfaceCardDark : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isStaged
+                    ? palette.primary
+                    : (isDark ? Colors.white10 : Colors.black12),
+                width: isStaged ? 2.0 : 1.0,
               ),
-              child: Icon(palette.icon, color: Colors.white, size: 22),
-            ),
-            const SizedBox(width: 14),
-
-            // Theme details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          palette.nameEn,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+              boxShadow: isStaged
+                  ? [
+                      BoxShadow(
+                        color: palette.primary.withValues(alpha: 0.2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                      if (palette.badgeText.isNotEmpty) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: palette.primary.withValues(alpha: 0.16),
-                            borderRadius: BorderRadius.circular(6),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              children: [
+                // Theme Icon with Header gradient background
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: palette.headerGradient,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: palette.primary.withValues(alpha: 0.35),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    palette.icon,
+                    color: palette.onPrimary,
+                    size: AppIconSizes.md,
+                  ),
+                ),
+                const SizedBox(width: 14),
+
+                // Theme details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        palette.nameEn,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (palette.badgeText.isNotEmpty ||
+                          palette.isSeasonallyActive)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              if (palette.badgeText.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: palette.primary.withValues(
+                                      alpha: 0.16,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    palette.badgeText,
+                                    style: TextStyle(
+                                      color: palette.primary,
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              if (palette.isSeasonallyActive)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF10B981,
+                                    ).withValues(alpha: 0.16),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFF10B981,
+                                      ).withValues(alpha: 0.4),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'IN SEASON',
+                                    style: TextStyle(
+                                      color: Color(0xFF10B981),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                          child: Text(
-                            palette.badgeText,
-                            style: TextStyle(
-                              color: palette.primary,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.bold,
+                        ),
+                      const SizedBox(height: 2),
+                      Text(
+                        palette.nameKh,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: isDark ? Colors.white70 : Colors.black54,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Palette Swatch Dots
+                      Row(
+                        children: [
+                          _buildSwatchDot(palette.primary),
+                          _buildSwatchDot(palette.primaryDark),
+                          _buildSwatchDot(palette.primaryAccent),
+                          _buildSwatchDot(palette.secondary),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              palette.categoryEn,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isDark ? Colors.white38 : Colors.black38,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Selection indicator
+                if (isApplied)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: palette.primary.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: palette.primary, width: 1.2),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 14,
+                          color: palette.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'ACTIVE',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: palette.primary,
                           ),
                         ),
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    palette.nameKh,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: isDark ? Colors.white70 : Colors.black54,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Palette Swatch Dots
-                  Row(
-                    children: [
-                      _buildSwatchDot(palette.primary),
-                      _buildSwatchDot(palette.primaryDark),
-                      _buildSwatchDot(palette.primaryAccent),
-                      _buildSwatchDot(palette.secondary),
-                      const SizedBox(width: 8),
-                      Text(
-                        palette.categoryEn,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark ? Colors.white38 : Colors.black38,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            // Selection indicator
-            if (isApplied)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: palette.primary.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: palette.primary, width: 1.2),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.check_circle_rounded, size: 14, color: palette.primary),
-                    const SizedBox(width: 4),
-                    Text(
-                      'ACTIVE',
+                  )
+                else if (isStaged)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.amber, width: 1.2),
+                    ),
+                    child: const Text(
+                      'PREVIEW',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: palette.primary,
+                        color: Colors.amber,
                       ),
                     ),
-                  ],
-                ),
-              )
-            else if (isStaged)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.amber, width: 1.2),
-                ),
-                child: const Text(
-                  'PREVIEW',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.amber,
+                  )
+                else
+                  Icon(
+                    AppIcons.chevronRight,
+                    color: isDark ? Colors.white30 : Colors.black26,
+                    size: AppIconSizes.md,
                   ),
-                ),
-              )
-            else
-              Icon(
-                Icons.chevron_right_rounded,
-                color: isDark ? Colors.white30 : Colors.black26,
-                size: 20,
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );

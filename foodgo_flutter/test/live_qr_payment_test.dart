@@ -219,7 +219,7 @@ void main() {
 
         // Action buttons
         expect(find.text('Check Payment Status'), findsOneWidget);
-        expect(find.text('Simulate Webhook Pay (Test Mode)'), findsOneWidget);
+        expect(find.text('Simulate Webhook Pay (Test Mode)'), findsNothing);
         expect(find.text('Cancel Payment'), findsOneWidget);
 
         // Expand order details

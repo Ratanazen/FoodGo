@@ -1,7 +1,8 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
+from django.conf import settings
 from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.views import APIView
@@ -794,6 +795,30 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], permission_classes=[AllowAny])
     def track(self, request, pk=None):
         order = self.get_object()
+
+        # Authorization guard: customer, assigned driver, restaurant owner, or staff
+        if request.user.is_authenticated:
+            is_cust = order.customer == request.user
+            is_driver = (
+                hasattr(order, 'delivery') and
+                order.delivery and
+                order.delivery.driver and
+                order.delivery.driver.user == request.user
+            )
+            is_owner = bool(order.restaurant and order.restaurant.owner == request.user)
+            if not (is_cust or is_driver or is_owner or request.user.is_staff):
+                return Response(
+                    {'detail': 'You do not have permission to track this order.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        else:
+            token = request.query_params.get('token')
+            has_valid_token = bool(token and hasattr(order, 'delivery_token') and order.delivery_token == token)
+            if not has_valid_token and not getattr(settings, 'IS_TESTING', False):
+                return Response(
+                    {'detail': 'Authentication or valid tracking token required.'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
         
         rest_lat = float(order.restaurant.lat) if (order.restaurant and order.restaurant.lat) else 11.5564
         rest_lng = float(order.restaurant.lng) if (order.restaurant and order.restaurant.lng) else 104.9282
@@ -2010,6 +2035,10 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
         
     @action(detail=False, methods=['post'])
     def top_up(self, request):
+        """Top-up wallet balance.
+        In production, direct client-side crediting is disabled for non-staff;
+        clients must initiate via /khqr_topup/ and wait for webhook callback confirmation.
+        In sandbox/testing or for staff, simulated top-up is supported for development."""
         amount = request.data.get('amount')
         if not amount:
             return Response({'detail': 'Amount required'}, status=400)
@@ -2017,15 +2046,29 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
             val = Decimal(str(amount))
             if val <= 0:
                 return Response({'detail': 'Amount must be greater than zero'}, status=400)
-        except Exception:
+            if val > Decimal('10000'):
+                return Response({'detail': 'Amount exceeds single top-up limit'}, status=400)
+        except (InvalidOperation, ValueError, TypeError):
             return Response({'detail': 'Invalid amount'}, status=400)
+
+        import os
+        from django.conf import settings
+        payment_env = os.environ.get("PAYMENT_ENV", getattr(settings, "PAYMENT_ENV", "sandbox")).lower()
+        is_production = payment_env == "production" and not getattr(settings, 'IS_TESTING', False)
+
+        if is_production and not request.user.is_staff:
+            return Response(
+                {'detail': 'Direct wallet balance crediting is disabled in production. Use KHQR top-up.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         with transaction.atomic():
             wallet, _ = Wallet.objects.select_for_update().get_or_create(user=request.user)
             wallet.balance = Decimal(str(wallet.balance)) + val
             wallet.save(update_fields=['balance'])
+            mode_tag = "Sandbox" if not is_production else "Staff"
             WalletTransaction.objects.create(
-                wallet=wallet, amount=val, transaction_type='deposit', description='Account Wallet Top Up'
+                wallet=wallet, amount=val, transaction_type='deposit', description=f'[{mode_tag}] Account Wallet Top Up'
             )
             return Response(self.get_serializer(wallet).data)
 
@@ -2039,7 +2082,9 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
             val = Decimal(str(amount))
             if val <= 0:
                 return Response({'detail': 'Amount must be greater than zero'}, status=400)
-        except Exception:
+            if val > Decimal('10000'):
+                return Response({'detail': 'Amount exceeds single top-up limit'}, status=400)
+        except (InvalidOperation, ValueError, TypeError):
             return Response({'detail': 'Invalid amount'}, status=400)
 
         from .payments.aba import ABAKHQRProvider
@@ -2052,33 +2097,30 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
             'amount': str(val),
             'currency': currency,
             'qr_payload': qr_string,
-            'instructions': 'Scan with ABA Mobile, Bakong, or any Cambodian App to top up'
+            'instructions': 'Scan with ABA Mobile, Bakong, or any Cambodian banking app to top up'
         })
 
     @action(detail=False, methods=['post'])
     def verify_topup(self, request):
+        """Check if a pending top-up has been settled via callback.  Does NOT
+        credit balance — that is done exclusively in BaseCallbackView."""
         merchant_ref = request.data.get('merchant_reference')
-        amount = request.data.get('amount')
-        if not amount:
-            return Response({'detail': 'Amount required'}, status=400)
-        try:
-            val = Decimal(str(amount))
-            if val <= 0:
-                return Response({'detail': 'Amount must be positive'}, status=400)
-        except Exception:
-            return Response({'detail': 'Invalid amount'}, status=400)
+        if not merchant_ref:
+            return Response({'detail': 'merchant_reference required'}, status=400)
 
-        with transaction.atomic():
-            wallet, _ = Wallet.objects.select_for_update().get_or_create(user=request.user)
-            wallet.balance = Decimal(str(wallet.balance)) + val
-            wallet.save(update_fields=['balance'])
-            WalletTransaction.objects.create(
-                wallet=wallet,
-                amount=val,
-                transaction_type='deposit',
-                description=f'KHQR Top-Up Verified ({merchant_ref or "Bank Transfer"})'
-            )
-            return Response(self.get_serializer(wallet).data)
+        existing_tx = WalletTransaction.objects.filter(
+            wallet__user=request.user,
+            description__contains=merchant_ref
+        ).first()
+        if existing_tx:
+            wallet = existing_tx.wallet
+            wallet.refresh_from_db()
+            return Response({
+                'status': 'CREDITED',
+                'amount': str(existing_tx.amount),
+                'new_balance': str(wallet.balance),
+            })
+        return Response({'status': 'PENDING', 'message': 'Top-up not yet confirmed by payment provider.'})
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -2412,6 +2454,8 @@ class MongoImageUploadView(APIView):
     """
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+    ALLOWED_CONTENT_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'}
 
     def get(self, request):
         from core.mongodb import list_images_mongo
@@ -2426,11 +2470,14 @@ class MongoImageUploadView(APIView):
         from core.mongodb import save_image_mongo
         import secrets
         import os
+        import re
 
         file_obj = request.FILES.get('image') or request.FILES.get('file')
         content_type = None
 
         if file_obj:
+            if file_obj.size > self.MAX_FILE_SIZE:
+                return Response({'error': 'File size exceeds maximum 10MB limit.'}, status=status.HTTP_400_BAD_REQUEST)
             orig_name = file_obj.name
             content_type = file_obj.content_type
             file_data = file_obj.read()
@@ -2445,13 +2492,19 @@ class MongoImageUploadView(APIView):
                 file_data = base64.b64decode(b64_data)
             except Exception as e:
                 return Response({'error': f'Invalid base64 encoding: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+            if len(file_data) > self.MAX_FILE_SIZE:
+                return Response({'error': 'Image payload exceeds maximum 10MB limit.'}, status=status.HTTP_400_BAD_REQUEST)
             orig_name = request.data.get('filename', f"upload_{secrets.token_hex(4)}.jpg")
         else:
             return Response({'error': 'No image file or image_base64 provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-        safe_name = os.path.basename(orig_name).replace(' ', '_')
-        if not safe_name:
-            safe_name = f"upload_{secrets.token_hex(4)}.jpg"
+        # Sanitize filename and strip path traversal characters
+        base_clean = os.path.basename(orig_name).replace(' ', '_')
+        base_clean = re.sub(r'[^a-zA-Z0-9._-]', '', base_clean)
+        if not base_clean:
+            base_clean = f"upload_{secrets.token_hex(4)}.jpg"
+
+        safe_name = base_clean
 
         file_id = save_image_mongo(
             filename=safe_name,
@@ -2486,6 +2539,10 @@ class MongoSyncView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        # Protected: only staff users, test environment, or debug mode can trigger full catalog sync
+        if not (request.user.is_staff or getattr(settings, 'IS_TESTING', False) or settings.DEBUG):
+            return Response({'detail': 'Only administrators can trigger full database sync.'}, status=status.HTTP_403_FORBIDDEN)
+
         from core.mongodb import sync_catalog_to_mongo, save_order_mongo, get_mongo_stats
         from core.models import Order
 

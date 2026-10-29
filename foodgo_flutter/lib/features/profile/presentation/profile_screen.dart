@@ -1316,17 +1316,19 @@ class _ProfileOption extends StatelessWidget {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(12),
                       color: isDestructive
                           ? const Color(0xFFFEE2E2)
-                          : GlassTheme.lightGreenSurface,
+                          : Theme.of(context).colorScheme.primary.withValues(
+                              alpha: isDark ? 0.2 : 0.12,
+                            ),
                     ),
                     child: leadingWidget ??
                         Icon(
                           icon ?? Icons.circle,
                           color: isDestructive
                               ? const Color(0xFFEF4444)
-                              : GlassTheme.primaryGreen,
+                              : Theme.of(context).colorScheme.primary,
                           size: 20,
                         ),
                   ),

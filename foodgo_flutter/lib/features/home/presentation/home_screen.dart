@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +10,7 @@ import '../../../providers/cart_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/theme/theme_styles.dart';
 import '../../../core/utils/khmer_currency.dart';
@@ -30,8 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
   String _selectedSort = 'All';
   final bool _showActiveOrderFloater = true;
-  int _activeOrderEta = 11;
-  Timer? _etaUpdateTimer;
 
   // Healthy & Organic Quick Categories
   final List<Map<String, dynamic>> _quickCategories = [
@@ -284,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Map<String, dynamic>> _fastDeliveryRestaurants = [
     {
-      'id': 101,
+      'id': 1,
       'name': 'Tealive - BKK1 Phnom Penh',
       'discount': '5% OFF',
       'rating': 4.6,
@@ -294,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'https://images.unsplash.com/photo-1558857563-b371033873b8?w=400&q=80',
     },
     {
-      'id': 102,
+      'id': 2,
       'name': 'KFC - Norodom Boulevard',
       'discount': '20% OFF',
       'rating': 4.5,
@@ -304,26 +301,6 @@ class _HomeScreenState extends State<HomeScreen> {
           'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=400&q=80',
     },
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    // Simulate live dynamic ETA countdown (from 11 min down to 9 min like in video)
-    _etaUpdateTimer = Timer.periodic(const Duration(seconds: 12), (t) {
-      if (!mounted) return;
-      setState(() {
-        if (_activeOrderEta > 8) {
-          _activeOrderEta--;
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _etaUpdateTimer?.cancel();
-    super.dispose();
-  }
 
   void _claimCoupon(String code) {
     final cart = context.read<CartProvider>();
@@ -554,13 +531,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       width: 38,
                       height: 38,
-                      decoration: const BoxDecoration(
-                        color: GlassTheme.lightGreenSurface,
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.location_on_rounded,
-                        color: GlassTheme.primaryGreen,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 20,
                       ),
                     ),
@@ -664,7 +643,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).colorScheme.primary,
                           width: 2,
                         ),
                       ),
@@ -677,24 +656,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                 placeholder: (ctx, url) => Container(
                                   color: Colors.grey[200],
                                   alignment: Alignment.center,
-                                  child: const SizedBox(
+                                  child: SizedBox(
                                     width: 14,
                                     height: 14,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: GlassTheme.primaryGreen,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                     ),
                                   ),
                                 ),
                                 errorWidget: (ctx, url, err) => Container(
-                                  color: GlassTheme.lightGreenSurface,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.15),
                                   alignment: Alignment.center,
                                   child: Text(
                                     username.isNotEmpty
                                         ? username[0].toUpperCase()
                                         : 'F',
-                                    style: const TextStyle(
-                                      color: GlassTheme.primaryGreen,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
@@ -702,14 +687,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               )
                             : Container(
-                                color: GlassTheme.lightGreenSurface,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.15),
                                 alignment: Alignment.center,
                                 child: Text(
                                   username.isNotEmpty
                                       ? username[0].toUpperCase()
                                       : 'F',
-                                  style: const TextStyle(
-                                    color: GlassTheme.primaryGreen,
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                   ),
@@ -1093,10 +1082,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         '\$${(item['price'] as double).toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 15,
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       AnimatedPressable(
@@ -1112,7 +1101,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('${item['name']} added to cart!'),
-                              backgroundColor: GlassTheme.primaryGreen,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
                               duration: const Duration(seconds: 2),
                             ),
                           );
@@ -1120,8 +1111,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           width: 26,
                           height: 26,
-                          decoration: const BoxDecoration(
-                            color: GlassTheme.primaryGreen,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -1939,9 +1930,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Colors.grey,
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'No restaurants match this category.',
-                      style: TextStyle(color: Colors.grey),
+                    Text(
+                      provider.hasError
+                          ? (provider.errorMessage ??
+                                'Could not load restaurants.')
+                          : 'No restaurants match this category.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.grey),
                     ),
                     const SizedBox(height: 8),
                     TextButton.icon(
@@ -1957,7 +1952,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       label: Text(
-                        'Reset Filter',
+                        provider.hasError ? 'Retry' : 'Reset Filter',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -2282,10 +2277,20 @@ class _HomeScreenState extends State<HomeScreen> {
       return const SizedBox.shrink();
     }
 
-    final activeOrderId = activeNotif.orderId?.toString() ?? '1024';
+    final data = activeNotif.data;
     final courierTitle = activeNotif.title;
-    final courierSub =
-        '${activeNotif.data['restaurant_name'] ?? 'FoodGo'} • Arriving in ${_activeOrderEta}m';
+    final restaurantName = data['restaurant_name']?.toString();
+    final etaRaw =
+        data['eta_minutes'] ?? data['eta'] ?? data['estimated_minutes'];
+    final etaMinutes = int.tryParse(etaRaw?.toString() ?? '');
+    final courierSub = restaurantName != null && restaurantName.isNotEmpty
+        ? (etaMinutes != null
+              ? '$restaurantName • ETA $etaMinutes min'
+              : restaurantName)
+        : activeNotif.message;
+    final driverAvatar = data['driver_avatar']?.toString();
+    final driverOnline = data['driver_online'] == true;
+    final orderId = activeNotif.orderId;
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= 800;
@@ -2297,7 +2302,7 @@ class _HomeScreenState extends State<HomeScreen> {
       width: isWide ? 420 : null,
       child: AnimatedPressable(
         pressedScale: 0.98,
-        onTap: () => context.push('/map/$activeOrderId'),
+        onTap: orderId == null ? null : () => context.push('/map/$orderId'),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
@@ -2319,35 +2324,46 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Row(
             children: [
-              // Driver Avatar
+              // Driver identity supplied by the order/notification API.
               Stack(
                 children: [
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: CachedNetworkImageProvider(
-                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.14),
+                      image: driverAvatar != null && driverAvatar.isNotEmpty
+                          ? DecorationImage(
+                              image: CachedNetworkImageProvider(driverAvatar),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: driverAvatar == null || driverAvatar.isEmpty
+                        ? Icon(
+                            AppIcons.delivery,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 22,
+                          )
+                        : null,
+                  ),
+                  if (driverOnline)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
                         ),
-                        fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(width: 12),
@@ -2377,46 +2393,53 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Dynamic Stacked ETA Green Badge (TikTok Reference Style)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? GlassTheme.deepSmalt.withValues(alpha: 0.45)
-                      : GlassTheme.paleSmalt.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$_activeOrderEta',
-                      style: TextStyle(
-                        color: isDark
-                            ? GlassTheme.paleSmalt
-                            : Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                        height: 1.1,
+              // ETA is only shown when the backend actually supplies one.
+              if (etaMinutes != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? GlassTheme.deepSmalt.withValues(alpha: 0.45)
+                        : GlassTheme.paleSmalt.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$etaMinutes',
+                        style: TextStyle(
+                          color: isDark
+                              ? GlassTheme.paleSmalt
+                              : Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          height: 1.1,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'min',
-                      style: TextStyle(
-                        color: isDark
-                            ? GlassTheme.paleSmalt
-                            : Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        height: 1.0,
+                      Text(
+                        'min',
+                        style: TextStyle(
+                          color: isDark
+                              ? GlassTheme.paleSmalt
+                              : Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                )
+              else if (orderId != null)
+                Icon(
+                  AppIcons.chevronRight,
+                  color: GlassTheme.textMuted,
+                  size: AppIconSizes.sm,
                 ),
-              ),
             ],
           ),
         ),

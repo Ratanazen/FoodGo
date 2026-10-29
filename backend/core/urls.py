@@ -98,6 +98,8 @@ urlpatterns = [
     path('health/live/', HealthLiveView.as_view(), name='api_health_live'),
     path('health/ready', HealthReadyView.as_view(), name='api_health_ready_no_slash'),
     path('health/ready/', HealthReadyView.as_view(), name='api_health_ready'),
+    path('healthz', HealthCheckView.as_view(), name='api_healthz_no_slash'),
+    path('healthz/', HealthCheckView.as_view(), name='api_healthz'),
     # MongoDB Atlas Media & Sync Services
     path('media/mongo/upload/', MongoImageUploadView.as_view(), name='mongo_image_upload'),
     path('media/mongo/<path:filename>', MongoImageView.as_view(), name='mongo_image_serve'),

@@ -398,19 +398,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             Text(
               'Please sign in or create an account to place your order and track live delivery.',
-              style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                height: 1.4,
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white60),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: GlassTheme.primaryGreen,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () {
               Navigator.pop(ctx);
@@ -418,7 +427,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             },
             child: const Text(
               'Sign In / Register',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -452,65 +464,109 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      // Safe restaurantId resolution: ensure restaurant exists on backend
-      int validRestaurantId = 1;
-      final existingRestIds = restaurantProvider.restaurants
-          .map((r) => r['id'] is int
-              ? r['id'] as int
-              : int.tryParse(r['id']?.toString() ?? ''))
-          .whereType<int>()
-          .toSet();
-
-      final candidateRestId = cart.restaurantId ??
-          (cart.items.isNotEmpty
-              ? cart.items.values.first.restaurantId
-              : null);
-
-      if (candidateRestId != null &&
-          existingRestIds.isNotEmpty &&
-          existingRestIds.contains(candidateRestId)) {
-        validRestaurantId = candidateRestId;
-      } else if (existingRestIds.isNotEmpty) {
-        validRestaurantId = existingRestIds.first;
-      } else {
-        validRestaurantId = 1;
+      // Validate the cart against the live catalogue. Never substitute a
+      // different restaurant or food item: the customer must see exactly the
+      // items they chose, or an actionable error.
+      if (restaurantProvider.isDemo) {
+        throw const _CheckoutValidationException(
+          'This menu is demo data, not live availability. Reconnect to '
+          'FoodGo and reload the restaurant before ordering.',
+        );
       }
 
-      // Collect available food item IDs from target restaurant or loaded restaurants
-      final availableFoodIds = <int>[];
-      if (restaurantProvider.restaurants.isNotEmpty) {
-        for (final r in restaurantProvider.restaurants) {
-          if (r is Map && r['food_categories'] is List) {
-            for (final cat in r['food_categories'] as List) {
-              if (cat is Map && cat['items'] is List) {
-                for (final item in cat['items'] as List) {
-                  if (item is Map && item['id'] != null) {
-                    final fId = item['id'] is int
-                        ? item['id'] as int
-                        : int.tryParse(item['id'].toString());
-                    if (fId != null) availableFoodIds.add(fId);
-                  }
-                }
-              }
-            }
+      if (restaurantProvider.restaurants.isEmpty) {
+        await restaurantProvider.fetchRestaurants();
+        if (!mounted) return;
+        if (restaurantProvider.isDemo) {
+          throw const _CheckoutValidationException(
+            'This menu is demo data, not live availability. Reconnect to '
+            'FoodGo and reload the restaurant before ordering.',
+          );
+        }
+        if (restaurantProvider.restaurants.isEmpty) {
+          throw const _CheckoutValidationException(
+            'We could not verify the restaurant menu with FoodGo. Check '
+            'your connection and try again — your cart is unchanged.',
+          );
+        }
+      }
+
+      final liveRestaurants = restaurantProvider.restaurants
+          .whereType<Map>()
+          .map((r) => Map<String, dynamic>.from(r))
+          .toList();
+
+      int? readId(Object? value) =>
+          value is int ? value : int.tryParse(value?.toString() ?? '');
+
+      final candidateRestId =
+          cart.restaurantId ??
+          (cart.items.isNotEmpty ? cart.items.values.first.restaurantId : null);
+
+      Map<String, dynamic>? liveRestaurant;
+      for (final restaurant in liveRestaurants) {
+        if (readId(restaurant['id']) == candidateRestId) {
+          liveRestaurant = restaurant;
+          break;
+        }
+      }
+
+      if (candidateRestId == null || liveRestaurant == null) {
+        throw const _CheckoutValidationException(
+          'This restaurant is no longer available in FoodGo. Remove the '
+          'items and choose a restaurant from the live catalogue.',
+        );
+      }
+
+      final validRestaurantId = candidateRestId;
+      final menuFoodIds = <int>{};
+      final categories = liveRestaurant['food_categories'];
+      if (categories is List) {
+        for (final category in categories) {
+          if (category is! Map) continue;
+          final items = category['items'];
+          if (items is! List) continue;
+          for (final item in items) {
+            if (item is! Map) continue;
+            final id = readId(item['id']);
+            if (id != null) menuFoodIds.add(id);
           }
         }
       }
 
-      final List<Map<String, dynamic>> itemsPayload = cart.items.values.map((
-        entry,
-      ) {
-        int effectiveFoodId = entry.id;
-        if (availableFoodIds.isNotEmpty && !availableFoodIds.contains(entry.id)) {
-          effectiveFoodId = availableFoodIds.first;
-        } else if (availableFoodIds.isEmpty && entry.id > 25) {
-          effectiveFoodId = 1;
-        }
-        return <String, dynamic>{
-          'food_item': effectiveFoodId,
-          'quantity': entry.quantity,
-        };
+      if (menuFoodIds.isEmpty) {
+        throw const _CheckoutValidationException(
+          'The menu for this restaurant could not be loaded. Refresh the '
+          'restaurant and try again — your cart is unchanged.',
+        );
+      }
+
+      final unavailableItems = cart.items.values.where((entry) {
+        final sameRestaurant =
+            entry.restaurantId == null ||
+            entry.restaurantId == validRestaurantId;
+        return !sameRestaurant || !menuFoodIds.contains(entry.id);
       }).toList();
+
+      if (unavailableItems.isNotEmpty) {
+        final names = unavailableItems
+            .map((item) => item.name)
+            .take(3)
+            .join(', ');
+        throw _CheckoutValidationException(
+          'These items are no longer on the live menu: $names. Remove them '
+          'from your cart before placing the order.',
+        );
+      }
+
+      final List<Map<String, dynamic>> itemsPayload = cart.items.values
+          .map(
+            (entry) => <String, dynamic>{
+              'food_item': entry.id,
+              'quantity': entry.quantity,
+            },
+          )
+          .toList();
 
       final selectedAddr = addressProvider.selectedAddress;
 
@@ -613,6 +669,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
     final addressProvider = context.watch<AddressProvider>();
     final activeAddress = addressProvider.selectedAddress;
     final cart = context.watch<CartProvider>();
@@ -837,8 +896,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: GlassCard(
                   border: Border.all(
                     color: _selectedDriverId == null
-                        ? GlassTheme.primaryGreen
-                        : Colors.white.withValues(alpha: 0.14),
+                        ? primary
+                        : (isDark
+                              ? Colors.white.withValues(alpha: 0.14)
+                              : const Color(0xFFE5E7EB)),
                     width: _selectedDriverId == null ? 1.6 : 1.2,
                   ),
                   padding: const EdgeInsets.all(14),
@@ -849,13 +910,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         height: 44,
                         decoration: BoxDecoration(
                           color: _selectedDriverId == null
-                              ? GlassTheme.primaryGreen
-                              : Colors.white12,
+                              ? primary
+                              : (isDark
+                                    ? Colors.white12
+                                    : const Color(0xFFF0FDF4)),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.flash_on,
-                          color: Colors.white,
+                          color: _selectedDriverId == null
+                              ? Colors.white
+                              : (isDark ? Colors.white70 : primary),
                           size: 24,
                         ),
                       ),
@@ -883,24 +948,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: GlassTheme.primaryGreen.withValues(
-                                      alpha: 0.15,
-                                    ),
+                                    color: primary.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
                                         Icons.bolt_rounded,
                                         size: 13,
-                                        color: GlassTheme.primaryGreen,
+                                        color: primary,
                                       ),
-                                      SizedBox(width: 2),
+                                      const SizedBox(width: 2),
                                       Text(
                                         'Auto-Assign',
                                         style: TextStyle(
-                                          color: GlassTheme.primaryGreen,
+                                          color: primary,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -926,8 +989,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ? Icons.check_circle
                             : Icons.radio_button_unchecked,
                         color: _selectedDriverId == null
-                            ? GlassTheme.primaryGreen
-                            : Colors.white38,
+                            ? primary
+                            : (isDark
+                                  ? Colors.white38
+                                  : const Color(0xFFD1D5DB)),
                         size: 24,
                       ),
                     ],
@@ -966,8 +1031,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       child: GlassCard(
                         border: Border.all(
                           color: isSelected
-                              ? GlassTheme.primaryGreen
-                              : Colors.white.withValues(alpha: 0.14),
+                              ? primary
+                              : (isDark
+                                    ? Colors.white.withValues(alpha: 0.14)
+                                    : const Color(0xFFE5E7EB)),
                           width: isSelected ? 1.6 : 1.2,
                         ),
                         padding: const EdgeInsets.all(14),
@@ -978,13 +1045,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               height: 44,
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? GlassTheme.primaryGreen
-                                    : Colors.white12,
+                                    ? primary
+                                    : (isDark
+                                          ? Colors.white12
+                                          : const Color(0xFFF0FDF4)),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.delivery_dining,
-                                color: Colors.white,
+                                color: isSelected
+                                    ? Colors.white
+                                    : (isDark ? Colors.white70 : primary),
                                 size: 24,
                               ),
                             ),
@@ -1054,8 +1125,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ? Icons.check_circle
                                   : Icons.radio_button_unchecked,
                               color: isSelected
-                                  ? GlassTheme.primaryGreen
-                                  : Colors.white38,
+                                  ? primary
+                                  : (isDark
+                                        ? Colors.white38
+                                        : const Color(0xFFD1D5DB)),
                               size: 24,
                             ),
                           ],
@@ -1410,6 +1483,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(32),
                     ),
+                    customColor: isDark ? null : Colors.white,
+                    customShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.35 : 0.08,
+                        ),
+                        blurRadius: 20,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                    customBorder: Border(
+                      top: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : const Color(0xFFE5E7EB),
+                        width: 1.0,
+                      ),
+                    ),
                     padding: const EdgeInsets.all(24.0),
                     child: SafeArea(
                       child: Column(
@@ -1421,11 +1512,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Total Amount',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white70,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : const Color(0xFF6B7280),
                                     ),
                                   ),
                                   if (cart.discountAmount > 0)
@@ -1433,9 +1527,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       'Saved \$${cart.discountAmount.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontSize: 11,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
+                                        color: primary,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -1449,9 +1541,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.w900,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
+                                      color: primary,
                                     ),
                                   ),
                                   Text(
@@ -1459,9 +1549,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.8,
-                                      ),
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.8)
+                                          : const Color(0xFF6B7280),
                                     ),
                                   ),
                                 ],
@@ -1650,4 +1740,15 @@ class _PaymentOptionTile extends StatelessWidget {
       ),
     ).animate().fadeIn(duration: 350.ms).slideX(begin: 0.05, end: 0);
   }
+}
+
+/// A checkout validation failure with a message that is safe to show to the
+/// customer. These errors never imply that an order or payment succeeded.
+class _CheckoutValidationException implements Exception {
+  final String message;
+
+  const _CheckoutValidationException(this.message);
+
+  @override
+  String toString() => message;
 }

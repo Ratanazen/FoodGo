@@ -30,8 +30,12 @@ class AppTheme {
         ? GlassTheme.textMutedLight
         : GlassTheme.textMuted;
 
-    return GoogleFonts.interTextTheme(base).copyWith(
-      displayLarge: TextStyle(
+    final inter = GoogleFonts.interTextTheme(base);
+
+    // Derive every style from the Inter base so the custom family and metrics
+    // are preserved instead of silently falling back to Roboto.
+    return inter.copyWith(
+      displayLarge: inter.displayLarge?.copyWith(
         fontSize: 32,
         fontWeight: FontWeight.w800,
         letterSpacing: -0.8,
@@ -39,7 +43,7 @@ class AppTheme {
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      displayMedium: TextStyle(
+      displayMedium: inter.displayMedium?.copyWith(
         fontSize: 28,
         fontWeight: FontWeight.w800,
         letterSpacing: -0.6,
@@ -47,7 +51,7 @@ class AppTheme {
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      titleLarge: TextStyle(
+      titleLarge: inter.titleLarge?.copyWith(
         fontSize: 20,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.4,
@@ -55,7 +59,7 @@ class AppTheme {
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      titleMedium: TextStyle(
+      titleMedium: inter.titleMedium?.copyWith(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
@@ -63,35 +67,35 @@ class AppTheme {
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      titleSmall: TextStyle(
+      titleSmall: inter.titleSmall?.copyWith(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         height: 1.4,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      bodyLarge: TextStyle(
+      bodyLarge: inter.bodyLarge?.copyWith(
         fontSize: 15,
         fontWeight: FontWeight.w400,
         height: 1.5,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      bodyMedium: TextStyle(
+      bodyMedium: inter.bodyMedium?.copyWith(
         fontSize: 13.5,
         fontWeight: FontWeight.w400,
         height: 1.5,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      bodySmall: TextStyle(
+      bodySmall: inter.bodySmall?.copyWith(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         height: 1.45,
         color: secondaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      labelLarge: TextStyle(
+      labelLarge: inter.labelLarge?.copyWith(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.2,
@@ -99,7 +103,7 @@ class AppTheme {
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      labelSmall: TextStyle(
+      labelSmall: inter.labelSmall?.copyWith(
         fontSize: 11,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.4,
@@ -129,7 +133,7 @@ class AppTheme {
         error: GlassTheme.discountRed,
         brightness: Brightness.light,
         surface: active.backgroundLight,
-      ),
+      ).copyWith(onPrimary: active.onPrimary),
       scaffoldBackgroundColor: active.backgroundLight,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
@@ -141,7 +145,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: Colors.white,
+          foregroundColor: active.onPrimary,
           elevation: 0,
           minimumSize: const Size(88, 48),
           shape: RoundedRectangleBorder(
@@ -239,7 +243,7 @@ class AppTheme {
         error: GlassTheme.discountRed,
         brightness: Brightness.dark,
         surface: active.backgroundDark,
-      ),
+      ).copyWith(onPrimary: active.onPrimary),
       scaffoldBackgroundColor: active.backgroundDark,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
@@ -251,7 +255,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: Colors.white,
+          foregroundColor: active.onPrimary,
           elevation: 0,
           minimumSize: const Size(88, 48),
           shape: RoundedRectangleBorder(

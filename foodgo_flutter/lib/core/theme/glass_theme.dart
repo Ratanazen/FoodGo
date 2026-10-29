@@ -28,7 +28,7 @@ class GlassTheme {
   static const Color midnightSmalt = Color(0xFF1A2653);
 
   // Active dynamic color palette (managed by ThemeProvider)
-  static PaletteData _activePalette = PaletteData.emeraldGreen;
+  static PaletteData _activePalette = PaletteData.modernFoodGo;
 
   static PaletteData get activePalette => _activePalette;
 
@@ -167,8 +167,8 @@ class GlassTheme {
   ); // ~60% opacity liquid smalt shadow
 
   static const Color borderLight = Color(
-    0x80FFFFFF,
-  ); // 50% opacity specular edge
+    0xFFE5E7EB,
+  ); // Subtle clean gray border for Figma card contrast
   static const Color borderDark = Color(
     0x40A9B7E1,
   ); // 25% opacity smalt tint specular edge
@@ -212,7 +212,7 @@ class GlassTheme {
   static const LinearGradient liquidSurfaceLight = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xF2FFFFFF), Color(0xD8F4F6FC), Color(0xE6E8EDF9)],
+    colors: [Color(0xFFFFFFFF), Color(0xF8FAFCF9), Color(0xF2F5F8F6)],
   );
 
   static BorderRadius get borderRadius => BorderRadius.circular(radius);

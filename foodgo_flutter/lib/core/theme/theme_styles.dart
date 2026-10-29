@@ -18,7 +18,24 @@ class ThemeStyles {
       case AppColorPalette.songkranNewYear:
         return 'រីករាយពិធីបុណ្យចូលឆ្នាំថ្មី សង្ក្រាន្តត្រជាក់ចិត្ត! 💦';
       case AppColorPalette.christmas:
+      case AppColorPalette.christmasWonderland:
         return 'Merry Christmas & Happy Holidays! 🎄';
+      case AppColorPalette.newYearCelebration:
+        return 'Happy New Year & Sparkling Horizons! 🎆';
+      case AppColorPalette.halloweenNight:
+        return 'Spooky Halloween & Enchanted Treats! 🎃';
+      case AppColorPalette.valentinesDay:
+        return 'Happy Valentine\'s Day! With Love & Warmth 💖';
+      case AppColorPalette.easterSpring:
+        return 'Joyous Easter & Blooming Spring Renewal! 🌸';
+      case AppColorPalette.summerTropical:
+        return 'Sunny Summer Vibes & Tropical Sips! 🌴';
+      case AppColorPalette.lunarNewYear:
+        return 'Happy Lunar New Year! 恭喜发财 🏮';
+      case AppColorPalette.blackFridayCyber:
+        return 'Mega Cyber Deals & Electric Savings! ⚡';
+      case AppColorPalette.ramadanEid:
+        return 'Ramadan Kareem & Blessed Eid Mubarak! 🌙';
       case AppColorPalette.waterFestival:
         return 'រីករាយព្រះរាជពិធីបុណ្យអុំទូក! ⛵';
       case AppColorPalette.pchumBen:
@@ -38,6 +55,16 @@ class ThemeStyles {
         return 'Modern Cyber Dining Experience ⚡';
       case AppColorPalette.darkGold:
         return 'Prestige Gourmet Dining & Luxury ✨';
+      case AppColorPalette.natureOrganic:
+        return 'Wholesome Nature & Farm-to-Table Freshness 🥑';
+      case AppColorPalette.glassmorphism:
+        return 'Sleek Aero Glassmorphism & Liquid Depth 💎';
+      case AppColorPalette.minimalPremium:
+        return 'Quiet Scandinavian Luxury & Pure Restraint 🏛️';
+      case AppColorPalette.retroPop:
+        return 'Neon 80s Synthwave & Arcade Energy 🕹️';
+      case AppColorPalette.neonNight:
+        return 'High-Octane Cyberpunk Neon & Matrix Glow ⚡';
       case AppColorPalette.monochrome:
         return 'Editorial Studio Precision & Clarity 🏁';
       case AppColorPalette.highContrast:
@@ -56,7 +83,34 @@ class ThemeStyles {
       case AppColorPalette.songkranNewYear:
         return 'ត្រជាក់ត្រជុំ សិរីសួស្តី និងភាពរីករាយពេញមួយឆ្នាំ';
       case AppColorPalette.christmas:
+      case AppColorPalette.christmasWonderland:
         return 'ជូនពរសេចក្តីសុខ សុភមង្គល និងភាពកក់ក្តៅក្នុងរដូវកាលបុណ្យ';
+      case AppColorPalette.newYearCelebration:
+        return 'រាត្រីឆ្លងឆ្នាំសកល ពោរពេញដោយកាំជ្រួច និងពន្លឺមាសចែងចាំង';
+      case AppColorPalette.halloweenNight:
+        return 'រាត្រីអាថ៌កំបាំង ផ្លែឃ្លោកភ្លើង និងបរិយាកាសភ័យរន្ធត់បែបកម្សាន្ត';
+      case AppColorPalette.valentinesDay:
+        return 'ផ្កាកុលាបក្រហមឆ្អៅ ក្តីស្រឡាញ់ដ៏ផ្អែមល្ហែម និងភាពកក់ក្តៅ';
+      case AppColorPalette.easterSpring:
+        return 'រដូវផ្ការីកស្រស់បំព្រង ពណ៌ប៉ាស្តែលផ្អែម និងភាពស្រស់ថ្លា';
+      case AppColorPalette.summerTropical:
+        return 'រដូវក្តៅត្រូពិច ទឹកសមុទ្រខៀវស្រងាត់ និងផ្លែស្វាយទុំផ្អែម';
+      case AppColorPalette.lunarNewYear:
+        return 'អាំងប៉ាវក្រហម គោមមាស និងសិរីសួស្តីវិបុលសុខនៃឆ្នាំថ្មី';
+      case AppColorPalette.blackFridayCyber:
+        return 'រចនាបថខ្មៅរលោង ភ្លើងណេអុងខៀវ និងការបញ្ចុះតម្លៃពិសេស';
+      case AppColorPalette.ramadanEid:
+        return 'ព្រះចន្ទអឌ្ឍចន្ទ គោមបំភ្លឺរាត្រី និងពរជ័យដ៏បរិសុទ្ធ';
+      case AppColorPalette.natureOrganic:
+        return 'បន្លែផ្លែឈើធម្មជាតិស្រស់ៗ និងការរស់នៅបែបសុខភាព';
+      case AppColorPalette.glassmorphism:
+        return 'រចនាបថកញ្ចក់ថ្លាទាន់សម័យ ពន្លឺចែងចាំង និងស្រទាប់ស៊ីជម្រៅ';
+      case AppColorPalette.minimalPremium:
+        return 'ភាពសាមញ្ញតែប្រណិត ស្ងប់ស្ងាត់ ផាសុកភាព និងទាន់សម័យ';
+      case AppColorPalette.retroPop:
+        return 'រចនាបថទសវត្សរ៍ ៨០ ពណ៌ដិតស្រស់ស្អាត បែបយុវវ័យ និងតន្ត្រី';
+      case AppColorPalette.neonNight:
+        return 'ពន្លឺណេអុងនាពេលរាត្រី បច្ចេកវិទ្យាអនាគត និងភាពរស់រវើក';
       case AppColorPalette.waterFestival:
         return 'បណ្តែតប្រទីប អកអំបុក សំពះព្រះខែ នៃដងទន្លេសាប';
       case AppColorPalette.pchumBen:

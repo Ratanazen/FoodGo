@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_palette.dart';
 import 'glass_theme.dart';
+import 'theme_styles.dart';
 
 /// Extension on [BuildContext] providing clean, reactive shortcuts to the active
 /// brand color palette, Material 3 colorScheme, and glassmorphic styling tokens.
@@ -37,4 +38,56 @@ extension ThemeContextExtensions on BuildContext {
 
   /// Whether the current theme brightness is dark.
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
+
+  /// Whether the active theme is a seasonal / cultural festival theme.
+  bool get isFestive => GlassTheme.activePalette.isFestive;
+
+  /// Festival greeting message for the active theme.
+  String get festivalGreeting => ThemeStyles.getFestivalGreeting(GlassTheme.activePalette);
+
+  /// Festival subtitle / blessing in Khmer script.
+  String get festivalSubtitleKh => ThemeStyles.getFestivalSubtitleKh(GlassTheme.activePalette);
+
+  /// Active theme badge text (e.g. 'ចូលឆ្នាំខ្មែរ', 'CHRISTMAS', 'បុណ្យអុំទូក').
+  String get festivalBadge => GlassTheme.activePalette.badgeText;
+
+  /// Active theme icon.
+  IconData get festivalIcon => GlassTheme.activePalette.icon;
+
+  /// Dynamic themed card decoration.
+  BoxDecoration themedCardDecoration({
+    bool isGlass = true,
+    double borderRadius = 20,
+    double borderWidth = 1.2,
+    bool glow = false,
+  }) =>
+      ThemeStyles.cardDecoration(
+        this,
+        isGlass: isGlass,
+        borderRadius: borderRadius,
+        borderWidth: borderWidth,
+        glow: glow,
+      );
+
+  /// Dynamic themed pill badge decoration.
+  BoxDecoration themedPillBadgeDecoration({
+    Color? customColor,
+    double radius = 12,
+  }) =>
+      ThemeStyles.pillBadgeDecoration(
+        this,
+        customColor: customColor,
+        radius: radius,
+      );
+
+  /// Dynamic themed primary button style.
+  ButtonStyle themedPrimaryButtonStyle({
+    double radius = 16,
+    EdgeInsetsGeometry? padding,
+  }) =>
+      ThemeStyles.primaryButtonStyle(
+        this,
+        radius: radius,
+        padding: padding,
+      );
 }

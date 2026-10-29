@@ -64,7 +64,7 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                   height: 240,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.16),
+                    color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.16),
                   ),
                 ),
               ),
@@ -82,7 +82,7 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                   height: 260,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: GlassTheme.primaryGreenDark.withValues(alpha: 0.14),
+                    color: GlassTheme.dynamicPrimaryDark.withValues(alpha: 0.14),
                   ),
                 ),
               ),
@@ -108,7 +108,7 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: GlassTheme.primaryGreen.withValues(
+                            color: GlassTheme.dynamicPrimaryColor.withValues(
                               alpha: 0.35 * _pulseAnimation.value,
                             ),
                             blurRadius: 36 * _pulseAnimation.value,
@@ -157,8 +157,8 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                   height: 38,
                   child: CircularProgressIndicator(
                     strokeWidth: 3.2,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      GlassTheme.primaryGreen,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      GlassTheme.dynamicPrimaryColor,
                     ),
                     backgroundColor: Colors.white.withValues(alpha: 0.08),
                   ),
@@ -203,10 +203,10 @@ class FoodGoLoadingOverlay extends StatelessWidget {
                       vertical: 24,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF16241C),
+                      color: GlassTheme.dynamicSurfaceDark,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                        color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.3),
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -223,7 +223,7 @@ class FoodGoLoadingOverlay extends StatelessWidget {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                            color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.15),
                           ),
                           child: const FoodGoAppIcon(size: 48, borderRadius: 12),
                         ),
@@ -233,8 +233,8 @@ class FoodGoLoadingOverlay extends StatelessWidget {
                           height: 28,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.8,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              GlassTheme.primaryGreen,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              GlassTheme.dynamicPrimaryColor,
                             ),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
                           ),

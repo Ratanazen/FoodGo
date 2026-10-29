@@ -29,14 +29,14 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.12),
+                    color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.12),
                     border: Border.all(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.4),
+                      color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.4),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.25),
+                        color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.25),
                         blurRadius: 18,
                         spreadRadius: 2,
                       ),
@@ -77,16 +77,16 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                    color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                      color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.35),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Version 1.0.0 (Build 12) • Production Ready',
                     style: TextStyle(
-                      color: GlassTheme.primaryGreen,
+                      color: GlassTheme.dynamicPrimaryColor,
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
                     ),
@@ -113,7 +113,7 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                     _buildFeatureChip(
                       icon: Icons.eco_rounded,
                       label: '100% Organic',
-                      color: GlassTheme.primaryGreen,
+                      color: GlassTheme.dynamicPrimaryColor,
                     ),
                   ],
                 ),
@@ -140,10 +140,10 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                         Navigator.pop(ctx);
                         context.push('/terms');
                       },
-                      child: const Text(
+                      child: Text(
                         'Terms',
                         style: TextStyle(
-                          color: GlassTheme.primaryGreen,
+                          color: GlassTheme.dynamicPrimaryColor,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -155,10 +155,10 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                         Navigator.pop(ctx);
                         context.push('/privacy');
                       },
-                      child: const Text(
+                      child: Text(
                         'Privacy',
                         style: TextStyle(
-                          color: GlassTheme.primaryGreen,
+                          color: GlassTheme.dynamicPrimaryColor,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -170,10 +170,10 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                         Navigator.pop(ctx);
                         context.push('/settings');
                       },
-                      child: const Text(
+                      child: Text(
                         'Settings',
                         style: TextStyle(
-                          color: GlassTheme.primaryGreen,
+                          color: GlassTheme.dynamicPrimaryColor,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -190,7 +190,7 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: GlassTheme.primaryGreen,
+                      backgroundColor: GlassTheme.dynamicPrimaryColor,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

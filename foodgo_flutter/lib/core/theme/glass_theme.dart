@@ -43,6 +43,24 @@ class GlassTheme {
   static Color dynamicBackground(BuildContext context) =>
       Theme.of(context).scaffoldBackgroundColor;
 
+  // Dynamic active palette getters
+  static Color get dynamicPrimaryColor => _activePalette.primary;
+  static Color get dynamicPrimaryDark => _activePalette.primaryDark;
+  static Color get dynamicPrimaryAccent => _activePalette.primaryAccent;
+  static Color get dynamicSecondary => _activePalette.secondary;
+  static LinearGradient get dynamicHeaderGradient => _activePalette.headerGradient;
+  static Color get dynamicAuraColor => _activePalette.auraColor;
+  static Color get dynamicSurfaceDark => _activePalette.surfaceDark;
+  static Color get dynamicSurfaceCardDark => _activePalette.surfaceCardDark;
+  static Color get dynamicCardDark => _activePalette.cardDark;
+  static Color get dynamicDialogDark => _activePalette.dialogDark;
+  static Color get dynamicBorderDark => _activePalette.borderDark;
+  static LinearGradient get dynamicLiquidGlassBorderDark => _activePalette.liquidGlassBorderDark;
+  static Color get dynamicPillShadow => _activePalette.pillCardShadowColor;
+  static bool get isFestive => _activePalette.isFestive;
+  static IconData get festivalIcon => _activePalette.icon;
+  static String get festivalBadge => _activePalette.badgeText;
+
   // App Backgrounds (Healthy Organic baseline)
   static const Color backgroundLight = Color(0xFFF8FAF8);
   static const Color backgroundDark = Color(0xFF0B1710);

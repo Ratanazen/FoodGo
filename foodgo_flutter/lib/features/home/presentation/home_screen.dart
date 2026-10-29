@@ -13,6 +13,7 @@ import '../../../providers/favorites_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../core/theme/theme_styles.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/shimmer_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -384,7 +385,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
-                          const SizedBox(height: 16),
+                          // ── Active Festival / Theme Greeting Banner ────────
+                          FestivalThemeBanner(
+                            onTap: () => context.push('/settings'),
+                          ).animate().fadeIn(duration: 400.ms),
+                          const SizedBox(height: 12),
 
                           // ── Hero Promo: 50% OFF Your First Healthy Meal! ───
                           _buildFastAndFreeHeroPromo(context, isDark)

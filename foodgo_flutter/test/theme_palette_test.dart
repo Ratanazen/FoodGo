@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:foodgo_flutter/app/theme/app_theme.dart';
 import 'package:foodgo_flutter/core/theme/app_palette.dart';
 import 'package:foodgo_flutter/core/theme/glass_theme.dart';
+import 'package:foodgo_flutter/core/theme/theme_styles.dart';
 import 'package:foodgo_flutter/providers/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -178,5 +179,45 @@ void main() {
       expect(provider.paletteData.primary, const Color(0xFFDC2626));
       expect(notified, isTrue);
     });
+
+    test('ThemeStyles provides greetings, subtitles, and dynamic styling helpers', () {
+      final kny = PaletteData.fromId(AppColorPalette.khmerNewYear);
+      expect(ThemeStyles.getFestivalGreeting(kny), contains('សួស្តីឆ្នាំថ្មី'));
+      expect(ThemeStyles.getFestivalSubtitleKh(kny), contains('ទេវតាឆ្នាំថ្មី'));
+
+      final xmas = PaletteData.fromId(AppColorPalette.christmas);
+      expect(ThemeStyles.getFestivalGreeting(xmas), contains('Merry Christmas'));
+
+      final water = PaletteData.fromId(AppColorPalette.waterFestival);
+      expect(ThemeStyles.getFestivalGreeting(water), contains('ព្រះរាជពិធីបុណ្យអុំទូក'));
+
+      final pchum = PaletteData.fromId(AppColorPalette.pchumBen);
+      expect(ThemeStyles.getFestivalGreeting(pchum), contains('ពិធីបុណ្យភ្ជុំបិណ្ឌ'));
+
+      final angkor = PaletteData.fromId(AppColorPalette.angkorHeritage);
+      expect(ThemeStyles.getFestivalGreeting(angkor), contains('Angkor Heritage'));
+    });
+
+    testWidgets('FestivalThemeBanner renders active theme greeting and badge', (tester) async {
+      GlassTheme.setActivePalette(AppColorPalette.khmerNewYear);
+
+      bool tapped = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FestivalThemeBanner(
+              onTap: () => tapped = true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.textContaining('សួស្តីឆ្នាំថ្មី'), findsOneWidget);
+      expect(find.text('ចូលឆ្នាំខ្មែរ'), findsOneWidget);
+
+      await tester.tap(find.byType(FestivalThemeBanner));
+      expect(tapped, isTrue);
+    });
   });
 }
+

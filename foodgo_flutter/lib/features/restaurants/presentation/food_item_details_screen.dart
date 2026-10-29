@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/glass/animated_pressable.dart';
@@ -20,6 +21,7 @@ class FoodItemDetailsScreen extends StatefulWidget {
 }
 
 class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
+  int _quantity = 1;
   bool _isDescriptionExpanded = false;
   final TextEditingController _instructionsCtrl = TextEditingController();
   bool _addedToBagAnimation = false;
@@ -51,6 +53,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
       imageUrl,
       restaurantId: data['restaurantId'],
       restaurantName: data['restaurantName'],
+      quantity: _quantity,
     );
     if (buyNow) {
       context.push('/checkout');
@@ -65,12 +68,18 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
           content: Row(
             children: [
               const Icon(
-                Icons.check_circle_rounded,
+                AppIcons.successFilled,
                 color: Colors.white,
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Expanded(child: Text('$name added to cart!')),
+              Expanded(
+                child: Text(
+                  _quantity > 1
+                      ? '$_quantity x $name added to cart!'
+                      : '$name added to cart!',
+                ),
+              ),
             ],
           ),
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -200,7 +209,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                               height: 230,
                                               color: Colors.grey.shade200,
                                               child: const Icon(
-                                                Icons.fastfood,
+                                                AppIcons.emptyState,
                                                 size: 64,
                                                 color: Colors.grey,
                                               ),
@@ -285,7 +294,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       Row(
                         children: [
                           Icon(
-                            Icons.location_on,
+                            AppIcons.location,
                             size: 16,
                             color: GlassTheme.textMuted,
                           ),
@@ -386,6 +395,86 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       ),
                       const SizedBox(height: 20),
 
+                      // Quantity Stepper Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Quantity',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1B1B1B),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '\$${(price * _quantity).toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white12
+                                    : const Color(0xFFE5E7EB),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(AppIcons.remove, size: 18),
+                                  splashRadius: 20,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black87,
+                                  onPressed: _quantity > 1
+                                      ? () => setState(() => _quantity--)
+                                      : null,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  child: Text(
+                                    '$_quantity',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(AppIcons.add, size: 18),
+                                  splashRadius: 20,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  onPressed: () => setState(() => _quantity++),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
                       // Special Instructions Note Input
                       Text(
                         'Special Instructions',
@@ -401,8 +490,8 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       Container(
                         decoration: BoxDecoration(
                           color: isDark
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : const Color(0xFFF6F7F9),
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : const Color(0xFFF6F7F9),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isDark
@@ -425,7 +514,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               color: isDark ? Colors.white38 : Colors.black38,
                             ),
                             prefixIcon: Icon(
-                              Icons.edit_note_rounded,
+                              AppIcons.edit,
                               size: 22,
                               color: Theme.of(context).colorScheme.primary,
                             ),
@@ -457,7 +546,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
               children: [
                 // Back Button
                 AnimatedIconButton(
-                  icon: Icons.chevron_left,
+                  icon: AppIcons.back,
                   iconSize: 26,
                   size: 44,
                   color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
@@ -483,7 +572,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                   builder: (context, favs, child) {
                     final isFav = favs.isFoodFavorite(itemId);
                     return AnimatedIconButton(
-                      icon: isFav ? Icons.favorite : Icons.gps_fixed,
+                      icon: isFav ? AppIcons.favorite : AppIcons.favoriteBorder,
                       iconSize: 20,
                       size: 44,
                       color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
@@ -573,8 +662,8 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               ),
                               child: Icon(
                                 _addedToBagAnimation
-                                    ? Icons.check_rounded
-                                    : Icons.shopping_bag_outlined,
+                                    ? AppIcons.check
+                                    : AppIcons.cart,
                                 color: _addedToBagAnimation
                                     ? Colors.white
                                     : (isDark ? Colors.white : Colors.black87),

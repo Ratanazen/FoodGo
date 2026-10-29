@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
@@ -104,7 +105,7 @@ class ProfileScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
-                          Icons.payment_outlined,
+                          AppIcons.payment,
                           color: GlassTheme.primaryGreen,
                           size: 22,
                         ),
@@ -137,7 +138,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: const Icon(
-                        Icons.qr_code_2,
+                        AppIcons.qrCode,
                         color: Colors.redAccent,
                         size: 22,
                       ),
@@ -170,7 +171,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: const Icon(
-                        Icons.account_balance,
+                        AppIcons.bankTransfer,
                         color: Colors.cyanAccent,
                         size: 20,
                       ),
@@ -203,7 +204,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: const Icon(
-                        Icons.credit_card,
+                        AppIcons.creditCard,
                         color: Colors.blueAccent,
                         size: 20,
                       ),
@@ -236,7 +237,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: const Icon(
-                        Icons.payments_outlined,
+                        AppIcons.payment,
                         color: Colors.amberAccent,
                         size: 22,
                       ),
@@ -452,7 +453,7 @@ class ProfileScreen extends StatelessWidget {
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
-                                          Icons.edit,
+                                          AppIcons.edit,
                                           size: 13,
                                           color: Colors.white,
                                         ),
@@ -487,7 +488,7 @@ class ProfileScreen extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Icon(
-                                    Icons.phone_outlined,
+                                    AppIcons.phone,
                                     size: 14,
                                     color: GlassTheme.primaryGreen,
                                   ),
@@ -524,7 +525,7 @@ class ProfileScreen extends StatelessWidget {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
-                                            Icons.check_circle,
+                                            AppIcons.successFilled,
                                             size: 10,
                                             color: GlassTheme.primaryGreen,
                                           ),
@@ -571,7 +572,7 @@ class ProfileScreen extends StatelessWidget {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(
-                                              Icons.warning_amber_rounded,
+                                              AppIcons.warning,
                                               size: 10,
                                               color: Colors.amber,
                                             ),
@@ -594,7 +595,7 @@ class ProfileScreen extends StatelessWidget {
                               OutlinedButton.icon(
                                 onPressed: () => context.push('/edit-profile'),
                                 icon: const Icon(
-                                  Icons.edit_outlined,
+                                  AppIcons.edit,
                                   size: 14,
                                   color: GlassTheme.primaryGreen,
                                 ),
@@ -659,7 +660,7 @@ class ProfileScreen extends StatelessWidget {
                                         child: Column(
                                           children: [
                                             const Icon(
-                                              Icons.location_on_outlined,
+                                              AppIcons.locationOutline,
                                               color: GlassTheme.primaryGreen,
                                               size: 22,
                                             ),
@@ -709,7 +710,7 @@ class ProfileScreen extends StatelessWidget {
                                         child: Column(
                                           children: [
                                             const Icon(
-                                              Icons.receipt_long_outlined,
+                                              AppIcons.orders,
                                               color: GlassTheme.primaryGreen,
                                               size: 22,
                                             ),
@@ -745,7 +746,7 @@ class ProfileScreen extends StatelessWidget {
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
                           leading: const Icon(
-                            Icons.store,
+                            AppIcons.restaurants,
                             color: GlassTheme.primaryGreen,
                           ),
                           title: const Text(
@@ -756,7 +757,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                           trailing: const Icon(
-                            Icons.chevron_right,
+                            AppIcons.chevronRight,
                             color: Colors.white54,
                           ),
                           onTap: () => context.push('/restaurant-dashboard'),
@@ -771,7 +772,7 @@ class ProfileScreen extends StatelessWidget {
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
                           leading: const Icon(
-                            Icons.delivery_dining,
+                            AppIcons.delivery,
                             color: GlassTheme.primaryGreen,
                           ),
                           title: const Text(
@@ -782,7 +783,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                           trailing: const Icon(
-                            Icons.chevron_right,
+                            AppIcons.chevronRight,
                             color: Colors.white54,
                           ),
                           onTap: () => context.push('/driver-dashboard'),
@@ -797,7 +798,7 @@ class ProfileScreen extends StatelessWidget {
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
                           leading: const Icon(
-                            Icons.admin_panel_settings_rounded,
+                            AppIcons.admin,
                             color: GlassTheme.limeAccent,
                           ),
                           title: const Text(
@@ -815,7 +816,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                           trailing: const Icon(
-                            Icons.chevron_right,
+                            AppIcons.chevronRight,
                             color: Colors.white54,
                           ),
                           onTap: () => context.push('/admin-dashboard'),
@@ -845,12 +846,12 @@ class ProfileScreen extends StatelessWidget {
                 return Column(
                   children: [
                     _ProfileOption(
-                      icon: Icons.person_outline,
+                      icon: AppIcons.profile,
                       title: 'Edit Profile',
                       onTap: () => context.push('/edit-profile'),
                     ),
                     _ProfileOption(
-                      icon: Icons.switch_account_outlined,
+                      icon: AppIcons.users,
                       title: 'Account Role',
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(
@@ -903,7 +904,7 @@ class ProfileScreen extends StatelessWidget {
                       },
                     ),
                     _ProfileOption(
-                      icon: Icons.phone_android_outlined,
+                      icon: AppIcons.phone,
                       title: 'Phone Verification (SMS OTP)',
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(
@@ -940,27 +941,27 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
             _ProfileOption(
-              icon: Icons.receipt_long_outlined,
+              icon: AppIcons.orders,
               title: 'My Orders',
               onTap: () => context.push('/orders'),
             ),
             _ProfileOption(
-              icon: Icons.payment_outlined,
+              icon: AppIcons.payment,
               title: 'Payment Methods',
               onTap: () => _showPaymentMethodsModal(context),
             ),
             _ProfileOption(
-              icon: Icons.location_on_outlined,
+              icon: AppIcons.locationOutline,
               title: 'Saved Addresses',
               onTap: () => context.push('/addresses'),
             ),
             _ProfileOption(
-              icon: Icons.notifications_outlined,
+              icon: AppIcons.notifications,
               title: 'Notifications',
               onTap: () => context.push('/notifications'),
             ),
             _ProfileOption(
-              icon: Icons.favorite_outline,
+              icon: AppIcons.saved,
               title: 'Favorites',
               onTap: () => context.push('/favorites'),
             ),
@@ -975,17 +976,17 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _ProfileOption(
-              icon: Icons.settings_outlined,
+              icon: AppIcons.settings,
               title: 'General Settings',
               onTap: () => context.push('/settings'),
             ),
             _ProfileOption(
-              icon: Icons.palette_outlined,
+              icon: AppIcons.theme,
               title: 'Theme & Khmer Festivals',
               onTap: () => context.push('/theme-center'),
             ),
             _ProfileOption(
-              icon: Icons.language,
+              icon: AppIcons.language,
               title: 'Language',
               onTap: () {
                 showModalBottomSheet(
@@ -1025,7 +1026,7 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ),
                             trailing: const Icon(
-                              Icons.check,
+                              AppIcons.check,
                               color: GlassTheme.primaryGreen,
                             ),
                             onTap: () => Navigator.pop(ctx),
@@ -1070,7 +1071,7 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
             _ProfileOption(
-              icon: Icons.help_outline,
+              icon: AppIcons.help,
               title: 'Help & Support',
               onTap: () {
                 showModalBottomSheet(
@@ -1111,7 +1112,7 @@ class ProfileScreen extends StatelessWidget {
                           const SizedBox(height: 16),
                           ListTile(
                             leading: const Icon(
-                              Icons.chat_bubble_outline,
+                              AppIcons.support,
                               color: GlassTheme.primaryGreen,
                             ),
                             title: const Text(
@@ -1132,7 +1133,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           ListTile(
                             leading: const Icon(
-                              Icons.phone_outlined,
+                              AppIcons.phone,
                               color: Colors.amber,
                             ),
                             title: const Text(
@@ -1167,7 +1168,7 @@ class ProfileScreen extends StatelessWidget {
               builder: (context, auth, child) {
                 if (auth.isAuthenticated) {
                   return _ProfileOption(
-                    icon: Icons.logout,
+                    icon: AppIcons.logout,
                     title: 'Logout',
                     textColor: Colors.red,
                     iconColor: Colors.red,
@@ -1175,7 +1176,7 @@ class ProfileScreen extends StatelessWidget {
                   );
                 } else {
                   return _ProfileOption(
-                    icon: Icons.login,
+                    icon: AppIcons.login,
                     title: 'Login / Sign Up',
                     textColor: GlassTheme.primaryGreen,
                     iconColor: GlassTheme.primaryGreen,
@@ -1227,7 +1228,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                       const Icon(
-                        Icons.favorite,
+                        AppIcons.favorite,
                         color: Colors.redAccent,
                         size: 12,
                       ),
@@ -1325,7 +1326,7 @@ class _ProfileOption extends StatelessWidget {
                     ),
                     child: leadingWidget ??
                         Icon(
-                          icon ?? Icons.circle,
+                          icon ?? AppIcons.info,
                           color: isDestructive
                               ? const Color(0xFFEF4444)
                               : Theme.of(context).colorScheme.primary,
@@ -1350,7 +1351,7 @@ class _ProfileOption extends StatelessWidget {
                     const SizedBox(width: 8),
                   ],
                   Icon(
-                    Icons.chevron_right_rounded,
+                    AppIcons.chevronRight,
                     color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
                     size: 20,
                   ),

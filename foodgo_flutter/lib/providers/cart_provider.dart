@@ -204,10 +204,13 @@ class CartProvider with ChangeNotifier {
     int? restaurantId,
     String? restaurantName,
     double? deliveryFee,
+    int quantity = 1,
   }) {
     if (deliveryFee != null && deliveryFee >= 0) {
       _deliveryFee = deliveryFee;
     }
+
+    final addQty = quantity > 0 ? quantity : 1;
     if (_items.containsKey(id)) {
       _items.update(
         id,
@@ -215,7 +218,7 @@ class CartProvider with ChangeNotifier {
           id: existingItem.id,
           name: existingItem.name,
           price: existingItem.price,
-          quantity: existingItem.quantity + 1,
+          quantity: existingItem.quantity + addQty,
           image: existingItem.image,
           restaurantId: existingItem.restaurantId ?? restaurantId,
           restaurantName: existingItem.restaurantName ?? restaurantName,
@@ -228,6 +231,7 @@ class CartProvider with ChangeNotifier {
           id: id,
           name: name,
           price: price,
+          quantity: addQty,
           image: image,
           restaurantId: restaurantId,
           restaurantName: restaurantName,

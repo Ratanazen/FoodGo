@@ -9,6 +9,7 @@ import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../widgets/lottie_assets.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../providers/cart_provider.dart';
@@ -95,7 +96,7 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             children: [
               Icon(
-                isFree ? Icons.check_circle : Icons.delivery_dining,
+                isFree ? AppIcons.successFilled : AppIcons.delivery,
                 color: isFree
                     ? Theme.of(context).colorScheme.primary
                     : (isDark ? Colors.amberAccent : Colors.amber.shade800),
@@ -156,7 +157,7 @@ class _CartScreenState extends State<CartScreen> {
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Icon(Icons.delete_outline, color: Colors.white, size: 24),
+              Icon(AppIcons.delete, color: Colors.white, size: 24),
               SizedBox(width: 8),
               Text(
                 'Delete',
@@ -233,7 +234,7 @@ class _CartScreenState extends State<CartScreen> {
                           errorWidget: (context, url, error) => Container(
                             color: GlassTheme.lightGreenSurface,
                             child: const Icon(
-                              Icons.eco,
+                              AppIcons.healthy,
                               color: GlassTheme.primaryGreen,
                               size: 28,
                             ),
@@ -242,7 +243,7 @@ class _CartScreenState extends State<CartScreen> {
                       : Container(
                           color: GlassTheme.lightGreenSurface,
                           child: const Icon(
-                            Icons.eco,
+                            AppIcons.healthy,
                             color: GlassTheme.primaryGreen,
                             size: 28,
                           ),
@@ -310,7 +311,7 @@ class _CartScreenState extends State<CartScreen> {
                         color: Color(0xFFEF4444),
                       ),
                       child: const Icon(
-                        Icons.remove,
+                        AppIcons.remove,
                         size: 16,
                         color: Colors.white,
                       ),
@@ -348,7 +349,7 @@ class _CartScreenState extends State<CartScreen> {
                         color: GlassTheme.primaryGreen,
                       ),
                       child: const Icon(
-                        Icons.add,
+                        AppIcons.add,
                         size: 16,
                         color: Colors.white,
                       ),
@@ -399,7 +400,7 @@ class _CartScreenState extends State<CartScreen> {
                         : const Color(0xFFF3F4F6),
                   ),
                   child: Icon(
-                    Icons.delete_outline_rounded,
+                    AppIcons.delete,
                     size: 17,
                     color: isDark ? Colors.white60 : const Color(0xFF9CA3AF),
                   ),
@@ -489,7 +490,7 @@ class _CartScreenState extends State<CartScreen> {
                         Row(
                           children: [
                             Icon(
-                              Icons.check_circle,
+                              AppIcons.successFilled,
                               color: Theme.of(context).colorScheme.primary,
                               size: 18,
                             ),
@@ -509,7 +510,7 @@ class _CartScreenState extends State<CartScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(4.0),
                             child: Icon(
-                              Icons.close,
+                              AppIcons.close,
                               color: isDark
                                   ? Colors.white60
                                   : const Color(0xFF64748B),
@@ -523,7 +524,7 @@ class _CartScreenState extends State<CartScreen> {
                     Row(
                       children: [
                         Icon(
-                          Icons.local_offer_outlined,
+                          AppIcons.coupon,
                           color: Theme.of(context).colorScheme.primary,
                           size: 18,
                         ),
@@ -759,8 +760,8 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ),
                     SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_rounded,
+                    const Icon(
+                      AppIcons.forward,
                       color: Colors.white,
                       size: 20,
                     ),
@@ -839,7 +840,7 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         child: Center(
                           child: Icon(
-                            Icons.arrow_back_ios_new,
+                            AppIcons.back,
                             size: 16,
                             color: isDark ? Colors.white : GlassTheme.textDark,
                           ),
@@ -943,7 +944,7 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       child: Center(
                         child: Icon(
-                          Icons.delete_outline,
+                          AppIcons.delete,
                           size: 18,
                           color: isDark
                               ? Colors.white70
@@ -977,7 +978,7 @@ class _CartScreenState extends State<CartScreen> {
                       const SizedBox(height: 32),
                       GlassButton(
                         text: 'Explore Food',
-                        icon: Icons.explore,
+                        icon: AppIcons.foodCategory,
                         onPressed: () => context.go('/explore'),
                       ),
                     ],

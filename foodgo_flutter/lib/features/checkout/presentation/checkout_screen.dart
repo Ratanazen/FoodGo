@@ -8,6 +8,7 @@ import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/svg_icon.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../../providers/cart_provider.dart';
 import '../../../../providers/restaurant_provider.dart';
@@ -165,7 +166,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white60),
+                      icon: const Icon(AppIcons.close, color: Colors.white60),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -199,8 +200,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           children: [
                             Icon(
                               addr.isDefault
-                                  ? Icons.home
-                                  : Icons.location_on_outlined,
+                                  ? AppIcons.home
+                                  : AppIcons.locationOutline,
                               color: isSelected
                                   ? GlassTheme.primaryGreen
                                   : Colors.white70,
@@ -260,8 +261,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                             Icon(
                               isSelected
-                                  ? Icons.check_circle
-                                  : Icons.radio_button_unchecked,
+                                  ? AppIcons.radioSelected
+                                  : AppIcons.radioUnselected,
                               color: isSelected
                                   ? GlassTheme.primaryGreen
                                   : Colors.white38,
@@ -278,7 +279,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Navigator.pop(ctx);
                     context.push('/addresses');
                   },
-                  icon: Icon(Icons.add, color: GlassTheme.primaryGreen),
+                  icon: Icon(AppIcons.add, color: GlassTheme.primaryGreen),
                   label: const Text(
                     'Manage & Add Addresses',
                     style: TextStyle(color: Colors.white),
@@ -309,7 +310,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 24),
+            Icon(AppIcons.warning, color: Colors.amber, size: 24),
             SizedBox(width: 10),
             Text(
               'Insufficient Balance',
@@ -376,7 +377,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.lock_outline_rounded,
+                AppIcons.lock,
                 color: GlassTheme.primaryGreen,
                 size: 24,
               ),
@@ -680,7 +681,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: GlassAppBar(
         title: 'Checkout',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(AppIcons.back),
           onPressed: () => context.pop(),
         ),
       ),
@@ -811,7 +812,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: const Row(
                   children: [
                     Icon(
-                      Icons.timer_outlined,
+                      AppIcons.eta,
                       color: GlassTheme.primaryGreen,
                       size: 18,
                     ),
@@ -844,7 +845,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   style: const TextStyle(fontSize: 13, color: Colors.white),
                   decoration: InputDecoration(
                     icon: const Icon(
-                      Icons.note_alt_outlined,
+                      AppIcons.edit,
                       color: GlassTheme.primaryGreen,
                       size: 20,
                     ),
@@ -917,7 +918,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          Icons.flash_on,
+                          AppIcons.fastDelivery,
                           color: _selectedDriverId == null
                               ? Colors.white
                               : (isDark ? Colors.white70 : primary),
@@ -955,7 +956,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        Icons.bolt_rounded,
+                                        AppIcons.fastDelivery,
                                         size: 13,
                                         color: primary,
                                       ),
@@ -986,8 +987,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                       Icon(
                         _selectedDriverId == null
-                            ? Icons.check_circle
-                            : Icons.radio_button_unchecked,
+                            ? AppIcons.radioSelected
+                            : AppIcons.radioUnselected,
                         color: _selectedDriverId == null
                             ? primary
                             : (isDark
@@ -1052,7 +1053,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                Icons.delivery_dining,
+                                AppIcons.delivery,
                                 color: isSelected
                                     ? Colors.white
                                     : (isDark ? Colors.white70 : primary),
@@ -1091,7 +1092,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             const Icon(
-                                              Icons.star,
+                                              AppIcons.star,
                                               color: Colors.amber,
                                               size: 12,
                                             ),
@@ -1122,8 +1123,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                             Icon(
                               isSelected
-                                  ? Icons.check_circle
-                                  : Icons.radio_button_unchecked,
+                                  ? AppIcons.radioSelected
+                                  : AppIcons.radioUnselected,
                               color: isSelected
                                   ? primary
                                   : (isDark
@@ -1164,7 +1165,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Row(
                   children: [
                     const Icon(
-                      Icons.confirmation_number_outlined,
+                      AppIcons.coupon,
                       color: GlassTheme.primaryGreen,
                       size: 24,
                     ),
@@ -1268,7 +1269,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 subtitle: _isLoadingWallet
                     ? 'Checking account balance...'
                     : 'Balance: \$${_walletBalance.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(_walletBalance)}) • 1-Tap Pay',
-                icon: Icons.account_balance_wallet,
+                icon: AppIcons.wallet,
                 iconColor: Theme.of(context).colorScheme.primary,
                 isSelected: _selectedProvider == 'WALLET',
                 badge: _walletBalance >= cart.grandTotal
@@ -1307,7 +1308,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _PaymentOptionTile(
                 title: 'ACLEDA KHQR (ACLEDA Mobile)',
                 subtitle: 'Pay via ACLEDA mobile & Bakong network',
-                icon: Icons.qr_code_scanner,
+                icon: AppIcons.qrScan,
                 iconColor: GlassTheme.acledaNavy,
                 isSelected: _selectedProvider == 'ACLEDA',
                 onTap: () => setState(() => _selectedProvider = 'ACLEDA'),
@@ -1379,7 +1380,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  Icons.timer_outlined,
+                                  AppIcons.eta,
                                   size: 12,
                                   color: Colors.white70,
                                 ),
@@ -1460,23 +1461,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               IconData buttonIcon;
               if (_isProcessing) {
                 buttonText = 'Processing Order...';
-                buttonIcon = Icons.hourglass_empty;
+                buttonIcon = AppIcons.loading;
               } else if (_selectedProvider == 'WALLET') {
                 buttonText =
                     'Pay \$${total.toStringAsFixed(2)} with FoodGo Balance';
-                buttonIcon = Icons.flash_on;
+                buttonIcon = AppIcons.fastDelivery;
               } else if (_selectedProvider == 'COD') {
                 buttonText = 'Place Cash on Delivery Order';
-                buttonIcon = Icons.delivery_dining;
+                buttonIcon = AppIcons.delivery;
               } else if (_selectedProvider == 'BAKONG') {
                 buttonText = 'Proceed to Pay with Bakong KHQR (Live)';
-                buttonIcon = Icons.qr_code_2;
+                buttonIcon = AppIcons.qrCode;
               } else if (_selectedProvider == 'ABA') {
                 buttonText = 'Proceed to Pay with ABA KHQR (Live)';
-                buttonIcon = Icons.qr_code_2;
+                buttonIcon = AppIcons.qrCode;
               } else {
                 buttonText = 'Proceed to Pay with ACLEDA KHQR (Live)';
-                buttonIcon = Icons.qr_code_scanner;
+                buttonIcon = AppIcons.qrScan;
               }
 
               return GlassContainer(
@@ -1668,7 +1669,7 @@ class _PaymentOptionTile extends StatelessWidget {
                 ),
                 child: svgAsset != null
                     ? SvgAssetIcon(assetName: svgAsset!, size: 26)
-                    : Icon(icon ?? Icons.payment, color: iconColor, size: 26),
+                    : Icon(icon ?? AppIcons.payment, color: iconColor, size: 26),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -1728,8 +1729,8 @@ class _PaymentOptionTile extends StatelessWidget {
               ),
               Icon(
                 isSelected
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_off,
+                    ? AppIcons.radioSelected
+                    : AppIcons.radioUnselected,
                 color: isSelected
                     ? Theme.of(context).colorScheme.primary
                     : Colors.white38,

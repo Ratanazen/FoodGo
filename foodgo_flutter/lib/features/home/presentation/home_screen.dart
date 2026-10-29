@@ -32,12 +32,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Healthy & Organic Quick Categories
   final List<Map<String, dynamic>> _quickCategories = [
-    {'name': 'All', 'icon': Icons.restaurant_rounded},
-    {'name': 'Salad', 'icon': Icons.eco_rounded},
-    {'name': 'Fruit Salad', 'icon': Icons.apple_rounded},
-    {'name': 'Healthy Bowls', 'icon': Icons.rice_bowl_rounded},
-    {'name': 'Sushi', 'icon': Icons.set_meal_rounded},
-    {'name': 'Chicken', 'icon': Icons.kebab_dining_rounded},
+    {'name': 'All', 'icon': AppIcons.foodCategory},
+    {'name': 'Salad', 'icon': AppIcons.salad},
+    {'name': 'Fruit Salad', 'icon': AppIcons.healthy},
+    {'name': 'Healthy Bowls', 'icon': AppIcons.asian},
+    {'name': 'Sushi', 'icon': AppIcons.sushi},
+    {'name': 'Chicken', 'icon': AppIcons.chicken},
   ];
   int _selectedQuickCategoryIndex = 0;
 
@@ -246,13 +246,13 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<Map<String, dynamic>> _categories = [
-    {'name': 'All', 'icon': Icons.restaurant_rounded},
-    {'name': 'Burger', 'icon': Icons.lunch_dining_rounded},
-    {'name': 'Pizza', 'icon': Icons.local_pizza_rounded},
-    {'name': 'Sushi', 'icon': Icons.set_meal_rounded},
-    {'name': 'Chicken', 'icon': Icons.kebab_dining_rounded},
-    {'name': 'Drinks', 'icon': Icons.local_drink_rounded},
-    {'name': 'Dessert', 'icon': Icons.cake_rounded},
+    {'name': 'All', 'icon': AppIcons.foodCategory},
+    {'name': 'Burger', 'icon': AppIcons.burger},
+    {'name': 'Pizza', 'icon': AppIcons.pizza},
+    {'name': 'Sushi', 'icon': AppIcons.sushi},
+    {'name': 'Chicken', 'icon': AppIcons.chicken},
+    {'name': 'Drinks', 'icon': AppIcons.drink},
+    {'name': 'Dessert', 'icon': AppIcons.dessert},
   ];
 
   final List<Map<String, dynamic>> _deals = [
@@ -310,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const Icon(AppIcons.successFilled, color: Colors.white, size: 20),
             const SizedBox(width: 8),
             Text(
               applied
@@ -538,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        Icons.location_on_rounded,
+                        AppIcons.location,
                         color: Theme.of(context).colorScheme.primary,
                         size: 20,
                       ),
@@ -572,7 +572,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(width: 4),
                             Icon(
-                              Icons.keyboard_arrow_down_rounded,
+                              AppIcons.chevronDown,
                               color: isDark
                                   ? Colors.white70
                                   : const Color(0xFF374151),
@@ -609,7 +609,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             alignment: Alignment.center,
                             children: [
                               Icon(
-                                Icons.notifications_none_rounded,
+                                AppIcons.notifications,
                                 color: isDark
                                     ? Colors.white
                                     : const Color(0xFF1F2937),
@@ -736,7 +736,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
                   Icon(
-                    Icons.search_rounded,
+                    AppIcons.search,
                     color: isDark ? Colors.white60 : const Color(0xFF9CA3AF),
                     size: 20,
                   ),
@@ -754,7 +754,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Icon(
-                    Icons.tune_rounded,
+                    AppIcons.filter,
                     color: isDark ? Colors.white70 : const Color(0xFF6B7280),
                     size: 18,
                   ),
@@ -867,9 +867,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontSize: 12,
                           ),
                         ),
-                        SizedBox(width: 4),
-                        Icon(
-                          Icons.arrow_forward_rounded,
+                        const SizedBox(width: 4),
+                        const Icon(
+                          AppIcons.forward,
                           color: Color(0xFF16A34A),
                           size: 14,
                         ),
@@ -912,7 +912,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     errorWidget: (c, u, e) => Container(
                       color: Colors.white24,
                       child: const Icon(
-                        Icons.eco,
+                        AppIcons.healthy,
                         color: Colors.white,
                         size: 40,
                       ),
@@ -985,7 +985,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               errorWidget: (context, url, error) => Container(
                                 color: Colors.grey.withValues(alpha: 0.1),
                                 child: const Icon(
-                                  Icons.eco,
+                                  AppIcons.healthy,
                                   color: GlassTheme.primaryGreen,
                                   size: 32,
                                 ),
@@ -1013,8 +1013,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: Icon(
                               isFav
-                                  ? Icons.favorite
-                                  : Icons.favorite_border_rounded,
+                                  ? AppIcons.favorite
+                                  : AppIcons.favoriteBorder,
                               size: 16,
                               color: isFav
                                   ? GlassTheme.primaryGreen
@@ -1046,7 +1046,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     children: [
                       const Icon(
-                        Icons.star_rounded,
+                        AppIcons.star,
                         color: Color(0xFFFBBF24),
                         size: 15,
                       ),
@@ -1116,7 +1116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.add_rounded,
+                            AppIcons.add,
                             color: Colors.white,
                             size: 16,
                           ),
@@ -1332,8 +1332,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: Icon(
                             isFav
-                                ? Icons.favorite
-                                : Icons.favorite_border_rounded,
+                                ? AppIcons.favorite
+                                : AppIcons.favoriteBorder,
                             size: 16,
                             color: isFav
                                 ? GlassTheme.primaryGreen
@@ -1361,7 +1361,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               errorWidget: (context, url, error) => Container(
                                 color: Colors.grey.withValues(alpha: 0.1),
                                 child: const Icon(
-                                  Icons.eco,
+                                  AppIcons.healthy,
                                   size: 32,
                                   color: GlassTheme.primaryGreen,
                                 ),
@@ -1443,7 +1443,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 content: Row(
                                   children: [
                                     const Icon(
-                                      Icons.check_circle,
+                                      AppIcons.successFilled,
                                       color: Colors.white,
                                       size: 20,
                                     ),
@@ -1474,7 +1474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
-                              Icons.add_rounded,
+                              AppIcons.add,
                               color: Colors.white,
                               size: 18,
                             ),
@@ -1730,7 +1730,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             children: [
                               const Icon(
-                                Icons.star,
+                                AppIcons.star,
                                 color: Color(0xFFFFB300),
                                 size: 12,
                               ),
@@ -1767,12 +1767,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSortingChips(bool isDark) {
     const sorts = [
       {'name': 'All', 'icon': null},
-      {'name': 'Top Rated', 'icon': Icons.star_rounded},
-      {'name': 'Fastest', 'icon': Icons.bolt_rounded},
-      {'name': 'Free Delivery', 'icon': Icons.delivery_dining_rounded},
-      {'name': r'$', 'icon': Icons.attach_money_rounded},
-      {'name': r'$$', 'icon': Icons.payments_outlined},
-      {'name': r'$$$', 'icon': Icons.workspace_premium_rounded},
+      {'name': 'Top Rated', 'icon': AppIcons.star},
+      {'name': 'Fastest', 'icon': AppIcons.fastDelivery},
+      {'name': 'Free Delivery', 'icon': AppIcons.delivery},
+      {'name': r'$', 'icon': AppIcons.discount},
+      {'name': r'$$', 'icon': AppIcons.payment},
+      {'name': r'$$$', 'icon': AppIcons.sparkles},
     ];
 
     return SingleChildScrollView(
@@ -1925,7 +1925,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.storefront_outlined,
+                      AppIcons.restaurants,
                       size: 48,
                       color: Colors.grey,
                     ),
@@ -1948,7 +1948,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         provider.fetchRestaurants();
                       },
                       icon: Icon(
-                        Icons.refresh,
+                        AppIcons.refresh,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       label: Text(
@@ -2118,7 +2118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        isFavorite ? AppIcons.favorite : AppIcons.favoriteBorder,
                         color: isFavorite
                             ? const Color(0xFFFF5252)
                             : Colors.white,
@@ -2152,7 +2152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     children: [
                       const Icon(
-                        Icons.star,
+                        AppIcons.star,
                         color: Color(0xFFFFB300),
                         size: 13,
                       ),
@@ -2480,7 +2480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(width: 4),
                 Icon(
-                  Icons.arrow_forward_ios_rounded,
+                  AppIcons.chevronRight,
                   size: 11,
                   color: Theme.of(context).colorScheme.primary,
                 ),

@@ -152,6 +152,9 @@ class PaletteData {
     return whiteContrast >= inkContrast ? Colors.white : ink;
   }
 
+  /// Alias for design system secondary accent highlight
+  Color get accent => primaryAccent;
+
   /// WCAG 2.1 relative contrast ratio between two opaque colours.
   static double contrastRatio(Color a, Color b) => _contrastRatio(a, b);
 
@@ -213,10 +216,10 @@ class PaletteData {
 
   static const PaletteData emeraldGreen = PaletteData(
     id: AppColorPalette.emeraldGreen,
-    nameEn: 'Healthy Organic Green',
-    nameKh: 'ពណ៌បៃតងធម្មជាតិ / Organic',
-    descriptionEn: 'Fresh, organic, and clean healthy food dining',
-    descriptionKh: 'រចនាបថពណ៌បៃតងធម្មជាតិ ស្រស់ថ្លា និងសុខភាព',
+    nameEn: 'Light Classic',
+    nameKh: 'បុរាណបែបពន្លឺ / Light Classic',
+    descriptionEn: 'Elegant, clean, and comfortable fresh dining aesthetic',
+    descriptionKh: 'រចនាបថពណ៌បៃតងស្រស់ថ្លា ប្រកបដោយភាពប្រណិត និងផាសុកភាព',
     primary: Color(0xFF22C55E),
     primaryDark: Color(0xFF16A34A),
     primaryAccent: Color(0xFF86EFAC),
@@ -1607,6 +1610,7 @@ class PaletteData {
     if (key == null) return modernFoodGo;
     if (key == 'christmas') return christmas;
     if (key == 'christmasWonderland') return christmasWonderland;
+    if (key == 'lightClassic') return emeraldGreen;
     for (final palette in allPalettes) {
       if (palette.id.name == key) return palette;
     }

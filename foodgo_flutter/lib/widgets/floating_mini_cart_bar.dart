@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../core/theme/app_icons.dart';
 import '../core/theme/glass_theme.dart';
 import '../providers/cart_provider.dart';
 
@@ -59,7 +60,7 @@ class FloatingMiniCartBar extends StatelessWidget {
                           child: Row(
                             children: [
                               const Icon(
-                                Icons.shopping_bag_outlined,
+                                AppIcons.cart,
                                 color: Colors.white,
                                 size: 16,
                               ),
@@ -108,7 +109,7 @@ class FloatingMiniCartBar extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         const Icon(
-                          Icons.arrow_forward_ios,
+                          AppIcons.forward,
                           color: Colors.white,
                           size: 13,
                         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../core/theme/app_icons.dart';
 import '../core/theme/glass_theme.dart';
 import '../providers/favorites_provider.dart';
 
@@ -111,7 +112,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                               errorWidget: (c, u, e) => Container(
                                 color: Colors.grey.withValues(alpha: 0.15),
                                 child: const Icon(
-                                  Icons.store,
+                                  AppIcons.restaurants,
                                   color: GlassTheme.textMuted,
                                   size: 40,
                                 ),
@@ -145,8 +146,8 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       children: [
                         Icon(
                           isFreeDelivery
-                              ? Icons.moped
-                              : Icons.local_fire_department,
+                              ? AppIcons.delivery
+                              : AppIcons.offers,
                           size: 13,
                           color: Colors.white,
                         ),
@@ -195,7 +196,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       child: Padding(
                         padding: const EdgeInsets.all(6.0),
                         child: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          isFavorite ? AppIcons.favorite : AppIcons.favoriteBorder,
                           size: 18,
                           color: isFavorite
                               ? GlassTheme.foodpandaPink
@@ -223,7 +224,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
-                          Icons.access_time,
+                          AppIcons.eta,
                           size: 12,
                           color: Colors.white70,
                         ),
@@ -283,7 +284,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.star,
+                              AppIcons.star,
                               size: 12,
                               color: GlassTheme.ratingAmber,
                             ),
@@ -316,7 +317,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                   Row(
                     children: [
                       Icon(
-                        Icons.moped,
+                        AppIcons.delivery,
                         size: 14,
                         color: isFreeDelivery
                             ? GlassTheme.primaryGreen

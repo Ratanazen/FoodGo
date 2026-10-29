@@ -257,6 +257,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: GlassTheme.dialogDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         title: Row(
           children: [
             Container(
@@ -275,130 +277,272 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(width: 12),
             const Expanded(
-              child: Text(
-                'Brand Color Theme',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Theme & Festivals',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'រចនាបថ និងពិធីបុណ្យជាតិ',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
         content: SizedBox(
-          width: 360,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: PaletteData.allPalettes.map((palette) {
-              final isSelected = palette.id == current;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: isSelected
-                      ? palette.primary.withValues(alpha: 0.15)
-                      : Colors.white.withValues(alpha: 0.04),
-                  border: Border.all(
-                    color: isSelected
-                        ? palette.primary
-                        : Colors.white.withValues(alpha: 0.08),
-                    width: isSelected ? 1.5 : 1.0,
-                  ),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 4,
-                  ),
-                  leading: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      gradient: palette.headerGradient,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: palette.primary.withValues(alpha: 0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+          width: 380,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.72,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Section 1: Khmer & Seasonal Festivals
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.celebration,
+                          color: Color(0xFFFBBF24),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Khmer & Seasonal Festivals / ពិធីបុណ្យជាតិ',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.3,
+                          ),
                         ),
                       ],
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        width: 1.5,
-                      ),
                     ),
                   ),
-                  title: Row(
-                    children: [
-                      Text(
-                        palette.nameEn,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.w600,
-                          fontSize: 14,
+                  ...PaletteData.allPalettes
+                      .where((p) => p.isFestive)
+                      .map((palette) => _buildPaletteCard(ctx, palette, current, themeProvider)),
+
+                  const SizedBox(height: 12),
+
+                  // Section 2: Classic Signature Themes
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.auto_awesome,
+                          color: Color(0xFF86EFAC),
+                          size: 16,
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '(${palette.nameKh})',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 12,
+                        const SizedBox(width: 6),
+                        Text(
+                          'Classic Signature Themes / រចនាបថដើម',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.3,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      palette.descriptionEn,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.55),
-                        fontSize: 11,
-                      ),
+                      ],
                     ),
                   ),
-                  trailing: isSelected
-                      ? Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: palette.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        )
-                      : Icon(
-                          Icons.circle_outlined,
-                          color: Colors.white.withValues(alpha: 0.3),
-                          size: 20,
-                        ),
-                  onTap: () {
-                    themeProvider.setPalette(palette.id);
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Theme updated to ${palette.nameEn} (${palette.nameKh})',
-                        ),
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: palette.primary,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-              );
-            }).toList(),
+                  ...PaletteData.allPalettes
+                      .where((p) => !p.isFestive)
+                      .map((palette) => _buildPaletteCard(ctx, palette, current, themeProvider)),
+                ],
+              ),
+            ),
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Close / បិទ',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaletteCard(
+    BuildContext ctx,
+    PaletteData palette,
+    AppColorPalette current,
+    ThemeProvider themeProvider,
+  ) {
+    final isSelected = palette.id == current;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: isSelected
+            ? palette.primary.withValues(alpha: 0.18)
+            : Colors.white.withValues(alpha: 0.04),
+        border: Border.all(
+          color: isSelected
+              ? palette.primary
+              : Colors.white.withValues(alpha: 0.08),
+          width: isSelected ? 1.5 : 1.0,
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 2,
+        ),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            gradient: palette.headerGradient,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: palette.primary.withValues(alpha: 0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.85),
+              width: 1.5,
+            ),
+          ),
+          child: Icon(
+            palette.icon,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                palette.nameEn,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  fontSize: 13.5,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (palette.badgeText.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: palette.primary.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: palette.primary.withValues(alpha: 0.6),
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  palette.badgeText,
+                  style: TextStyle(
+                    color: palette.primaryAccent,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                palette.nameKh,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                palette.descriptionEn,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  fontSize: 10.5,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        trailing: isSelected
+            ? Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: palette.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              )
+            : Icon(
+                Icons.circle_outlined,
+                color: Colors.white.withValues(alpha: 0.3),
+                size: 20,
+              ),
+        onTap: () {
+          themeProvider.setPalette(palette.id);
+          Navigator.pop(ctx);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(palette.icon, color: Colors.white, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Theme updated to ${palette.nameEn} (${palette.nameKh})',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 2),
+              backgroundColor: palette.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -899,9 +1043,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   _Divider(),
                   _SettingsTile(
-                    icon: Icons.palette_outlined,
+                    icon: themeProvider.paletteData.icon,
                     iconColor: themeProvider.paletteData.primary,
-                    title: 'Brand Color Theme',
+                    title: 'Theme & Festivals',
                     subtitle:
                         '${themeProvider.paletteData.nameEn} • ${themeProvider.paletteData.nameKh}',
                     trailing: Row(

@@ -12,8 +12,8 @@ void main() {
   });
 
   group('Dynamic Theme & Color Palette Tests', () {
-    test('PaletteData defines 4 complete brand color palettes', () {
-      expect(PaletteData.allPalettes.length, 4);
+    test('PaletteData defines 9 complete brand and festival color palettes', () {
+      expect(PaletteData.allPalettes.length, 9);
 
       for (final palette in PaletteData.allPalettes) {
         expect(palette.nameEn.isNotEmpty, isTrue);
@@ -23,10 +23,20 @@ void main() {
         expect(palette.primaryDark, isNotNull);
         expect(palette.backgroundLight, isNotNull);
         expect(palette.backgroundDark, isNotNull);
+        expect(palette.icon, isNotNull);
+        expect(palette.categoryEn.isNotEmpty, isTrue);
+        expect(palette.categoryKh.isNotEmpty, isTrue);
       }
+
+      // Verify festive count vs signature count
+      final festive = PaletteData.allPalettes.where((p) => p.isFestive).toList();
+      final signature = PaletteData.allPalettes.where((p) => !p.isFestive).toList();
+      expect(festive.length, 5); // Khmer New Year, Christmas, Water Festival, Pchum Ben, Angkor
+      expect(signature.length, 4); // Organic Green, Warm Coral, Smalt Blue, Dark Gold
     });
 
-    test('PaletteData fromId and fromString serialization', () {
+    test('PaletteData fromId and fromString serialization for all 9 themes', () {
+      // Signature themes
       expect(
         PaletteData.fromId(AppColorPalette.orangeCoral).id,
         AppColorPalette.orangeCoral,
@@ -44,6 +54,29 @@ void main() {
         AppColorPalette.darkGold,
       );
 
+      // Khmer & Seasonal Festival themes
+      expect(
+        PaletteData.fromId(AppColorPalette.khmerNewYear).id,
+        AppColorPalette.khmerNewYear,
+      );
+      expect(
+        PaletteData.fromId(AppColorPalette.christmas).id,
+        AppColorPalette.christmas,
+      );
+      expect(
+        PaletteData.fromId(AppColorPalette.waterFestival).id,
+        AppColorPalette.waterFestival,
+      );
+      expect(
+        PaletteData.fromId(AppColorPalette.pchumBen).id,
+        AppColorPalette.pchumBen,
+      );
+      expect(
+        PaletteData.fromId(AppColorPalette.angkorHeritage).id,
+        AppColorPalette.angkorHeritage,
+      );
+
+      // String lookups
       expect(
         PaletteData.fromString('orangeCoral').id,
         AppColorPalette.orangeCoral,
@@ -55,51 +88,94 @@ void main() {
       expect(PaletteData.fromString('smaltBlue').id, AppColorPalette.smaltBlue);
       expect(PaletteData.fromString('darkGold').id, AppColorPalette.darkGold);
       expect(
+        PaletteData.fromString('khmerNewYear').id,
+        AppColorPalette.khmerNewYear,
+      );
+      expect(
+        PaletteData.fromString('christmas').id,
+        AppColorPalette.christmas,
+      );
+      expect(
+        PaletteData.fromString('waterFestival').id,
+        AppColorPalette.waterFestival,
+      );
+      expect(
+        PaletteData.fromString('pchumBen').id,
+        AppColorPalette.pchumBen,
+      );
+      expect(
+        PaletteData.fromString('angkorHeritage').id,
+        AppColorPalette.angkorHeritage,
+      );
+      expect(
         PaletteData.fromString('unknown').id,
         AppColorPalette.emeraldGreen,
       );
     });
 
-    test('GlassTheme responds to setActivePalette', () {
-      GlassTheme.setActivePalette(AppColorPalette.emeraldGreen);
-      expect(GlassTheme.activePalette.primary, const Color(0xFF22C55E));
-      expect(GlassTheme.activePalette.primaryDark, const Color(0xFF16A34A));
-      expect(GlassTheme.activePalette.backgroundDark, const Color(0xFF0B1710));
+    test('GlassTheme responds to setActivePalette for festive themes', () {
+      GlassTheme.setActivePalette(AppColorPalette.khmerNewYear);
+      expect(GlassTheme.activePalette.primary, const Color(0xFFE5A910));
+      expect(GlassTheme.activePalette.primaryDark, const Color(0xFFB87A04));
+      expect(GlassTheme.activePalette.badgeText, 'ចូលឆ្នាំខ្មែរ');
 
-      GlassTheme.setActivePalette(AppColorPalette.darkGold);
-      expect(GlassTheme.activePalette.primary, const Color(0xFFD4AF37));
-      expect(GlassTheme.activePalette.backgroundDark, const Color(0xFF14120B));
+      GlassTheme.setActivePalette(AppColorPalette.christmas);
+      expect(GlassTheme.activePalette.primary, const Color(0xFFDC2626));
+      expect(GlassTheme.activePalette.badgeText, 'CHRISTMAS');
 
-      GlassTheme.setActivePalette(AppColorPalette.orangeCoral);
-      expect(GlassTheme.activePalette.primary, const Color(0xFFFF5722));
-      expect(GlassTheme.activePalette.backgroundDark, const Color(0xFF16100E));
+      GlassTheme.setActivePalette(AppColorPalette.waterFestival);
+      expect(GlassTheme.activePalette.primary, const Color(0xFF0284C7));
+      expect(GlassTheme.activePalette.badgeText, 'បុណ្យអុំទូក');
+
+      GlassTheme.setActivePalette(AppColorPalette.pchumBen);
+      expect(GlassTheme.activePalette.primary, const Color(0xFFD946EF));
+      expect(GlassTheme.activePalette.badgeText, 'ភ្ជុំបិណ្ឌ');
+
+      GlassTheme.setActivePalette(AppColorPalette.angkorHeritage);
+      expect(GlassTheme.activePalette.primary, const Color(0xFFEA580C));
+      expect(GlassTheme.activePalette.badgeText, 'អង្គរវត្ត');
     });
 
     testWidgets(
-      'AppTheme.getLightTheme and getDarkTheme generate correct ThemeData',
+      'AppTheme.getLightTheme and getDarkTheme generate correct ThemeData for festival palettes',
       (tester) async {
-        final coralLight = AppTheme.getLightTheme(AppColorPalette.orangeCoral);
-        expect(coralLight.colorScheme.primary, const Color(0xFFFF5722));
-        expect(coralLight.useMaterial3, isTrue);
+        final knyLight = AppTheme.getLightTheme(AppColorPalette.khmerNewYear);
+        expect(knyLight.colorScheme.primary, const Color(0xFFE5A910));
+        expect(knyLight.useMaterial3, isTrue);
 
-        final emeraldDark = AppTheme.getDarkTheme(AppColorPalette.emeraldGreen);
-        expect(emeraldDark.colorScheme.primary, const Color(0xFF22C55E));
-        expect(emeraldDark.scaffoldBackgroundColor, const Color(0xFF0B1710));
+        final xmasDark = AppTheme.getDarkTheme(AppColorPalette.christmas);
+        expect(xmasDark.colorScheme.primary, const Color(0xFFDC2626));
+        expect(xmasDark.scaffoldBackgroundColor, const Color(0xFF0F1712));
 
-        final goldDark = AppTheme.getDarkTheme(AppColorPalette.darkGold);
-        expect(goldDark.colorScheme.primary, const Color(0xFFD4AF37));
-        expect(goldDark.scaffoldBackgroundColor, const Color(0xFF14120B));
+        final waterDark = AppTheme.getDarkTheme(AppColorPalette.waterFestival);
+        expect(waterDark.colorScheme.primary, const Color(0xFF0284C7));
+        expect(waterDark.scaffoldBackgroundColor, const Color(0xFF081524));
+
+        final pchumDark = AppTheme.getDarkTheme(AppColorPalette.pchumBen);
+        expect(pchumDark.colorScheme.primary, const Color(0xFFD946EF));
+        expect(pchumDark.scaffoldBackgroundColor, const Color(0xFF180E1C));
+
+        final angkorDark = AppTheme.getDarkTheme(AppColorPalette.angkorHeritage);
+        expect(angkorDark.colorScheme.primary, const Color(0xFFEA580C));
+        expect(angkorDark.scaffoldBackgroundColor, const Color(0xFF17110E));
       },
     );
 
-    test('ThemeProvider manages and notifies on palette changes', () async {
+    test('ThemeProvider manages and notifies on festive palette changes', () async {
       final provider = ThemeProvider();
       bool notified = false;
       provider.addListener(() => notified = true);
 
-      provider.setPalette(AppColorPalette.orangeCoral);
-      expect(provider.currentPalette, AppColorPalette.orangeCoral);
-      expect(provider.paletteData.primary, const Color(0xFFFF5722));
+      provider.setPalette(AppColorPalette.khmerNewYear);
+      expect(provider.currentPalette, AppColorPalette.khmerNewYear);
+      expect(provider.paletteData.primary, const Color(0xFFE5A910));
+      expect(provider.paletteData.nameEn, 'Khmer New Year (Sangkran)');
+      expect(notified, isTrue);
+
+      notified = false;
+      provider.setPalette(AppColorPalette.christmas);
+      expect(provider.currentPalette, AppColorPalette.christmas);
+      expect(provider.paletteData.primary, const Color(0xFFDC2626));
       expect(notified, isTrue);
     });
   });

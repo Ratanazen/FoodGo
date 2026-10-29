@@ -980,6 +980,11 @@ class ProfileScreen extends StatelessWidget {
               onTap: () => context.push('/settings'),
             ),
             _ProfileOption(
+              icon: Icons.palette_outlined,
+              title: 'Theme & Khmer Festivals',
+              onTap: () => context.push('/settings'),
+            ),
+            _ProfileOption(
               icon: Icons.language,
               title: 'Language',
               onTap: () {

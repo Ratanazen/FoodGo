@@ -220,9 +220,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     final palette = themeProvider?.paletteData;
 
     final primaryColor = palette?.primary ?? GlassTheme.primaryGreen;
-    final bgColor = isDark
-        ? (palette?.backgroundDark ?? GlassTheme.backgroundDark)
-        : (palette?.backgroundLight ?? const Color(0xFFF8FAF9));
     final textColor = isDark ? Colors.white : const Color(0xFF1E2620);
     final textMuted = isDark ? GlassTheme.textMuted : const Color(0xFF718096);
     final inputBg = isDark
@@ -245,24 +242,17 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              bgColor,
-              isDark ? const Color(0xFF0F1512) : const Color(0xFFEFF4F1),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Tilt3DCard(
+                borderRadius: BorderRadius.circular(28),
                 child: GlassContainer(
                   padding: const EdgeInsets.all(28.0),
                   child: Column(
@@ -276,7 +266,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: isDark
-                                    ? GlassTheme.midnightSmalt
+                                    ? (palette?.surfaceCardDark ??
+                                          GlassTheme.midnightSmalt)
                                     : Colors.white,
                                 border: Border.all(
                                   color: primaryColor.withValues(alpha: 0.55),

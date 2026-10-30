@@ -34,29 +34,49 @@ class ThemedSkinBackdrop extends StatelessWidget {
     final isBackdropActive =
         enabled ?? (themeProvider?.skinBackdropEnabled ?? true);
 
+    // If an ancestor ThemedSkinBackdrop is already active and no custom palette is requested, avoid double-painting
+    final parentScope = context
+        .dependOnInheritedWidgetOfExactType<_ThemedSkinScope>();
+    if (parentScope != null && customPalette == null) {
+      return child;
+    }
+
     final backgroundColor = isDark
         ? palette.backgroundDark
         : palette.backgroundLight;
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // ── 1. Base Solid Themed Surface ─────────────────────────────────
-        ColoredBox(color: backgroundColor),
+    return _ThemedSkinScope(
+      palette: palette,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── 1. Base Solid Themed Surface ─────────────────────────────────
+          ColoredBox(color: backgroundColor),
 
-        // ── 2. Themed Skin Backdrop Visuals ──────────────────────────────
-        if (isBackdropActive)
-          RepaintBoundary(
-            child: CustomPaint(
-              painter: ThemedSkinPainter(palette: palette, isDark: isDark),
+          // ── 2. Themed Skin Backdrop Visuals ──────────────────────────────
+          if (isBackdropActive)
+            RepaintBoundary(
+              child: CustomPaint(
+                painter: ThemedSkinPainter(palette: palette, isDark: isDark),
+              ),
             ),
-          ),
 
-        // ── 3. Child Screen Content ───────────────────────────────────────
-        child,
-      ],
+          // ── 3. Child Screen Content ───────────────────────────────────────
+          child,
+        ],
+      ),
     );
   }
+}
+
+class _ThemedSkinScope extends InheritedWidget {
+  final PaletteData palette;
+
+  const _ThemedSkinScope({required this.palette, required super.child});
+
+  @override
+  bool updateShouldNotify(covariant _ThemedSkinScope oldWidget) =>
+      oldWidget.palette.id != palette.id;
 }
 
 /// Hardware-accelerated custom painter rendering unique atmospheric visuals
@@ -1155,6 +1175,26 @@ class ThemedSkinPainter extends CustomPainter {
         stops: const [0.0, 0.55],
       ).createShader(rect);
     canvas.drawRect(rect, bottomOrb);
+
+    // Subtle Specular Caustic Refraction Streak
+    final causticPaint = Paint()
+      ..color = (isDark ? Colors.white : accent).withValues(
+        alpha: isDark ? 0.05 : 0.03,
+      )
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+
+    final causticPath = Path()
+      ..moveTo(0, size.height * 0.42)
+      ..cubicTo(
+        size.width * 0.35,
+        size.height * 0.38,
+        size.width * 0.65,
+        size.height * 0.46,
+        size.width,
+        size.height * 0.41,
+      );
+    canvas.drawPath(causticPath, causticPaint);
   }
 
   @override

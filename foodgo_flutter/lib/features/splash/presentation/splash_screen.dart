@@ -140,7 +140,6 @@ class _SplashScreenState extends State<SplashScreen>
     final palette = GlassTheme.activePalette;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bgColor = isDark ? palette.backgroundDark : palette.backgroundLight;
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
     final subtitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
     final mutedColor = isDark ? Colors.white60 : const Color(0xFF64748B);
@@ -152,7 +151,7 @@ class _SplashScreenState extends State<SplashScreen>
         : const Color(0xFF94A3B8);
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: Colors.transparent,
       body: Stack(
         fit: StackFit.expand,
         children: [

@@ -74,7 +74,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final Color currentGlow = page['glow'] as Color;
 
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundDark,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Ambient Radial Light 1 (Top Left)

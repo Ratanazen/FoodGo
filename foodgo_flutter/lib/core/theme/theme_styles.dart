@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../app/theme/app_theme.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/glass/animated_pressable.dart';
 import 'app_palette.dart';
@@ -321,8 +322,11 @@ class FestivalThemeBanner extends StatelessWidget {
                   Text(
                     ThemeStyles.getFestivalSubtitleKh(palette),
                     style: TextStyle(
+                      fontFamily: AppTheme.khmerPrimaryFont,
+                      fontFamilyFallback: AppTheme.khmerFontFallbacks,
                       color: isDark ? Colors.white60 : const Color(0xFF6B7280),
                       fontSize: 11,
+                      height: 1.35,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

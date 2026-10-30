@@ -9,13 +9,71 @@ class AppTheme {
   static Color get primaryDark => GlassTheme.primaryGreenDark;
   static const Color accentColor = GlassTheme.ratingAmber;
 
-  // Standard font family fallbacks for Khmer script support
+  // Standard font families for Khmer script support
+  static const String khmerPrimaryFont = 'Kantumruy Pro';
+  static const String khmerClassicFont = 'Battambang';
+  static const String khmerDisplayFont = 'Moul';
+  static const String khmerBannerFont = 'Koulen';
+
   static const List<String> khmerFontFallbacks = [
     'Kantumruy Pro',
     'Battambang',
     'Noto Sans Khmer',
     'sans-serif',
   ];
+
+  /// Traditional Khmer display font style (Moul) for festive titles and headers
+  static TextStyle khmerMoulStyle({
+    double fontSize = 20,
+    Color? color,
+    FontWeight fontWeight = FontWeight.normal,
+    double height = 1.5,
+  }) {
+    return TextStyle(
+      fontFamily: khmerDisplayFont,
+      fontFamilyFallback: khmerFontFallbacks,
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+      height: height,
+    );
+  }
+
+  /// Tall Khmer banner font style (Koulen) for promotional tags and badges
+  static TextStyle khmerKoulenStyle({
+    double fontSize = 16,
+    Color? color,
+    FontWeight fontWeight = FontWeight.normal,
+    double height = 1.35,
+    double letterSpacing = 0.5,
+  }) {
+    return TextStyle(
+      fontFamily: khmerBannerFont,
+      fontFamilyFallback: khmerFontFallbacks,
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+      height: height,
+      letterSpacing: letterSpacing,
+    );
+  }
+
+  /// Modern, highly readable Khmer body font style (Kantumruy Pro)
+  static TextStyle khmerBodyStyle({
+    double fontSize = 14,
+    Color? color,
+    FontWeight fontWeight = FontWeight.normal,
+    double height = 1.45,
+  }) {
+    return TextStyle(
+      fontFamily: khmerPrimaryFont,
+      fontFamilyFallback: khmerFontFallbacks,
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+      height: height,
+    );
+  }
 
   static TextTheme _buildTextTheme(Brightness brightness) {
     final base = brightness == Brightness.dark
@@ -32,14 +90,13 @@ class AppTheme {
 
     final inter = GoogleFonts.interTextTheme(base);
 
-    // Derive every style from the Inter base so the custom family and metrics
-    // are preserved instead of silently falling back to Roboto.
+    // Derive every style from the Inter base and pair with Kantumruy Pro & Khmer fallbacks
     return inter.copyWith(
       displayLarge: inter.displayLarge?.copyWith(
         fontSize: 32,
         fontWeight: FontWeight.w800,
         letterSpacing: -0.8,
-        height: 1.2,
+        height: 1.25,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
@@ -48,6 +105,38 @@ class AppTheme {
         fontWeight: FontWeight.w800,
         letterSpacing: -0.6,
         height: 1.25,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      displaySmall: inter.displaySmall?.copyWith(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        height: 1.3,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      headlineLarge: inter.headlineLarge?.copyWith(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.4,
+        height: 1.3,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      headlineMedium: inter.headlineMedium?.copyWith(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
+        height: 1.35,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      headlineSmall: inter.headlineSmall?.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
+        height: 1.35,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
@@ -99,7 +188,15 @@ class AppTheme {
         fontSize: 14,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.2,
-        height: 1.2,
+        height: 1.25,
+        color: primaryTextColor,
+        fontFamilyFallback: khmerFontFallbacks,
+      ),
+      labelMedium: inter.labelMedium?.copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.3,
+        height: 1.25,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
@@ -107,7 +204,7 @@ class AppTheme {
         fontSize: 11,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.4,
-        height: 1.2,
+        height: 1.25,
         color: secondaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
@@ -126,6 +223,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamilyFallback: khmerFontFallbacks,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         primary: primary,
@@ -236,6 +334,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamilyFallback: khmerFontFallbacks,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         primary: primary,

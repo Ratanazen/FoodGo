@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../../app/theme/app_theme.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/theme/theme_styles.dart';
@@ -129,9 +130,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             const Text(
               'មជ្ឈមណ្ឌលរចនាបថ និងរូបរាង',
               style: TextStyle(
+                fontFamily: AppTheme.khmerPrimaryFont,
+                fontFamilyFallback: AppTheme.khmerFontFallbacks,
                 color: Colors.grey,
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
+                height: 1.35,
               ),
             ),
           ],
@@ -304,7 +308,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
         Text(
           subtitleKh,
           style: TextStyle(
+            fontFamily: AppTheme.khmerPrimaryFont,
+            fontFamilyFallback: AppTheme.khmerFontFallbacks,
             fontSize: 12,
+            height: 1.35,
             color: isDark ? Colors.white54 : const Color(0xFF6B7280),
           ),
         ),
@@ -2010,7 +2017,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                       Text(
                         palette.nameKh,
                         style: TextStyle(
+                          fontFamily: AppTheme.khmerPrimaryFont,
+                          fontFamilyFallback: AppTheme.khmerFontFallbacks,
                           fontSize: 11.5,
+                          height: 1.35,
                           color: isDark ? Colors.white70 : Colors.black54,
                         ),
                         maxLines: 1,

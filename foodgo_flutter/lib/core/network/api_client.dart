@@ -32,7 +32,10 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          options.baseUrl = AppConfig.apiBaseUrl;
           final isAuthEndpoint =
+              options.path == 'register/' ||
+              options.path.contains('register') ||
               options.path == 'token/' ||
               options.path.contains('token/refresh') ||
               options.path.contains('auth/login') ||
@@ -57,6 +60,8 @@ class ApiClient {
 
           // Never attempt token refresh on login or authentication endpoints
           final isAuthEndpoint =
+              requestOptions.path == 'register/' ||
+              requestOptions.path.contains('register') ||
               requestOptions.path == 'token/' ||
               requestOptions.path.contains('token/refresh') ||
               requestOptions.path.contains('auth/login') ||

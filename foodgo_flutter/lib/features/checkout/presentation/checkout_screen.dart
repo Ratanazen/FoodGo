@@ -678,6 +678,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final cart = context.watch<CartProvider>();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: GlassAppBar(
         title: 'Checkout',
         leading: IconButton(
@@ -1669,7 +1670,11 @@ class _PaymentOptionTile extends StatelessWidget {
                 ),
                 child: svgAsset != null
                     ? SvgAssetIcon(assetName: svgAsset!, size: 26)
-                    : Icon(icon ?? AppIcons.payment, color: iconColor, size: 26),
+                    : Icon(
+                        icon ?? AppIcons.payment,
+                        color: iconColor,
+                        size: 26,
+                      ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -1728,9 +1733,7 @@ class _PaymentOptionTile extends StatelessWidget {
                 ),
               ),
               Icon(
-                isSelected
-                    ? AppIcons.radioSelected
-                    : AppIcons.radioUnselected,
+                isSelected ? AppIcons.radioSelected : AppIcons.radioUnselected,
                 color: isSelected
                     ? Theme.of(context).colorScheme.primary
                     : Colors.white38,

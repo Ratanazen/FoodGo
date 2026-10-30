@@ -23,6 +23,10 @@ services:
         value: "https://foodgo.rtnaeam611.workers.dev,https://food-go-app.vercel.app,https://foodgo-53pl.onrender.com"
       - key: CSRF_TRUSTED_ORIGINS
         value: "https://foodgo.rtnaeam611.workers.dev,https://food-go-app.vercel.app,https://foodgo-53pl.onrender.com"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
   - type: web
     name: foodgo-frontend
     runtime: docker

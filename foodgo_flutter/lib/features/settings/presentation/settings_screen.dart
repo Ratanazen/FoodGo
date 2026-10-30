@@ -290,10 +290,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Text(
                     'រចនាបថ និងពិធីបុណ្យជាតិ',
-                    style: TextStyle(
-                      color: Colors.white60,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white60, fontSize: 12),
                   ),
                 ],
               ),
@@ -338,7 +335,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   ...PaletteData.allPalettes
                       .where((p) => p.isFestive)
-                      .map((palette) => _buildPaletteCard(ctx, palette, current, themeProvider)),
+                      .map(
+                        (palette) => _buildPaletteCard(
+                          ctx,
+                          palette,
+                          current,
+                          themeProvider,
+                        ),
+                      ),
 
                   const SizedBox(height: 12),
 
@@ -367,7 +371,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   ...PaletteData.allPalettes
                       .where((p) => !p.isFestive)
-                      .map((palette) => _buildPaletteCard(ctx, palette, current, themeProvider)),
+                      .map(
+                        (palette) => _buildPaletteCard(
+                          ctx,
+                          palette,
+                          current,
+                          themeProvider,
+                        ),
+                      ),
                 ],
               ),
             ),
@@ -408,10 +419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 2,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         leading: Container(
           width: 40,
           height: 40,
@@ -430,11 +438,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               width: 1.5,
             ),
           ),
-          child: Icon(
-            palette.icon,
-            color: Colors.white,
-            size: 20,
-          ),
+          child: Icon(palette.icon, color: Colors.white, size: 20),
         ),
         title: Row(
           children: [
@@ -506,11 +510,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: palette.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 16),
               )
             : Icon(
                 Icons.circle_outlined,
@@ -1009,6 +1009,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isDark = themeProvider.themeMode == ThemeMode.dark;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: GlassAppBar(
         title: 'Settings',
         leading: IconButton(
@@ -1057,9 +1058,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             width: 22,
                             height: 22,
                             decoration: BoxDecoration(
-                              gradient: themeProvider.paletteData.headerGradient,
+                              gradient:
+                                  themeProvider.paletteData.headerGradient,
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 1.5),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.5,
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: themeProvider.paletteData.primary
@@ -1347,7 +1352,10 @@ class _SettingsTile extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
-  }) : assert(icon != null || leadingWidget != null, 'Either icon or leadingWidget must be provided');
+  }) : assert(
+         icon != null || leadingWidget != null,
+         'Either icon or leadingWidget must be provided',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -1363,12 +1371,9 @@ class _SettingsTile extends StatelessWidget {
             color: iconColor.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: leadingWidget ??
-              Icon(
-                icon ?? Icons.circle,
-                color: iconColor,
-                size: 20,
-              ),
+          child:
+              leadingWidget ??
+              Icon(icon ?? Icons.circle, color: iconColor, size: 20),
         ),
         title: Text(
           title,

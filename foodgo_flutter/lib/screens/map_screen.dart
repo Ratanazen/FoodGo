@@ -23,6 +23,7 @@ import '../widgets/delivery_qr_modal.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'map_screen_location.dart';
+import '../core/utils/location_helper.dart';
 
 class MapScreen extends StatefulWidget {
   final String orderId;
@@ -272,7 +273,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   Future<void> _autoInitLocation() async {
     final loc = await getDeviceLocation();
     if (loc != null && mounted) {
-      setState(() => _myLocation = loc);
+      final details = await LocationHelper.resolveLocation(
+        loc.latitude,
+        loc.longitude,
+      );
+      setState(() {
+        _myLocation = loc;
+        _deliveryAddress ??= details.fullAddress;
+      });
       _animatedMapMove(loc, 15.0);
     }
   }
@@ -280,12 +288,35 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   Future<void> _fetchCurrentLocation() async {
     final loc = await getDeviceLocation();
     if (loc != null && mounted) {
-      setState(() => _myLocation = loc);
-      _animatedMapMove(loc, 15.5);
+      final details = await LocationHelper.resolveLocation(
+        loc.latitude,
+        loc.longitude,
+      );
+      if (!mounted) return;
+      setState(() {
+        _myLocation = loc;
+        _deliveryAddress = details.fullAddress;
+      });
+      _animatedMapMove(loc, 15.8);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Centered on your location'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.my_location,
+                color: GlassTheme.limeAccent,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'GPS Location: ${details.title}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -517,6 +548,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: _isTrackingMode
           ? null
@@ -1657,26 +1689,33 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.two_wheeler,
-                      size: 16,
-                      color: GlassTheme.primaryGreen,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      vehicle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? Colors.white70
-                            : const Color(0xFF444444),
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.two_wheeler,
+                        size: 16,
+                        color: GlassTheme.primaryGreen,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          vehicle,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF444444),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,

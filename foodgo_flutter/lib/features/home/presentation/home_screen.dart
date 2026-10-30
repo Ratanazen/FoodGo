@@ -523,68 +523,77 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Left: Location Icon + "Your Location" + City dropdown
-              AnimatedPressable(
-                pressedScale: 0.96,
-                onTap: () => context.push('/addresses'),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        AppIcons.location,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Your Location',
-                          style: TextStyle(
-                            color: isDark
-                                ? Colors.white60
-                                : const Color(0xFF9CA3AF),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
+              Expanded(
+                child: AnimatedPressable(
+                  pressedScale: 0.96,
+                  onTap: () => context.push('/addresses'),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(height: 2),
-                        Row(
+                        child: Icon(
+                          AppIcons.location,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              locationName,
+                              'Your Location',
                               style: TextStyle(
                                 color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF111827),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
+                                    ? Colors.white60
+                                    : const Color(0xFF9CA3AF),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              AppIcons.chevronDown,
-                              color: isDark
-                                  ? Colors.white70
-                                  : const Color(0xFF374151),
-                              size: 18,
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    locationName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF111827),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  AppIcons.chevronDown,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : const Color(0xFF374151),
+                                  size: 18,
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
 
               // Right: Notification Bell & Profile Avatar
               Row(
@@ -867,8 +876,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontSize: 12,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(
+                        SizedBox(width: 4),
+                        Icon(
                           AppIcons.forward,
                           color: Color(0xFF16A34A),
                           size: 14,
@@ -1331,9 +1340,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            isFav
-                                ? AppIcons.favorite
-                                : AppIcons.favoriteBorder,
+                            isFav ? AppIcons.favorite : AppIcons.favoriteBorder,
                             size: 16,
                             color: isFav
                                 ? GlassTheme.primaryGreen
@@ -2118,7 +2125,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       child: Icon(
-                        isFavorite ? AppIcons.favorite : AppIcons.favoriteBorder,
+                        isFavorite
+                            ? AppIcons.favorite
+                            : AppIcons.favoriteBorder,
                         color: isFavorite
                             ? const Color(0xFFFF5252)
                             : Colors.white,

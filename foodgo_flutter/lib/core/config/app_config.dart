@@ -38,6 +38,10 @@ class AppConfig {
     if (_customApiUrl.contains('10.0.2.2')) {
       return 'ws://10.0.2.2:8000/ws/tracking/';
     }
+    if (_customApiUrl.contains('127.0.0.1') ||
+        _customApiUrl.contains('localhost')) {
+      return 'ws://127.0.0.1:8000/ws/tracking/';
+    }
     if (kIsWeb) {
       final host = Uri.base.host;
       if (host == 'localhost' || host == '127.0.0.1') {
@@ -57,6 +61,10 @@ class AppConfig {
     }
     if (_customApiUrl.contains('10.0.2.2')) {
       return 'ws://10.0.2.2:8000/ws/payments/';
+    }
+    if (_customApiUrl.contains('127.0.0.1') ||
+        _customApiUrl.contains('localhost')) {
+      return 'ws://127.0.0.1:8000/ws/payments/';
     }
     if (kIsWeb) {
       final host = Uri.base.host;
@@ -80,7 +88,6 @@ class AppConfig {
         _customApiUrl.contains('food-go-backend.vercel.app') ||
         _customApiUrl.contains('foodgo-backend-a.vercel.app') ||
         _customApiUrl.contains('foodgo-backend-b.vercel.app') ||
-        _customApiUrl.contains('workers.dev') ||
         _customApiUrl.contains('api.foodgo.app')) {
       _customApiUrl = '';
       await prefs.remove('custom_api_url');

@@ -1,7 +1,7 @@
 # FoodGo API Documentation & Reference
 
 **Version:** 3.0.0-PROD  
-**Base URL:** `http://127.0.0.1:8000/api/` (Production: `https://api.foodgo.app/api/`)  
+**Base URL:** `http://127.0.0.1:8000/api/` (Production: `https://food-go-app.vercel.app/api/` | Cloudflare Edge: `https://foodgo.rtnaeam611.workers.dev/api/`)  
 **Auth Header:** `Authorization: Bearer <access_token>`  
 **Content-Type:** `application/json`  
 

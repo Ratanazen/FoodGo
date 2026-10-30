@@ -6,6 +6,7 @@ import '../../../core/theme/app_palette.dart';
 import '../../../core/theme/theme_styles.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../widgets/glass/animated_pressable.dart';
+import '../../../widgets/glass/themed_skin_backdrop.dart';
 import '../../../widgets/svg_icon.dart';
 
 /// Dedicated Theme Center for switching appearance modes, selecting cultural
@@ -101,9 +102,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               .toList();
 
     return Scaffold(
-      backgroundColor: isDark
-          ? activeData.backgroundDark
-          : activeData.backgroundLight,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -323,16 +322,8 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
         'label': 'System',
         'icon': AppIcons.systemMode,
       },
-      {
-        'mode': ThemeMode.light,
-        'label': 'Light',
-        'icon': AppIcons.lightMode,
-      },
-      {
-        'mode': ThemeMode.dark,
-        'label': 'Dark',
-        'icon': AppIcons.darkMode,
-      },
+      {'mode': ThemeMode.light, 'label': 'Light', 'icon': AppIcons.lightMode},
+      {'mode': ThemeMode.dark, 'label': 'Dark', 'icon': AppIcons.darkMode},
     ];
 
     return Container(
@@ -453,6 +444,20 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                 style: TextStyle(fontSize: 11, color: Colors.grey),
               ),
               onChanged: (val) => provider.setSnowfallEnabled(val),
+            ),
+            Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+            SwitchListTile(
+              value: provider.skinBackdropEnabled,
+              activeThumbColor: palette.primary,
+              title: const Text(
+                'Themed Skin Backdrops & Meshes',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              subtitle: const Text(
+                'បង្ហាញផ្ទៃខាងក្រោយ និងក្បាច់លម្អតាមប្រធានបទនីមួយៗ (Built-in Skin Backdrops)',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+              onChanged: (val) => provider.setSkinBackdropEnabled(val),
             ),
           ],
         ),
@@ -583,17 +588,20 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               ],
             ),
             clipBehavior: Clip.antiAlias,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
-              child: KeyedSubtree(
-                key: ValueKey<String>('$_previewTab-${staged.id.name}'),
-                child: _previewTab == 0
-                    ? _buildHomeMockup(staged, isDark)
-                    : _previewTab == 1
-                        ? _buildDetailsMockup(staged, isDark)
-                        : _previewTab == 2
-                            ? _buildCartMockup(staged, isDark)
-                            : _buildProfileMockup(staged, isDark),
+            child: ThemedSkinBackdrop(
+              customPalette: staged,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: KeyedSubtree(
+                  key: ValueKey<String>('$_previewTab-${staged.id.name}'),
+                  child: _previewTab == 0
+                      ? _buildHomeMockup(staged, isDark)
+                      : _previewTab == 1
+                      ? _buildDetailsMockup(staged, isDark)
+                      : _previewTab == 2
+                      ? _buildCartMockup(staged, isDark)
+                      : _buildProfileMockup(staged, isDark),
+                ),
               ),
             ),
           ),
@@ -629,6 +637,29 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                               fontWeight: FontWeight.bold,
                               color: isDark ? Colors.white : Colors.black87,
                             ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.auto_awesome,
+                                size: 12,
+                                color: staged.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  'Skin Backdrop: ${staged.backdropNameEn}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: staged.primary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -677,7 +708,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                           disabledBackgroundColor: staged.primary.withValues(
                             alpha: 0.4,
                           ),
-                          disabledForegroundColor: staged.onPrimary.withValues(alpha: 0.7),
+                          disabledForegroundColor: staged.onPrimary.withValues(
+                            alpha: 0.7,
+                          ),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -819,9 +852,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             decoration: BoxDecoration(
               color: cardBg,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: staged.primary.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: staged.primary.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -849,11 +880,26 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               children: [
                 _buildMiniPill('All', isSelected: true, staged: staged),
                 const SizedBox(width: 6),
-                _buildMiniPill('Burgers', isSelected: false, staged: staged, isDark: isDark),
+                _buildMiniPill(
+                  'Burgers',
+                  isSelected: false,
+                  staged: staged,
+                  isDark: isDark,
+                ),
                 const SizedBox(width: 6),
-                _buildMiniPill('Pizza', isSelected: false, staged: staged, isDark: isDark),
+                _buildMiniPill(
+                  'Pizza',
+                  isSelected: false,
+                  staged: staged,
+                  isDark: isDark,
+                ),
                 const SizedBox(width: 6),
-                _buildMiniPill('Drinks', isSelected: false, staged: staged, isDark: isDark),
+                _buildMiniPill(
+                  'Drinks',
+                  isSelected: false,
+                  staged: staged,
+                  isDark: isDark,
+                ),
               ],
             ),
           ),
@@ -913,7 +959,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     ],
                   ),
                 ),
-                Icon(staged.icon, size: 28, color: Colors.white.withValues(alpha: 0.85)),
+                Icon(
+                  staged.icon,
+                  size: 28,
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
               ],
             ),
           ),
@@ -1225,7 +1275,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                       color: staged.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Icon(AppIcons.remove, size: 13, color: staged.primary),
+                    child: Icon(
+                      AppIcons.remove,
+                      size: 13,
+                      color: staged.primary,
+                    ),
                   ),
                 ),
                 Padding(
@@ -1250,7 +1304,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                       color: staged.primary,
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Icon(AppIcons.add, size: 13, color: staged.onPrimary),
+                    child: Icon(
+                      AppIcons.add,
+                      size: 13,
+                      color: staged.onPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -1403,15 +1461,24 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Subtotal', style: TextStyle(fontSize: 9.5, color: mutedCol)),
-                    Text('\$9.00', style: TextStyle(fontSize: 9.5, color: textCol)),
+                    Text(
+                      'Subtotal',
+                      style: TextStyle(fontSize: 9.5, color: mutedCol),
+                    ),
+                    Text(
+                      '\$9.00',
+                      style: TextStyle(fontSize: 9.5, color: textCol),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 3),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Delivery Fee', style: TextStyle(fontSize: 9.5, color: mutedCol)),
+                    Text(
+                      'Delivery Fee',
+                      style: TextStyle(fontSize: 9.5, color: mutedCol),
+                    ),
                     Text(
                       'FREE',
                       style: const TextStyle(
@@ -1892,6 +1959,50 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                                     ),
                                   ),
                                 ),
+                              Container(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 160,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: palette.primary.withValues(
+                                    alpha: 0.10,
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: palette.primary.withValues(
+                                      alpha: 0.25,
+                                    ),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.auto_awesome,
+                                      size: 9.5,
+                                      color: palette.primary,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Flexible(
+                                      child: Text(
+                                        palette.backdropNameEn,
+                                        style: TextStyle(
+                                          color: palette.primary,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),

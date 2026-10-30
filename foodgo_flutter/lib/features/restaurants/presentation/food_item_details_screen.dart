@@ -67,11 +67,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(
-                AppIcons.successFilled,
-                color: Colors.white,
-                size: 20,
-              ),
+              const Icon(AppIcons.successFilled, color: Colors.white, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -138,9 +134,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
     final String carbo = data['carbo']?.toString() ?? '23.7';
 
     return Scaffold(
-      backgroundColor: isDark
-          ? GlassTheme.activePalette.backgroundDark
-          : Colors.white,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // ── Scrollable Body ──────────────────────────────────────────
@@ -490,8 +484,8 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       Container(
                         decoration: BoxDecoration(
                           color: isDark
-                                ? Colors.white.withValues(alpha: 0.05)
-                                : const Color(0xFFF6F7F9),
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : const Color(0xFFF6F7F9),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isDark

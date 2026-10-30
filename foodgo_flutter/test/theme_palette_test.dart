@@ -8,6 +8,7 @@ import 'package:foodgo_flutter/core/theme/theme_styles.dart';
 import 'package:foodgo_flutter/features/settings/presentation/theme_center_screen.dart';
 import 'package:foodgo_flutter/providers/theme_provider.dart';
 import 'package:foodgo_flutter/widgets/snowfall_effect.dart';
+import 'package:foodgo_flutter/widgets/glass/themed_skin_backdrop.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -32,6 +33,9 @@ void main() {
           expect(palette.icon, isNotNull);
           expect(palette.categoryEn.isNotEmpty, isTrue);
           expect(palette.categoryKh.isNotEmpty, isTrue);
+          expect(palette.backdropStyle, isNotNull);
+          expect(palette.backdropNameEn.isNotEmpty, isTrue);
+          expect(palette.backdropNameKh.isNotEmpty, isTrue);
         }
 
         // Verify festive count vs non-festive count
@@ -565,6 +569,35 @@ void main() {
         // Verify some of the themes render in the list
         expect(find.text('Khmer New Year (Sangkran)'), findsOneWidget);
         expect(find.text('Modern FoodGo'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'ThemedSkinBackdrop renders custom backdrop painters across styles',
+      (tester) async {
+        final stylesToTest = [
+          PaletteData.modernFoodGo,
+          PaletteData.blackFridayCyber,
+          PaletteData.angkorHeritage,
+          PaletteData.darkGold,
+          PaletteData.waterFestival,
+          PaletteData.pchumBen,
+        ];
+
+        for (final pal in stylesToTest) {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: ThemedSkinBackdrop(
+                customPalette: pal,
+                child: const Text('Backdrop Content'),
+              ),
+            ),
+          );
+          await tester.pump();
+
+          expect(find.text('Backdrop Content'), findsOneWidget);
+          expect(find.byType(CustomPaint), findsWidgets);
+        }
       },
     );
   });

@@ -29,23 +29,26 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.12),
+                    color: GlassTheme.dynamicPrimaryColor.withValues(
+                      alpha: 0.12,
+                    ),
                     border: Border.all(
-                      color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.4),
+                      color: GlassTheme.dynamicPrimaryColor.withValues(
+                        alpha: 0.4,
+                      ),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.25),
+                        color: GlassTheme.dynamicPrimaryColor.withValues(
+                          alpha: 0.25,
+                        ),
                         blurRadius: 18,
                         spreadRadius: 2,
                       ),
                     ],
                   ),
-                  child: const FoodGoAppIcon(
-                    size: 64,
-                    borderRadius: 16,
-                  ),
+                  child: const FoodGoAppIcon(size: 64, borderRadius: 16),
                 ),
                 const SizedBox(height: 14),
 
@@ -77,10 +80,14 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.15),
+                    color: GlassTheme.dynamicPrimaryColor.withValues(
+                      alpha: 0.15,
+                    ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.35),
+                      color: GlassTheme.dynamicPrimaryColor.withValues(
+                        alpha: 0.35,
+                      ),
                     ),
                   ),
                   child: Text(

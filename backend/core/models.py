@@ -19,11 +19,19 @@ class User(AbstractUser):
     avatar_url = models.URLField(max_length=500, blank=True, null=True, help_text="Direct web link or Google profile photo")
 
     def save(self, *args, **kwargs):
-        if self.phone and not self.phone_normalized:
+        if self.phone:
             from .sms_service import normalize_cambodia_phone
             norm, valid, _ = normalize_cambodia_phone(self.phone)
-            if valid:
-                self.phone_normalized = norm
+            self.phone_normalized = norm if valid else None
+        else:
+            self.phone_normalized = None
+
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            update_fields = set(update_fields)
+            update_fields.add('phone_normalized')
+            kwargs['update_fields'] = update_fields
+
         super().save(*args, **kwargs)
 
 

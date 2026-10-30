@@ -45,6 +45,7 @@ import '../../features/tracking/presentation/public_tracking_screen.dart';
 import '../../widgets/glass/glass_bottom_navigation.dart';
 import '../../widgets/glass/liquid_glass_background.dart';
 import '../../widgets/responsive_layout.dart';
+import '../../core/theme/app_motion.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorKey =
@@ -60,26 +61,29 @@ Page<dynamic> _buildPage({
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 320),
-    reverseTransitionDuration: const Duration(milliseconds: 280),
+    transitionDuration: AppMotion.page,
+    reverseTransitionDuration: AppMotion.medium,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      if (AppMotion.shouldReduceMotion(context)) {
+        return child;
+      }
       switch (type) {
         case PageTransitionType.fade:
           return FadeTransition(
             opacity: CurvedAnimation(
               parent: animation,
-              curve: Curves.easeInOut,
+              curve: AppMotion.standard,
             ),
             child: child,
           );
         case PageTransitionType.slideRight:
           final curved = CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOutCubic,
+            curve: AppMotion.enter,
           );
           return SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0.2, 0.0),
+              begin: const Offset(0.12, 0.0),
               end: Offset.zero,
             ).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
@@ -87,11 +91,11 @@ Page<dynamic> _buildPage({
         case PageTransitionType.slideUp:
           final curved = CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOutCubic,
+            curve: AppMotion.enter,
           );
           return SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0.0, 0.2),
+              begin: const Offset(0.0, 0.10),
               end: Offset.zero,
             ).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
@@ -99,10 +103,10 @@ Page<dynamic> _buildPage({
         case PageTransitionType.fadeScale:
           final curved = CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOutCubic,
+            curve: AppMotion.enter,
           );
           return ScaleTransition(
-            scale: Tween<double>(begin: 0.94, end: 1.0).animate(curved),
+            scale: Tween<double>(begin: 0.96, end: 1.0).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
           );
       }
@@ -480,6 +484,7 @@ class MainScreenShell extends StatelessWidget {
 
     if (isWide) {
       return Scaffold(
+        backgroundColor: Colors.transparent,
         body: LiquidGlassBackground(
           child: Column(
             children: [
@@ -495,6 +500,7 @@ class MainScreenShell extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBody: true,
       body: LiquidGlassBackground(child: child),
       bottomNavigationBar: GlassBottomNavigation(

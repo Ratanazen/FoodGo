@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -39,9 +40,7 @@ class _LegalScreenState extends State<LegalScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? GlassTheme.backgroundDark
-          : GlassTheme.backgroundLight,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -55,7 +54,7 @@ class _LegalScreenState extends State<LegalScreen>
         ),
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back,
+            AppIcons.back,
             color: isDark ? Colors.white : GlassTheme.textDark,
           ),
           onPressed: () {

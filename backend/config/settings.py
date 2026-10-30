@@ -209,7 +209,7 @@ CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
         'CORS_ALLOWED_ORIGINS',
-        'https://foodgo.rtnaeam611.workers.dev,https://food-go-app.vercel.app,https://foodgo-backend-a.vercel.app,https://foodgo-backend-b.vercel.app,http://localhost:3000,http://localhost:8080,http://localhost:5000,http://localhost:53538'
+        'https://foodgo.rtnaeam611.workers.dev,https://food-go-app.vercel.app,https://foodgo-backend-a.vercel.app,https://foodgo-backend-b.vercel.app,https://foodgo-53pl.onrender.com,http://localhost:3000,http://localhost:8080,http://localhost:5000,http://localhost:53538'
     ).split(',')
     if origin.strip()
 ]
@@ -217,6 +217,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.workers\.dev$",
     r"^https://.*\.vercel\.app$",
     r"^https://.*\.foodgo\.app$",
+    r"^https://.*\.onrender\.com$",
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://foodgo.rtnaeam611.workers.dev',
@@ -364,8 +365,13 @@ LOGGING = {
     },
 }
 
-# MongoDB sync can be disabled for latency-sensitive deployments
-MONGO_SYNC_ENABLED = os.environ.get('MONGO_SYNC_ENABLED', 'true').lower() in ('true', '1', 'yes')
+# MongoDB sync can be disabled for latency-sensitive deployments or automated tests
+if IS_TESTING:
+    MONGO_SYNC_ENABLED = os.environ.get('MONGO_SYNC_ENABLED', 'false').lower() in ('true', '1', 'yes')
+    if not MONGO_SYNC_ENABLED:
+        os.environ['MONGO_SYNC_ENABLED'] = 'false'
+else:
+    MONGO_SYNC_ENABLED = os.environ.get('MONGO_SYNC_ENABLED', 'true').lower() in ('true', '1', 'yes')
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),

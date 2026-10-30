@@ -11,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/responsive_layout.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../providers/user_provider.dart';
 
@@ -167,7 +168,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
-                    Icons.camera_alt,
+                    AppIcons.camera,
                     color: GlassTheme.primaryGreen,
                   ),
                 ),
@@ -196,7 +197,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
-                    Icons.photo_library,
+                    AppIcons.gallery,
                     color: GlassTheme.googleBlue,
                   ),
                 ),
@@ -224,7 +225,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: Colors.amber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.face, color: Colors.amber),
+                  child: const Icon(AppIcons.profile, color: Colors.amber),
                 ),
                 title: Text(
                   'Pick FoodGo Avatar Preset',
@@ -250,7 +251,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: Colors.purple.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.link, color: Colors.purpleAccent),
+                  child: const Icon(AppIcons.link, color: Colors.purpleAccent),
                 ),
                 title: Text(
                   'Enter Image URL',
@@ -277,10 +278,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       color: Colors.redAccent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
-                      Icons.delete_outline,
-                      color: Colors.redAccent,
-                    ),
+                    child: const Icon(AppIcons.delete, color: Colors.redAccent),
                   ),
                   title: const Text(
                     'Remove Photo',
@@ -333,7 +331,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     IconButton(
                       icon: Icon(
-                        Icons.close,
+                        AppIcons.close,
                         color: isDark
                             ? Colors.white60
                             : const Color(0xFF64748B),
@@ -462,7 +460,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       fontSize: 13,
                     ),
                     prefixIcon: const Icon(
-                      Icons.link,
+                      AppIcons.link,
                       color: GlassTheme.primaryGreen,
                     ),
                     filled: true,
@@ -560,8 +558,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context.pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to update profile. Please try again.'),
+        SnackBar(
+          content: Text(
+            userProvider.lastError ??
+                'Failed to update profile. Please check your inputs.',
+          ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -626,10 +627,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final username = user?['username'] ?? 'User';
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: GlassAppBar(
         title: 'Edit Profile',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(AppIcons.back),
           onPressed: () => context.pop(),
         ),
       ),
@@ -676,7 +678,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 borderRadius: BorderRadius.circular(20),
                                 customColor: GlassTheme.primaryGreen,
                                 child: const Icon(
-                                  Icons.camera_alt,
+                                  AppIcons.camera,
                                   color: Colors.black87,
                                   size: 18,
                                 ),
@@ -697,7 +699,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: TextButton.icon(
                     onPressed: _showImageSourceSheet,
                     icon: const Icon(
-                      Icons.edit,
+                      AppIcons.edit,
                       size: 14,
                       color: GlassTheme.primaryGreen,
                     ),
@@ -726,7 +728,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildField(
                       controller: _firstNameController,
                       label: 'First Name',
-                      icon: Icons.person_outline,
+                      icon: AppIcons.profile,
                     )
                     .animate()
                     .fadeIn(delay: 100.ms, duration: 350.ms)
@@ -737,7 +739,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildField(
                       controller: _lastNameController,
                       label: 'Last Name',
-                      icon: Icons.badge_outlined,
+                      icon: AppIcons.badge,
                     )
                     .animate()
                     .fadeIn(delay: 100.ms, duration: 350.ms)
@@ -748,7 +750,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildField(
                       controller: _emailController,
                       label: 'Email Address',
-                      icon: Icons.email_outlined,
+                      icon: AppIcons.email,
                       keyboardType: TextInputType.emailAddress,
                       validator: (val) {
                         if (val != null &&
@@ -768,7 +770,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildField(
                       controller: _phoneController,
                       label: 'Phone Number',
-                      icon: Icons.phone_outlined,
+                      icon: AppIcons.phone,
                       keyboardType: TextInputType.phone,
                       helperText: 'e.g. +855 12 345 678 or 012 345 678',
                       validator: (val) {
@@ -788,9 +790,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       height: 52,
                       child: GlassButton(
                         text: _isSaving ? 'Saving Changes...' : 'Save Profile',
-                        icon: _isSaving
-                            ? Icons.hourglass_top
-                            : Icons.check_circle_outline,
+                        icon: _isSaving ? AppIcons.loading : AppIcons.success,
                         onPressed: _isSaving ? () {} : _handleSave,
                       ),
                     )

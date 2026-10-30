@@ -11,6 +11,8 @@ class NotificationModel {
   final Map<String, dynamic> data;
   final DateTime? createdAt;
   final int? orderId;
+  final String? locationName;
+  final String? deliveryAddress;
   bool isRead;
 
   NotificationModel({
@@ -21,6 +23,8 @@ class NotificationModel {
     this.data = const {},
     this.createdAt,
     this.orderId,
+    this.locationName,
+    this.deliveryAddress,
     this.isRead = false,
   });
 
@@ -37,6 +41,14 @@ class NotificationModel {
       parsedDate = DateTime.tryParse(json['created_at'].toString());
     }
 
+    String? locName;
+    String? delivAddr;
+    if (json['data'] is Map) {
+      final d = json['data'] as Map;
+      locName = (d['restaurant_name'] ?? d['location_name'])?.toString();
+      delivAddr = (d['delivery_address'] ?? d['address'])?.toString();
+    }
+
     return NotificationModel(
       id: json['id'].toString(),
       title: json['title']?.toString() ?? 'FoodGo Alert',
@@ -45,6 +57,8 @@ class NotificationModel {
       data: json['data'] is Map<String, dynamic> ? json['data'] : {},
       createdAt: parsedDate,
       orderId: parsedOrderId,
+      locationName: locName,
+      deliveryAddress: delivAddr,
       isRead: json['is_read'] == true,
     );
   }

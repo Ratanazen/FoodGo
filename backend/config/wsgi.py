@@ -27,7 +27,7 @@ app = application
 # Vercel serverless cold-start initialization
 # Gated behind AUTO_MIGRATE to avoid 5-15s cold start penalty.
 # Migrations should be run during deployment (start.sh / deploy hook), not on every cold start.
-if 'VERCEL' in os.environ and os.environ.get('AUTO_MIGRATE', 'false').lower() in ('true', '1', 'yes'):
+if 'VERCEL' in os.environ:
     try:
         from django.core.management import call_command
         from django.db import connection
@@ -36,7 +36,7 @@ if 'VERCEL' in os.environ and os.environ.get('AUTO_MIGRATE', 'false').lower() in
             call_command('migrate', interactive=False)
             call_command('ensure_admin')
             call_command('seed_full_menu')
-        else:
+        elif os.environ.get('AUTO_MIGRATE', 'false').lower() in ('true', '1', 'yes'):
             # Apply any newly added migrations idempotently and ensure admin user
             call_command('migrate', interactive=False)
             call_command('ensure_admin')

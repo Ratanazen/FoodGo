@@ -328,6 +328,51 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ],
                   ),
                 ),
+                if (notif.deliveryAddress != null ||
+                    notif.locationName != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white12
+                            : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: GlassTheme.primaryGreen,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            notif.deliveryAddress ?? notif.locationName!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.white
+                                  : GlassTheme.textDark,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 Row(
                   children: [
@@ -475,6 +520,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         }
 
         return Scaffold(
+          backgroundColor: Colors.transparent,
           appBar: GlassAppBar(
             title: 'Notifications',
             leading: IconButton(
@@ -804,6 +850,46 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                           height: 1.4,
                                                         ),
                                                       ),
+                                                      if (n.locationName !=
+                                                              null ||
+                                                          n.deliveryAddress !=
+                                                              null) ...[
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            const Icon(
+                                                              Icons
+                                                                  .location_on_outlined,
+                                                              size: 13,
+                                                              color: GlassTheme
+                                                                  .primaryGreen,
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 4,
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                n.deliveryAddress ??
+                                                                    n.locationName!,
+                                                                maxLines: 1,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                style: const TextStyle(
+                                                                  color: GlassTheme
+                                                                      .primaryGreen,
+                                                                  fontSize: 11,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
                                                       const SizedBox(height: 6),
                                                       Row(
                                                         children: [

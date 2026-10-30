@@ -8,6 +8,9 @@ import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../providers/address_provider.dart';
 import '../../../../screens/map_screen_location.dart';
+import '../../../core/utils/location_helper.dart';
+import '../../../widgets/location_picker_modal.dart';
+import 'package:latlong2/latlong.dart';
 
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({super.key});
@@ -96,90 +99,194 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      InkWell(
-                        onTap: isLocating
-                            ? null
-                            : () async {
-                                setSheetState(() => isLocating = true);
-                                final loc = await getDeviceLocation();
-                                setSheetState(() => isLocating = false);
-                                if (loc != null) {
-                                  detectedLat = loc.latitude;
-                                  detectedLng = loc.longitude;
-                                  streetController.text =
-                                      'Location (${loc.latitude.toStringAsFixed(4)}, ${loc.longitude.toStringAsFixed(4)})';
-                                  cityController.text = 'Phnom Penh';
-                                  if (ctx.mounted) {
-                                    ScaffoldMessenger.of(ctx).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Auto-detected GPS location coordinates',
-                                        ),
-                                        duration: Duration(seconds: 1),
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                  }
-                                } else if (ctx.mounted) {
-                                  ScaffoldMessenger.of(ctx).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Could not get GPS location. Please enter address manually.',
-                                      ),
-                                      behavior: SnackBarBehavior.floating,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: isLocating
+                                  ? null
+                                  : () async {
+                                      setSheetState(() => isLocating = true);
+                                      final loc = await getDeviceLocation();
+                                      if (loc != null) {
+                                        final details =
+                                            await LocationHelper.resolveLocation(
+                                              loc.latitude,
+                                              loc.longitude,
+                                            );
+                                        setSheetState(() {
+                                          isLocating = false;
+                                          detectedLat = loc.latitude;
+                                          detectedLng = loc.longitude;
+                                          streetController.text =
+                                              details.fullAddress;
+                                          cityController.text = details.city;
+                                        });
+                                        if (ctx.mounted) {
+                                          ScaffoldMessenger.of(
+                                            ctx,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.my_location,
+                                                    color:
+                                                        GlassTheme.primaryGreen,
+                                                    size: 18,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'GPS located: ${details.title}',
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              duration: const Duration(
+                                                seconds: 2,
+                                              ),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        }
+                                      } else {
+                                        setSheetState(() => isLocating = false);
+                                        if (ctx.mounted) {
+                                          ScaffoldMessenger.of(
+                                            ctx,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Could not get GPS location. Please enter address manually.',
+                                              ),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 11,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: GlassTheme.primaryGreen.withValues(
+                                    alpha: isDark ? 0.12 : 0.08,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: GlassTheme.primaryGreen.withValues(
+                                      alpha: 0.3,
                                     ),
-                                  );
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (isLocating)
+                                      const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: GlassTheme.primaryGreen,
+                                        ),
+                                      )
+                                    else
+                                      const Icon(
+                                        Icons.my_location,
+                                        size: 16,
+                                        color: GlassTheme.primaryGreen,
+                                      ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        isLocating
+                                            ? 'Locating...'
+                                            : 'GPS Location',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: GlassTheme.primaryGreen,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final result = await LocationPickerModal.show(
+                                  context,
+                                  initialPosition:
+                                      detectedLat != null && detectedLng != null
+                                      ? LatLng(detectedLat!, detectedLng!)
+                                      : null,
+                                );
+                                if (result != null) {
+                                  setSheetState(() {
+                                    detectedLat = result.latitude;
+                                    detectedLng = result.longitude;
+                                    streetController.text = result.fullAddress;
+                                    cityController.text = result.city;
+                                  });
                                 }
                               },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: isDark ? 0.12 : 0.08,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: GlassTheme.primaryGreen.withValues(
-                                alpha: 0.3,
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (isLocating)
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: GlassTheme.primaryGreen,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 11,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.06)
+                                      : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white12
+                                        : const Color(0xFFE2E8F0),
                                   ),
-                                )
-                              else
-                                const Icon(
-                                  Icons.my_location,
-                                  size: 18,
-                                  color: GlassTheme.primaryGreen,
                                 ),
-                              const SizedBox(width: 8),
-                              Text(
-                                isLocating
-                                    ? 'Detecting Location...'
-                                    : 'Use Current GPS Location',
-                                style: const TextStyle(
-                                  color: GlassTheme.primaryGreen,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.map_outlined,
+                                      size: 16,
+                                      color: GlassTheme.royalSmalt,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Flexible(
+                                      child: Text(
+                                        'Show on Map',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: GlassTheme.royalSmalt,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                       const SizedBox(height: 14),
 
@@ -427,6 +534,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: GlassAppBar(
         title: 'Saved Addresses',
         leading: IconButton(

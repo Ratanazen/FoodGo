@@ -34,6 +34,31 @@ enum AppColorPalette {
   neonNight,
 }
 
+enum SkinBackdropStyle {
+  liquidMesh,
+  warmGlow,
+  botanicalAurora,
+  oceanicWaves,
+  luxuryStardust,
+  khmerLattice,
+  festivePetals,
+  lanternRiver,
+  sacredLotus,
+  winterConstellation,
+  fireworksGlitter,
+  mysticFog,
+  romanticPetals,
+  springMeadow,
+  tropicalBreeze,
+  orientalClouds,
+  cyberGrid,
+  celestialCrescent,
+  forestCanopy,
+  liquidGlassPrism,
+  retroMemphis,
+  architecturalMinimal,
+}
+
 class PaletteData {
   final AppColorPalette id;
   final String nameEn;
@@ -73,6 +98,9 @@ class PaletteData {
   final String badgeText;
   final bool isFestive;
 
+  // Themed Skin Backdrop Style
+  final SkinBackdropStyle backdropStyle;
+
   const PaletteData({
     required this.id,
     required this.nameEn,
@@ -101,7 +129,106 @@ class PaletteData {
     this.categoryKh = 'រចនាបថដើម',
     this.badgeText = '',
     this.isFestive = false,
+    this.backdropStyle = SkinBackdropStyle.liquidMesh,
   });
+
+  String get backdropNameEn {
+    switch (backdropStyle) {
+      case SkinBackdropStyle.liquidMesh:
+        return 'Liquid Glass Mesh';
+      case SkinBackdropStyle.warmGlow:
+        return 'Warm Hearth Glow';
+      case SkinBackdropStyle.botanicalAurora:
+        return 'Botanical Aurora Wave';
+      case SkinBackdropStyle.oceanicWaves:
+        return 'Oceanic Cobalt Waves';
+      case SkinBackdropStyle.luxuryStardust:
+        return 'Imperial Gold Stardust';
+      case SkinBackdropStyle.khmerLattice:
+        return 'Angkor Lotus Lattice';
+      case SkinBackdropStyle.festivePetals:
+        return 'Jasmine Blossom Petals';
+      case SkinBackdropStyle.lanternRiver:
+        return 'Tonle Sap Lantern River';
+      case SkinBackdropStyle.sacredLotus:
+        return 'Sacred Candlelight & Lotus';
+      case SkinBackdropStyle.winterConstellation:
+        return 'Winter Constellation & Snow';
+      case SkinBackdropStyle.fireworksGlitter:
+        return 'Midnight Fireworks & Glitter';
+      case SkinBackdropStyle.mysticFog:
+        return 'Twilight Mist & Mystic Nebula';
+      case SkinBackdropStyle.romanticPetals:
+        return 'Romantic Rose Blush Nebula';
+      case SkinBackdropStyle.springMeadow:
+        return 'Sunlit Blossom Meadow';
+      case SkinBackdropStyle.tropicalBreeze:
+        return 'Turquoise Surf & Palm Shade';
+      case SkinBackdropStyle.orientalClouds:
+        return 'Auspicious Clouds & Lanterns';
+      case SkinBackdropStyle.cyberGrid:
+        return 'Cyberpunk Laser Grid';
+      case SkinBackdropStyle.celestialCrescent:
+        return 'Starlight Crescent & Arabesque';
+      case SkinBackdropStyle.forestCanopy:
+        return 'Forest Canopy & Sunlight Motes';
+      case SkinBackdropStyle.liquidGlassPrism:
+        return 'Prismatic Glass Caustics';
+      case SkinBackdropStyle.retroMemphis:
+        return '80s Memphis Geometric Confetti';
+      case SkinBackdropStyle.architecturalMinimal:
+        return 'Architectural Studio Dot Grid';
+    }
+  }
+
+  String get backdropNameKh {
+    switch (backdropStyle) {
+      case SkinBackdropStyle.liquidMesh:
+        return 'ផ្ទៃកញ្ចក់រាវ Liquid Mesh';
+      case SkinBackdropStyle.warmGlow:
+        return 'ពន្លឺកម្ដៅចង្ក្រានបាយ';
+      case SkinBackdropStyle.botanicalAurora:
+        return 'រលកពន្លឺធម្មជាតិអូរ៉ូរ៉ា';
+      case SkinBackdropStyle.oceanicWaves:
+        return 'រលកសមុទ្រខៀវស្រស់';
+      case SkinBackdropStyle.luxuryStardust:
+        return 'កម្ទេចផ្កាយមាសរាជវង្ស';
+      case SkinBackdropStyle.khmerLattice:
+        return 'ក្បាច់ផ្កាឈូកអង្គរ';
+      case SkinBackdropStyle.festivePetals:
+        return 'ផ្កាម្លិះ និងកាំរស្មីសង្ក្រាន្ត';
+      case SkinBackdropStyle.lanternRiver:
+        return 'គោមបណ្ដែតទឹកទន្លេសាប';
+      case SkinBackdropStyle.sacredLotus:
+        return 'ពន្លឺទៀន និងផ្កាឈូកពិសិដ្ឋ';
+      case SkinBackdropStyle.winterConstellation:
+        return 'តារានិកររដូវរងារ និងព្រិល';
+      case SkinBackdropStyle.fireworksGlitter:
+        return 'កាំជ្រួចអបអរឆ្នាំថ្មី';
+      case SkinBackdropStyle.mysticFog:
+        return 'អ័ព្ទព្រលប់ និងពពកអាថ៌កំបាំង';
+      case SkinBackdropStyle.romanticPetals:
+        return 'ផ្កាកុលាបស្នេហាពណ៌ផ្កាឈូក';
+      case SkinBackdropStyle.springMeadow:
+        return 'វាលផ្ការីកស្រស់បំព្រង';
+      case SkinBackdropStyle.tropicalBreeze:
+        return 'ខ្យល់សមុទ្រ និងម្លប់ដូង';
+      case SkinBackdropStyle.orientalClouds:
+        return 'ពពកមង្គល និងគោមក្រហម';
+      case SkinBackdropStyle.cyberGrid:
+        return 'ក្រឡាចត្រង្គឡាស៊ែរ Cyber';
+      case SkinBackdropStyle.celestialCrescent:
+        return 'ព្រះចន្ទចរ និងផ្កាយអារ៉ាប់';
+      case SkinBackdropStyle.forestCanopy:
+        return 'ម្លប់ព្រឹក្សា និងពន្លឺព្រះអាទិត្យ';
+      case SkinBackdropStyle.liquidGlassPrism:
+        return 'ចំណាំងពន្លឺកញ្ចក់ Prism';
+      case SkinBackdropStyle.retroMemphis:
+        return 'រចនាបថធរណីមាត្រ Retro 80s';
+      case SkinBackdropStyle.architecturalMinimal:
+        return 'ក្រឡាចំនុច Architectural Studio';
+    }
+  }
 
   /// Check whether this theme is seasonally active on a given date (defaults to today).
   bool isSeasonallyActiveAt([DateTime? date]) {
@@ -212,6 +339,7 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'CLASSIC',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.warmGlow,
   );
 
   static const PaletteData emeraldGreen = PaletteData(
@@ -256,6 +384,7 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'ORGANIC',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.botanicalAurora,
   );
 
   static const PaletteData smaltBlue = PaletteData(
@@ -300,6 +429,7 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'CYBER SMALT',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.oceanicWaves,
   );
 
   static const PaletteData darkGold = PaletteData(
@@ -344,6 +474,7 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'PRESTIGE',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.luxuryStardust,
   );
 
   // ---------------------------------------------------------------------------
@@ -392,13 +523,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'ចូលឆ្នាំខ្មែរ',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.festivePetals,
   );
 
   static const PaletteData christmas = PaletteData(
     id: AppColorPalette.christmas,
     nameEn: 'Christmas Wonderland',
     nameKh: 'បុណ្យគ្រីស្ទម៉ាស / ណូអែល',
-    descriptionEn: 'Magical snowfall, crimson ribbons, pine forests and warm holiday cheer',
+    descriptionEn:
+        'Magical snowfall, crimson ribbons, pine forests and warm holiday cheer',
     descriptionKh: 'ព្រិលធ្លាក់ត្រជាក់ស្រស់ថ្លា និងបរិយាកាសកក់ក្តៅនៃបុណ្យណូអែល',
     primary: Color(0xFFDC2626),
     primaryDark: Color(0xFF991B1B),
@@ -436,13 +569,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'CHRISTMAS',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.winterConstellation,
   );
 
   static const PaletteData christmasWonderland = PaletteData(
     id: AppColorPalette.christmasWonderland,
     nameEn: 'Christmas Wonderland',
     nameKh: 'បុណ្យណូអែល និងរដូវរងា',
-    descriptionEn: 'Magical snowfall, crimson ribbons, pine forests and warm holiday cheer',
+    descriptionEn:
+        'Magical snowfall, crimson ribbons, pine forests and warm holiday cheer',
     descriptionKh: 'ព្រិលធ្លាក់ត្រជាក់ស្រស់ថ្លា និងបរិយាកាសកក់ក្តៅនៃបុណ្យណូអែល',
     primary: Color(0xFFDC2626),
     primaryDark: Color(0xFF991B1B),
@@ -480,13 +615,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'WONDERLAND',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.winterConstellation,
   );
 
   static const PaletteData waterFestival = PaletteData(
     id: AppColorPalette.waterFestival,
     nameEn: 'Water Festival (Bon Om Touk)',
     nameKh: 'ព្រះរាជពិធីបុណ្យអុំទូក',
-    descriptionEn: 'Tonle Sap river regatta, illuminated boats & full moon glow',
+    descriptionEn:
+        'Tonle Sap river regatta, illuminated boats & full moon glow',
     descriptionKh: 'ពិធីបុណ្យអុំទូក បណ្តែតប្រទីប និងសំពះព្រះខែ នៃដងទន្លេសាប',
     primary: Color(0xFF0284C7),
     primaryDark: Color(0xFF0369A1),
@@ -524,6 +661,7 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'បុណ្យអុំទូក',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.lanternRiver,
   );
 
   static const PaletteData pchumBen = PaletteData(
@@ -568,14 +706,17 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'ភ្ជុំបិណ្ឌ',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.sacredLotus,
   );
 
   static const PaletteData angkorHeritage = PaletteData(
     id: AppColorPalette.angkorHeritage,
     nameEn: 'Angkor Heritage',
     nameKh: 'សម្បត្តិវប្បធម៌អង្គរ',
-    descriptionEn: 'Majestic sunrise over Angkor Wat & ancient sandstone bronze',
-    descriptionKh: 'ភាពអស្ចារ្យនៃប្រាសាទអង្គរវត្ត ថ្មភក់បុរាណ និងរស្មីព្រះអាទិត្យរះ',
+    descriptionEn:
+        'Majestic sunrise over Angkor Wat & ancient sandstone bronze',
+    descriptionKh:
+        'ភាពអស្ចារ្យនៃប្រាសាទអង្គរវត្ត ថ្មភក់បុរាណ និងរស្មីព្រះអាទិត្យរះ',
     primary: Color(0xFFEA580C),
     primaryDark: Color(0xFF9A3412),
     primaryAccent: Color(0xFFFDBA74),
@@ -612,14 +753,17 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'អង្គរវត្ត',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.khmerLattice,
   );
 
   static const PaletteData khmerHeritage = PaletteData(
     id: AppColorPalette.khmerHeritage,
     nameEn: 'Khmer Heritage',
     nameKh: 'មរតកវប្បធម៌ខ្មែរ',
-    descriptionEn: 'Preah Vihear & Angkor royal amber gold and architectural dignity',
-    descriptionKh: 'សោភ័ណភាពស្ថាបត្យកម្មប្រាសាទបុរាណ និងក្បូរក្បាច់រចនាខ្មែរដ៏រុងរឿង',
+    descriptionEn:
+        'Preah Vihear & Angkor royal amber gold and architectural dignity',
+    descriptionKh:
+        'សោភ័ណភាពស្ថាបត្យកម្មប្រាសាទបុរាណ និងក្បូរក្បាច់រចនាខ្មែរដ៏រុងរឿង',
     primary: Color(0xFFB45309),
     primaryDark: Color(0xFF78350F),
     primaryAccent: Color(0xFFFDE68A),
@@ -656,6 +800,7 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'មរតកខ្មែរ',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.khmerLattice,
   );
 
   static const PaletteData modernFoodGo = PaletteData(
@@ -700,13 +845,15 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'ORIGINAL',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.liquidMesh,
   );
 
   static const PaletteData darkPremium = PaletteData(
     id: AppColorPalette.darkPremium,
     nameEn: 'Dark Premium',
     nameKh: 'រាត្រីប្រណិត (Dark Premium)',
-    descriptionEn: 'Deep obsidian surfaces, glare reduction, and refined champagne gold',
+    descriptionEn:
+        'Deep obsidian surfaces, glare reduction, and refined champagne gold',
     descriptionKh: 'ផ្ទៃពណ៌ងងឹតស៊ីវិល័យ កាត់បន្ថយពន្លឺចាំង និងបង្កើនភាពទាក់ទាញ',
     primary: Color(0xFFD4AF37),
     primaryDark: Color(0xFFA07B18),
@@ -744,13 +891,15 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'PREMIUM',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.architecturalMinimal,
   );
 
   static const PaletteData softMinimal = PaletteData(
     id: AppColorPalette.softMinimal,
     nameEn: 'Soft Minimal',
     nameKh: 'សាមញ្ញទន់ភ្លន់ (Minimal)',
-    descriptionEn: 'Calm neutral surfaces, gentle botanical sage, and spacious layouts',
+    descriptionEn:
+        'Calm neutral surfaces, gentle botanical sage, and spacious layouts',
     descriptionKh: 'សោភ័ណភាពស្រទន់ ស្ងប់ស្ងាត់ មានលំហ និងភាពទន់ភ្លន់',
     primary: Color(0xFF5B7065),
     primaryDark: Color(0xFF3F4F46),
@@ -788,13 +937,15 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'MINIMAL',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.architecturalMinimal,
   );
 
   static const PaletteData songkranNewYear = PaletteData(
     id: AppColorPalette.songkranNewYear,
     nameEn: 'Songkran Splash',
     nameKh: 'សង្ក្រាន្តសប្បាយ (Songkran)',
-    descriptionEn: 'Cooling aquatic cyan, joyful splashes, and refreshing celebration',
+    descriptionEn:
+        'Cooling aquatic cyan, joyful splashes, and refreshing celebration',
     descriptionKh: 'រដូវកាលសង្ក្រាន្តត្រជាក់ស្រស់ស្រាយ និងទឹកថ្លាឈ្វេង',
     primary: Color(0xFF06B6D4),
     primaryDark: Color(0xFF0891B2),
@@ -832,13 +983,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'សង្ក្រាន្ត',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.festivePetals,
   );
 
   static const PaletteData monochrome = PaletteData(
     id: AppColorPalette.monochrome,
     nameEn: 'Monochrome Studio',
     nameKh: 'ស-ខ្មៅទាន់សម័យ',
-    descriptionEn: 'High-end minimalist studio aesthetic with stark editorial contrast',
+    descriptionEn:
+        'High-end minimalist studio aesthetic with stark editorial contrast',
     descriptionKh: 'រចនាបថទាន់សម័យ បែបស្ទូឌីយោ ស និងខ្មៅ',
     primary: Color(0xFF475569),
     primaryDark: Color(0xFF1E293B),
@@ -876,13 +1029,15 @@ class PaletteData {
     categoryKh: 'ភាពងាយស្រួល និងពិសេស',
     badgeText: 'STUDIO',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.architecturalMinimal,
   );
 
   static const PaletteData highContrast = PaletteData(
     id: AppColorPalette.highContrast,
     nameEn: 'High Contrast (WCAG AAA)',
     nameKh: 'កម្រិតពណ៌ច្បាស់ពិសេស',
-    descriptionEn: 'Engineered for maximum legibility, visual clarity, and accessibility',
+    descriptionEn:
+        'Engineered for maximum legibility, visual clarity, and accessibility',
     descriptionKh: 'កម្រិតកម្រិតពណ៌ខ្ពស់បំផុត ងាយស្រួលមើល សម្រាប់គ្រប់គ្នា',
     primary: Color(0xFFFFEA00),
     primaryDark: Color(0xFFC7B700),
@@ -920,6 +1075,7 @@ class PaletteData {
     categoryKh: 'ភាពងាយស្រួល និងពិសេស',
     badgeText: 'AAA CONTRAST',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.architecturalMinimal,
   );
 
   // ---------------------------------------------------------------------------
@@ -930,7 +1086,8 @@ class PaletteData {
     id: AppColorPalette.newYearCelebration,
     nameEn: 'New Year Celebration',
     nameKh: 'អបអរសាទរឆ្លងឆ្នាំសកល',
-    descriptionEn: 'Midnight navy sky illuminated with glittering champagne gold fireworks',
+    descriptionEn:
+        'Midnight navy sky illuminated with glittering champagne gold fireworks',
     descriptionKh: 'រាត្រីឆ្លងឆ្នាំសកល ពោរពេញដោយកាំជ្រួច និងពន្លឺមាសចែងចាំង',
     primary: Color(0xFFF59E0B),
     primaryDark: Color(0xFFD97706),
@@ -968,14 +1125,17 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'NEW YEAR',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.fireworksGlitter,
   );
 
   static const PaletteData halloweenNight = PaletteData(
     id: AppColorPalette.halloweenNight,
     nameEn: 'Halloween Night',
     nameKh: 'រាត្រីបុណ្យហាឡូវីន',
-    descriptionEn: 'Mystic haunted shadows, eerie jack-o\'-lantern glow, and violet fog',
-    descriptionKh: 'រាត្រីអាថ៌កំបាំង ផ្លែឃ្លោកភ្លើង និងបរិយាកាសភ័យរន្ធត់បែបកម្សាន្ត',
+    descriptionEn:
+        'Mystic haunted shadows, eerie jack-o\'-lantern glow, and violet fog',
+    descriptionKh:
+        'រាត្រីអាថ៌កំបាំង ផ្លែឃ្លោកភ្លើង និងបរិយាកាសភ័យរន្ធត់បែបកម្សាន្ត',
     primary: Color(0xFFEA580C),
     primaryDark: Color(0xFFC2410C),
     primaryAccent: Color(0xFFA855F7),
@@ -1012,13 +1172,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'HALLOWEEN',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.mysticFog,
   );
 
   static const PaletteData valentinesDay = PaletteData(
     id: AppColorPalette.valentinesDay,
     nameEn: 'Valentine\'s Day',
     nameKh: 'ទិវានៃក្តីស្រឡាញ់',
-    descriptionEn: 'Tender ruby petals, sweet strawberry chocolate, and heartfelt warmth',
+    descriptionEn:
+        'Tender ruby petals, sweet strawberry chocolate, and heartfelt warmth',
     descriptionKh: 'ផ្កាកុលាបក្រហមឆ្អៅ ក្តីស្រឡាញ់ដ៏ផ្អែមល្ហែម និងភាពកក់ក្តៅ',
     primary: Color(0xFFE11D48),
     primaryDark: Color(0xFFBE123C),
@@ -1056,13 +1218,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'VALENTINE',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.romanticPetals,
   );
 
   static const PaletteData easterSpring = PaletteData(
     id: AppColorPalette.easterSpring,
     nameEn: 'Easter & Spring',
     nameKh: 'រដូវផ្ការីក និងបុណ្យអ៊ីស្ទ័រ',
-    descriptionEn: 'Blossoming lilac meadows, sweet pastels, and fresh vernal renewal',
+    descriptionEn:
+        'Blossoming lilac meadows, sweet pastels, and fresh vernal renewal',
     descriptionKh: 'រដូវផ្ការីកស្រស់បំព្រង ពណ៌ប៉ាស្តែលផ្អែម និងភាពស្រស់ថ្លា',
     primary: Color(0xFF7C3AED),
     primaryDark: Color(0xFF6D28D9),
@@ -1100,13 +1264,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'EASTER',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.springMeadow,
   );
 
   static const PaletteData summerTropical = PaletteData(
     id: AppColorPalette.summerTropical,
     nameEn: 'Summer Tropical',
     nameKh: 'រដូវក្តៅត្រូពិច និងសមុទ្រ',
-    descriptionEn: 'Sun-drenched golden mango, cooling coconut water, and azure waves',
+    descriptionEn:
+        'Sun-drenched golden mango, cooling coconut water, and azure waves',
     descriptionKh: 'រដូវក្តៅត្រូពិច ទឹកសមុទ្រខៀវស្រងាត់ និងផ្លែស្វាយទុំផ្អែម',
     primary: Color(0xFFF97316),
     primaryDark: Color(0xFFC2410C),
@@ -1144,13 +1310,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'TROPICAL',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.tropicalBreeze,
   );
 
   static const PaletteData lunarNewYear = PaletteData(
     id: AppColorPalette.lunarNewYear,
     nameEn: 'Lunar New Year',
     nameKh: 'បុណ្យចូលឆ្នាំប្រពៃណីចិន',
-    descriptionEn: 'Imperial vermilion, lantern glow, good fortune envelopes, and festive feasts',
+    descriptionEn:
+        'Imperial vermilion, lantern glow, good fortune envelopes, and festive feasts',
     descriptionKh: 'អាំងប៉ាវក្រហម គោមមាស និងសិរីសួស្តីវិបុលសុខនៃឆ្នាំថ្មី',
     primary: Color(0xFFDC2626),
     primaryDark: Color(0xFF991B1B),
@@ -1188,13 +1356,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'ចូលឆ្នាំចិន',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.orientalClouds,
   );
 
   static const PaletteData blackFridayCyber = PaletteData(
     id: AppColorPalette.blackFridayCyber,
     nameEn: 'Black Friday & Cyber Sale',
     nameKh: 'មហាមហោស្រពទិញទំនិញ Black Friday',
-    descriptionEn: 'Sleek dark obsidian with electric neon discounts and flash deals',
+    descriptionEn:
+        'Sleek dark obsidian with electric neon discounts and flash deals',
     descriptionKh: 'រចនាបថខ្មៅរលោង ភ្លើងណេអុងខៀវ និងការបញ្ចុះតម្លៃពិសេស',
     primary: Color(0xFF00E5FF),
     primaryDark: Color(0xFF00B0FF),
@@ -1232,13 +1402,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'CYBER SALE',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.cyberGrid,
   );
 
   static const PaletteData ramadanEid = PaletteData(
     id: AppColorPalette.ramadanEid,
     nameEn: 'Ramadan & Eid',
     nameKh: 'ពិធីបុណ្យរ៉ាម៉ាដាន និងអេត',
-    descriptionEn: 'Sacred crescent moon, glowing lanterns, dates, and joyous community iftar',
+    descriptionEn:
+        'Sacred crescent moon, glowing lanterns, dates, and joyous community iftar',
     descriptionKh: 'ព្រះចន្ទអឌ្ឍចន្ទ គោមបំភ្លឺរាត្រី និងពរជ័យដ៏បរិសុទ្ធ',
     primary: Color(0xFF059669),
     primaryDark: Color(0xFF047857),
@@ -1276,13 +1448,15 @@ class PaletteData {
     categoryKh: 'ពិធីបុណ្យ និងប្រពៃណីជាតិ',
     badgeText: 'RAMADAN',
     isFestive: true,
+    backdropStyle: SkinBackdropStyle.celestialCrescent,
   );
 
   static const PaletteData natureOrganic = PaletteData(
     id: AppColorPalette.natureOrganic,
     nameEn: 'Nature & Organic',
     nameKh: 'ធម្មជាតិ និងសរីរាង្គ',
-    descriptionEn: 'Wholesome botanicals, fresh organic produce, and earthy sustainability',
+    descriptionEn:
+        'Wholesome botanicals, fresh organic produce, and earthy sustainability',
     descriptionKh: 'បន្លែផ្លែឈើធម្មជាតិស្រស់ៗ និងការរស់នៅបែបសុខភាព',
     primary: Color(0xFF15803D),
     primaryDark: Color(0xFF166534),
@@ -1320,13 +1494,15 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'ORGANIC',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.forestCanopy,
   );
 
   static const PaletteData glassmorphism = PaletteData(
     id: AppColorPalette.glassmorphism,
     nameEn: 'Glassmorphism',
     nameKh: 'កញ្ចក់ថ្លាទំនើប / Glassmorphism',
-    descriptionEn: 'Translucent frosted glass, specular highlights, and multi-depth blur',
+    descriptionEn:
+        'Translucent frosted glass, specular highlights, and multi-depth blur',
     descriptionKh: 'រចនាបថកញ្ចក់ថ្លាទាន់សម័យ ពន្លឺចែងចាំង និងស្រទាប់ស៊ីជម្រៅ',
     primary: Color(0xFF2563EB),
     primaryDark: Color(0xFF1D4ED8),
@@ -1364,13 +1540,15 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'AERO GLASS',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.liquidGlassPrism,
   );
 
   static const PaletteData minimalPremium = PaletteData(
     id: AppColorPalette.minimalPremium,
     nameEn: 'Minimal Premium',
     nameKh: 'សាមញ្ញប្រណិត / Minimal',
-    descriptionEn: 'Quiet luxury, refined Scandinavian restraint, and editorial clarity',
+    descriptionEn:
+        'Quiet luxury, refined Scandinavian restraint, and editorial clarity',
     descriptionKh: 'ភាពសាមញ្ញតែប្រណិត ស្ងប់ស្ងាត់ ផាសុកភាព និងទាន់សម័យ',
     primary: Color(0xFF334155),
     primaryDark: Color(0xFF1E293B),
@@ -1408,13 +1586,15 @@ class PaletteData {
     categoryKh: 'រចនាបថដើម',
     badgeText: 'MINIMAL',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.architecturalMinimal,
   );
 
   static const PaletteData retroPop = PaletteData(
     id: AppColorPalette.retroPop,
     nameEn: 'Retro Pop',
     nameKh: 'បែបអតីតកាលទសវត្សរ៍ ៨០',
-    descriptionEn: 'Vibrant 80s synthwave, punchy arcade contrast, and nostalgic rhythm',
+    descriptionEn:
+        'Vibrant 80s synthwave, punchy arcade contrast, and nostalgic rhythm',
     descriptionKh: 'រចនាបថទសវត្សរ៍ ៨០ ពណ៌ដិតស្រស់ស្អាត បែបយុវវ័យ និងតន្ត្រី',
     primary: Color(0xFFE11D74),
     primaryDark: Color(0xFFBE125E),
@@ -1452,13 +1632,15 @@ class PaletteData {
     categoryKh: 'ការច្នៃប្រឌិត និងសិល្បៈ',
     badgeText: '80s RETRO',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.retroMemphis,
   );
 
   static const PaletteData neonNight = PaletteData(
     id: AppColorPalette.neonNight,
     nameEn: 'Neon Night',
     nameKh: 'រាត្រីពន្លឺណេអុង / Cyberpunk',
-    descriptionEn: 'Ultra-vivid cyberpunk glow, matrix cyan streaks, and night city pulse',
+    descriptionEn:
+        'Ultra-vivid cyberpunk glow, matrix cyan streaks, and night city pulse',
     descriptionKh: 'ពន្លឺណេអុងនាពេលរាត្រី បច្ចេកវិទ្យាអនាគត និងភាពរស់រវើក',
     primary: Color(0xFF00FFCC),
     primaryDark: Color(0xFF00C896),
@@ -1496,6 +1678,7 @@ class PaletteData {
     categoryKh: 'ការច្នៃប្រឌិត និងសិល្បៈ',
     badgeText: 'CYBERPUNK',
     isFestive: false,
+    backdropStyle: SkinBackdropStyle.cyberGrid,
   );
 
   // ---------------------------------------------------------------------------

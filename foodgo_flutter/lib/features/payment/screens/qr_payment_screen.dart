@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/theme/glass_theme.dart';
+import '../../../../core/theme/app_icons.dart';
+import '../../../../core/theme/app_motion.dart';
 import '../../../../core/utils/khmer_currency.dart';
 import '../../../../providers/cart_provider.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
@@ -273,7 +275,13 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         await _paymentService.cancelPayment(_currentPayment!.id);
       } catch (_) {}
     }
-    if (mounted) context.pop();
+    if (mounted) {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/orders');
+      }
+    }
   }
 
   Future<void> _retryPayment() async {
@@ -401,42 +409,42 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       case 'CREATING':
         badgeColor = Colors.lightBlueAccent;
         badgeBg = Colors.lightBlueAccent.withValues(alpha: 0.15);
-        badgeIcon = Icons.hourglass_top_rounded;
+        badgeIcon = AppIcons.loading;
         badgeText = 'CREATING PAYMENT';
         subtext = 'Generating secure KHQR code...';
         break;
       case 'PAID':
         badgeColor = GlassTheme.primaryGreen;
         badgeBg = GlassTheme.primaryGreen.withValues(alpha: 0.18);
-        badgeIcon = Icons.check_circle_rounded;
+        badgeIcon = AppIcons.checkCircle;
         badgeText = 'PAID · CONFIRMED';
         subtext = 'Payment confirmed! Server verified.';
         break;
       case 'PROCESSING':
         badgeColor = Colors.cyanAccent;
         badgeBg = Colors.cyanAccent.withValues(alpha: 0.15);
-        badgeIcon = Icons.hourglass_bottom_rounded;
+        badgeIcon = AppIcons.loading;
         badgeText = 'VERIFYING';
         subtext = 'Payment received! Verifying transaction...';
         break;
       case 'FAILED':
         badgeColor = Colors.redAccent;
         badgeBg = Colors.redAccent.withValues(alpha: 0.15);
-        badgeIcon = Icons.error_outline_rounded;
+        badgeIcon = AppIcons.error;
         badgeText = 'PAYMENT FAILED';
         subtext = 'Transaction could not be completed.';
         break;
       case 'EXPIRED':
         badgeColor = Colors.deepOrangeAccent;
         badgeBg = Colors.deepOrangeAccent.withValues(alpha: 0.15);
-        badgeIcon = Icons.timer_off_outlined;
+        badgeIcon = AppIcons.loading;
         badgeText = 'QR EXPIRED';
         subtext = 'Payment session has expired.';
         break;
       case 'CANCELLED':
         badgeColor = Colors.grey;
         badgeBg = Colors.grey.withValues(alpha: 0.15);
-        badgeIcon = Icons.cancel_outlined;
+        badgeIcon = AppIcons.close;
         badgeText = 'CANCELLED';
         subtext = 'This payment session was cancelled.';
         break;
@@ -444,7 +452,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       default:
         badgeColor = Colors.amberAccent;
         badgeBg = Colors.amberAccent.withValues(alpha: 0.15);
-        badgeIcon = Icons.sync_rounded;
+        badgeIcon = AppIcons.refresh;
         badgeText = 'WAITING FOR PAYMENT';
         subtext = 'Scan QR code with your mobile banking app';
         break;
@@ -573,7 +581,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.qr_code_2,
+                  AppIcons.qrCode,
                   size: 16,
                   color: brandColor == GlassTheme.bakongRed
                       ? Colors.redAccent
@@ -963,7 +971,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
   }
 
   Widget _buildSuccessCard(PaymentModel payment) {
-    return GlassContainer(
+    final paidCard = GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: GlassTheme.borderRadiusSmall,
       child: Column(
@@ -977,7 +985,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
               border: Border.all(color: GlassTheme.primaryGreen, width: 2.5),
             ),
             child: const Icon(
-              Icons.check_circle_rounded,
+              AppIcons.checkCircle,
               size: 50,
               color: GlassTheme.primaryGreen,
             ),
@@ -1060,7 +1068,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             height: 48,
             child: GlassButton(
               text: 'Track Order',
-              icon: Icons.navigation_rounded,
+              icon: AppIcons.route,
               onPressed: () => context.go('/map/${payment.orderId}'),
             ),
           ),
@@ -1069,7 +1077,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             width: double.infinity,
             height: 44,
             child: OutlinedButton.icon(
-              icon: const Icon(Icons.receipt_long, size: 18),
+              icon: const Icon(AppIcons.receipt, size: 18),
               label: const Text('View All Orders'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
@@ -1083,11 +1091,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           ),
           const SizedBox(height: 6),
           TextButton.icon(
-            icon: const Icon(
-              Icons.home_outlined,
-              size: 18,
-              color: Colors.white70,
-            ),
+            icon: const Icon(AppIcons.home, size: 18, color: Colors.white70),
             label: const Text(
               'Return to Home',
               style: TextStyle(color: Colors.white70),
@@ -1096,28 +1100,40 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.96, 0.96));
+    );
+
+    final reduceMotion = AppMotion.shouldReduceMotion(context);
+    return reduceMotion
+        ? paidCard
+        : paidCard
+              .animate()
+              .fadeIn(duration: AppMotion.page, curve: AppMotion.enter)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: AppMotion.page,
+                curve: AppMotion.enter,
+              );
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoadingInitial) {
-      return Scaffold(
-        appBar: const GlassAppBar(title: 'Scan to Pay'),
-        body: Container(
-          decoration: BoxDecoration(color: GlassTheme.backgroundDark),
-          child: Center(
-            child: CircularProgressIndicator(color: GlassTheme.primaryGreen),
-          ),
+      return const Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: GlassAppBar(title: 'Scan to Pay'),
+        body: Center(
+          child: CircularProgressIndicator(color: GlassTheme.primaryGreen),
         ),
       );
     }
 
     if (_initialError != null || _currentPayment == null) {
       return Scaffold(
+        backgroundColor: Colors.transparent,
         appBar: const GlassAppBar(title: 'Scan to Pay'),
         body: Container(
-          decoration: BoxDecoration(color: GlassTheme.backgroundDark),
+          decoration: const BoxDecoration(color: Colors.transparent),
           padding: const EdgeInsets.all(24),
           child: Center(
             child: Column(
@@ -1182,478 +1198,531 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         !isSessionFailed &&
         !isSessionCancelled;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        title: 'Scan to Pay',
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: isSessionPaid ? () => context.go('/home') : _cancelPayment,
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(color: GlassTheme.backgroundDark),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 500),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20.0,
-                  vertical: 16.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Live Status Badge
-                    _buildStatusBadge(payment),
-                    const SizedBox(height: 16),
+    final reduceMotion = AppMotion.shouldReduceMotion(context);
 
-                    if (isSessionPaid)
-                      _buildSuccessCard(payment)
-                    else ...[
-                      // Order & Amount Summary Card
-                      _buildOrderSummaryCard(
-                            payment,
-                            isBakong,
-                            providerTitle,
-                            brandColor,
-                          )
-                          .animate()
-                          .fadeIn(duration: 350.ms)
-                          .slideY(begin: 0.08, end: 0),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (isSessionPaid) {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/orders');
+          }
+        } else {
+          _cancelPayment();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBodyBehindAppBar: true,
+        appBar: GlassAppBar(
+          title: 'Scan to Pay',
+          leading: IconButton(
+            icon: const Icon(AppIcons.back, color: Colors.white),
+            onPressed: isSessionPaid
+                ? () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/orders');
+                    }
+                  }
+                : _cancelPayment,
+          ),
+        ),
+        body: Container(
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 16.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Live Status Badge
+                      _buildStatusBadge(payment),
                       const SizedBox(height: 16),
 
-                      // QR Code / Terminal State Card
-                      GlassContainer(
-                        padding: const EdgeInsets.all(20),
-                        borderRadius: GlassTheme.borderRadiusSmall,
-                        child: Column(
-                          children: [
-                            if (isSessionFailed) ...[
-                              const Icon(
-                                Icons.error_outline,
-                                size: 72,
-                                color: Colors.redAccent,
-                              ),
-                              const SizedBox(height: 14),
-                              const Text(
-                                'Payment Failed',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                      if (isSessionPaid)
+                        _buildSuccessCard(payment)
+                      else ...[
+                        // Order & Amount Summary Card
+                        reduceMotion
+                            ? _buildOrderSummaryCard(
+                                payment,
+                                isBakong,
+                                providerTitle,
+                                brandColor,
+                              )
+                            : _buildOrderSummaryCard(
+                                    payment,
+                                    isBakong,
+                                    providerTitle,
+                                    brandColor,
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: AppMotion.shortDuration)
+                                  .slideY(
+                                    begin: 0.04,
+                                    end: 0,
+                                    duration: AppMotion.shortDuration,
+                                  ),
+                        const SizedBox(height: 16),
+
+                        // QR Code / Terminal State Card
+                        GlassContainer(
+                          padding: const EdgeInsets.all(20),
+                          borderRadius: GlassTheme.borderRadiusSmall,
+                          child: Column(
+                            children: [
+                              if (isSessionFailed) ...[
+                                const Icon(
+                                  AppIcons.error,
+                                  size: 72,
                                   color: Colors.redAccent,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'The transaction could not be completed. Please check your bank balance or retry.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 13,
+                                const SizedBox(height: 14),
+                                const Text(
+                                  'Payment Failed',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.redAccent,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 20),
-                              GlassButton(
-                                text: 'Retry Payment',
-                                icon: Icons.refresh,
-                                isLoading: _isVerifying,
-                                onPressed: _retryPayment,
-                              ),
-                              const SizedBox(height: 10),
-                              TextButton(
-                                onPressed: () => context.pop(),
-                                child: Text(
-                                  'Back to Checkout',
-                                  style: TextStyle(color: GlassTheme.textMuted),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'The transaction could not be completed. Please check your bank balance or retry.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                              ),
-                            ] else if (isSessionCancelled) ...[
-                              const Icon(
-                                Icons.cancel_outlined,
-                                size: 72,
-                                color: Colors.orangeAccent,
-                              ),
-                              const SizedBox(height: 14),
-                              const Text(
-                                'Payment Cancelled',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(height: 20),
+                                GlassButton(
+                                  text: 'Retry Payment',
+                                  icon: AppIcons.refresh,
+                                  isLoading: _isVerifying,
+                                  onPressed: _retryPayment,
+                                ),
+                                const SizedBox(height: 10),
+                                TextButton(
+                                  onPressed: () => context.canPop()
+                                      ? context.pop()
+                                      : context.go('/orders'),
+                                  child: Text(
+                                    'Back to Checkout',
+                                    style: TextStyle(
+                                      color: GlassTheme.textMuted,
+                                    ),
+                                  ),
+                                ),
+                              ] else if (isSessionCancelled) ...[
+                                const Icon(
+                                  AppIcons.close,
+                                  size: 72,
                                   color: Colors.orangeAccent,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'This payment session has been cancelled.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 13,
+                                const SizedBox(height: 14),
+                                const Text(
+                                  'Payment Cancelled',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orangeAccent,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 20),
-                              GlassButton(
-                                text: 'Return to Orders',
-                                icon: Icons.receipt_long,
-                                onPressed: () => context.go('/orders'),
-                              ),
-                            ] else if (isSessionExpired) ...[
-                              const Icon(
-                                Icons.timer_off_outlined,
-                                size: 72,
-                                color: Colors.redAccent,
-                              ),
-                              const SizedBox(height: 14),
-                              const Text(
-                                'Payment QR Expired',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(height: 8),
+                                Text(
+                                  'This payment session has been cancelled.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                GlassButton(
+                                  text: 'Return to Orders',
+                                  icon: AppIcons.receipt,
+                                  onPressed: () => context.go('/orders'),
+                                ),
+                              ] else if (isSessionExpired) ...[
+                                const Icon(
+                                  AppIcons.loading,
+                                  size: 72,
                                   color: Colors.redAccent,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'This payment code has expired. Generate a new code to complete your order.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              GlassButton(
-                                text: 'Regenerate QR Code',
-                                icon: Icons.refresh,
-                                isLoading: _isVerifying,
-                                onPressed: _retryPayment,
-                              ),
-                              const SizedBox(height: 10),
-                              TextButton(
-                                onPressed: () => context.pop(),
-                                child: Text(
-                                  'Back to Checkout',
-                                  style: TextStyle(color: GlassTheme.textMuted),
-                                ),
-                              ),
-                            ] else ...[
-                              // KHQR Header Stand Banner
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: GlassTheme.khqrBannerRed,
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(16),
+                                const SizedBox(height: 14),
+                                const Text(
+                                  'Payment QR Expired',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.redAccent,
                                   ),
                                 ),
-                                child: const Center(
+                                const SizedBox(height: 8),
+                                Text(
+                                  'This payment code has expired. Generate a new code to complete your order.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: GlassTheme.textMuted,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                GlassButton(
+                                  text: 'Regenerate QR Code',
+                                  icon: AppIcons.refresh,
+                                  isLoading: _isVerifying,
+                                  onPressed: _retryPayment,
+                                ),
+                                const SizedBox(height: 10),
+                                TextButton(
+                                  onPressed: () => context.canPop()
+                                      ? context.pop()
+                                      : context.go('/orders'),
                                   child: Text(
-                                    'KHQR · SCAN TO PAY',
+                                    'Back to Checkout',
                                     style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 13,
-                                      letterSpacing: 2,
+                                      color: GlassTheme.textMuted,
                                     ),
                                   ),
                                 ),
-                              ),
-
-                              // Pure White QR Code Graphic Frame (Quiet Zone: 20px padding)
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: const BorderRadius.vertical(
-                                    bottom: Radius.circular(16),
+                              ] else ...[
+                                // KHQR Header Stand Banner
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: brandColor.withValues(alpha: 0.35),
-                                      blurRadius: 18,
-                                      spreadRadius: 2,
+                                  decoration: const BoxDecoration(
+                                    color: GlassTheme.khqrBannerRed,
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(16),
                                     ),
-                                  ],
-                                ),
-                                child: Column(
-                                  children: [
-                                    QrImageView(
-                                      data: qrString,
-                                      version: QrVersions.auto,
-                                      size: qrSize,
-                                      backgroundColor: Colors.white,
-                                      errorCorrectionLevel:
-                                          QrErrorCorrectLevel.M,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      '${payment.currency} ${payment.amount.toStringAsFixed(2)} • ${KhmerCurrency.formatKhr(payment.amount)}',
-                                      style: const TextStyle(
-                                        color: GlassTheme.textDark,
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      'KHQR · SCAN TO PAY',
+                                      style: TextStyle(
+                                        color: Colors.white,
                                         fontWeight: FontWeight.w900,
-                                        fontSize: 15,
+                                        fontSize: 13,
+                                        letterSpacing: 2,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${payment.restaurantName ?? 'FoodGo Restaurant'} · Phnom Penh',
-                                      style: const TextStyle(
-                                        color: Colors.black54,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                  ),
+                                ),
+
+                                // Pure White QR Code Graphic Frame (Quiet Zone: 20px padding)
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: const BorderRadius.vertical(
+                                      bottom: Radius.circular(16),
                                     ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Live Time Real-Time Status & Countdown
-                              _buildLiveTimeCard(),
-                              const SizedBox(height: 16),
-
-                              // Copy KHQR Payload Button
-                              OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  side: BorderSide(
-                                    color: Colors.white.withValues(alpha: 0.25),
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 10,
-                                  ),
-                                ),
-                                icon: const Icon(
-                                  Icons.copy_rounded,
-                                  size: 16,
-                                  color: GlassTheme.primaryGreen,
-                                ),
-                                label: const Text(
-                                  'Copy KHQR Payload',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                                onPressed: () {
-                                  Clipboard.setData(
-                                    ClipboardData(text: qrString),
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'KHQR code payload copied to clipboard!',
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: brandColor.withValues(
+                                          alpha: 0.35,
+                                        ),
+                                        blurRadius: 18,
+                                        spreadRadius: 2,
                                       ),
-                                      backgroundColor: GlassTheme.primaryGreen,
-                                      duration: Duration(seconds: 2),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(height: 8),
-
-                              // Collapsible Developer Payload Toggle
-                              InkWell(
-                                onTap: () => setState(
-                                  () => _showRawPayload = !_showRawPayload,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
+                                    ],
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
+                                  child: Column(
                                     children: [
-                                      Icon(
-                                        _showRawPayload
-                                            ? Icons.keyboard_arrow_up
-                                            : Icons.keyboard_arrow_down,
-                                        size: 18,
-                                        color: GlassTheme.textMuted,
+                                      QrImageView(
+                                        data: qrString,
+                                        version: QrVersions.auto,
+                                        size: qrSize,
+                                        backgroundColor: Colors.white,
+                                        errorCorrectionLevel:
+                                            QrErrorCorrectLevel.M,
                                       ),
-                                      const SizedBox(width: 4),
-                                      Flexible(
-                                        child: Text(
-                                          _showRawPayload
-                                              ? 'Hide QR Payload Details'
-                                              : 'Show All QR Payload Details',
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: GlassTheme.textMuted,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '${payment.currency} ${payment.amount.toStringAsFixed(2)} • ${KhmerCurrency.formatKhr(payment.amount)}',
+                                        style: const TextStyle(
+                                          color: GlassTheme.textDark,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${payment.restaurantName ?? 'FoodGo Restaurant'} · Phnom Penh',
+                                        style: const TextStyle(
+                                          color: Colors.black54,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ),
+                                const SizedBox(height: 16),
 
-                              // Monospace Payload Box
-                              if (_showRawPayload) ...[
-                                const SizedBox(height: 10),
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black45,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.white12),
+                                // Live Time Real-Time Status & Countdown
+                                _buildLiveTimeCard(),
+                                const SizedBox(height: 16),
+
+                                // Copy KHQR Payload Button
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: BorderSide(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.25,
+                                      ),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text(
-                                            'EMVCo KHQR Payload:',
+                                  icon: const Icon(
+                                    AppIcons.copy,
+                                    size: 16,
+                                    color: GlassTheme.primaryGreen,
+                                  ),
+                                  label: const Text(
+                                    'Copy KHQR Payload',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Clipboard.setData(
+                                      ClipboardData(text: qrString),
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'KHQR code payload copied to clipboard!',
+                                        ),
+                                        backgroundColor:
+                                            GlassTheme.primaryGreen,
+                                        duration: Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+
+                                // Collapsible Developer Payload Toggle
+                                InkWell(
+                                  onTap: () => setState(
+                                    () => _showRawPayload = !_showRawPayload,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _showRawPayload
+                                              ? Icons.keyboard_arrow_up
+                                              : Icons.keyboard_arrow_down,
+                                          size: 18,
+                                          color: GlassTheme.textMuted,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            _showRawPayload
+                                                ? 'Hide QR Payload Details'
+                                                : 'Show All QR Payload Details',
+                                            overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              color: Colors.white70,
+                                              color: GlassTheme.textMuted,
                                               fontSize: 12,
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                // Monospace Payload Box
+                                if (_showRawPayload) ...[
+                                  const SizedBox(height: 10),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black45,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.white12),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              'EMVCo KHQR Payload:',
+                                              style: TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              '${qrString.length} chars',
+                                              style: TextStyle(
+                                                color: GlassTheme.textMuted,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+                                        SelectableText(
+                                          qrString,
+                                          style: const TextStyle(
+                                            fontFamily: 'monospace',
+                                            fontSize: 11,
+                                            color:
+                                                GlassTheme.primaryGreenAccent,
+                                          ),
+                                        ),
+                                        if (payment.merchantReference !=
+                                            null) ...[
+                                          const SizedBox(height: 6),
                                           Text(
-                                            '${qrString.length} chars',
+                                            'Merchant Ref: ${payment.merchantReference}',
                                             style: TextStyle(
                                               color: GlassTheme.textMuted,
                                               fontSize: 11,
                                             ),
                                           ),
                                         ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      SelectableText(
-                                        qrString,
-                                        style: const TextStyle(
-                                          fontFamily: 'monospace',
-                                          fontSize: 11,
-                                          color: GlassTheme.primaryGreenAccent,
-                                        ),
-                                      ),
-                                      if (payment.merchantReference !=
-                                          null) ...[
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          'Merchant Ref: ${payment.merchantReference}',
-                                          style: TextStyle(
-                                            color: GlassTheme.textMuted,
-                                            fontSize: 11,
-                                          ),
-                                        ),
                                       ],
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ],
-                        ),
-                      ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
-                      const SizedBox(height: 16),
-
-                      // Supported Banks Showcase (Active State)
-                      if (isSessionActive) ...[
-                        _buildSupportedBanksCard().animate().fadeIn(
-                          duration: 400.ms,
-                          delay: 100.ms,
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // 3-Step Instruction Card (Active State)
-                      if (isSessionActive) ...[
-                        GlassContainer(
-                          padding: const EdgeInsets.all(16),
-                          borderRadius: GlassTheme.borderRadiusSmall,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: const [
-                                  Icon(
-                                    Icons.info_outline,
-                                    size: 18,
-                                    color: GlassTheme.primaryGreen,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'How to pay with KHQR',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
                                     ),
                                   ),
                                 ],
-                              ),
-                              const SizedBox(height: 12),
-                              _buildStepRow(
-                                1,
-                                'Open your banking app (Bakong, ABA, ACLEDA, etc.)',
-                              ),
-                              const SizedBox(height: 8),
-                              _buildStepRow(
-                                2,
-                                'Scan this QR code from your mobile screen',
-                              ),
-                              const SizedBox(height: 8),
-                              _buildStepRow(
-                                3,
-                                'Review the amount and confirm payment in banking app',
-                              ),
+                              ],
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 20),
+                        ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
+                        const SizedBox(height: 16),
 
-                        // Action Buttons
-                        SizedBox(
-                          height: 52,
-                          child: GlassButton(
-                            text: _isVerifying
-                                ? 'Checking Status...'
-                                : 'Check Payment Status',
-                            icon: Icons.check_circle_outline,
-                            isLoading: _isVerifying,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                        // Supported Banks Showcase (Active State)
+                        if (isSessionActive) ...[
+                          _buildSupportedBanksCard().animate().fadeIn(
+                            duration: 400.ms,
+                            delay: 100.ms,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // 3-Step Instruction Card (Active State)
+                        if (isSessionActive) ...[
+                          GlassContainer(
+                            padding: const EdgeInsets.all(16),
+                            borderRadius: GlassTheme.borderRadiusSmall,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: const [
+                                    Icon(
+                                      AppIcons.info,
+                                      size: 18,
+                                      color: GlassTheme.primaryGreen,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'How to pay with KHQR',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                _buildStepRow(
+                                  1,
+                                  'Open your banking app (Bakong, ABA, ACLEDA, etc.)',
+                                ),
+                                const SizedBox(height: 8),
+                                _buildStepRow(
+                                  2,
+                                  'Scan this QR code from your mobile screen',
+                                ),
+                                const SizedBox(height: 8),
+                                _buildStepRow(
+                                  3,
+                                  'Review the amount and confirm payment in banking app',
+                                ),
+                              ],
                             ),
-                            onPressed: _isVerifying
-                                ? null
-                                : () => _checkStatus(isBackground: false),
                           ),
-                        ),
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 20),
 
-                        const SizedBox(height: 10),
-
-                        TextButton(
-                          onPressed: _cancelPayment,
-                          child: Text(
-                            'Cancel Payment',
-                            style: TextStyle(color: GlassTheme.textMuted),
+                          // Action Buttons
+                          SizedBox(
+                            height: 52,
+                            child: GlassButton(
+                              text: _isVerifying
+                                  ? 'Checking Status...'
+                                  : 'Check Payment Status',
+                              icon: AppIcons.checkCircle,
+                              isLoading: _isVerifying,
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onPressed: _isVerifying
+                                  ? null
+                                  : () => _checkStatus(isBackground: false),
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 12),
+
+                          const SizedBox(height: 10),
+
+                          TextButton(
+                            onPressed: _cancelPayment,
+                            child: Text(
+                              'Cancel Payment',
+                              style: TextStyle(color: GlassTheme.textMuted),
+                            ),
+                          ),
+                        ],
                       ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

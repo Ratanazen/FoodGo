@@ -187,19 +187,28 @@ class ApiService {
       return const AuthResult.failure('Registration failed. Please try again.');
     } on DioException catch (e) {
       if (kDebugMode) debugPrint('Registration error: ${e.message}');
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        return const AuthResult.failure(
+          'Unable to connect to server. Please check your network connection.',
+          isNetworkError: true,
+        );
+      }
       if (e.response?.data is Map) {
         final errMap = e.response!.data as Map;
         final firstKey = errMap.keys.firstOrNull;
         if (firstKey != null) {
           final val = errMap[firstKey];
           final msg = val is List ? val.firstOrNull : val;
-          return AuthResult.failure('$firstKey: $msg');
+          return AuthResult.failure(msg?.toString() ?? '$firstKey is invalid.');
         }
       }
       return const AuthResult.failure(
         'Registration failed. Please check your input.',
       );
     } catch (e) {
+      if (kDebugMode) debugPrint('Registration error: $e');
       return const AuthResult.failure(
         'An unexpected error occurred during registration.',
       );

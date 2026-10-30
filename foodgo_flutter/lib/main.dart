@@ -16,9 +16,12 @@ import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'widgets/connectivity_banner.dart';
 import 'widgets/snowfall_effect.dart';
+import 'widgets/glass/themed_skin_backdrop.dart';
 
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +35,7 @@ void main() async {
     debugPrint('FoodGo Global Error: ${details.exception}');
   };
   await AppConfig.init();
+  await FirebaseService.initialize();
   runApp(
     MultiProvider(
       providers: [
@@ -64,8 +68,6 @@ class FoodGoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-        final palette = themeProvider.paletteData;
-
         return MaterialApp.router(
           title: 'FoodGo',
           debugShowCheckedModeBanner: false,
@@ -78,17 +80,13 @@ class FoodGoApp extends StatelessWidget {
           themeAnimationCurve: Curves.easeOutCubic,
           routerConfig: appRouter,
           builder: (context, child) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
             final media = MediaQuery.of(context);
             final effectiveMedia = themeProvider.reducedMotion
                 ? media.copyWith(disableAnimations: true)
                 : media;
             return MediaQuery(
               data: effectiveMedia,
-              child: Container(
-                color: isDark
-                    ? palette.backgroundDark
-                    : palette.backgroundLight,
+              child: ThemedSkinBackdrop(
                 child: ConnectivityBanner(
                   child: Stack(children: [child!, const SnowfallEffect()]),
                 ),

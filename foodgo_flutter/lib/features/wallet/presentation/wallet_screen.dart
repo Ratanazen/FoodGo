@@ -396,6 +396,7 @@ class _WalletScreenState extends State<WalletScreen> {
     final List transactions = _wallet?['transactions'] ?? [];
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
         title: 'Account Balance & Wallet',
@@ -405,7 +406,7 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
       ),
       body: Container(
-        color: GlassTheme.backgroundDark,
+        color: Colors.transparent,
         child: SafeArea(
           child: _isLoading && _wallet == null
               ? const Center(

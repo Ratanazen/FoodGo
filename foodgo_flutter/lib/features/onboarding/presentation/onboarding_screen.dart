@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/responsive_layout.dart';
@@ -24,7 +25,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ស្វែងរកអាហារឆ្ងាញ់ៗ',
       'description':
           'Find your favorite meals from top-rated restaurants across Phnom Penh and Cambodia.',
-      'icon': Icons.restaurant_menu_rounded,
+      'icon': AppIcons.foodCategory,
       'accent': GlassTheme.limeAccent,
       'glow': GlassTheme.royalSmalt,
     },
@@ -33,7 +34,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ដឹកជញ្ជូនរហ័សទាន់ចិត្ត',
       'description':
           'Real-time GPS tracking from the kitchen to your doorstep with instant milestone updates.',
-      'icon': Icons.delivery_dining_rounded,
+      'icon': AppIcons.delivery,
       'accent': GlassTheme.primaryGreen,
       'glow': GlassTheme.cobaltSmalt,
     },
@@ -42,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ទូទាត់ប្រាក់ងាយស្រួល និងសុវត្ថិភាព',
       'description':
           'Pay instantly via NBC Bakong KHQR, ABA Mobile, ACLEDA, or Cash on Delivery.',
-      'icon': Icons.qr_code_scanner_rounded,
+      'icon': AppIcons.qrScan,
       'accent': GlassTheme.limeAccent,
       'glow': GlassTheme.royalSmalt,
     },
@@ -149,7 +150,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                               alignment: Alignment.center,
                               child: const Icon(
-                                Icons.fastfood_rounded,
+                                AppIcons.snack,
                                 color: GlassTheme.limeAccent,
                                 size: 20,
                               ),
@@ -194,7 +195,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                               SizedBox(width: 4),
                               Icon(
-                                Icons.chevron_right_rounded,
+                                AppIcons.chevronRight,
                                 size: 18,
                                 color: Colors.white60,
                               ),
@@ -395,8 +396,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 const SizedBox(width: 8),
                                 Icon(
                                   _currentPage == _pages.length - 1
-                                      ? Icons.check_circle_rounded
-                                      : Icons.arrow_forward_rounded,
+                                      ? AppIcons.checkCircle
+                                      : AppIcons.arrowForward,
                                   size: 18,
                                   color: Colors.black,
                                 ),

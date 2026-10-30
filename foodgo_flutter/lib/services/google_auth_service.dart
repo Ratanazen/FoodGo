@@ -102,10 +102,7 @@ class GoogleAuthService {
               decoration: BoxDecoration(
                 color: cardBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: cardBorder,
-                  width: 1.3,
-                ),
+                border: Border.all(color: cardBorder, width: 1.3),
                 boxShadow: [
                   BoxShadow(
                     color: isDark
@@ -194,8 +191,9 @@ class GoogleAuthService {
                       ),
                       const SizedBox(height: 18),
                       Divider(
-                        color:
-                            isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                        color: isDark
+                            ? Colors.white12
+                            : const Color(0xFFE2E8F0),
                         height: 1,
                       ),
                       const SizedBox(height: 16),
@@ -282,8 +280,9 @@ class GoogleAuthService {
                       TextField(
                         controller: nameController,
                         style: TextStyle(
-                          color:
-                              isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -324,8 +323,9 @@ class GoogleAuthService {
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
                         style: TextStyle(
-                          color:
-                              isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -512,8 +512,9 @@ class GoogleAuthService {
                     Text(
                       email,
                       style: TextStyle(
-                        color:
-                            isDark ? Colors.white60 : const Color(0xFF64748B),
+                        color: isDark
+                            ? Colors.white60
+                            : const Color(0xFF64748B),
                         fontSize: 12.5,
                       ),
                     ),
@@ -542,4 +543,3 @@ class GoogleAuthService {
     );
   }
 }
-

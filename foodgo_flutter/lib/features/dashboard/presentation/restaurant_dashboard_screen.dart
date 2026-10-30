@@ -616,6 +616,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
         title: 'Restaurant Portal',
@@ -638,7 +639,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(color: GlassTheme.backgroundDark),
+        decoration: const BoxDecoration(color: Colors.transparent),
         child: SafeArea(
           child: _isLoading
               ? Center(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/glass_container.dart';
@@ -85,9 +86,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? GlassTheme.backgroundDark
-          : GlassTheme.backgroundLight,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -101,7 +100,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
         ),
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back,
+            AppIcons.back,
             color: isDark ? Colors.white : GlassTheme.textDark,
           ),
           onPressed: () {
@@ -160,7 +159,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                               ),
                               decoration: InputDecoration(
                                 prefixIcon: const Icon(
-                                  Icons.search,
+                                  AppIcons.search,
                                   color: GlassTheme.primaryGreen,
                                 ),
                                 hintText: 'Enter Order ID (e.g. 101)',
@@ -241,7 +240,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                     child: Row(
                       children: [
                         const Icon(
-                          Icons.error_outline,
+                          AppIcons.error,
                           color: Colors.redAccent,
                           size: 20,
                         ),
@@ -272,7 +271,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                     ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
-                    icon: const Icon(Icons.map_outlined, color: Colors.white),
+                    icon: const Icon(AppIcons.map, color: Colors.white),
                     label: const Text(
                       'Open Full Interactive Map',
                       style: TextStyle(
@@ -331,7 +330,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
           Row(
             children: [
               const Icon(
-                Icons.storefront_outlined,
+                AppIcons.restaurants,
                 color: GlassTheme.primaryGreen,
                 size: 18,
               ),
@@ -351,7 +350,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
           Row(
             children: [
               const Icon(
-                Icons.location_on_outlined,
+                AppIcons.locationOutline,
                 color: Colors.orangeAccent,
                 size: 18,
               ),
@@ -437,7 +436,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                       ),
                       child: isDone
                           ? const Icon(
-                              Icons.check,
+                              AppIcons.check,
                               size: 14,
                               color: Colors.white,
                             )
@@ -501,7 +500,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                 radius: 22,
                 backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                 child: const Icon(
-                  Icons.two_wheeler,
+                  AppIcons.motorcycle,
                   color: GlassTheme.primaryGreen,
                 ),
               ),
@@ -542,7 +541,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 14),
+                    const Icon(AppIcons.star, color: Colors.amber, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       '${driver['rating'] ?? 4.9}',

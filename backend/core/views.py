@@ -2380,13 +2380,16 @@ class HealthCheckView(APIView):
             status_data['database'] = 'unavailable'
             status_data['status'] = 'degraded'
 
-        # Check MongoDB Atlas if configured
-        try:
-            from core.mongodb import check_mongo_connection
-            mongo_info = check_mongo_connection()
-            status_data['mongodb'] = mongo_info.get('status', 'not_configured')
-        except Exception:
-            status_data['mongodb'] = 'unavailable'
+        # Check MongoDB Atlas only if explicitly requested; dedicated /health/mongodb/ handles deep inspection
+        if request.query_params.get('include_mongodb', 'false').lower() in ('true', '1', 'yes'):
+            try:
+                from core.mongodb import check_mongo_connection
+                mongo_info = check_mongo_connection()
+                status_data['mongodb'] = mongo_info.get('status', 'not_configured')
+            except Exception:
+                status_data['mongodb'] = 'unavailable'
+        else:
+            status_data['mongodb'] = 'standby'
 
         http_status = status.HTTP_200_OK if status_data['status'] == 'healthy' else status.HTTP_503_SERVICE_UNAVAILABLE
         return Response(status_data, status=http_status)

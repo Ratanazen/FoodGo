@@ -1197,12 +1197,16 @@ class ProfileScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: GlassTheme.lightGreenSurface,
                         border: Border.all(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                          color: GlassTheme.primaryGreen.withValues(
+                            alpha: 0.35,
+                          ),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.2,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
                           ),
@@ -1269,7 +1273,10 @@ class _ProfileOption extends StatelessWidget {
     this.textColor,
     this.iconColor,
     this.trailing,
-  }) : assert(icon != null || leadingWidget != null, 'Either icon or leadingWidget must be provided');
+  }) : assert(
+         icon != null || leadingWidget != null,
+         'Either icon or leadingWidget must be provided',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -1324,7 +1331,8 @@ class _ProfileOption extends StatelessWidget {
                               alpha: isDark ? 0.2 : 0.12,
                             ),
                     ),
-                    child: leadingWidget ??
+                    child:
+                        leadingWidget ??
                         Icon(
                           icon ?? AppIcons.info,
                           color: isDestructive

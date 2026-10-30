@@ -34,10 +34,7 @@ class _Snowflake {
 class SnowfallEffect extends StatelessWidget {
   final int particleCount;
 
-  const SnowfallEffect({
-    super.key,
-    this.particleCount = 35,
-  });
+  const SnowfallEffect({super.key, this.particleCount = 35});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +42,8 @@ class SnowfallEffect extends StatelessWidget {
     if (themeProvider == null) return const SizedBox.shrink();
 
     final palette = themeProvider.currentPalette;
-    final isChristmas = palette == AppColorPalette.christmas ||
+    final isChristmas =
+        palette == AppColorPalette.christmas ||
         palette == AppColorPalette.christmasWonderland;
     final platformReducedMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
@@ -84,7 +82,9 @@ class _SnowfallCanvasState extends State<_SnowfallCanvas>
   @override
   void initState() {
     super.initState();
-    final random = math.Random(1225); // Deterministic seed for Christmas date (12/25)
+    final random = math.Random(
+      1225,
+    ); // Deterministic seed for Christmas date (12/25)
     _particles = List.generate(widget.particleCount, (index) {
       return _Snowflake(
         x: random.nextDouble(),
@@ -148,7 +148,11 @@ class _SnowfallPainter extends CustomPainter {
       // Calculate continuous falling y position
       final currentY = ((flake.y + progress * flake.speed) % 1.0) * size.height;
       // Gentle horizontal drift oscillation
-      final drift = math.sin(progress * 2 * math.pi * flake.driftSpeed + flake.driftPhase) * 12.0;
+      final drift =
+          math.sin(
+            progress * 2 * math.pi * flake.driftSpeed + flake.driftPhase,
+          ) *
+          12.0;
       final currentX = ((flake.x * size.width) + drift) % size.width;
 
       final flakeColor = isDark

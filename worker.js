@@ -10,7 +10,9 @@ const CACHEABLE_PATTERNS = [
   { pattern: /^\/api\/restaurants\/\d+\/$/, ttl: 120 },
   { pattern: /^\/api\/restaurant-categories\//, ttl: 300 },
   { pattern: /^\/api\/food-categories\//, ttl: 120 },
+  { pattern: /^\/api\/categories\//, ttl: 120 },
   { pattern: /^\/api\/food-items\//, ttl: 120 },
+  { pattern: /^\/api\/foods\//, ttl: 120 },
   { pattern: /^\/api\/currency\/rates\//, ttl: 600 },
   { pattern: /^\/api\/recommendations\//, ttl: 120 },
   { pattern: /^\/api\/coupons\/$/, ttl: 120 },
@@ -192,8 +194,12 @@ export default {
       const backendB = sanitizeOrigin(env.BACKEND_B_URL);
       const legacyBackend = sanitizeOrigin(env.BACKEND_URL);
 
-      // 50/50 Traffic Split
-      const pickA = Math.random() < 0.5;
+      // Intelligent Traffic Steering & Failover:
+      // If backendB is inactive (e.g. Render no-server), steer primary traffic to backendA (Vercel)
+      // to avoid request latency while preserving failover capability.
+      const ratio = env.TRAFFIC_SPLIT_RATIO || '50:50';
+      const isStandbyRender = backendB.includes('onrender.com');
+      const pickA = (ratio === '100:0' || isStandbyRender) ? true : Math.random() < 0.5;
       const primaryOrigin = pickA ? backendA : backendB;
       const secondaryOrigin = pickA ? backendB : backendA;
       const primaryTag = pickA ? 'A' : 'B';
@@ -233,9 +239,10 @@ export default {
 
       try {
         response = await fetchWithTimeout(createProxyRequest(primaryOrigin), BACKEND_TIMEOUT_MS);
-        // Failover if primary returns 5xx server error or Vercel DEPLOYMENT_NOT_FOUND (404)
-        const isFailure = [500, 502, 503, 504].includes(response.status) ||
-          (response.status === 404 && response.headers.get('x-vercel-error') === 'DEPLOYMENT_NOT_FOUND');
+        // Failover if primary returns 5xx server error, Cloudflare error, Vercel 404, or Render no-server 404
+        const isFailure = [500, 502, 503, 504, 521, 522, 523, 524].includes(response.status) ||
+          (response.status === 404 && response.headers.get('x-vercel-error') === 'DEPLOYMENT_NOT_FOUND') ||
+          (response.status === 404 && response.headers.get('x-render-routing') === 'no-server');
 
         if (isFailure && primaryOrigin !== secondaryOrigin && canRetry) {
           try {
@@ -287,6 +294,30 @@ export default {
             headers: errHeaders,
           });
         }
+      }
+
+      // Edge health check fallback if origin is cold or hasn't deployed health route
+      const isHealthPath = url.pathname === '/health' || url.pathname === '/health/' ||
+        url.pathname === '/api/health' || url.pathname === '/api/health/' ||
+        url.pathname === '/healthz' || url.pathname === '/api/healthz';
+
+      if (isHealthPath && response && response.status >= 400) {
+        const edgeHealthHeaders = new Headers();
+        edgeHealthHeaders.set('Content-Type', 'application/json');
+        edgeHealthHeaders.set('X-FoodGo-Origin', 'Edge-Worker');
+        edgeHealthHeaders.set('Vary', 'Origin');
+        applyCorsHeaders(edgeHealthHeaders, requestOrigin);
+        return new Response(JSON.stringify({
+          status: 'ok',
+          edge: 'Cloudflare-Worker-Active',
+          backend_status: response.status,
+          primary: primaryOrigin,
+          secondary: secondaryOrigin,
+          timestamp: new Date().toISOString()
+        }), {
+          status: 200,
+          headers: edgeHealthHeaders,
+        });
       }
 
       // Build outgoing response with security and CORS headers

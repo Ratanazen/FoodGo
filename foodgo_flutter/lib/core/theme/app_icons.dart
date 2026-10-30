@@ -42,9 +42,13 @@ abstract final class AppIcons {
   static const IconData share = Icons.share_rounded;
   static const IconData copy = Icons.content_copy_rounded;
   static const IconData edit = Icons.edit_outlined;
+  static const IconData send = Icons.send_rounded;
+  static const IconData arrowForward = Icons.arrow_forward_rounded;
   static const IconData radioSelected = Icons.radio_button_checked;
   static const IconData radioUnselected = Icons.radio_button_unchecked;
   static const IconData fastDelivery = Icons.bolt_rounded;
+  static const IconData server = Icons.dns_rounded;
+  static const IconData dns = Icons.dns_rounded;
 
   // ── Food Categories ──────────────────────────────────────────────────────
   static const IconData allCategories = Icons.restaurant_menu_rounded;
@@ -79,6 +83,9 @@ abstract final class AppIcons {
   static const IconData qrScan = Icons.qr_code_scanner_rounded;
   static const IconData qrCode = Icons.qr_code_2_rounded;
   static const IconData camera = Icons.camera_alt_rounded;
+  static const IconData gallery = Icons.photo_library_rounded;
+  static const IconData link = Icons.link_rounded;
+  static const IconData badge = Icons.badge_outlined;
   static const IconData flashlightOn = Icons.flash_on_rounded;
   static const IconData flashlightOff = Icons.flash_off_rounded;
 
@@ -101,8 +108,10 @@ abstract final class AppIcons {
   static const IconData passwordHidden = Icons.visibility_off_outlined;
   static const IconData phone = Icons.phone_android_rounded;
   static const IconData email = Icons.mail_outline_rounded;
+  static const IconData mail = Icons.mail_outline_rounded;
   static const IconData notifications = Icons.notifications_none_rounded;
-  static const IconData notificationsActive = Icons.notifications_active_rounded;
+  static const IconData notificationsActive =
+      Icons.notifications_active_rounded;
   static const IconData support = Icons.support_agent_rounded;
   static const IconData help = Icons.help_outline_rounded;
   static const IconData settings = Icons.settings_outlined;
@@ -158,11 +167,7 @@ abstract final class AppIcons {
     );
 
     if (tooltip != null && tooltip.isNotEmpty) {
-      return Tooltip(
-        message: tooltip,
-        preferBelow: false,
-        child: iconWidget,
-      );
+      return Tooltip(message: tooltip, preferBelow: false, child: iconWidget);
     }
 
     return iconWidget;

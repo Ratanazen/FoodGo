@@ -6,6 +6,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/glass_theme.dart';
+import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_motion.dart';
 import '../../../core/utils/khmer_currency.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
@@ -328,11 +330,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       _fetchDashboardData();
     } catch (e) {
       if (!mounted) return;
+      String err = 'Status update failed. Please retry.';
+      if (e is DioException && e.response?.data is Map) {
+        final data = e.response!.data as Map;
+        err = (data['error'] ?? data['detail'] ?? err).toString();
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Status update failed. Please retry.'),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text(err), backgroundColor: Colors.redAccent),
       );
     }
   }
@@ -511,7 +515,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                 ),
                 leading: const Icon(
-                  Icons.qr_code_scanner,
+                  AppIcons.qrScan,
                   color: GlassTheme.primaryGreen,
                   size: 26,
                 ),
@@ -528,7 +532,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 trailing: const Icon(
-                  Icons.chevron_right,
+                  AppIcons.chevronRight,
                   color: GlassTheme.primaryGreen,
                 ),
                 onTap: () {
@@ -547,7 +551,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                leading: const Icon(Icons.qr_code_2, color: Colors.white70),
+                leading: const Icon(AppIcons.qrCode, color: Colors.white70),
                 title: const Text(
                   'Show Driver Handover QR',
                   style: TextStyle(color: Colors.white, fontSize: 14),
@@ -557,7 +561,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   style: TextStyle(color: Colors.white54, fontSize: 12),
                 ),
                 trailing: const Icon(
-                  Icons.chevron_right,
+                  AppIcons.chevronRight,
                   color: Colors.white30,
                 ),
                 onTap: () {
@@ -577,7 +581,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 leading: const Icon(
-                  Icons.check_circle_outline,
+                  AppIcons.checkCircle,
                   color: GlassTheme.primaryGreen,
                 ),
                 title: const Text(
@@ -589,7 +593,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   style: TextStyle(color: Colors.white54, fontSize: 12),
                 ),
                 trailing: const Icon(
-                  Icons.chevron_right,
+                  AppIcons.chevronRight,
                   color: Colors.white30,
                 ),
                 onTap: () async {
@@ -866,22 +870,23 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
         title: 'Driver Portal',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(AppIcons.back),
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(AppIcons.refresh),
             tooltip: 'Refresh Dashboard',
             onPressed: _fetchDashboardData,
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            icon: const Icon(AppIcons.logout, color: Colors.redAccent),
             tooltip: 'Log Out',
             onPressed: () => _confirmLogout(context),
           ),
@@ -889,7 +894,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       ),
       body: Container(
         decoration: const BoxDecoration(
-          color: GlassTheme.backgroundDark,
+          color: Colors.transparent,
           image: DecorationImage(
             image: CachedNetworkImageProvider(
               'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
@@ -1072,16 +1077,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Widget _buildTabSelector() {
     final tabs = [
-      {
-        'title': 'Active (${_activeOrders.length})',
-        'icon': Icons.delivery_dining,
-      },
+      {'title': 'Active (${_activeOrders.length})', 'icon': AppIcons.delivery},
       {
         'title': 'Available (${_availableOrders.length})',
-        'icon': Icons.list_alt,
+        'icon': AppIcons.orders,
       },
-      {'title': 'Earnings', 'icon': Icons.payments_outlined},
-      {'title': 'Profile', 'icon': Icons.person_outline},
+      {'title': 'Earnings', 'icon': AppIcons.payment},
+      {'title': 'Profile', 'icon': AppIcons.profile},
     ];
 
     return Container(
@@ -1218,7 +1220,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       itemCount: _activeOrders.length,
       itemBuilder: (context, index) {
         final order = _activeOrders[index];
-        return _buildActiveOrderCard(order);
+        return _buildActiveOrderCard(order).motionEntrance(staggerIndex: index);
       },
     );
   }
@@ -1877,7 +1879,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             ),
           ),
         ],
-        ..._availableOrders.map((o) => _buildAvailableOrderCard(o)),
+        ..._availableOrders.asMap().entries.map(
+          (entry) => _buildAvailableOrderCard(
+            entry.value,
+          ).motionEntrance(staggerIndex: entry.key),
+        ),
       ],
     );
   }
@@ -2008,24 +2014,29 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Delivery Earning',
-                    style: TextStyle(color: Colors.white60, fontSize: 11),
-                  ),
-                  Text(
-                    '+\$$deliveryFee (Order: \$$totalAmount)',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Delivery Earning',
+                      style: TextStyle(color: Colors.white60, fontSize: 11),
                     ),
-                  ),
-                ],
+                    Text(
+                      '+\$$deliveryFee (Order: \$$totalAmount)',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
@@ -2880,13 +2891,29 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                             });
                                           }
                                           if (!mounted) return;
+                                          String err =
+                                              'Failed to update driver profile. Please retry.';
+                                          if (e is DioException &&
+                                              e.response?.data is Map) {
+                                            final data =
+                                                e.response!.data as Map;
+                                            err =
+                                                (data['error'] ??
+                                                        data['detail'] ??
+                                                        data.values.first
+                                                            ?.toString() ??
+                                                        err)
+                                                    .toString();
+                                          } else if (e is DioException &&
+                                              e.response?.statusCode == 401) {
+                                            err =
+                                                'Session expired. Please log in again.';
+                                          }
                                           ScaffoldMessenger.of(
                                             context,
                                           ).showSnackBar(
                                             SnackBar(
-                                              content: Text(
-                                                'Failed to update driver profile: $e',
-                                              ),
+                                              content: Text(err),
                                               backgroundColor: Colors.redAccent,
                                             ),
                                           );

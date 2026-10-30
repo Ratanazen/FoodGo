@@ -319,11 +319,13 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       body: Consumer<RestaurantProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading && provider.restaurants.isEmpty) {
             return const Scaffold(
+              backgroundColor: Colors.transparent,
               appBar: GlassAppBar(title: 'Loading Restaurant...'),
               body: SafeArea(child: ShimmerDetailHeader()),
             );
@@ -336,6 +338,7 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
 
           if (restaurant == null) {
             return Scaffold(
+              backgroundColor: Colors.transparent,
               appBar: const GlassAppBar(title: 'Restaurant'),
               body: Center(
                 child: Padding(

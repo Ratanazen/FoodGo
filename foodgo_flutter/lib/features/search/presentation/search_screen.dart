@@ -1280,6 +1280,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final totalCount = totalDishes + totalRestaurants;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: false,
       appBar: AppBar(
         backgroundColor: Colors.transparent,

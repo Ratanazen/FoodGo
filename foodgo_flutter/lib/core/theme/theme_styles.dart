@@ -181,10 +181,7 @@ class ThemeStyles {
     return BoxDecoration(
       color: baseColor.withValues(alpha: 0.16),
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(
-        color: baseColor.withValues(alpha: 0.45),
-        width: 1.0,
-      ),
+      border: Border.all(color: baseColor.withValues(alpha: 0.45), width: 1.0),
     );
   }
 
@@ -202,7 +199,8 @@ class ThemeStyles {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radius),
       ),
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding:
+          padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       shadowColor: palette.pillCardShadowColor,
     );
   }
@@ -213,17 +211,15 @@ class FestivalThemeBanner extends StatelessWidget {
   final VoidCallback? onTap;
   final bool showBadge;
 
-  const FestivalThemeBanner({
-    super.key,
-    this.onTap,
-    this.showBadge = true,
-  });
+  const FestivalThemeBanner({super.key, this.onTap, this.showBadge = true});
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider?>();
     final palette = themeProvider?.paletteData ?? GlassTheme.activePalette;
-    if (palette.isFestive && themeProvider != null && !themeProvider.seasonalDecorationsEnabled) {
+    if (palette.isFestive &&
+        themeProvider != null &&
+        !themeProvider.seasonalDecorationsEnabled) {
       return const SizedBox.shrink();
     }
 
@@ -238,10 +234,7 @@ class FestivalThemeBanner extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isDark
-                ? [
-                    palette.surfaceCardDark,
-                    palette.surfaceDark,
-                  ]
+                ? [palette.surfaceCardDark, palette.surfaceDark]
                 : [
                     palette.primary.withValues(alpha: 0.12),
                     palette.primaryAccent.withValues(alpha: 0.06),
@@ -277,11 +270,7 @@ class FestivalThemeBanner extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(
-                palette.icon,
-                color: Colors.white,
-                size: 18,
-              ),
+              child: Icon(palette.icon, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -295,7 +284,9 @@ class FestivalThemeBanner extends StatelessWidget {
                         child: Text(
                           ThemeStyles.getFestivalGreeting(palette),
                           style: TextStyle(
-                            color: isDark ? Colors.white : const Color(0xFF111827),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF111827),
                             fontWeight: FontWeight.bold,
                             fontSize: 12.5,
                           ),
@@ -306,7 +297,10 @@ class FestivalThemeBanner extends StatelessWidget {
                       if (showBadge && palette.badgeText.isNotEmpty) ...[
                         const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: palette.primary.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(6),
@@ -337,11 +331,7 @@ class FestivalThemeBanner extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(
-              Icons.palette_outlined,
-              color: palette.primary,
-              size: 18,
-            ),
+            Icon(Icons.palette_outlined, color: palette.primary, size: 18),
           ],
         ),
       ),

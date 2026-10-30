@@ -20,8 +20,38 @@ class UserSerializer(serializers.ModelSerializer):
             return val
         return user.role if user else 'customer'
 
+    def validate_email(self, value):
+        if not value:
+            return value
+        norm = value.strip().lower()
+        qs = User.objects.filter(email__iexact=norm)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("An account with this email address already exists.")
+        return norm
+
+    def validate_phone(self, value):
+        if not value:
+            return value
+        val = value.strip()
+        from .sms_service import normalize_cambodia_phone
+        norm, valid, err = normalize_cambodia_phone(val)
+        if not valid:
+            raise serializers.ValidationError(err)
+        return val
+
     def update(self, instance, validated_data):
         new_role = validated_data.get('role')
+        if 'phone' in validated_data:
+            new_phone = validated_data.get('phone')
+            if new_phone and new_phone != instance.phone:
+                instance.is_phone_verified = False
+                instance.phone_verified_at = None
+            elif not new_phone:
+                instance.is_phone_verified = False
+                instance.phone_verified_at = None
+
         user = super().update(instance, validated_data)
         if new_role == 'driver':
             from .models import Driver

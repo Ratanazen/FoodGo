@@ -429,9 +429,7 @@ class _CartScreenState extends State<CartScreen> {
       customColor: isDark ? null : Colors.white,
       customShadow: [
         BoxShadow(
-          color: Colors.black.withValues(
-            alpha: isDark ? 0.35 : 0.08,
-          ),
+          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
           blurRadius: 20,
           offset: const Offset(0, -4),
         ),
@@ -760,11 +758,7 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ),
                     SizedBox(width: 8),
-                    const Icon(
-                      AppIcons.forward,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    Icon(AppIcons.forward, color: Colors.white, size: 20),
                   ],
                 ),
               ),

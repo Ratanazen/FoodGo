@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
@@ -120,13 +121,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Center(
           child: AnimatedIconButton(
-            icon: Icons.arrow_back_ios_new_rounded,
+            icon: AppIcons.back,
             iconSize: 18,
             iconColor: isDark ? Colors.white : const Color(0xFF1E293B),
             onPressed: () {
@@ -242,9 +243,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           fontSize: 14,
                         ),
                         prefixIcon: Icon(
-                          _isPhone
-                              ? Icons.phone_iphone_rounded
-                              : Icons.alternate_email_rounded,
+                          _isPhone ? AppIcons.phone : AppIcons.email,
                           color: GlassTheme.primaryGreen,
                           size: 20,
                         ),

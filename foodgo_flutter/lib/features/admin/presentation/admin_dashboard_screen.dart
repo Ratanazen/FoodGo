@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_motion.dart';
 import '../../../providers/admin_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
@@ -99,7 +101,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundDark,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: GlassTheme.surfaceDark,
         surfaceTintColor: Colors.transparent,
@@ -112,7 +114,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
-            Icons.arrow_back_ios_new,
+            AppIcons.back,
             size: 18,
             color: GlassTheme.limeAccent,
           ),
@@ -121,11 +123,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
         title: const Row(
           children: [
-            Icon(
-              Icons.admin_panel_settings_rounded,
-              color: GlassTheme.limeAccent,
-              size: 24,
-            ),
+            Icon(AppIcons.security, color: GlassTheme.limeAccent, size: 24),
             SizedBox(width: 8),
             Text(
               'Admin Console',
@@ -139,15 +137,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.refresh_rounded,
-              color: GlassTheme.limeAccent,
-            ),
+            icon: const Icon(AppIcons.refresh, color: GlassTheme.limeAccent),
             tooltip: 'Refresh Data',
             onPressed: _loadAllData,
           ),
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            icon: const Icon(AppIcons.logout, color: Colors.redAccent),
             tooltip: 'Log Out',
             onPressed: () => _confirmLogout(context),
           ),
@@ -164,12 +159,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           labelColor: Theme.of(context).colorScheme.primary,
           unselectedLabelColor: GlassTheme.textMuted,
           tabs: const [
-            Tab(icon: Icon(Icons.analytics_outlined), text: 'Overview'),
-            Tab(icon: Icon(Icons.receipt_long_outlined), text: 'Orders'),
-            Tab(icon: Icon(Icons.payments_outlined), text: 'Payments'),
-            Tab(icon: Icon(Icons.people_outline_rounded), text: 'Users'),
-            Tab(icon: Icon(Icons.storefront_outlined), text: 'Restaurants'),
-            Tab(icon: Icon(Icons.security_outlined), text: 'Audit Logs'),
+            Tab(icon: Icon(AppIcons.admin), text: 'Overview'),
+            Tab(icon: Icon(AppIcons.orders), text: 'Orders'),
+            Tab(icon: Icon(AppIcons.payment), text: 'Payments'),
+            Tab(icon: Icon(AppIcons.users), text: 'Users'),
+            Tab(icon: Icon(AppIcons.restaurants), text: 'Restaurants'),
+            Tab(icon: Icon(AppIcons.security), text: 'Audit Logs'),
           ],
         ),
       ),
@@ -218,11 +213,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             padding: const EdgeInsets.all(16),
             children: [
               // Period Filter Selector
-              _buildPeriodSelector(admin),
+              _buildPeriodSelector(admin).motionEntrance(staggerIndex: 0),
               const SizedBox(height: 16),
 
               // System Health Badge Card
-              _buildSystemHealthCard(health),
+              _buildSystemHealthCard(health).motionEntrance(staggerIndex: 1),
               const SizedBox(height: 16),
 
               // Key Metrics 2x2 Grid
@@ -233,7 +228,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       title: 'Total Revenue',
                       value: '\$${metrics['total_revenue_usd'] ?? '0.00'}',
                       subtitle: metrics['total_revenue_khr'] ?? '0 KHR',
-                      icon: Icons.payments_outlined,
+                      icon: AppIcons.payment,
                       accentColor: GlassTheme.limeAccent,
                     ),
                   ),
@@ -243,12 +238,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       title: 'Total Orders',
                       value: '${metrics['total_orders'] ?? 0}',
                       subtitle: '${metrics['completed_orders'] ?? 0} Completed',
-                      icon: Icons.shopping_bag_outlined,
+                      icon: AppIcons.cart,
                       accentColor: Colors.lightBlueAccent,
                     ),
                   ),
                 ],
-              ),
+              ).motionEntrance(staggerIndex: 2),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -257,7 +252,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       title: 'Active Drivers',
                       value: '${metrics['active_drivers'] ?? 0}',
                       subtitle: '${metrics['total_drivers'] ?? 0} Registered',
-                      icon: Icons.delivery_dining_outlined,
+                      icon: AppIcons.delivery,
                       accentColor: Colors.amberAccent,
                     ),
                   ),
@@ -267,22 +262,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       title: 'Active Customers',
                       value: '${metrics['active_customers'] ?? 0}',
                       subtitle: '${metrics['total_customers'] ?? 0} Registered',
-                      icon: Icons.group_outlined,
+                      icon: AppIcons.users,
                       accentColor: Colors.purpleAccent,
                     ),
                   ),
                 ],
-              ),
+              ).motionEntrance(staggerIndex: 3),
               const SizedBox(height: 20),
 
               // Order Status Pipeline Card
-              _buildStatusPipelineCard(distribution),
+              _buildStatusPipelineCard(
+                distribution,
+              ).motionEntrance(staggerIndex: 4),
               const SizedBox(height: 20),
 
               // Recent Activity Feed
               _buildRecentOrdersSection(
                 analytics?['recent_orders'] as List<dynamic>? ?? [],
-              ),
+              ).motionEntrance(staggerIndex: 5),
             ],
           ),
         );

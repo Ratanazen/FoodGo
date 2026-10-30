@@ -145,9 +145,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          isFreeDelivery
-                              ? AppIcons.delivery
-                              : AppIcons.offers,
+                          isFreeDelivery ? AppIcons.delivery : AppIcons.offers,
                           size: 13,
                           color: Colors.white,
                         ),
@@ -196,7 +194,9 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       child: Padding(
                         padding: const EdgeInsets.all(6.0),
                         child: Icon(
-                          isFavorite ? AppIcons.favorite : AppIcons.favoriteBorder,
+                          isFavorite
+                              ? AppIcons.favorite
+                              : AppIcons.favoriteBorder,
                           size: 18,
                           color: isFavorite
                               ? GlassTheme.foodpandaPink

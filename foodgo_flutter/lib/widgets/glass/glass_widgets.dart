@@ -5,6 +5,8 @@ export 'glass_modals.dart';
 export 'glass_states.dart';
 export 'liquid_glass_background.dart';
 export 'animated_pressable.dart';
+export 'tilt_3d_card.dart';
+export 'themed_skin_backdrop.dart';
 export '../../core/theme/context_theme_extensions.dart';
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';

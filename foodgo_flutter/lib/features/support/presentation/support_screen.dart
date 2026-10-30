@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -91,9 +92,7 @@ class _SupportScreenState extends State<SupportScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? GlassTheme.backgroundDark
-          : GlassTheme.backgroundLight,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -107,7 +106,7 @@ class _SupportScreenState extends State<SupportScreen> {
         ),
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back,
+            AppIcons.back,
             color: isDark ? Colors.white : GlassTheme.textDark,
           ),
           onPressed: () {
@@ -171,7 +170,7 @@ class _SupportScreenState extends State<SupportScreen> {
                   children: [
                     Expanded(
                       child: _buildContactCard(
-                        icon: Icons.phone_in_talk,
+                        icon: AppIcons.phone,
                         title: 'Phone Hotline',
                         detail: '+855 23 999 888',
                         subtitle: 'Mon-Sun, 7:00 AM - 11:00 PM',
@@ -181,7 +180,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildContactCard(
-                        icon: Icons.send_rounded,
+                        icon: AppIcons.send,
                         title: 'Telegram Support',
                         detail: '@foodgo_kh_support',
                         subtitle: 'Instant messaging support',
@@ -195,7 +194,7 @@ class _SupportScreenState extends State<SupportScreen> {
                   children: [
                     Expanded(
                       child: _buildContactCard(
-                        icon: Icons.email_outlined,
+                        icon: AppIcons.email,
                         title: 'Email Inquiries',
                         detail: 'support@foodgo.kh',
                         subtitle: 'Replies within 2 hours',
@@ -205,7 +204,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildContactCard(
-                        icon: Icons.location_on_outlined,
+                        icon: AppIcons.locationOutline,
                         title: 'Head Office',
                         detail: 'BKK1, Phnom Penh',
                         subtitle: '#240 St 63, Boeung Keng Kang 1',

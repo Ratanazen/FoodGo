@@ -650,3 +650,26 @@ class StandardAuthRoutesTests(TestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_me_profile_update_and_phone_normalization(self):
+        self.client.force_authenticate(user=self.user)
+        patch_res = self.client.patch('/api/me/', {
+            'first_name': 'NewFirst',
+            'last_name': 'NewLast',
+        })
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(patch_res.data['first_name'], 'NewFirst')
+        self.assertEqual(patch_res.data['last_name'], 'NewLast')
+
+        patch_res2 = self.client.patch('/api/me/', {
+            'phone': '098 765 432',
+        })
+        self.assertEqual(patch_res2.status_code, status.HTTP_200_OK)
+        self.assertEqual(patch_res2.data['phone_normalized'], '+85598765432')
+        self.assertFalse(patch_res2.data['is_phone_verified'])
+
+        patch_res3 = self.client.patch('/api/me/', {
+            'phone': 'invalid_phone_123',
+        })
+        self.assertEqual(patch_res3.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('phone', patch_res3.data)
+

@@ -76,6 +76,32 @@ class Command(BaseCommand):
             }
         )
 
+        # 2b. Ratana Account
+        ratana_user = User.objects.filter(username__iexact='Ratana').first()
+        if not ratana_user:
+            ratana_user = User.objects.create(
+                username='Ratana',
+                email='ratana@foodgo.com',
+                first_name='Ratana',
+                last_name='Zen',
+                role='customer',
+                is_active=True
+            )
+            self.stdout.write("Created Ratana user")
+        else:
+            ratana_user.is_active = True
+            ratana_user.role = 'customer'
+            self.stdout.write("Updated Ratana user")
+
+        ratana_password = os.environ.get('RATANA_PASSWORD', 'ratana123')
+        ratana_user.set_password(ratana_password)
+        ratana_user.save()
+
+        rat_wallet, _ = Wallet.objects.get_or_create(user=ratana_user, defaults={'balance': Decimal('100.00')})
+        if rat_wallet.balance < Decimal('10.00'):
+            rat_wallet.balance = Decimal('100.00')
+            rat_wallet.save()
+
         # 3. Delivery Drivers (driver1 and driver2)
         driver1_user = User.objects.filter(username='driver1').first()
         if not driver1_user:

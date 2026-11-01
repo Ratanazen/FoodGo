@@ -2,9 +2,10 @@ import os
 import time
 import logging
 from datetime import timedelta
+from urllib.parse import quote
 from django.utils import timezone
 from .base import PaymentProvider
-from .utils import build_emvco_khqr
+from .utils import build_emvco_khqr, generate_qr_base64
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,8 @@ class ACLEDAKHQRProvider(PaymentProvider):
             amount=amount,
             currency=currency
         )
+        qr_image_data = generate_qr_base64(qr_string)
+        deep_link = f"acledamobile://qr?data={quote(qr_string)}"
 
         provider_response = {
             "merchant_id": self.merchant_id,
@@ -48,6 +51,8 @@ class ACLEDAKHQRProvider(PaymentProvider):
             "amount": str(amount),
             "currency": currency,
             "qr_string": qr_string,
+            "qr_image": qr_image_data,
+            "deep_link": deep_link,
             "md5": md5_hash,
             "environment": self.payment_env,
             "status": "PENDING"
@@ -56,10 +61,14 @@ class ACLEDAKHQRProvider(PaymentProvider):
         return {
             "merchant_reference": merchant_ref,
             "qr_payload": qr_string,
-            "qr_image": None,
+            "qr_image": qr_image_data,
             "expires_at": expires_at,
             "provider_response": provider_response
         }
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(self.enabled and self.merchant_id and self.api_key and self.api_secret)
 
     def get_payment_status(self, payment):
         if timezone.now() > payment.expires_at and payment.status == "PENDING":
@@ -67,7 +76,7 @@ class ACLEDAKHQRProvider(PaymentProvider):
                 "status": "EXPIRED",
                 "transaction_id": payment.transaction_id,
                 "paid_at": None,
-                "raw_response": {"reason": "Payment window expired (5 minutes)"}
+                "raw_response": {"reason": "Payment window expired"}
             }
         return {
             "status": payment.status,

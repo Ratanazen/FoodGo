@@ -74,7 +74,74 @@ void main() {
 
       // Verify Button Text
       expect(
-        find.text('Proceed to Pay with Bakong KHQR (Live)'),
+        find.text('Proceed to Pay with Bakong KHQR'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'CheckoutScreen supports 10 zero-dollar items with Bakong KHQR checkout',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final cartProvider = CartProvider();
+      final zeroItems = [
+        'Classic Double Smash Cheeseburger',
+        'Truffle Bacon Swiss Burger',
+        'Crispy Spicy Chicken Burger',
+        'Smoky BBQ Bacon Burger',
+        'Golden Truffle Parmesan Fries',
+        'Beer-Battered Onion Rings',
+        'Crispy Mozzarella Sticks',
+        'Salted Caramel Milkshake',
+        'Fresh Mint Craft Lemonade',
+        'Garden Fresh Salad',
+      ];
+      for (int i = 0; i < zeroItems.length; i++) {
+        cartProvider.addItem(
+          i + 2,
+          zeroItems[i],
+          0.00,
+          '',
+          restaurantId: 1,
+          restaurantName: 'Glass Burger',
+        );
+      }
+
+      final addressProvider = AddressProvider();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<CartProvider>.value(value: cartProvider),
+            ChangeNotifierProvider<AddressProvider>.value(value: addressProvider),
+            ChangeNotifierProvider<CurrencyProvider>(
+              create: (_) => CurrencyProvider(),
+            ),
+            ChangeNotifierProvider<ThemeProvider>(
+              create: (_) => ThemeProvider(),
+            ),
+            ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+          ],
+          child: const MaterialApp(home: CheckoutScreen()),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(cartProvider.itemCount, 10);
+      expect(cartProvider.totalAmount, 0.00);
+      expect(find.text('Checkout'), findsOneWidget);
+      expect(find.text('Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)'), findsOneWidget);
+      expect(
+        find.text('Proceed to Pay with Bakong KHQR'),
         findsOneWidget,
       );
     },

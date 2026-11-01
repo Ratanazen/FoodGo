@@ -11,6 +11,7 @@ class PaymentModel {
   final double amount;
   final String currency;
   final String? qrPayload;
+  final String? qrImage;
   final String status;
   final DateTime? expiresAt;
   final DateTime? paidAt;
@@ -28,6 +29,7 @@ class PaymentModel {
     required this.amount,
     required this.currency,
     this.qrPayload,
+    this.qrImage,
     required this.status,
     this.expiresAt,
     this.paidAt,
@@ -60,6 +62,7 @@ class PaymentModel {
       amount: double.tryParse(json['amount']?.toString() ?? '') ?? 0.0,
       currency: json['currency'] ?? 'USD',
       qrPayload: json['qr_payload'] ?? json['qr_string'],
+      qrImage: json['qr_image'],
       status: json['status'] ?? 'PENDING',
       expiresAt: json['expires_at'] != null
           ? DateTime.tryParse(json['expires_at'])
@@ -83,6 +86,7 @@ class PaymentModel {
     double? amount,
     String? currency,
     String? qrPayload,
+    String? qrImage,
     String? status,
     DateTime? expiresAt,
     DateTime? paidAt,
@@ -100,6 +104,7 @@ class PaymentModel {
       amount: amount ?? this.amount,
       currency: currency ?? this.currency,
       qrPayload: qrPayload ?? this.qrPayload,
+      qrImage: qrImage ?? this.qrImage,
       status: status ?? this.status,
       expiresAt: expiresAt ?? this.expiresAt,
       paidAt: paidAt ?? this.paidAt,
@@ -114,4 +119,46 @@ class PaymentModel {
   bool get isFailed => status == 'FAILED';
   bool get isProcessing => status == 'PROCESSING';
   bool get isRefunded => status == 'REFUNDED';
+}
+
+/// Metadata describing an available payment method returned from the backend.
+class PaymentMethodConfig {
+  final String code;
+  final String name;
+  final String khmerName;
+  final String method;
+  final bool isEnabled;
+  final bool isConfigured;
+  final List<String> currencies;
+  final String icon;
+  final String description;
+
+  const PaymentMethodConfig({
+    required this.code,
+    required this.name,
+    required this.khmerName,
+    required this.method,
+    required this.isEnabled,
+    required this.isConfigured,
+    required this.currencies,
+    required this.icon,
+    required this.description,
+  });
+
+  factory PaymentMethodConfig.fromJson(Map<String, dynamic> json) {
+    return PaymentMethodConfig(
+      code: json['code']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      khmerName: json['khmer_name']?.toString() ?? '',
+      method: json['method']?.toString() ?? 'KHQR',
+      isEnabled: json['is_enabled'] == true,
+      isConfigured: json['is_configured'] != false,
+      currencies: (json['currencies'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          ['USD'],
+      icon: json['icon']?.toString() ?? 'khqr_logo',
+      description: json['description']?.toString() ?? '',
+    );
+  }
 }

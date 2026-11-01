@@ -6,7 +6,7 @@ import requests
 from datetime import timedelta
 from django.utils import timezone
 from .base import PaymentProvider
-from .utils import build_emvco_khqr, crc16_ccitt, tlv
+from .utils import build_emvco_khqr, crc16_ccitt, tlv, generate_qr_base64
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +65,9 @@ class BakongKHQRProvider(PaymentProvider):
             currency=currency
         )
 
+        qr_image = generate_qr_base64(qr_string)
+        deep_link = f"bakong://qr?data={qr_string}"
+
         provider_response = {
             "account_id": self.account_id,
             "merchant_name": self.merchant_name,
@@ -73,16 +76,21 @@ class BakongKHQRProvider(PaymentProvider):
             "currency": currency,
             "qr_string": qr_string,
             "md5": md5_hash,
+            "deep_link": deep_link,
             "status": "PENDING"
         }
 
         return {
             "merchant_reference": merchant_ref,
             "qr_payload": qr_string,
-            "qr_image": None,
+            "qr_image": qr_image,
             "expires_at": expires_at,
             "provider_response": provider_response
         }
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(self.enabled and self.account_id and self.api_token)
 
     def get_payment_status(self, payment):
         # 1. If already paid, return status
@@ -94,13 +102,13 @@ class BakongKHQRProvider(PaymentProvider):
                 "raw_response": payment.provider_response or {}
             }
 
-        # 2. Check 5-minute expiration window
+        # 2. Check expiration window
         if payment.expires_at and timezone.now() > payment.expires_at and payment.status == "PENDING":
             return {
                 "status": "EXPIRED",
                 "transaction_id": payment.transaction_id,
                 "paid_at": None,
-                "raw_response": {"reason": "Payment window expired (5 minutes)"}
+                "raw_response": {"reason": "Payment window expired"}
             }
 
         # 3. Query NBC Bakong Open API check_transaction_by_md5
@@ -122,9 +130,52 @@ class BakongKHQRProvider(PaymentProvider):
                 )
                 if resp.status_code == 200:
                     data = resp.json()
-                    # Bakong responseCode 0 means transaction succeeded and verified!
+                    # Bakong responseCode 0 means transaction was found
                     if data.get("responseCode") == 0 and data.get("data"):
                         txn_data = data.get("data")
+
+                        # Authoritative validation: verify amount, currency, and destination
+                        txn_amount = txn_data.get("amount")
+                        txn_currency = txn_data.get("currency")
+                        txn_to_account = txn_data.get("toAccountId") or txn_data.get("receiverAccountId")
+
+                        if txn_amount is not None:
+                            try:
+                                if float(txn_amount) != float(payment.amount):
+                                    logger.warning(
+                                        f"Bakong amount mismatch: received {txn_amount} vs expected {payment.amount}"
+                                    )
+                                    return {
+                                        "status": "FAILED",
+                                        "transaction_id": txn_data.get("hash"),
+                                        "paid_at": None,
+                                        "raw_response": {"error": "Amount mismatch", "txn": txn_data}
+                                    }
+                            except (ValueError, TypeError):
+                                pass
+
+                        if txn_currency and txn_currency.upper() != payment.currency.upper():
+                            logger.warning(
+                                f"Bakong currency mismatch: received {txn_currency} vs expected {payment.currency}"
+                            )
+                            return {
+                                "status": "FAILED",
+                                "transaction_id": txn_data.get("hash"),
+                                "paid_at": None,
+                                "raw_response": {"error": "Currency mismatch", "txn": txn_data}
+                            }
+
+                        if txn_to_account and self.account_id and txn_to_account.lower() != self.account_id.lower():
+                            logger.warning(
+                                f"Bakong destination account mismatch: {txn_to_account} vs expected {self.account_id}"
+                            )
+                            return {
+                                "status": "FAILED",
+                                "transaction_id": txn_data.get("hash"),
+                                "paid_at": None,
+                                "raw_response": {"error": "Destination account mismatch", "txn": txn_data}
+                            }
+
                         return {
                             "status": "PAID",
                             "transaction_id": txn_data.get("hash") or f"BAKONG-{md5_hash}",

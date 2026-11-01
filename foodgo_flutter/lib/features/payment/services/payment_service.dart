@@ -10,15 +10,91 @@ import '../models/payment_model.dart';
 class FlutterPaymentService {
   final ApiService _api = ApiService();
 
+  Future<List<PaymentMethodConfig>> getAvailablePaymentMethods() async {
+    try {
+      final response = await _api.get('payments/methods/');
+      if (response is List) {
+        return response
+            .map(
+              (item) => PaymentMethodConfig.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching payment methods: $e');
+    }
+    return const [
+      PaymentMethodConfig(
+        code: 'BAKONG',
+        name: 'Bakong KHQR',
+        khmerName: 'Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)',
+        method: 'KHQR',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD', 'KHR'],
+        icon: 'bakong_logo',
+        description: 'National Bank of Cambodia universal KHQR rail',
+      ),
+      PaymentMethodConfig(
+        code: 'ABA',
+        name: 'ABA KHQR',
+        khmerName: 'ABA KHQR (ABA Mobile / PayWay)',
+        method: 'KHQR',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD', 'KHR'],
+        icon: 'khqr_logo',
+        description: 'Pay with ABA Mobile or any KHQR app',
+      ),
+      PaymentMethodConfig(
+        code: 'ACLEDA',
+        name: 'ACLEDA KHQR',
+        khmerName: 'ACLEDA KHQR (ACLEDA Mobile)',
+        method: 'KHQR',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD', 'KHR'],
+        icon: 'khqr_logo',
+        description: 'Pay with ACLEDA Mobile or any KHQR app',
+      ),
+      PaymentMethodConfig(
+        code: 'COD',
+        name: 'Cash on Delivery',
+        khmerName: 'ទូទាត់ជាសាច់ប្រាក់ពេលដឹកដល់ (Cash on Delivery)',
+        method: 'COD',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD', 'KHR'],
+        icon: 'cash',
+        description: 'Pay driver in cash upon food arrival',
+      ),
+      PaymentMethodConfig(
+        code: 'WALLET',
+        name: 'FoodGo Wallet',
+        khmerName: 'កាបូបលុយ FoodGo (1-Tap Pay)',
+        method: 'WALLET',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD'],
+        icon: 'wallet',
+        description: 'Instant 1-tap payment from FoodGo balance',
+      ),
+    ];
+  }
+
   Future<PaymentModel> createPayment({
     required int orderId,
     required String provider,
     String currency = 'USD',
+    bool regenerate = false,
   }) async {
     final response = await _api.post('payments/create/', {
       'order_id': orderId,
       'provider': provider,
       'currency': currency,
+      if (regenerate) 'regenerate': true,
     });
     return PaymentModel.fromJson(response);
   }
@@ -28,10 +104,22 @@ class FlutterPaymentService {
     return PaymentModel.fromJson(response);
   }
 
+  Future<PaymentModel?> getPaymentByOrder(int orderId) async {
+    try {
+      final response = await _api.get('payments/order/$orderId/');
+      if (response != null && response is Map<String, dynamic>) {
+        return PaymentModel.fromJson(response);
+      }
+    } catch (e) {
+      debugPrint('Error fetching payment for order $orderId: $e');
+    }
+    return null;
+  }
+
   /// Reads the authoritative payment status from the backend.
   ///
   /// There is deliberately no client-side "mark as paid" path: payment
-  /// confirmation can only come from the provider callback/webhook.
+  /// confirmation can only come from the provider callback/webhook or official bank API.
   Future<PaymentModel> getPaymentStatus(int paymentId) async {
     final response = await _api.post(
       'payments/$paymentId/status/',

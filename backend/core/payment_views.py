@@ -42,13 +42,41 @@ def broadcast_payment_status(payment):
     except Exception as e:
         logger.warning(f"Failed to broadcast payment status over WebSocket: {e}")
 
+class PaymentMethodsView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        """
+        Returns list of supported payment methods and active configuration status.
+        Never exposes bank secrets, API tokens, or merchant private keys.
+        """
+        methods = payment_service.get_available_methods()
+        return Response(methods, status=status.HTTP_200_OK)
+
+
+class OrderPaymentDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, order_id):
+        try:
+            payment = Payment.objects.select_related('order').get(order_id=order_id)
+        except Payment.DoesNotExist:
+            return Response({'detail': 'Payment not found for this order.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not request.user.is_staff and payment.order.customer != request.user:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+
+        return Response(PaymentSerializer(payment).data, status=status.HTTP_200_OK)
+
+
 class CreatePaymentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         order_id = request.data.get('order_id')
-        provider_name = request.data.get('provider', 'ABA').upper()
+        provider_name = request.data.get('provider', 'BAKONG').upper()
         currency = request.data.get('currency', 'USD').upper()
+        force_regenerate = request.data.get('regenerate') in (True, 'true', '1', 1)
 
         if not order_id:
             return Response({'detail': 'order_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -64,6 +92,13 @@ class CreatePaymentView(APIView):
 
             if order.status == 'cancelled':
                 return Response({'detail': 'Cannot create payment for a cancelled order.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Prevent duplicate charges: If an active unexpired pending payment already exists for this provider, reuse it
+            existing_payment = Payment.objects.filter(order=order).first()
+            if existing_payment and not force_regenerate:
+                if existing_payment.provider == provider_name and existing_payment.status == 'PENDING':
+                    if existing_payment.expires_at and timezone.now() < existing_payment.expires_at:
+                        return Response(PaymentSerializer(existing_payment).data, status=status.HTTP_200_OK)
 
             try:
                 provider = payment_service.get_provider(provider_name)
@@ -140,28 +175,13 @@ class PaymentStatusView(APIView):
         if not request.user.is_staff and payment.order.customer != request.user:
             return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Check provider status or sandbox simulation
-        payment_env = os.environ.get("PAYMENT_ENV", getattr(settings, "PAYMENT_ENV", "sandbox")).lower()
-        is_simulate = (
-            request.data.get('simulate') in (True, 'true', '1', 1) or
-            request.query_params.get('simulate') in (True, 'true', '1', 1) or
-            request.data.get('status') == 'PAID' or
-            request.query_params.get('status') == 'PAID'
-        )
-
-        if is_simulate and (payment_env != "production" or request.user.is_staff or settings.DEBUG):
-            status_info = {
-                'status': 'PAID',
-                'transaction_id': f'SIM-{payment.provider}-{int(time.time())}',
-                'paid_at': timezone.now(),
-                'raw_response': {'simulated': True, 'mode': 'sandbox'}
-            }
-        else:
-            try:
-                provider = payment_service.get_provider(payment.provider)
-                status_info = provider.get_payment_status(payment)
-            except Exception as e:
-                return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        # Authoritative status check: query provider implementation directly
+        # Client request simulation flags are strictly rejected
+        try:
+            provider = payment_service.get_provider(payment.provider)
+            status_info = provider.get_payment_status(payment)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # Status transitions
         new_status = status_info.get('status')

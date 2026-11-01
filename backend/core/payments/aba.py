@@ -7,8 +7,9 @@ import requests
 import logging
 from datetime import timedelta
 from django.utils import timezone
+from urllib.parse import quote
 from .base import PaymentProvider
-from .utils import build_emvco_khqr
+from .utils import build_emvco_khqr, generate_qr_base64
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,8 @@ class ABAKHQRProvider(PaymentProvider):
         
         # Bakong / ABA Dynamic KHQR payload structure according to NBC KHQR standard
         qr_string, md5_hash = self.generate_khqr(merchant_ref=merchant_ref, amount=amount, currency=currency)
+        qr_image_data = generate_qr_base64(qr_string)
+        deep_link = f"abamobile://qr?data={quote(qr_string)}"
 
         provider_response = {
             "merchant_id": self.merchant_id,
@@ -58,6 +61,8 @@ class ABAKHQRProvider(PaymentProvider):
             "amount": str(amount),
             "currency": currency,
             "qr_string": qr_string,
+            "qr_image": qr_image_data,
+            "deep_link": deep_link,
             "md5": md5_hash,
             "environment": self.payment_env,
             "status": "PENDING"
@@ -66,10 +71,14 @@ class ABAKHQRProvider(PaymentProvider):
         return {
             "merchant_reference": merchant_ref,
             "qr_payload": qr_string,
-            "qr_image": None,
+            "qr_image": qr_image_data,
             "expires_at": expires_at,
             "provider_response": provider_response
         }
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(self.enabled and self.merchant_id and self.api_key and self.api_secret)
 
     def get_payment_status(self, payment):
         if timezone.now() > payment.expires_at and payment.status == "PENDING":
@@ -77,7 +86,7 @@ class ABAKHQRProvider(PaymentProvider):
                 "status": "EXPIRED",
                 "transaction_id": payment.transaction_id,
                 "paid_at": None,
-                "raw_response": {"reason": "Payment window expired (5 minutes)"}
+                "raw_response": {"reason": "Payment window expired"}
             }
         return {
             "status": payment.status,

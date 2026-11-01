@@ -1762,11 +1762,36 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
 
         payment = getattr(order, 'payment', None)
         payment_collected = request.data.get('payment_collected', False)
-        is_cod = (payment and payment.provider == 'COD') or (not payment and order.payment_status != 'PAID')
+        is_bank_payment = payment and payment.provider in ('BAKONG', 'ABA', 'ACLEDA', 'BAKONG_KHQR', 'ABA_KHQR', 'ACLEDA_KHQR', 'KHQR')
         extra_fields = []
 
-        # COD payments are marked paid upon driver confirming collection
-        if payment_collected or is_cod:
+        # Bank QR orders must be authoritatively verified by the banking gateway
+        # A driver button click cannot mark a bank payment verified
+        if is_bank_payment and order.payment_status != 'PAID':
+            try:
+                from .payments.service import payment_service
+                provider = payment_service.get_provider(payment.provider)
+                status_info = provider.get_payment_status(payment)
+                if status_info.get('status') == 'PAID':
+                    order.payment_status = 'PAID'
+                    extra_fields.append('payment_status')
+                    payment.status = 'PAID'
+                    payment.transaction_id = status_info.get('transaction_id') or payment.transaction_id
+                    payment.paid_at = status_info.get('paid_at') or now
+                    payment.save(update_fields=['status', 'transaction_id', 'paid_at'])
+                else:
+                    return Response({
+                        'error': 'Bank QR payment has not been verified yet. Customer must complete payment in their banking app before delivery handover.',
+                        'payment_status': order.payment_status,
+                        'provider': payment.provider
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as exc:
+                return Response({
+                    'error': f'Cannot verify bank payment status: {exc}. Driver button cannot verify bank QR transactions.',
+                    'payment_status': order.payment_status
+                }, status=status.HTTP_400_BAD_REQUEST)
+        elif payment_collected and (not payment or payment.provider in ('COD', 'CASH_ON_DELIVERY')):
+            # Physical cash collection is strictly permitted only for Cash on Delivery (COD) orders
             order.payment_status = 'PAID'
             extra_fields.append('payment_status')
             if payment:

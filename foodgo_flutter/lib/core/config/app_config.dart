@@ -26,6 +26,9 @@ class AppConfig {
       if (host == 'localhost' || host == '127.0.0.1') {
         return 'http://$host:8000/api/';
       }
+      if (host.contains('workers.dev') || host.contains('foodgo.app')) {
+        return '${Uri.base.origin}/api/';
+      }
     }
     return '$defaultLiveUrl/api/';
   }

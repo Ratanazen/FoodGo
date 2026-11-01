@@ -16,6 +16,7 @@ import '../../../../providers/address_provider.dart';
 import '../../../../services/api_service.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../payment/services/payment_service.dart';
+import '../../payment/models/payment_model.dart';
 import '../../../../core/utils/khmer_currency.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -34,6 +35,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isLoadingDrivers = true;
   double _walletBalance = 50.00;
   bool _isLoadingWallet = true;
+  List<PaymentMethodConfig> _availablePaymentMethods = [];
+  bool _isLoadingPaymentMethods = true;
 
   final TextEditingController _voucherController = TextEditingController();
   final TextEditingController _deliveryInstructionsController =
@@ -46,6 +49,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     _fetchDrivers();
     _fetchWalletBalance();
+    _fetchPaymentMethods();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final cart = context.read<CartProvider>();
@@ -83,6 +87,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
       setState(() => _isLoadingWallet = false);
     }
+  }
+
+  Future<void> _fetchPaymentMethods() async {
+    try {
+      final methods = await _paymentService.getAvailablePaymentMethods();
+      if (!mounted) return;
+      setState(() {
+        _availablePaymentMethods = methods;
+        _isLoadingPaymentMethods = false;
+        final isSelectedActive = methods.any((m) => m.code == _selectedProvider && m.isEnabled);
+        if (!isSelectedActive && methods.isNotEmpty) {
+          final firstEnabled = methods.firstWhere((m) => m.isEnabled, orElse: () => methods.first);
+          _selectedProvider = firstEnabled.code;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoadingPaymentMethods = false);
+    }
+  }
+
+  PaymentMethodConfig? _getMethodConfig(String code) {
+    for (final method in _availablePaymentMethods) {
+      if (method.code.toUpperCase() == code.toUpperCase()) {
+        return method;
+      }
+    }
+    return null;
   }
 
   Future<void> _fetchDrivers() async {
@@ -715,13 +747,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                activeAddress != null
-                                    ? activeAddress.street
-                                    : 'Home',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+                              Flexible(
+                                child: Text(
+                                  activeAddress != null
+                                      ? activeAddress.street
+                                      : 'Home',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
                                 ),
                               ),
                               if (activeAddress?.isDefault == true) ...[
@@ -1261,6 +1297,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 'Select Payment Method',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+              if (_isLoadingPaymentMethods && _availablePaymentMethods.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                  child: LinearProgressIndicator(minHeight: 2),
+                ),
               const SizedBox(height: 12),
 
               // 1. FoodGo Digital Wallet (Integrated Fintech)
@@ -1289,6 +1330,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 subtitle: 'Scan with Bakong or any Cambodian bank in USD / KHR',
                 svgAsset: 'bakong_logo',
                 iconColor: GlassTheme.bakongRed,
+                badge: _getMethodConfig('BAKONG')?.isConfigured == true
+                    ? 'NBC OPEN API'
+                    : null,
+                badgeColor: GlassTheme.bakongRed,
                 isSelected: _selectedProvider == 'BAKONG',
                 onTap: () => setState(() => _selectedProvider = 'BAKONG'),
               ),
@@ -1300,6 +1345,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 subtitle: 'Scan with ABA Mobile or any KHQR app',
                 svgAsset: 'khqr_logo',
                 iconColor: GlassTheme.abaBlue,
+                badge: _getMethodConfig('ABA')?.isConfigured == false
+                    ? 'VIA BAKONG'
+                    : null,
+                badgeColor: Colors.white24,
                 isSelected: _selectedProvider == 'ABA',
                 onTap: () => setState(() => _selectedProvider = 'ABA'),
               ),
@@ -1311,6 +1360,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 subtitle: 'Pay via ACLEDA mobile & Bakong network',
                 icon: AppIcons.qrScan,
                 iconColor: GlassTheme.acledaNavy,
+                badge: _getMethodConfig('ACLEDA')?.isConfigured == false
+                    ? 'VIA BAKONG'
+                    : null,
+                badgeColor: Colors.white24,
                 isSelected: _selectedProvider == 'ACLEDA',
                 onTap: () => setState(() => _selectedProvider = 'ACLEDA'),
               ),
@@ -1471,13 +1524,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 buttonText = 'Place Cash on Delivery Order';
                 buttonIcon = AppIcons.delivery;
               } else if (_selectedProvider == 'BAKONG') {
-                buttonText = 'Proceed to Pay with Bakong KHQR (Live)';
+                buttonText = 'Proceed to Pay with Bakong KHQR';
                 buttonIcon = AppIcons.qrCode;
               } else if (_selectedProvider == 'ABA') {
-                buttonText = 'Proceed to Pay with ABA KHQR (Live)';
+                buttonText = 'Proceed to Pay with ABA KHQR';
                 buttonIcon = AppIcons.qrCode;
               } else {
-                buttonText = 'Proceed to Pay with ACLEDA KHQR (Live)';
+                buttonText = 'Proceed to Pay with ACLEDA KHQR';
                 buttonIcon = AppIcons.qrScan;
               }
 

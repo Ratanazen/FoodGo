@@ -1,5 +1,12 @@
+import base64
 import hashlib
+import io
 import logging
+
+try:
+    import qrcode
+except ImportError:
+    qrcode = None
 
 logger = logging.getLogger(__name__)
 
@@ -98,3 +105,29 @@ def build_emvco_khqr(
     md5_hash = hashlib.md5(qr_string.encode('utf-8')).hexdigest()
 
     return qr_string, md5_hash
+
+
+def generate_qr_base64(payload: str) -> str | None:
+    """
+    Renders an EMVCo QR code string into a base64-encoded PNG Data URL.
+    Returns None if the qrcode engine is unavailable or rendering fails.
+    """
+    if qrcode is None:
+        return None
+    try:
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=10,
+            border=2,
+        )
+        qr.add_data(payload)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+        return f"data:image/png;base64,{encoded}"
+    except Exception as exc:
+        logger.warning(f"Failed to generate QR image base64: {exc}")
+        return None

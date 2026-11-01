@@ -427,6 +427,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   void _showDeliveryCompletionSheet(Map<String, dynamic> order) {
     final orderId = order['id'].toString();
     final isUnpaid = order['payment_status'] != 'PAID';
+    final rawProvider = (order['payment_info'] is Map
+            ? order['payment_info']['provider']
+            : null) ??
+        order['payment_provider'] ??
+        '';
+    final provider = rawProvider.toString().toUpperCase();
+    final isBankPayment = {
+      'BAKONG',
+      'ABA',
+      'ACLEDA',
+      'BAKONG_KHQR',
+      'ABA_KHQR',
+      'ACLEDA_KHQR',
+      'KHQR',
+    }.contains(provider);
+    final isCod = provider == 'COD' ||
+        provider == 'CASH_ON_DELIVERY' ||
+        (!isBankPayment && provider.isEmpty);
 
     showModalBottomSheet(
       context: context,
@@ -460,7 +478,48 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              if (isUnpaid) ...[
+              if (isUnpaid && isBankPayment) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.qr_code_2, color: Colors.amber),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Bank QR Pending Verification',
+                              style: TextStyle(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Customer must complete payment in their banking app or scan the KHQR code before delivery.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ] else if (isUnpaid && isCod) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -487,7 +546,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               ),
                             ),
                             Text(
-                              'Collect \$${order['total_amount']} or scan Bakong KHQR',
+                              'Collect \$${order['total_amount']} cash from customer',
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 12,
@@ -598,9 +657,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
                 onTap: () async {
                   Navigator.pop(ctx);
+                  if (isBankPayment && isUnpaid) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Bank QR payment is still pending. Customer must complete payment before handover.',
+                        ),
+                        backgroundColor: Colors.amber,
+                      ),
+                    );
+                    return;
+                  }
+                  final isCashDue = isUnpaid && isCod;
                   final confirmed = await _confirmDirectHandover(
                     orderId: orderId,
-                    paymentDue: isUnpaid,
+                    paymentDue: isCashDue,
                     amount: order['total_amount']?.toString(),
                   );
                   if (!confirmed || !mounted) return;
@@ -608,7 +679,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   try {
                     final response = await _api.post(
                       'drivers/orders/$orderId/deliver/',
-                      {'payment_collected': isUnpaid},
+                      {'payment_collected': isCashDue},
                     );
                     if (!mounted) return;
                     final fee = response['fee_earned'];
@@ -1250,6 +1321,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final totalAmount = order['total_amount']?.toString() ?? '0.00';
     final deliveryFee = order['delivery_fee_charged']?.toString() ?? '2.00';
     final isPaid = order['payment_status'] == 'PAID';
+    final rawProvider = (order['payment_info'] is Map
+            ? order['payment_info']['provider']
+            : null) ??
+        order['payment_provider'] ??
+        '';
+    final provider = rawProvider.toString().toUpperCase();
+    final isBankPayment = {
+      'BAKONG',
+      'ABA',
+      'ACLEDA',
+      'BAKONG_KHQR',
+      'ABA_KHQR',
+      'ACLEDA_KHQR',
+      'KHQR',
+    }.contains(provider);
 
     return GlassCard(
       padding: const EdgeInsets.all(18),
@@ -1500,7 +1586,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          isPaid ? 'PAID ONLINE' : 'CASH / KHQR ON DELIVERY',
+                          isPaid
+                              ? 'PAID ONLINE'
+                              : (isBankPayment
+                                  ? 'KHQR PENDING VERIFICATION'
+                                  : 'CASH DUE ON DELIVERY'),
                           style: TextStyle(
                             color: isPaid
                                 ? GlassTheme.primaryGreen
@@ -1904,6 +1994,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final deliveryFee = order['delivery_fee_charged']?.toString() ?? '2.00';
     final totalAmount = order['total_amount']?.toString() ?? '0.00';
     final isPaid = order['payment_status'] == 'PAID';
+    final rawProvider = (order['payment_info'] is Map
+            ? order['payment_info']['provider']
+            : null) ??
+        order['payment_provider'] ??
+        '';
+    final provider = rawProvider.toString().toUpperCase();
+    final isBankPayment = {
+      'BAKONG',
+      'ABA',
+      'ACLEDA',
+      'BAKONG_KHQR',
+      'ABA_KHQR',
+      'ACLEDA_KHQR',
+      'KHQR',
+    }.contains(provider);
 
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -1930,7 +2035,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  isPaid ? 'PAID' : 'COD / KHQR',
+                  isPaid ? 'PAID' : (isBankPayment ? 'KHQR PENDING' : 'COD DUE'),
                   style: TextStyle(
                     color: isPaid ? GlassTheme.primaryGreen : Colors.amber,
                     fontSize: 10,

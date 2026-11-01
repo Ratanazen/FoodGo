@@ -37,7 +37,11 @@ class FoodGoTokenObtainPairView(TokenObtainPairView):
                 from .signals import _run_async
                 identifier = request.data.get('username') or request.data.get('email')
                 if identifier:
-                    user = User.objects.filter(username=identifier).first() or User.objects.filter(email=identifier).first()
+                    user = (
+                        User.objects.filter(username__iexact=identifier).first()
+                        or User.objects.filter(email__iexact=identifier).first()
+                        or User.objects.filter(phone=identifier).first()
+                    )
                     if user:
                         ip, ua = _extract_request_meta(request)
                         _run_async(record_user_login_mongo, args=(user, 'jwt_password', ip, ua))

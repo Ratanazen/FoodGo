@@ -7,9 +7,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
             'phone', 'phone_normalized', 'is_phone_verified', 'phone_verified_at',
-            'role', 'avatar', 'avatar_url',
+            'role', 'avatar', 'avatar_url', 'is_staff', 'is_superuser',
         ]
-        read_only_fields = ['id', 'username', 'phone_normalized', 'is_phone_verified', 'phone_verified_at']
+        read_only_fields = [
+            'id', 'username', 'phone_normalized', 'is_phone_verified',
+            'phone_verified_at', 'is_staff', 'is_superuser',
+        ]
 
     def validate_role(self, value):
         val = (value or '').strip().lower()

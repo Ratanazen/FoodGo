@@ -21,6 +21,7 @@ class ThemeCenterScreen extends StatefulWidget {
 
 class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
   late AppColorPalette _stagedPalette;
+  int _selectedTopTab = 0; // 0: Themes, 1: Settings
   String _activeCategoryFilter = 'All';
   int _previewTab = 0; // 0: Home, 1: Details, 2: Cart, 3: Profile
   int _detailsQuantity = 2;
@@ -36,6 +37,8 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     setState(() {
       _stagedPalette = palette;
     });
+    final themeProvider = context.read<ThemeProvider>();
+    themeProvider.setPalette(palette);
   }
 
   void _applyTheme() {
@@ -93,7 +96,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
 
     final categories = [
       'All',
-      ...PaletteData.allPalettes.map((p) => p.categoryEn).toSet(),
+      'Theme Styles',
+      'Seasonal Themes',
+      ...PaletteData.allPalettes
+          .map((p) => p.categoryEn)
+          .where((cat) => cat != 'Theme Styles' && cat != 'Seasonal Themes')
+          .toSet(),
     ];
 
     final filteredPalettes = _activeCategoryFilter == 'All'
@@ -119,12 +127,37 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Theme Center',
-              style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF111827),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Theme Center',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF111827),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: stagedData.primary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'Appearance',
+                      style: TextStyle(
+                        color: stagedData.primary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const Text(
@@ -169,75 +202,128 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 1. Live Preview Sandbox ──────────────────────────────────
-                _buildLivePreviewCard(stagedData, isDark, hasUnsavedChanges),
-                const SizedBox(height: 24),
+                // ── Top Pill Tab Bar (Themes | Settings) ───────────────────────
+                _buildTopTabBar(isDark, stagedData),
 
-                // ── 2. Appearance Mode (Light / Dark / System) ───────────────
-                _buildSectionHeader(
-                  'Appearance Mode',
-                  'របៀបបង្ហាញពន្លឺ និងរាត្រី',
-                ),
-                const SizedBox(height: 12),
-                _buildAppearanceModeSelector(themeProvider, isDark),
-                const SizedBox(height: 24),
+                if (_selectedTopTab == 0) ...[
+                  // ── 1. Current Theme Hero Banner ───────────────────────────
+                  _buildCurrentThemeHero(stagedData, activeData, isDark, hasUnsavedChanges),
+                  const SizedBox(height: 20),
 
-                // ── 3. Festive & Motion Preferences ─────────────────────────
-                _buildSectionHeader(
-                  'Experience Preferences',
-                  'ជម្រើសពិធីបុណ្យ និងចលនា',
-                ),
-                const SizedBox(height: 12),
-                _buildPreferencesCard(themeProvider, isDark, activeData),
-                const SizedBox(height: 24),
-
-                // ── 4. Theme Preset Gallery ─────────────────────────────────
-                _buildSectionHeader(
-                  'Theme & Cultural Palettes',
-                  'កម្រងរចនាបថ និងពណ៌ប្រពៃណី',
-                ),
-                const SizedBox(height: 12),
-
-                // Category Filter Chips
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    children: categories.map((cat) {
-                      final isSelected = _activeCategoryFilter == cat;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text(cat),
-                          selected: isSelected,
-                          onSelected: (_) =>
-                              setState(() => _activeCategoryFilter = cat),
-                          selectedColor: stagedData.primary,
-                          backgroundColor: isDark
-                              ? activeData.surfaceCardDark
-                              : Colors.grey.withValues(alpha: 0.12),
-                          labelStyle: TextStyle(
-                            color: isSelected
-                                ? stagedData.onPrimary
-                                : (isDark ? Colors.white70 : Colors.black87),
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.w500,
-                            fontSize: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          showCheckmark: false,
-                        ),
-                      );
-                    }).toList(),
+                  // ── 2. Appearance Mode Quick Selector ──────────────────────
+                  _buildSectionHeader(
+                    'Appearance Mode',
+                    'របៀបបង្ហាញពន្លឺ និងរាត្រី',
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 10),
+                  _buildAppearanceModeSelector(themeProvider, isDark),
+                  const SizedBox(height: 24),
 
-                // Theme Cards Grid / List
-                _buildThemeGallery(filteredPalettes, themeProvider, isDark),
+                  // ── 3. Theme & Cultural Palettes Gallery ───────────────────
+                  _buildSectionHeader(
+                    'Theme & Cultural Palettes',
+                    'កម្រងរចនាបថ និងពណ៌ប្រពៃណី',
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Category Filter Chips
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: categories.map((cat) {
+                        final isSelected = _activeCategoryFilter == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(cat),
+                            selected: isSelected,
+                            onSelected: (_) =>
+                                setState(() => _activeCategoryFilter = cat),
+                            selectedColor: stagedData.primary,
+                            backgroundColor: isDark
+                                ? activeData.surfaceCardDark
+                                : Colors.grey.withValues(alpha: 0.12),
+                            labelStyle: TextStyle(
+                              color: isSelected
+                                  ? stagedData.onPrimary
+                                  : (isDark ? Colors.white70 : Colors.black87),
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            showCheckmark: false,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Section A: Theme Styles
+                  if (_activeCategoryFilter == 'All' ||
+                      _activeCategoryFilter == 'Theme Styles') ...[
+                    _buildSubSectionTitle(
+                      'Theme Styles',
+                      'Different looks, Same great experience. / រូបរាងប្លែកៗ បទពិសោធន៍ដ៏អស្ចារ្យដូចគ្នា',
+                      isDark,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildThemeGallery(
+                      PaletteData.themeStyles,
+                      themeProvider,
+                      isDark,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Section B: Seasonal Themes
+                  if (_activeCategoryFilter == 'All' ||
+                      _activeCategoryFilter == 'Seasonal Themes') ...[
+                    _buildSubSectionTitle(
+                      'Seasonal Themes',
+                      'Festive atmospheres & cultural celebrations / បរិយាកាសពិធីបុណ្យ និងប្រពៃណីជាតិ',
+                      isDark,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildThemeGallery(
+                      PaletteData.seasonalThemes,
+                      themeProvider,
+                      isDark,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Section C: Remaining Filtered Themes
+                  if (_activeCategoryFilter != 'All' &&
+                      _activeCategoryFilter != 'Theme Styles' &&
+                      _activeCategoryFilter != 'Seasonal Themes') ...[
+                    _buildThemeGallery(
+                      filteredPalettes,
+                      themeProvider,
+                      isDark,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ] else ...[
+                  // ── Settings Tab ───────────────────────────────────────────
+                  // 1. Live Preview Sandbox
+                  _buildLivePreviewCard(stagedData, isDark, hasUnsavedChanges),
+                  const SizedBox(height: 24),
+
+                  // 2. Festive & Motion Preferences
+                  _buildSectionHeader(
+                    'Experience Preferences',
+                    'ជម្រើសពិធីបុណ្យ និងចលនា',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPreferencesCard(themeProvider, isDark, activeData),
+                  const SizedBox(height: 24),
+                ],
                 const SizedBox(height: 40),
               ],
             ),
@@ -247,45 +333,400 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     );
   }
 
+  Widget _buildTopTabBar(bool isDark, PaletteData staged) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark
+            ? staged.surfaceCardDark.withValues(alpha: 0.6)
+            : Colors.grey.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildTopTabItem(
+              index: 0,
+              icon: Icons.palette_outlined,
+              label: 'Themes',
+              labelKh: 'រចនាបថ',
+              isSelected: _selectedTopTab == 0,
+              staged: staged,
+              isDark: isDark,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _buildTopTabItem(
+              index: 1,
+              icon: Icons.tune_rounded,
+              label: 'Settings',
+              labelKh: 'ការកំណត់',
+              isSelected: _selectedTopTab == 1,
+              staged: staged,
+              isDark: isDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopTabItem({
+    required int index,
+    required IconData icon,
+    required String label,
+    required String labelKh,
+    required bool isSelected,
+    required PaletteData staged,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: () => setState(() => _selectedTopTab = index),
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? staged.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: staged.primary.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 16,
+                  color: isSelected
+                      ? staged.onPrimary
+                      : (isDark ? Colors.white70 : Colors.black87),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected
+                        ? staged.onPrimary
+                        : (isDark ? Colors.white70 : Colors.black87),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '($labelKh)',
+                  style: TextStyle(
+                    fontFamily: AppTheme.khmerPrimaryFont,
+                    fontFamilyFallback: AppTheme.khmerFontFallbacks,
+                    color: isSelected
+                        ? staged.onPrimary.withValues(alpha: 0.8)
+                        : Colors.grey,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentThemeHero(
+    PaletteData staged,
+    PaletteData active,
+    bool isDark,
+    bool hasUnsavedChanges,
+  ) {
+    final isStagedApplied = staged.id == active.id;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? staged.surfaceCardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: staged.primary.withValues(alpha: isDark ? 0.4 : 0.25),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: staged.primary.withValues(alpha: 0.16),
+            blurRadius: 18,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Themed Preview Box with FoodGo Icon
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  gradient: staged.headerGradient,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: staged.auraColor.withValues(alpha: 0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    staged.icon,
+                    color: staged.onPrimary,
+                    size: 26,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+
+              // Title, Tagline, & Active Pill
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Active Style: ${staged.nameEn}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF111827),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isStagedApplied
+                                ? const Color(0xFF10B981)
+                                : staged.primary,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (isStagedApplied
+                                        ? const Color(0xFF10B981)
+                                        : staged.primary)
+                                    .withValues(alpha: 0.35),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isStagedApplied
+                                    ? Icons.check_rounded
+                                    : Icons.visibility_rounded,
+                                size: 11,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                isStagedApplied ? 'Active' : 'Preview',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      staged.descriptionEn,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: isDark ? Colors.white60 : const Color(0xFF6B7280),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        _buildMiniColorDot(staged.primary),
+                        const SizedBox(width: 5),
+                        _buildMiniColorDot(staged.primaryAccent),
+                        const SizedBox(width: 5),
+                        _buildMiniColorDot(staged.secondary),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            staged.nameKh,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: AppTheme.khmerPrimaryFont,
+                              fontFamilyFallback: AppTheme.khmerFontFallbacks,
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Apply Button if unsaved changes
+          if (hasUnsavedChanges) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _applyTheme,
+                    icon: const Icon(Icons.check_rounded, size: 16),
+                    label: Text('Apply "${staged.nameEn}"'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: staged.primary,
+                      foregroundColor: staged.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: _resetStaged,
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 11,
+                      horizontal: 14,
+                    ),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubSectionTitle(String title, String subtitle, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : const Color(0xFF111827),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontFamily: AppTheme.khmerPrimaryFont,
+            fontFamilyFallback: AppTheme.khmerFontFallbacks,
+            fontSize: 11.5,
+            height: 1.35,
+            color: isDark ? Colors.white54 : const Color(0xFF6B7280),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMiniColorDot(Color color) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildThemeGallery(
     List<PaletteData> palettes,
     ThemeProvider themeProvider,
     bool isDark,
   ) {
-    final cards = palettes.map((p) {
-      final isStaged = _stagedPalette == p.id;
-      final isCurrentlyApplied = themeProvider.currentPalette == p.id;
-      return _buildThemeCard(
-        palette: p,
-        isStaged: isStaged,
-        isApplied: isCurrentlyApplied,
-        isDark: isDark,
-        onTap: () => _stageTheme(p.id),
-      );
-    }).toList();
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < 720) {
-          return Column(
-            children: cards
-                .map(
-                  (card) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: card,
-                  ),
-                )
-                .toList(),
-          );
-        }
+        final crossAxisCount = constraints.maxWidth < 620
+            ? 2
+            : (constraints.maxWidth < 920 ? 3 : 4);
+        const spacing = 12.0;
+        final cardWidth =
+            (constraints.maxWidth - (spacing * (crossAxisCount - 1))) /
+            crossAxisCount;
 
-        final cardWidth = (constraints.maxWidth - 12) / 2;
         return Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: cards
-              .map((card) => SizedBox(width: cardWidth, child: card))
-              .toList(),
+          spacing: spacing,
+          runSpacing: spacing,
+          children: palettes.map((p) {
+            final isStaged = _stagedPalette == p.id;
+            final isCurrentlyApplied = themeProvider.currentPalette == p.id;
+            return SizedBox(
+              width: cardWidth,
+              child: _buildThemeCard(
+                palette: p,
+                isStaged: isStaged,
+                isApplied: isCurrentlyApplied,
+                isDark: isDark,
+                onTap: () => _stageTheme(p.id),
+              ),
+            );
+          }).toList(),
         );
       },
     );
@@ -1835,284 +2276,279 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     required bool isDark,
     required VoidCallback onTap,
   }) {
+    final borderColor = isApplied
+        ? palette.primary
+        : (isStaged
+            ? palette.primaryAccent
+            : (isDark ? Colors.white12 : Colors.black12));
+    final cardBg = isDark ? palette.surfaceCardDark : Colors.white;
+
     return Semantics(
       button: true,
       selected: isApplied,
       label:
-          '${palette.nameEn}. ${palette.descriptionEn}'
-          '${isApplied
-              ? '. Active theme.'
-              : isStaged
-              ? '. Previewing.'
-              : ''}',
+          '${palette.nameEn}. ${palette.descriptionEn}${isApplied ? '. Active theme.' : isStaged ? '. Previewing.' : ''}',
       child: ExcludeSemantics(
         child: AnimatedPressable(
           onTap: onTap,
-          pressedScale: 0.98,
+          pressedScale: 0.97,
           child: Container(
-            padding: const EdgeInsets.all(14),
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: isDark ? palette.surfaceCardDark : Colors.white,
-              borderRadius: BorderRadius.circular(18),
+              color: cardBg,
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isStaged
-                    ? palette.primary
-                    : (isDark ? Colors.white10 : Colors.black12),
-                width: isStaged ? 2.0 : 1.0,
+                color: borderColor,
+                width: (isApplied || isStaged) ? 2.2 : 1.0,
               ),
-              boxShadow: isStaged
+              boxShadow: (isApplied || isStaged)
                   ? [
                       BoxShadow(
-                        color: palette.primary.withValues(alpha: 0.2),
-                        blurRadius: 12,
+                        color: palette.primary.withValues(alpha: 0.28),
+                        blurRadius: 14,
                         offset: const Offset(0, 4),
                       ),
                     ]
-                  : null,
-            ),
-            child: Row(
-              children: [
-                // Theme Icon with Header gradient background
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: palette.headerGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
+                  : [
                       BoxShadow(
-                        color: palette.primary.withValues(alpha: 0.35),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.25 : 0.04,
+                        ),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
                     ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ── 1. Visual Theme Skin Preview Canvas ───────────────────
+                Container(
+                  height: 105,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: palette.headerGradient,
                   ),
-                  child: Icon(
-                    palette.icon,
-                    color: palette.onPrimary,
-                    size: AppIconSizes.md,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Atmospheric background art
+                      CustomPaint(
+                        painter: _ThemeCardPreviewPainter(palette: palette),
+                      ),
+
+                      // Center Floating Icon Badge
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.22),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: palette.auraColor.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            palette.icon,
+                            color: palette.onPrimary,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+
+                      // Top-Left Category / Style Badge
+                      if (palette.badgeText.isNotEmpty)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.25),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              palette.badgeText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Top-Right Active / In-Season Pill
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: isApplied
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981),
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF10B981).withValues(
+                                        alpha: 0.4,
+                                      ),
+                                      blurRadius: 6,
+                                    ),
+                                  ],
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.check_rounded,
+                                      size: 11,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 3),
+                                    Text(
+                                      'Active',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : (palette.isSeasonallyActive
+                                ? Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF59E0B),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Text(
+                                      'In Season',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink()),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 14),
 
-                // Theme details
-                Expanded(
+                // ── 2. Theme Typography & Info ───────────────────────────
+                Padding(
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         palette.nameEn,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color: isDark ? Colors.white : const Color(0xFF111827),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (palette.badgeText.isNotEmpty ||
-                          palette.isSeasonallyActive)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            children: [
-                              if (palette.badgeText.isNotEmpty)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: palette.primary.withValues(
-                                      alpha: 0.16,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    palette.badgeText,
-                                    style: TextStyle(
-                                      color: palette.primary,
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              if (palette.isSeasonallyActive)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF10B981,
-                                    ).withValues(alpha: 0.16),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: const Color(
-                                        0xFF10B981,
-                                      ).withValues(alpha: 0.4),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'IN SEASON',
-                                    style: TextStyle(
-                                      color: Color(0xFF10B981),
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              Container(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 160,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: palette.primary.withValues(
-                                    alpha: 0.10,
-                                  ),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: palette.primary.withValues(
-                                      alpha: 0.25,
-                                    ),
-                                    width: 0.8,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.auto_awesome,
-                                      size: 9.5,
-                                      color: palette.primary,
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Flexible(
-                                      child: Text(
-                                        palette.backdropNameEn,
-                                        style: TextStyle(
-                                          color: palette.primary,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       const SizedBox(height: 2),
                       Text(
                         palette.nameKh,
-                        style: TextStyle(
-                          fontFamily: AppTheme.khmerPrimaryFont,
-                          fontFamilyFallback: AppTheme.khmerFontFallbacks,
-                          fontSize: 11.5,
-                          height: 1.35,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: AppTheme.khmerPrimaryFont,
+                          fontFamilyFallback: AppTheme.khmerFontFallbacks,
+                          fontSize: 10.5,
+                          height: 1.3,
+                          color: Colors.grey,
+                        ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
+                      Text(
+                        palette.descriptionEn,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark
+                              ? Colors.white54
+                              : const Color(0xFF6B7280),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
 
-                      // Palette Swatch Dots
+                      // Swatches & Selection Indicator
                       Row(
                         children: [
-                          _buildSwatchDot(palette.primary),
-                          _buildSwatchDot(palette.primaryDark),
-                          _buildSwatchDot(palette.primaryAccent),
-                          _buildSwatchDot(palette.secondary),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              palette.categoryEn,
+                          _buildMiniColorDot(palette.primary),
+                          const SizedBox(width: 5),
+                          _buildMiniColorDot(palette.primaryAccent),
+                          const SizedBox(width: 5),
+                          _buildMiniColorDot(palette.secondary),
+                          const Spacer(),
+                          if (isApplied)
+                            Icon(
+                              Icons.check_circle_rounded,
+                              size: 18,
+                              color: palette.primary,
+                            )
+                          else if (isStaged)
+                            Text(
+                              'Staged',
                               style: TextStyle(
-                                fontSize: 10,
-                                color: isDark ? Colors.white38 : Colors.black38,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: palette.primary,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            )
+                          else
+                            Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white30
+                                      : Colors.black26,
+                                  width: 1.5,
+                                ),
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
-
-                // Selection indicator
-                if (isApplied)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: palette.primary.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: palette.primary, width: 1.2),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          AppIcons.checkCircle,
-                          size: 14,
-                          color: palette.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'ACTIVE',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: palette.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else if (isStaged)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.amber, width: 1.2),
-                    ),
-                    child: const Text(
-                      'PREVIEW',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.amber,
-                      ),
-                    ),
-                  )
-                else
-                  Icon(
-                    AppIcons.chevronRight,
-                    color: isDark ? Colors.white30 : Colors.black26,
-                    size: AppIconSizes.md,
-                  ),
               ],
             ),
           ),
@@ -2120,17 +2556,45 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
       ),
     );
   }
+}
 
-  Widget _buildSwatchDot(Color color) {
-    return Container(
-      width: 14,
-      height: 14,
-      margin: const EdgeInsets.only(right: 4),
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 1),
-      ),
+class _ThemeCardPreviewPainter extends CustomPainter {
+  final PaletteData palette;
+  const _ThemeCardPreviewPainter({required this.palette});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width <= 0 || size.height <= 0) return;
+
+    // Draw decorative ambient circles and highlights
+    final paint1 = Paint()
+      ..color = Colors.white.withValues(alpha: 0.12)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(size.width * 0.85, 20), 40, paint1);
+
+    final paint2 = Paint()
+      ..color = palette.auraColor.withValues(alpha: 0.18)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(size.width * 0.15, size.height * 0.8), 35, paint2);
+
+    // Subtle diagonal decorative lines
+    final linePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.08)
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(
+      Offset(0, size.height * 0.4),
+      Offset(size.width * 0.6, 0),
+      linePaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.4, size.height),
+      Offset(size.width, size.height * 0.3),
+      linePaint,
     );
   }
+
+  @override
+  bool shouldRepaint(covariant _ThemeCardPreviewPainter oldDelegate) =>
+      oldDelegate.palette.id != palette.id;
 }

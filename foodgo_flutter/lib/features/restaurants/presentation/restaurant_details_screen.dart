@@ -569,64 +569,84 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                   child: Column(
                                     children: [
                                       Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          const Icon(
-                                            Icons.star,
-                                            color: GlassTheme.ratingAmber,
-                                            size: 20,
+                                          Expanded(
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.star,
+                                                  color: GlassTheme.ratingAmber,
+                                                  size: 18,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  rating,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Flexible(
+                                                  child: Text(
+                                                    '(350+ reviews)',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                    style: TextStyle(
+                                                      color: GlassTheme.textMuted,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        (restaurant['is_active'] !=
+                                                                    false
+                                                                ? Theme.of(context)
+                                                                      .colorScheme
+                                                                      .primary
+                                                                : Colors.redAccent)
+                                                            .withValues(
+                                                      alpha: 0.2,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(6),
+                                                  ),
+                                                  child: Text(
+                                                    restaurant['is_active'] != false
+                                                        ? 'Open Now'
+                                                        : 'Closed',
+                                                    style: TextStyle(
+                                                      color:
+                                                          restaurant['is_active'] !=
+                                                                  false
+                                                              ? Theme.of(
+                                                                  context,
+                                                                )
+                                                                  .colorScheme
+                                                                  .primary
+                                                              : Colors.redAccent,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                           const SizedBox(width: 6),
-                                          Text(
-                                            rating,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '(350+ reviews)',
-                                            style: TextStyle(
-                                              color: GlassTheme.textMuted,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  (restaurant['is_active'] !=
-                                                              false
-                                                          ? Theme.of(context)
-                                                                .colorScheme
-                                                                .primary
-                                                          : Colors.redAccent)
-                                                      .withValues(alpha: 0.2),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              restaurant['is_active'] != false
-                                                  ? 'Open Now'
-                                                  : 'Closed',
-                                              style: TextStyle(
-                                                color:
-                                                    restaurant['is_active'] !=
-                                                        false
-                                                    ? Theme.of(
-                                                        context,
-                                                      ).colorScheme.primary
-                                                    : Colors.redAccent,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                          ),
-                                          const Spacer(),
                                           Container(
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 8,

@@ -1,4 +1,7 @@
-from .auth_views import RequestOTPView, VerifyOTPView, GoogleLoginView, ChangePasswordView, LogoutView, DeleteAccountView
+from .auth_views import (
+    RequestOTPView, VerifyOTPView, GoogleLoginView, ChangePasswordView,
+    LogoutView, DeleteAccountView, FoodGoTokenObtainPairView
+)
 from .phone_views import (
     SendPhoneOTPView,
     VerifyPhoneOTPView,
@@ -7,7 +10,8 @@ from .phone_views import (
 )
 from .payment_views import (
     CreatePaymentView, PaymentDetailView, PaymentStatusView,
-    CancelPaymentView, RefundPaymentView, ABACallbackView, ACLEDACallbackView, BakongCallbackView
+    CancelPaymentView, RefundPaymentView, ABACallbackView, ACLEDACallbackView, BakongCallbackView,
+    PaymentMethodsView, OrderPaymentDetailView
 )
 from .admin_views import (
     AdminAnalyticsView, AdminOrderViewSet, AdminUserViewSet,
@@ -63,11 +67,16 @@ urlpatterns = [
     path('auth/logout/', LogoutView.as_view(), name='auth_logout'),
     path('auth/delete-account/', DeleteAccountView.as_view(), name='delete_account'),
     path('', include(router.urls)),
+    path('auth/register/', UserRegistrationView.as_view(), name='auth_register'),
+    path('auth/token/', FoodGoTokenObtainPairView.as_view(), name='auth_token'),
+    path('auth/login/', FoodGoTokenObtainPairView.as_view(), name='auth_login'),
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('me/', UserMeView.as_view(), name='user-me'),
     path('admin/analytics/', AdminAnalyticsView.as_view(), name='admin_analytics'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
     # Real KHQR & COD Payment Endpoints
+    path('payments/methods/', PaymentMethodsView.as_view(), name='payment_methods'),
+    path('payments/order/<int:order_id>/', OrderPaymentDetailView.as_view(), name='payment_by_order'),
     path('payments/', CreatePaymentView.as_view(), name='payment_create_root'),
     path('payments/create/', CreatePaymentView.as_view(), name='payment_create'),
     path('payments/<int:pk>/', PaymentDetailView.as_view(), name='payment_detail'),

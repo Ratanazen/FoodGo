@@ -50,6 +50,7 @@ class MockPaymentService extends FlutterPaymentService {
     required int orderId,
     required String provider,
     String currency = 'USD',
+    bool regenerate = false,
   }) async {
     createCalled = true;
     return PaymentModel(
@@ -243,6 +244,7 @@ void main() {
           method: 'KHQR',
           amount: 18.25,
           currency: 'USD',
+          qrPayload: '00020101021229490016A0000007270499990108BAKONGSG',
           status: 'PENDING',
         );
 
@@ -323,6 +325,48 @@ void main() {
       expect(find.text('Payment Failed'), findsOneWidget);
       expect(find.text('Retry Payment'), findsOneWidget);
       expect(find.byType(QrImageView), findsNothing);
+    });
+
+    testWidgets('Renders zero-dollar (\$0.00) Bakong KHQR for sonar_seang@bkrt testing', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final zeroPayment = PaymentModel(
+        id: 21,
+        orderId: 26,
+        provider: 'BAKONG',
+        method: 'KHQR',
+        restaurantName: 'Glass Burger',
+        orderReference: 'FG-20261030-85FF46',
+        merchantReference: 'FG-BK-26-1793373161',
+        amount: 0.00,
+        currency: 'USD',
+        qrPayload:
+            '00020101021229350011bakong@khqr0116sonar_seang@bkrt52045812530384054040.005802KH5917FoodGo Restaurant6010Phnom Penh62230119FG-BK-26-1793373161630486EF',
+        status: 'PENDING',
+        expiresAt: DateTime.now().add(const Duration(minutes: 15)),
+        orderSummary: {
+          'restaurant': 'Glass Burger',
+          'items': [
+            {'name': 'Classic Double Smash Cheeseburger', 'quantity': 1, 'price': 0.00},
+            {'name': 'Truffle Bacon Swiss Burger', 'quantity': 1, 'price': 0.00},
+          ],
+        },
+      );
+
+      await tester.pumpWidget(createTestWidget(zeroPayment));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Order #FG-20261030-85FF46'), findsOneWidget);
+      expect(find.text('Glass Burger'), findsOneWidget);
+      expect(find.text('USD 0.00'), findsOneWidget);
+      expect(find.text('Bakong KHQR (NBC Open API)'), findsOneWidget);
+      expect(find.byType(QrImageView), findsOneWidget);
+      expect(find.text('WAITING FOR PAYMENT'), findsOneWidget);
     });
   });
 }

@@ -413,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                           const SizedBox(height: 24),
 
-                          // ── "Recomended" Section Header ───────────────────
+                          // ── "Recommended" Section Header ───────────────────
                           _buildRecommendedHeader(
                             context,
                             isDark,
@@ -1236,10 +1236,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 4. "Recomended" Section Header (Mockup Style)
+  // 4. "Recommended" Section Header (Mockup Style)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildRecommendedHeader(BuildContext context, bool isDark) {
-    return _buildSectionHeader('Recomended', () => context.push('/explore'));
+    return _buildSectionHeader('Recommended', () => context.push('/explore'));
   }
 
   // ──────────────────────────────────────────────────────────────────────────

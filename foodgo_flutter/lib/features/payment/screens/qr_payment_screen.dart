@@ -293,6 +293,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         orderId: _currentPayment!.orderId,
         provider: _currentPayment!.provider,
         currency: _currentPayment!.currency,
+        regenerate: true,
       );
       if (!mounted) return;
       setState(() {
@@ -1166,8 +1167,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     final payment = _currentPayment!;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Responsive QR size clamped between 240.0 and 280.0 logical pixels for mobile & desktop
-    final qrSize = (screenWidth * 0.68).clamp(240.0, 280.0);
+    // Responsive QR size clamped for mobile viewports (supports 320px screens without overflow)
+    final qrSize = ((screenWidth - 80) * 0.88).clamp(200.0, 280.0);
 
     final providerUpper = payment.provider.toUpperCase();
     final bool isBakong = providerUpper == 'BAKONG';
@@ -1178,15 +1179,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     final Color brandColor = isBakong
         ? GlassTheme.bakongRed
         : (isAba ? GlassTheme.abaBlue : GlassTheme.acledaNavy);
-    final String acquiringGuid = isBakong
-        ? 'bakong@khqr'
-        : (isAba ? 'abaakhppxxx@abaa' : 'acledakhppxxx@acleda');
-    final String fallbackPayload =
-        '00020101021229380016${acquiringGuid}0108foodgo015204581253038405405${payment.amount > 0 ? payment.amount.toStringAsFixed(2) : '10.00'}5802KH5917FoodGo Restaurant6010Phnom Penh62140110FG-QR-PAY6304';
     final String qrString =
         (payment.qrPayload != null && payment.qrPayload!.trim().isNotEmpty)
         ? payment.qrPayload!.trim()
-        : fallbackPayload;
+        : '';
+    final bool hasValidQr = qrString.isNotEmpty;
 
     final bool isSessionPaid = payment.isPaid;
     final bool isSessionExpired = payment.isExpired || _secondsRemaining <= 0;
@@ -1396,6 +1393,52 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                     style: TextStyle(
                                       color: GlassTheme.textMuted,
                                     ),
+                                  ),
+                                ),
+                              ] else if (!hasValidQr) ...[
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: Colors.redAccent.withValues(alpha: 0.35),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      const Icon(
+                                        Icons.qr_code_2_rounded,
+                                        size: 64,
+                                        color: Colors.redAccent,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        'KHQR Code Unavailable',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'The payment gateway did not return a valid payable KHQR payload for this order. Please retry generating a code or choose a different payment option.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(alpha: 0.75),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 18),
+                                      GlassButton(
+                                        text: 'Regenerate KHQR Code',
+                                        icon: AppIcons.refresh,
+                                        isLoading: _isVerifying,
+                                        onPressed: _retryPayment,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ] else ...[

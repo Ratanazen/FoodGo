@@ -8,17 +8,42 @@ import '../../providers/theme_provider.dart';
 /// A rich, built-in themed skin backdrop that renders distinct visual styling,
 /// atmospheric textures, geometric lattices, cyber grids, cultural ornaments,
 /// and ambient glow meshes for every FoodGo theme skin (not just flat colors).
-class ThemedSkinBackdrop extends StatelessWidget {
+class ThemedSkinBackdrop extends StatefulWidget {
   final Widget child;
   final PaletteData? customPalette;
   final bool? enabled;
+  final bool? animate;
 
   const ThemedSkinBackdrop({
     super.key,
     required this.child,
     this.customPalette,
     this.enabled,
+    this.animate,
   });
+
+  @override
+  State<ThemedSkinBackdrop> createState() => _ThemedSkinBackdropState();
+}
+
+class _ThemedSkinBackdropState extends State<ThemedSkinBackdrop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,23 +52,39 @@ class ThemedSkinBackdrop extends StatelessWidget {
       themeProvider = context.watch<ThemeProvider>();
     } catch (_) {}
 
-    final palette =
-        customPalette ?? themeProvider?.paletteData ?? PaletteData.modernFoodGo;
+    final palette = widget.customPalette ??
+        themeProvider?.paletteData ??
+        PaletteData.modernFoodGo;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isBackdropActive =
-        enabled ?? (themeProvider?.skinBackdropEnabled ?? true);
+        widget.enabled ?? (themeProvider?.skinBackdropEnabled ?? true);
+    final bool runsInProduction =
+        WidgetsBinding.instance is WidgetsFlutterBinding;
+    final bool allowAnimation = widget.animate ?? runsInProduction;
+    final isAnimationActive = (themeProvider?.skinAnimationEnabled ?? true) &&
+        !(themeProvider?.reducedMotion ?? false) &&
+        allowAnimation;
 
-    // If an ancestor ThemedSkinBackdrop is already active and no custom palette is requested, avoid double-painting
-    final parentScope = context
-        .dependOnInheritedWidgetOfExactType<_ThemedSkinScope>();
-    if (parentScope != null && customPalette == null) {
-      return child;
+    if (isAnimationActive && isBackdropActive) {
+      if (!_controller.isAnimating) {
+        _controller.repeat();
+      }
+    } else {
+      if (_controller.isAnimating) {
+        _controller.stop();
+      }
     }
 
-    final backgroundColor = isDark
-        ? palette.backgroundDark
-        : palette.backgroundLight;
+    // If an ancestor ThemedSkinBackdrop is already active and no custom palette is requested, avoid double-painting
+    final parentScope =
+        context.dependOnInheritedWidgetOfExactType<_ThemedSkinScope>();
+    if (parentScope != null && widget.customPalette == null) {
+      return widget.child;
+    }
+
+    final backgroundColor =
+        isDark ? palette.backgroundDark : palette.backgroundLight;
 
     return _ThemedSkinScope(
       palette: palette,
@@ -57,12 +98,16 @@ class ThemedSkinBackdrop extends StatelessWidget {
           if (isBackdropActive)
             RepaintBoundary(
               child: CustomPaint(
-                painter: ThemedSkinPainter(palette: palette, isDark: isDark),
+                painter: ThemedSkinPainter(
+                  palette: palette,
+                  isDark: isDark,
+                  animation: isAnimationActive ? _controller : null,
+                ),
               ),
             ),
 
           // ── 3. Child Screen Content ───────────────────────────────────────
-          child,
+          widget.child,
         ],
       ),
     );
@@ -84,8 +129,15 @@ class _ThemedSkinScope extends InheritedWidget {
 class ThemedSkinPainter extends CustomPainter {
   final PaletteData palette;
   final bool isDark;
+  final Animation<double>? animation;
 
-  const ThemedSkinPainter({required this.palette, required this.isDark});
+  ThemedSkinPainter({
+    required this.palette,
+    required this.isDark,
+    this.animation,
+  }) : super(repaint: animation);
+
+  double get progress => animation?.value ?? 0.0;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -158,6 +210,12 @@ class ThemedSkinPainter extends CustomPainter {
         break;
       case SkinBackdropStyle.liquidMesh:
         _paintLiquidMesh(canvas, size, rect);
+        break;
+      case SkinBackdropStyle.royalSilk:
+        _paintRoyalSilk(canvas, size, rect);
+        break;
+      case SkinBackdropStyle.sunsetWaves:
+        _paintSunsetWaves(canvas, size, rect);
         break;
     }
   }
@@ -1134,11 +1192,14 @@ class ThemedSkinPainter extends CustomPainter {
   void _paintLiquidMesh(Canvas canvas, Size size, Rect rect) {
     final primary = palette.primary;
     final accent = palette.primaryAccent;
+    final t = progress * 2 * math.pi;
+    final dx = 0.06 * math.sin(t);
+    final dy = 0.05 * math.cos(t);
 
     // Top-Right Ambient Orb
     final topOrb = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(0.85, -0.75),
+        center: Alignment(0.85 + dx, -0.75 + dy),
         radius: 1.15,
         colors: [
           primary.withValues(alpha: isDark ? 0.28 : 0.14),
@@ -1152,7 +1213,7 @@ class ThemedSkinPainter extends CustomPainter {
     // Mid-Left Ambient Orb
     final midOrb = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(-0.95, 0.20),
+        center: Alignment(-0.95 - dx, 0.20 + dy),
         radius: 1.0,
         colors: [
           accent.withValues(alpha: isDark ? 0.20 : 0.10),
@@ -1166,7 +1227,7 @@ class ThemedSkinPainter extends CustomPainter {
     // Bottom-Right Surface Depth Orb
     final bottomOrb = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(0.65, 0.95),
+        center: Alignment(0.65 + dy, 0.95 - dx),
         radius: 1.0,
         colors: [
           primary.withValues(alpha: isDark ? 0.20 : 0.10),
@@ -1184,17 +1245,273 @@ class ThemedSkinPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4;
 
+    final causticShift = 12.0 * math.sin(t);
     final causticPath = Path()
-      ..moveTo(0, size.height * 0.42)
+      ..moveTo(0, size.height * 0.42 + causticShift)
       ..cubicTo(
         size.width * 0.35,
-        size.height * 0.38,
+        size.height * 0.38 - causticShift,
         size.width * 0.65,
-        size.height * 0.46,
+        size.height * 0.46 + causticShift,
         size.width,
-        size.height * 0.41,
+        size.height * 0.41 - causticShift,
       );
     canvas.drawPath(causticPath, causticPaint);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 23. Royal Khmer Golden Silk (ព្រែខ្មែរមាសរាជវាំង)
+  // ──────────────────────────────────────────────────────────────────────────
+  void _paintRoyalSilk(Canvas canvas, Size size, Rect rect) {
+    final primary = palette.primary; // Royal Gold #D4AF37
+    final accent = palette.primaryAccent; // Imperial Silk Violet #7B1FA2
+    final secondary = palette.secondary; // Shimmer Cream #FFF8E7
+    final t = progress * 2 * math.pi;
+
+    // 1. Shimmering Silk Ambient Backlight with harmonic breathing
+    final breathOffsetX = 0.08 * math.sin(t);
+    final breathOffsetY = 0.06 * math.cos(t);
+    final skyAura = Paint()
+      ..shader = RadialGradient(
+        center: Alignment(-0.2 + breathOffsetX, -0.4 + breathOffsetY),
+        radius: 1.25,
+        colors: [
+          primary.withValues(alpha: isDark ? 0.22 : 0.12),
+          accent.withValues(alpha: isDark ? 0.14 : 0.07),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(rect);
+    canvas.drawRect(rect, skyAura);
+
+    // Secondary depth aura at lower right
+    final lowerAura = Paint()
+      ..shader = RadialGradient(
+        center: Alignment(0.7 - breathOffsetX, 0.7 - breathOffsetY),
+        radius: 0.9,
+        colors: [
+          accent.withValues(alpha: isDark ? 0.18 : 0.08),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.7],
+      ).createShader(rect);
+    canvas.drawRect(rect, lowerAura);
+
+    // 2. Woven Silk Diagonal Warp & Weft Threads (ហូល ផាមួង)
+    final threadPaint = Paint()
+      ..color = primary.withValues(alpha: isDark ? 0.06 : 0.035)
+      ..strokeWidth = 0.9
+      ..style = PaintingStyle.stroke;
+
+    final fineThreadPaint = Paint()
+      ..color = secondary.withValues(alpha: isDark ? 0.04 : 0.02)
+      ..strokeWidth = 0.5
+      ..style = PaintingStyle.stroke;
+
+    const spacing = 44.0;
+    final shift = (progress * spacing) % spacing;
+
+    // Diagonal Warp (45°)
+    for (double d = -size.height; d < size.width + size.height; d += spacing) {
+      canvas.drawLine(
+        Offset(d + shift, 0),
+        Offset(d + shift + size.height, size.height),
+        threadPaint,
+      );
+      canvas.drawLine(
+        Offset(d + shift + spacing * 0.5, 0),
+        Offset(d + shift + spacing * 0.5 + size.height, size.height),
+        fineThreadPaint,
+      );
+    }
+
+    // Diagonal Weft (-45°)
+    for (double d = -size.height; d < size.width + size.height; d += spacing) {
+      canvas.drawLine(
+        Offset(d - shift, size.height),
+        Offset(d - shift + size.height, 0),
+        threadPaint,
+      );
+      canvas.drawLine(
+        Offset(d - shift + spacing * 0.5, size.height),
+        Offset(d - shift + spacing * 0.5 + size.height, 0),
+        fineThreadPaint,
+      );
+    }
+
+    // 3. Khmer Royal Rhombus Ornaments (ផ្កាចន្ទន៍ គ្រាប់ពេជ្រ)
+    final starPaint = Paint()
+      ..color = primary.withValues(alpha: isDark ? 0.25 : 0.14)
+      ..style = PaintingStyle.fill;
+
+    final gridCols = (size.width / (spacing * 2)).ceil() + 1;
+    final gridRows = (size.height / (spacing * 2)).ceil() + 1;
+    for (int c = 0; c < gridCols; c++) {
+      for (int r = 0; r < gridRows; r++) {
+        final cx = c * spacing * 2 + spacing;
+        final cy = r * spacing * 2 + spacing;
+        final floretPhase = math.sin(t + c * 0.8 + r * 0.6);
+        final radius = 2.4 + (floretPhase * 0.8);
+
+        final diamond = Path()
+          ..moveTo(cx, cy - radius * 1.5)
+          ..lineTo(cx + radius, cy)
+          ..lineTo(cx, cy + radius * 1.5)
+          ..lineTo(cx - radius, cy)
+          ..close();
+        canvas.drawPath(diamond, starPaint);
+      }
+    }
+
+    // 4. Floating Royal Golden Dust Motes
+    final motePaint = Paint()..style = PaintingStyle.fill;
+    final rng = math.Random(1337);
+    for (int i = 0; i < 24; i++) {
+      final seedX = rng.nextDouble();
+      final seedY = rng.nextDouble();
+      final baseSize = 1.2 + rng.nextDouble() * 2.2;
+      final speed = 0.5 + rng.nextDouble() * 0.8;
+
+      final currentY = ((seedY - progress * speed) % 1.0) * size.height;
+      final swayX = math.sin(t * speed + seedX * 10) * 16.0;
+      final currentX = ((seedX * size.width) + swayX) % size.width;
+
+      final moteAlpha =
+          (0.2 + 0.3 * math.sin(t * 1.5 + seedX * 6.28)).clamp(0.05, 0.45);
+      motePaint.color = (i % 3 == 0 ? secondary : primary).withValues(
+        alpha: isDark ? moteAlpha : moteAlpha * 0.7,
+      );
+
+      canvas.drawCircle(Offset(currentX, currentY), baseSize, motePaint);
+    }
+
+    // 5. Specular Silk Sheen Sweeping Wave
+    final sheenPaint = Paint()
+      ..color = secondary.withValues(alpha: isDark ? 0.05 : 0.03)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2;
+    final sheenY = size.height * (0.35 + 0.08 * math.sin(t * 0.7));
+    final sheenPath = Path()
+      ..moveTo(0, sheenY)
+      ..cubicTo(
+        size.width * 0.3,
+        sheenY - 30 * math.cos(t),
+        size.width * 0.7,
+        sheenY + 30 * math.sin(t),
+        size.width,
+        sheenY,
+      );
+    canvas.drawPath(sheenPath, sheenPaint);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 24. Mekong Sunset Waves (រលកថ្ងៃលិចទន្លេមេគង្គ)
+  // ──────────────────────────────────────────────────────────────────────────
+  void _paintSunsetWaves(Canvas canvas, Size size, Rect rect) {
+    final primary = palette.primary; // Sunset Amber #FF6F00
+    final accent = palette.primaryAccent; // Twilight Rose #E91E63
+    final secondary = palette.secondary; // Golden Hour #FFE082
+    final t = progress * 2 * math.pi;
+
+    final horizonY = size.height * 0.50;
+
+    // 1. Twilight Sky Radial Gradient (Golden Hour into Violet/Rose)
+    final skyGlow = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0.0, -0.1),
+        radius: 1.15,
+        colors: [
+          secondary.withValues(alpha: isDark ? 0.26 : 0.18),
+          primary.withValues(alpha: isDark ? 0.18 : 0.10),
+          accent.withValues(alpha: isDark ? 0.12 : 0.05),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.35, 0.7, 1.0],
+      ).createShader(rect);
+    canvas.drawRect(rect, skyGlow);
+
+    // 2. Setting Sun Luminous Halo over Mekong
+    final sunPulse = 1.0 + 0.06 * math.sin(t);
+    final sunPaint = Paint()
+      ..shader = RadialGradient(
+        center: Alignment(0.0, ((horizonY - 20) / size.height) * 2.0 - 1.0),
+        radius: 0.35 * sunPulse,
+        colors: [
+          secondary.withValues(alpha: isDark ? 0.35 : 0.22),
+          primary.withValues(alpha: isDark ? 0.15 : 0.08),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.45, 1.0],
+      ).createShader(rect);
+    canvas.drawCircle(
+      Offset(size.width * 0.5, horizonY - 15),
+      110 * sunPulse,
+      sunPaint,
+    );
+
+    // 3. Undulating Mekong River Wave Layers
+    const waveCount = 5;
+    final waveColors = [
+      primary.withValues(alpha: isDark ? 0.16 : 0.09),
+      accent.withValues(alpha: isDark ? 0.18 : 0.10),
+      primary.withValues(alpha: isDark ? 0.22 : 0.12),
+      secondary.withValues(alpha: isDark ? 0.15 : 0.08),
+      accent.withValues(alpha: isDark ? 0.24 : 0.14),
+    ];
+
+    for (int w = 0; w < waveCount; w++) {
+      final baseY = horizonY + (w / waveCount) * (size.height - horizonY);
+      final amplitude = 10.0 + (w * 4.0);
+      final speed = (w % 2 == 0 ? 1.0 : -0.85) * (0.8 + w * 0.2);
+      final wavePhase = t * speed + (w * 1.3);
+
+      final wavePath = Path();
+      const segments = 40;
+      for (int i = 0; i <= segments; i++) {
+        final x = (size.width / segments) * i;
+        final normalizedX = x / size.width;
+        final waveY = baseY +
+            math.sin((normalizedX * 4 * math.pi) + wavePhase) * amplitude +
+            math.cos((normalizedX * 2 * math.pi) + wavePhase * 0.7) *
+                (amplitude * 0.4);
+        if (i == 0) {
+          wavePath.moveTo(x, waveY);
+        } else {
+          wavePath.lineTo(x, waveY);
+        }
+      }
+
+      final waveStroke = Paint()
+        ..color = waveColors[w]
+        ..strokeWidth = 1.4 + (w * 0.3)
+        ..style = PaintingStyle.stroke;
+      canvas.drawPath(wavePath, waveStroke);
+    }
+
+    // 4. Shimmering Golden River Reflections (Vertical glitter streaks)
+    final glitterPaint = Paint()..style = PaintingStyle.fill;
+    final rng = math.Random(4242);
+    for (int i = 0; i < 28; i++) {
+      final seedX = rng.nextDouble();
+      final seedY = rng.nextDouble();
+      final rx = (size.width * 0.5) + (seedX - 0.5) * (size.width * 0.65);
+      final ry = horizonY + 10 + seedY * (size.height - horizonY - 20);
+
+      final sparkleAlpha =
+          (0.15 + 0.35 * math.sin(t * 2.0 + seedX * 8.0)).clamp(0.04, 0.45);
+      glitterPaint.color = (i % 2 == 0 ? secondary : primary).withValues(
+        alpha: isDark ? sparkleAlpha : sparkleAlpha * 0.7,
+      );
+
+      final w = 3.0 + rng.nextDouble() * 5.0;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset(rx, ry), width: w, height: 1.8),
+          const Radius.circular(1.0),
+        ),
+        glitterPaint,
+      );
+    }
   }
 
   @override

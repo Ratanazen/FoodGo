@@ -88,12 +88,13 @@ function applyCorsHeaders(targetHeaders, requestOrigin) {
  * Check if a request path + method is eligible for edge caching.
  * Returns the TTL in seconds, or 0 if not cacheable.
  */
-function getCacheTtl(method, pathname, hasAuthHeader) {
+function getCacheTtl(method, pathname, hasAuthHeader, hasCookieHeader) {
   // Only cache GET/HEAD requests
   if (method !== 'GET' && method !== 'HEAD') return 0;
 
-  // Never cache if the request carries an Authorization header (user-specific data)
-  if (hasAuthHeader) return 0;
+  // Never cache if user is authenticated via Authorization header or session cookie
+  if (hasAuthHeader || hasCookieHeader) return 0;
+
 
   // Check explicit never-cache patterns
   for (const pattern of NEVER_CACHE_PATTERNS) {
@@ -151,8 +152,9 @@ export default {
       });
     }
 
-    // 2. Proxy API, Health, Admin, Static, and Media endpoints with 50/50 dual-backend load balancing
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz') || url.pathname.startsWith('/admin') || url.pathname.startsWith('/static/') || url.pathname.startsWith('/media/')) {
+    // 2. Proxy API, WebSockets, Health, Admin, Static, and Media endpoints with dual-backend load balancing
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz') || url.pathname.startsWith('/admin') || url.pathname.startsWith('/static/') || url.pathname.startsWith('/media/')) {
+
 
       // --- Edge Cache Check ---
       const hasAuthHeader = request.headers.has('Authorization');
@@ -199,11 +201,13 @@ export default {
       // to avoid request latency while preserving failover capability.
       const ratio = env.TRAFFIC_SPLIT_RATIO || '50:50';
       const isStandbyRender = backendB.includes('onrender.com');
-      const pickA = (ratio === '100:0' || isStandbyRender) ? true : Math.random() < 0.5;
-      const primaryOrigin = pickA ? backendA : backendB;
-      const secondaryOrigin = pickA ? backendB : backendA;
-      const primaryTag = pickA ? 'A' : 'B';
-      const secondaryTag = pickA ? 'B' : 'A';
+      const isWebSocket = url.pathname.startsWith('/ws/') || (request.headers.get('Upgrade') || '').toLowerCase() === 'websocket';
+      const pickA = !isWebSocket && ((ratio === '100:0' || isStandbyRender) ? true : Math.random() < 0.5);
+      const primaryOrigin = isWebSocket ? backendB : (pickA ? backendA : backendB);
+      const secondaryOrigin = isWebSocket ? backendB : (pickA ? backendB : backendA);
+      const primaryTag = isWebSocket ? 'B' : (pickA ? 'A' : 'B');
+      const secondaryTag = isWebSocket ? 'B' : (pickA ? 'B' : 'A');
+
 
       // Buffer request body once to allow retry on secondary backend for mutating methods
       const hasBody = !['GET', 'HEAD'].includes(request.method);
@@ -308,16 +312,17 @@ export default {
         edgeHealthHeaders.set('Vary', 'Origin');
         applyCorsHeaders(edgeHealthHeaders, requestOrigin);
         return new Response(JSON.stringify({
-          status: 'ok',
+          status: 'degraded',
           edge: 'Cloudflare-Worker-Active',
           backend_status: response.status,
           primary: primaryOrigin,
           secondary: secondaryOrigin,
           timestamp: new Date().toISOString()
         }), {
-          status: 200,
+          status: response.status,
           headers: edgeHealthHeaders,
         });
+
       }
 
       // Build outgoing response with security and CORS headers

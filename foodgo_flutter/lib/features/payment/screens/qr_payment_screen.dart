@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1120,10 +1121,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoadingInitial) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: GlassAppBar(title: 'Scan to Pay'),
-        body: Center(
+        appBar: GlassAppBar(title: context.tr('payment.qrTitle')),
+        body: const Center(
           child: CircularProgressIndicator(color: GlassTheme.primaryGreen),
         ),
       );
@@ -1132,7 +1133,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     if (_initialError != null || _currentPayment == null) {
       return Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const GlassAppBar(title: 'Scan to Pay'),
+        appBar: GlassAppBar(title: context.tr('payment.qrTitle')),
         body: Container(
           decoration: const BoxDecoration(color: Colors.transparent),
           padding: const EdgeInsets.all(24),
@@ -1183,7 +1184,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         (payment.qrPayload != null && payment.qrPayload!.trim().isNotEmpty)
         ? payment.qrPayload!.trim()
         : '';
-    final bool hasValidQr = qrString.isNotEmpty;
+    final String? qrImageData =
+        (payment.qrImage != null && payment.qrImage!.trim().isNotEmpty)
+        ? payment.qrImage!.trim()
+        : null;
+    final bool hasValidQr = qrString.isNotEmpty || qrImageData != null;
 
     final bool isSessionPaid = payment.isPaid;
     final bool isSessionExpired = payment.isExpired || _secondsRemaining <= 0;
@@ -1215,7 +1220,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         backgroundColor: Colors.transparent,
         extendBodyBehindAppBar: true,
         appBar: GlassAppBar(
-          title: 'Scan to Pay',
+          title: context.tr('payment.qrTitle'),
           leading: IconButton(
             icon: const Icon(AppIcons.back, color: Colors.white),
             onPressed: isSessionPaid
@@ -1488,14 +1493,17 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                   ),
                                   child: Column(
                                     children: [
-                                      QrImageView(
-                                        data: qrString,
-                                        version: QrVersions.auto,
-                                        size: qrSize,
-                                        backgroundColor: Colors.white,
-                                        errorCorrectionLevel:
-                                            QrErrorCorrectLevel.M,
-                                      ),
+                                      if (qrString.isNotEmpty)
+                                        QrImageView(
+                                          data: qrString,
+                                          version: QrVersions.auto,
+                                          size: qrSize,
+                                          backgroundColor: Colors.white,
+                                          errorCorrectionLevel:
+                                              QrErrorCorrectLevel.M,
+                                        )
+                                      else if (qrImageData != null)
+                                        _buildQrImageFromBase64(qrImageData, qrSize),
                                       const SizedBox(height: 8),
                                       Text(
                                         '${payment.currency} ${payment.amount.toStringAsFixed(2)} • ${KhmerCurrency.formatKhr(payment.amount)}',
@@ -1773,5 +1781,34 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildQrImageFromBase64(String base64Data, double size) {
+    try {
+      final cleanBase64 = base64Data.contains(',')
+          ? base64Data.split(',').last
+          : base64Data;
+      final bytes = base64Decode(cleanBase64.replaceAll(RegExp(r'\s+'), ''));
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.memory(
+          bytes,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.broken_image_outlined,
+            size: 64,
+            color: Colors.redAccent,
+          ),
+        ),
+      );
+    } catch (_) {
+      return const Icon(
+        Icons.broken_image_outlined,
+        size: 64,
+        color: Colors.redAccent,
+      );
+    }
   }
 }

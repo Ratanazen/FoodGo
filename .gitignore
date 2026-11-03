@@ -35,12 +35,15 @@ backups/
 foodgo_flutter/build/
 foodgo_flutter/android/build/
 foodgo_flutter/android/.gradle/
+foodgo_flutter/android/key.properties
 foodgo_flutter/.dart_tool/
 foodgo_flutter/.flutter-plugins
 foodgo_flutter/.flutter-plugins-dependencies
 foodgo_flutter/.packages
 foodgo_flutter/.pub-cache/
 foodgo_flutter/.pub/
+*.jks
+*.keystore
 
 # Node / React
 frontend/node_modules/

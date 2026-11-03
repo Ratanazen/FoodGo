@@ -106,6 +106,8 @@ void main() {
         expect(find.text('Order #101'), findsOneWidget);
         expect(find.text('Pickup: Kravanh Bistro'), findsOneWidget);
         expect(find.text('Deliver to: Somnang Cust'), findsOneWidget);
+        expect(find.text('Open Delivery Map'), findsOneWidget);
+        expect(find.text('Map Route'), findsOneWidget);
         expect(find.text('Arrived at Restaurant'), findsOneWidget);
         expect(find.byIcon(Icons.navigation), findsNWidgets(2));
       },
@@ -164,6 +166,7 @@ void main() {
 
         expect(find.text('Order #101'), findsOneWidget);
         expect(find.text('Kravanh Bistro'), findsOneWidget);
+        expect(find.byIcon(Icons.map_outlined), findsOneWidget);
         expect(find.text('Accept'), findsOneWidget);
         expect(find.text('Decline'), findsOneWidget);
       },

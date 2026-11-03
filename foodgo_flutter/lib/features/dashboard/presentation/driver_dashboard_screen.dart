@@ -944,7 +944,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
-        title: 'Driver Portal',
+        title: context.tr('driver.dashboard'),
         leading: IconButton(
           icon: const Icon(AppIcons.back),
           onPressed: () =>
@@ -1113,9 +1113,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Text(
-                      'Online & Available',
+                    Text(
+                      context.tr('driver.onlineAvailable'),
                       style: TextStyle(
+
                         color: GlassTheme.primaryGreen,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1148,13 +1149,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Widget _buildTabSelector() {
     final tabs = [
-      {'title': 'Active (${_activeOrders.length})', 'icon': AppIcons.delivery},
+      {'title': '${context.tr('driver.activeDeliveries')} (${_activeOrders.length})', 'icon': AppIcons.delivery},
       {
-        'title': 'Available (${_availableOrders.length})',
+        'title': '${context.tr('driver.availableOrders')} (${_availableOrders.length})',
         'icon': AppIcons.orders,
       },
-      {'title': 'Earnings', 'icon': AppIcons.payment},
-      {'title': 'Profile', 'icon': AppIcons.profile},
+      {'title': context.tr('driver.earnings'), 'icon': AppIcons.payment},
+      {'title': context.tr('nav.profile'), 'icon': AppIcons.profile},
     ];
 
     return Container(
@@ -1427,12 +1428,33 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: GlassTheme.primaryGreen,
                         side: BorderSide(color: GlassTheme.primaryGreen),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        minimumSize: Size.zero,
+                      ),
+                      icon: const Icon(Icons.map_outlined, size: 14),
+                      label: const Text(
+                        'Map Route',
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      onPressed: () => context.push(
+                        '/map/${order['id']}?isDriver=true',
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Colors.white24),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -1446,7 +1468,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       ),
                       onPressed: () => _launchMaps(restLat, restLng, restName),
                     ),
-                    const SizedBox(width: 8),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white70,
@@ -1517,8 +1538,32 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                 ],
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: GlassTheme.primaryGreen,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        minimumSize: Size.zero,
+                      ),
+                      icon: const Icon(Icons.map_rounded, size: 15),
+                      label: const Text(
+                        'Open Delivery Map',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: () => context.push(
+                        '/map/${order['id']}?isDriver=true',
+                      ),
+                    ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.blueAccent,
@@ -1537,7 +1582,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       onPressed: () =>
                           _launchMaps(custLat, custLng, custStreet),
                     ),
-                    const SizedBox(width: 8),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white70,
@@ -2143,6 +2187,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      foregroundColor: GlassTheme.primaryGreen,
+                      side: BorderSide(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                        width: 1.2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                    ),
+                    icon: const Icon(Icons.map_outlined, size: 20),
+                    tooltip: 'Preview on Map',
+                    onPressed: () =>
+                        context.push('/map/$orderId?isDriver=true'),
+                  ),
+                  const SizedBox(width: 8),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,

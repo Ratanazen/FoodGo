@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/api_service.dart';
 
@@ -9,15 +12,99 @@ class UserProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _lastError;
 
+  UserProvider() {
+    _loadCachedUser();
+  }
+
   Map<String, dynamic>? get user => _user;
   bool get isLoading => _isLoading;
   String? get lastError => _lastError;
   bool get isAdmin => _user?['role'] == 'admin' || _user?['is_staff'] == true;
 
+  String get displayName {
+    if (_user == null) return 'Foodie';
+    final firstName = _user?['first_name']?.toString().trim() ?? '';
+    final lastName = _user?['last_name']?.toString().trim() ?? '';
+    if (firstName.isNotEmpty) {
+      return lastName.isNotEmpty ? '$firstName $lastName' : firstName;
+    }
+    final username = _user?['username']?.toString().trim() ?? '';
+    if (username.isNotEmpty && !username.startsWith('adb_user_')) {
+      return username;
+    }
+    final emailAddress = _user?['email']?.toString().trim() ?? '';
+    if (emailAddress.isNotEmpty && emailAddress.contains('@')) {
+      final handle = emailAddress.split('@').first;
+      if (handle.isNotEmpty) {
+        return handle[0].toUpperCase() + handle.substring(1);
+      }
+    }
+    return username.isNotEmpty ? username : 'Foodie';
+  }
+
+  String get email => _user?['email']?.toString().trim() ?? '';
+  String get phone => _user?['phone']?.toString().trim() ?? '';
+  String? get avatarUrl => _user?['avatar_url'] ?? _user?['avatar'];
+  String get role => _user?['role']?.toString().toLowerCase() ?? 'customer';
+
+  String get initials {
+    final name = displayName.trim();
+    if (name.isEmpty || name == 'Foodie' || name == 'Guest') {
+      final username = _user?['username']?.toString().trim() ?? '';
+      if (username.isNotEmpty) return username[0].toUpperCase();
+      return 'F';
+    }
+    final parts = name.split(' ').where((s) => s.isNotEmpty).toList();
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
+  Future<void> _loadCachedUser() async {
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      final cachedJson = preferences.getString('cached_user_profile');
+      if (cachedJson == null || cachedJson.isEmpty) return;
+      final decoded = jsonDecode(cachedJson);
+      if (decoded is Map<String, dynamic> && _user == null) {
+        _user = decoded;
+        notifyListeners();
+      }
+    } catch (e) {
+      if (!e.toString().contains('MissingPluginException')) {
+        debugPrint('Error loading cached user profile: $e');
+      }
+    }
+  }
+
+  void setUser(Map<String, dynamic> userData) {
+    _user = Map<String, dynamic>.from(userData);
+    _isLoading = false;
+    _lastError = null;
+    notifyListeners();
+    _persistCachedUser();
+  }
+
+  Future<void> _persistCachedUser() async {
+    if (_user == null) return;
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setString('cached_user_profile', jsonEncode(_user));
+    } catch (e) {
+      if (!e.toString().contains('MissingPluginException')) {
+        debugPrint('Error saving cached user profile: $e');
+      }
+    }
+  }
+
   void clearUser() {
     _user = null;
     _lastError = null;
     notifyListeners();
+    SharedPreferences.getInstance().then((preferences) {
+      preferences.remove('cached_user_profile');
+    });
   }
 
   Future<void> fetchUser() async {
@@ -28,10 +115,15 @@ class UserProvider with ChangeNotifier {
       final data = await _apiService.get('me/');
       if (data is Map<String, dynamic>) {
         _user = data;
+        _persistCachedUser();
       }
     } catch (e) {
       debugPrint('Error fetching user profile: $e');
-      _user = null;
+      if (e is DioException && e.response?.statusCode == 401) {
+        _user = null;
+        final preferences = await SharedPreferences.getInstance();
+        await preferences.remove('cached_user_profile');
+      }
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -107,25 +107,25 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         surfaceTintColor: Colors.transparent,
         shape: Border(
           bottom: BorderSide(
-            color: GlassTheme.limeAccent.withValues(alpha: 0.3),
+            color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             AppIcons.back,
             size: 18,
-            color: GlassTheme.limeAccent,
+            color: GlassTheme.dynamicPrimaryColor,
           ),
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(AppIcons.security, color: GlassTheme.limeAccent, size: 24),
-            SizedBox(width: 8),
-            Text(
+            Icon(AppIcons.security, color: GlassTheme.dynamicPrimaryColor, size: 24),
+            const SizedBox(width: 8),
+            const Text(
               'Admin Console',
               style: TextStyle(
                 color: Colors.white,
@@ -137,7 +137,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(AppIcons.refresh, color: GlassTheme.limeAccent),
+            icon: Icon(AppIcons.refresh, color: GlassTheme.dynamicPrimaryColor),
             tooltip: 'Refresh Data',
             onPressed: _loadAllData,
           ),
@@ -192,8 +192,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     return Consumer<AdminProvider>(
       builder: (context, admin, _) {
         if (admin.isLoading && admin.analytics == null) {
-          return const Center(
-            child: CircularProgressIndicator(color: GlassTheme.limeAccent),
+          return Center(
+            child: CircularProgressIndicator(color: GlassTheme.dynamicPrimaryColor),
           );
         }
 
@@ -206,7 +206,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             {};
 
         return RefreshIndicator(
-          color: GlassTheme.limeAccent,
+          color: GlassTheme.dynamicPrimaryColor,
           backgroundColor: GlassTheme.heroDarkCard,
           onRefresh: () => admin.fetchAnalytics(),
           child: ListView(
@@ -229,7 +229,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       value: '\$${metrics['total_revenue_usd'] ?? '0.00'}',
                       subtitle: metrics['total_revenue_khr'] ?? '0 KHR',
                       icon: AppIcons.payment,
-                      accentColor: GlassTheme.limeAccent,
+                      accentColor: GlassTheme.dynamicPrimaryColor,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -306,7 +306,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               label: Text(p['label']!),
               selected: isSelected,
               onSelected: (_) => admin.fetchAnalytics(period: p['key']),
-              selectedColor: GlassTheme.limeAccent,
+              selectedColor: GlassTheme.dynamicPrimaryColor,
               backgroundColor: Colors.white.withValues(alpha: 0.05),
               labelStyle: TextStyle(
                 color: isSelected ? Colors.black87 : Colors.white70,
@@ -314,7 +314,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 fontSize: 13,
               ),
               side: BorderSide(
-                color: isSelected ? GlassTheme.limeAccent : Colors.white12,
+                color: isSelected ? GlassTheme.dynamicPrimaryColor : Colors.white12,
               ),
             ),
           );
@@ -590,8 +590,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     children: [
                       Text(
                         o['amount'] ?? '\$0.00',
-                        style: const TextStyle(
-                          color: GlassTheme.limeAccent,
+                        style: TextStyle(
+                          color: GlassTheme.dynamicPrimaryColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -648,9 +648,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         color: GlassTheme.textMuted,
                         fontSize: 13,
                       ),
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.search,
-                        color: GlassTheme.limeAccent,
+                        color: GlassTheme.dynamicPrimaryColor,
                         size: 20,
                       ),
                       suffixIcon: _orderSearchCtrl.text.isNotEmpty
@@ -686,8 +686,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(
-                          color: GlassTheme.limeAccent,
+                        borderSide: BorderSide(
+                          color: GlassTheme.dynamicPrimaryColor,
                         ),
                       ),
                     ),
@@ -702,13 +702,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             // Order List
             Expanded(
               child: admin.isLoading && orders.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
-                        color: GlassTheme.limeAccent,
+                        color: GlassTheme.dynamicPrimaryColor,
                       ),
                     )
                   : RefreshIndicator(
-                      color: GlassTheme.limeAccent,
+                      color: GlassTheme.dynamicPrimaryColor,
                       backgroundColor: GlassTheme.heroDarkCard,
                       onRefresh: () => admin.fetchOrders(),
                       child: orders.isEmpty
@@ -761,7 +761,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               label: Text(f['label']!),
               selected: isSelected,
               onSelected: (_) => admin.fetchOrders(status: f['key']),
-              selectedColor: GlassTheme.limeAccent,
+              selectedColor: GlassTheme.dynamicPrimaryColor,
               backgroundColor: Colors.white.withValues(alpha: 0.05),
               labelStyle: TextStyle(
                 color: isSelected ? Colors.black87 : Colors.white70,
@@ -769,7 +769,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 fontSize: 12,
               ),
               side: BorderSide(
-                color: isSelected ? GlassTheme.limeAccent : Colors.white12,
+                color: isSelected ? GlassTheme.dynamicPrimaryColor : Colors.white12,
               ),
             ),
           );
@@ -843,8 +843,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             children: [
               Text(
                 'Total: \$${order['total_amount']}',
-                style: const TextStyle(
-                  color: GlassTheme.limeAccent,
+                style: TextStyle(
+                  color: GlassTheme.dynamicPrimaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
@@ -879,7 +879,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ? Icons.sports_motorsports_rounded
                     : Icons.person_search_rounded,
                 size: 16,
-                color: driver != null ? GlassTheme.limeAccent : Colors.white38,
+                color: driver != null ? GlassTheme.dynamicPrimaryColor : Colors.white38,
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -900,7 +900,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 TextButton(
                   onPressed: () => _showAssignDriverDialog(order['id'], admin),
                   style: TextButton.styleFrom(
-                    foregroundColor: GlassTheme.limeAccent,
+                    foregroundColor: GlassTheme.dynamicPrimaryColor,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
                   child: const Text(
@@ -943,9 +943,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               ),
               const SizedBox(height: 12),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.two_wheeler_rounded,
-                  color: GlassTheme.limeAccent,
+                  color: GlassTheme.dynamicPrimaryColor,
                 ),
                 title: const Text(
                   'Bob Rider (driver1)',
@@ -961,9 +961,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 },
               ),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.electric_scooter_rounded,
-                  color: GlassTheme.limeAccent,
+                  color: GlassTheme.dynamicPrimaryColor,
                 ),
                 title: const Text(
                   'Sophea Swift (driver2)',
@@ -1071,9 +1071,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         color: GlassTheme.textMuted,
                         fontSize: 13,
                       ),
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.search,
-                        color: GlassTheme.limeAccent,
+                        color: GlassTheme.dynamicPrimaryColor,
                         size: 20,
                       ),
                       suffixIcon: _paymentSearchCtrl.text.isNotEmpty
@@ -1109,8 +1109,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(
-                          color: GlassTheme.limeAccent,
+                        borderSide: BorderSide(
+                          color: GlassTheme.dynamicPrimaryColor,
                         ),
                       ),
                     ),
@@ -1125,13 +1125,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             // Payments List
             Expanded(
               child: admin.isLoading && payments.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
-                        color: GlassTheme.limeAccent,
+                        color: GlassTheme.dynamicPrimaryColor,
                       ),
                     )
                   : RefreshIndicator(
-                      color: GlassTheme.limeAccent,
+                      color: GlassTheme.dynamicPrimaryColor,
                       backgroundColor: GlassTheme.heroDarkCard,
                       onRefresh: () => admin.fetchPayments(),
                       child: payments.isEmpty
@@ -1185,7 +1185,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               label: Text(f['label']!),
               selected: isSelected,
               onSelected: (_) => admin.fetchPayments(status: f['key']),
-              selectedColor: GlassTheme.limeAccent,
+              selectedColor: GlassTheme.dynamicPrimaryColor,
               backgroundColor: Colors.white.withValues(alpha: 0.05),
               labelStyle: TextStyle(
                 color: isSelected ? Colors.black : Colors.white70,
@@ -1196,7 +1196,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
                   color: isSelected
-                      ? GlassTheme.limeAccent
+                      ? GlassTheme.dynamicPrimaryColor
                       : Colors.white.withValues(alpha: 0.1),
                 ),
               ),
@@ -1260,9 +1260,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       color: Colors.white.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.payment,
-                      color: GlassTheme.limeAccent,
+                      color: GlassTheme.dynamicPrimaryColor,
                       size: 20,
                     ),
                   ),
@@ -1324,8 +1324,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   const SizedBox(height: 2),
                   Text(
                     '$currency ${amount.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: GlassTheme.limeAccent,
+                    style: TextStyle(
+                      color: GlassTheme.dynamicPrimaryColor,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1505,9 +1505,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         color: GlassTheme.textMuted,
                         fontSize: 13,
                       ),
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.search,
-                        color: GlassTheme.limeAccent,
+                        color: GlassTheme.dynamicPrimaryColor,
                         size: 20,
                       ),
                       suffixIcon: _userSearchCtrl.text.isNotEmpty
@@ -1542,13 +1542,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             ),
             Expanded(
               child: admin.isLoading && users.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
-                        color: GlassTheme.limeAccent,
+                        color: GlassTheme.dynamicPrimaryColor,
                       ),
                     )
                   : RefreshIndicator(
-                      color: GlassTheme.limeAccent,
+                      color: GlassTheme.dynamicPrimaryColor,
                       backgroundColor: GlassTheme.heroDarkCard,
                       onRefresh: () => admin.fetchUsers(),
                       child: ListView.builder(
@@ -1573,12 +1573,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                               children: [
                                 CircleAvatar(
                                   radius: 20,
-                                  backgroundColor: GlassTheme.limeAccent
+                                  backgroundColor: GlassTheme.dynamicPrimaryColor
                                       .withValues(alpha: 0.15),
                                   child: Text(
                                     (user['username'] ?? 'U')[0].toUpperCase(),
-                                    style: const TextStyle(
-                                      color: GlassTheme.limeAccent,
+                                    style: TextStyle(
+                                      color: GlassTheme.dynamicPrimaryColor,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -1606,15 +1606,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                               vertical: 2,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: GlassTheme.limeAccent
+                                              color: GlassTheme.dynamicPrimaryColor
                                                   .withValues(alpha: 0.15),
                                               borderRadius:
                                                   BorderRadius.circular(6),
                                             ),
                                             child: Text(
                                               role.toUpperCase(),
-                                              style: const TextStyle(
-                                                color: GlassTheme.limeAccent,
+                                              style: TextStyle(
+                                                color: GlassTheme.dynamicPrimaryColor,
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -1635,7 +1635,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                 ),
                                 Switch(
                                   value: isActive,
-                                  activeThumbColor: GlassTheme.limeAccent,
+                                  activeThumbColor: GlassTheme.dynamicPrimaryColor,
                                   onChanged: (_) {
                                     if (isActive) {
                                       _confirmToggleUser(context, user, admin);
@@ -1677,7 +1677,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               label: Text(r['label']!),
               selected: isSelected,
               onSelected: (_) => admin.fetchUsers(role: r['key']),
-              selectedColor: GlassTheme.limeAccent,
+              selectedColor: GlassTheme.dynamicPrimaryColor,
               backgroundColor: Colors.white.withValues(alpha: 0.05),
               labelStyle: TextStyle(
                 color: isSelected ? Colors.black87 : Colors.white70,
@@ -1751,13 +1751,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         final restaurants = admin.restaurants;
 
         if (admin.isLoading && restaurants.isEmpty) {
-          return const Center(
-            child: CircularProgressIndicator(color: GlassTheme.limeAccent),
+          return Center(
+            child: CircularProgressIndicator(color: GlassTheme.dynamicPrimaryColor),
           );
         }
 
         return RefreshIndicator(
-          color: GlassTheme.limeAccent,
+          color: GlassTheme.dynamicPrimaryColor,
           backgroundColor: GlassTheme.heroDarkCard,
           onRefresh: () => admin.fetchRestaurants(),
           child: ListView.builder(
@@ -1785,9 +1785,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.storefront_rounded,
-                        color: GlassTheme.limeAccent,
+                        color: GlassTheme.dynamicPrimaryColor,
                         size: 24,
                       ),
                     ),
@@ -1834,7 +1834,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ),
                     Switch(
                       value: isActive,
-                      activeThumbColor: GlassTheme.limeAccent,
+                      activeThumbColor: GlassTheme.dynamicPrimaryColor,
                       onChanged: (_) {
                         admin.toggleRestaurantStatus(r['id']);
                       },
@@ -1858,13 +1858,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         final logs = admin.auditLogs;
 
         if (admin.isLoading && logs.isEmpty) {
-          return const Center(
-            child: CircularProgressIndicator(color: GlassTheme.limeAccent),
+          return Center(
+            child: CircularProgressIndicator(color: GlassTheme.dynamicPrimaryColor),
           );
         }
 
         return RefreshIndicator(
-          color: GlassTheme.limeAccent,
+          color: GlassTheme.dynamicPrimaryColor,
           backgroundColor: GlassTheme.heroDarkCard,
           onRefresh: () => admin.fetchAuditLogs(),
           child: logs.isEmpty
@@ -1899,14 +1899,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: GlassTheme.limeAccent.withValues(
+                              color: GlassTheme.dynamicPrimaryColor.withValues(
                                 alpha: 0.15,
                               ),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.shield_outlined,
-                              color: GlassTheme.limeAccent,
+                              color: GlassTheme.dynamicPrimaryColor,
                               size: 16,
                             ),
                           ),

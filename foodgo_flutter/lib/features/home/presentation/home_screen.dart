@@ -381,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           // ── Popular Menu Section ──────────────────────────
                           _buildSectionHeader(
-                            'Popular Menu',
+                            context.tr('home.popularMenu'),
                             () => context.push('/explore'),
                           ),
                           const SizedBox(height: 12),
@@ -397,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           // ── Categories Section Header ("Categories" | "See All") ──
                           _buildSectionHeader(
-                            'Categories',
+                            context.tr('home.categories'),
                             () => context.push('/explore'),
                           ),
                           const SizedBox(height: 12),
@@ -436,7 +436,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         delegate: SliverChildListDelegate([
                           const SizedBox(height: 28),
                           _buildSectionHeader(
-                            'Deals for you',
+                            context.tr('home.dealsForYou'),
                             () => context.push('/explore'),
                           ),
                           const SizedBox(height: 12),
@@ -447,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 24),
 
                           _buildSectionHeader(
-                            'Restaurants near you',
+                            context.tr('home.restaurantsNearYou'),
                             () => context.push('/explore'),
                           ),
                           const SizedBox(height: 8),
@@ -495,11 +495,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final topPadding = MediaQuery.of(context).padding.top;
     final activeAddress = context.watch<AddressProvider>().selectedAddress;
     final userProvider = context.watch<UserProvider>();
-    final user = userProvider.user;
-    final avatarUrl = user?['avatar_url'] ?? user?['avatar'];
-    final username = (user?['first_name'] as String?)?.isNotEmpty == true
-        ? user!['first_name'] as String
-        : (user?['username'] as String? ?? 'Foodie');
+    final avatarUrl = userProvider.avatarUrl;
+    final displayName = userProvider.displayName;
+    final initials = userProvider.initials;
     final String locationName =
         (activeAddress?.city.isNotEmpty == true &&
             activeAddress?.street.isNotEmpty == true)
@@ -550,13 +548,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Your Location',
+                              displayName != 'Foodie' && displayName != 'Guest'
+                                  ? 'Hi, $displayName 👋'
+                                  : 'Your Location',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: isDark
-                                    ? Colors.white60
-                                    : const Color(0xFF9CA3AF),
+                                    ? Colors.white70
+                                    : const Color(0xFF6B7280),
                                 fontSize: 11,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -682,9 +684,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ).colorScheme.primary.withValues(alpha: 0.15),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    username.isNotEmpty
-                                        ? username[0].toUpperCase()
-                                        : 'F',
+                                    initials,
                                     style: TextStyle(
                                       color: Theme.of(
                                         context,
@@ -701,9 +701,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ).colorScheme.primary.withValues(alpha: 0.15),
                                 alignment: Alignment.center,
                                 child: Text(
-                                  username.isNotEmpty
-                                      ? username[0].toUpperCase()
-                                      : 'F',
+                                  initials,
                                   style: TextStyle(
                                     color: Theme.of(
                                       context,
@@ -752,7 +750,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Search food...',
+                      context.tr('home.search'),
                       style: TextStyle(
                         color: isDark
                             ? Colors.white60
@@ -1089,13 +1087,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        '\$${(item['price'] as double).toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 15,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            KhmerCurrency.formatUsd(item['price'] as double),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 14.5,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          Text(
+                            KhmerCurrency.formatKhr(item['price'] as double),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? Colors.white54
+                                  : const Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
                       ),
                       AnimatedPressable(
                         pressedScale: 0.88,
@@ -1239,7 +1252,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // 4. "Recommended" Section Header (Mockup Style)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildRecommendedHeader(BuildContext context, bool isDark) {
-    return _buildSectionHeader('Recommended', () => context.push('/explore'));
+    return _buildSectionHeader(context.tr('home.recommended'), () => context.push('/explore'));
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -2480,7 +2493,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'See All',
+                  context.tr('common.seeAll'),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,

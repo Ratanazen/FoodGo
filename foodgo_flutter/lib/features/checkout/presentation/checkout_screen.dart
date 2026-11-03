@@ -712,7 +712,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: GlassAppBar(
-        title: 'Checkout',
+        title: context.tr('checkout.title'),
         leading: IconButton(
           icon: const Icon(AppIcons.back),
           onPressed: () => context.pop(),
@@ -726,9 +726,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Delivery Address Section ─────────────────────────────
-              const Text(
-                'Delivery Address',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                context.tr('checkout.deliveryAddress'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               GlassCard(
@@ -1293,9 +1293,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 24),
 
               // ── Select Payment Method Section ────────────────────────
-              const Text(
-                'Select Payment Method',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                context.tr('checkout.paymentMethod'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               if (_isLoadingPaymentMethods && _availablePaymentMethods.isEmpty)
                 const Padding(
@@ -1514,23 +1514,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               String buttonText;
               IconData buttonIcon;
               if (_isProcessing) {
-                buttonText = 'Processing Order...';
+                buttonText = context.tr('checkout.processingOrder');
                 buttonIcon = AppIcons.loading;
               } else if (_selectedProvider == 'WALLET') {
                 buttonText =
-                    'Pay \$${total.toStringAsFixed(2)} with FoodGo Balance';
+                    '${context.tr('payment.payWithWallet')} (\$${total.toStringAsFixed(2)})';
                 buttonIcon = AppIcons.fastDelivery;
               } else if (_selectedProvider == 'COD') {
-                buttonText = 'Place Cash on Delivery Order';
+                buttonText = context.tr('payment.cod');
                 buttonIcon = AppIcons.delivery;
               } else if (_selectedProvider == 'BAKONG') {
-                buttonText = 'Proceed to Pay with Bakong KHQR';
+                buttonText = context.tr('payment.payWithKhqr');
                 buttonIcon = AppIcons.qrCode;
               } else if (_selectedProvider == 'ABA') {
-                buttonText = 'Proceed to Pay with ABA KHQR';
+                buttonText = context.tr('payment.payWithAba');
                 buttonIcon = AppIcons.qrCode;
               } else {
-                buttonText = 'Proceed to Pay with ACLEDA KHQR';
+                buttonText = context.tr('payment.payWithAcleda');
                 buttonIcon = AppIcons.qrScan;
               }
 
@@ -1568,7 +1568,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Total Amount',
+                                    context.tr('common.total'),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,

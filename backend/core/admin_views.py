@@ -519,7 +519,7 @@ class AdminDriverViewSet(viewsets.ModelViewSet):
         driver.save(update_fields=['is_approved'])
         AuditLog.objects.create(
             admin_user=request.user,
-            action='UPDATE_MENU_ITEM',
+            action='APPROVE_DRIVER',
             target_type='Driver',
             target_id=str(driver.id),
             details={'action': 'approve', 'driver_username': driver.user.username},
@@ -539,7 +539,7 @@ class AdminDriverViewSet(viewsets.ModelViewSet):
         driver.save(update_fields=['is_approved', 'is_online'])
         AuditLog.objects.create(
             admin_user=request.user,
-            action='UPDATE_MENU_ITEM',
+            action='SUSPEND_DRIVER',
             target_type='Driver',
             target_id=str(driver.id),
             details={'action': 'suspend', 'driver_username': driver.user.username},

@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../core/theme/glass_theme.dart';
+import '../core/localization/localization.dart';
 import '../providers/cart_provider.dart';
+import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/user_provider.dart';
 
@@ -262,32 +264,32 @@ class WebHeaderNavBar extends StatelessWidget {
                 child: Row(
                   children: [
                     _WebNavLink(
-                      label: 'Home',
+                      label: context.tr('nav.home'),
                       icon: Icons.home_rounded,
                       isSelected: selectedIndex == 0,
                       onTap: () => onDestinationSelected(0),
                     ),
                     _WebNavLink(
-                      label: 'Explore',
+                      label: context.tr('nav.explore'),
                       icon: Icons.explore_rounded,
                       isSelected: selectedIndex == 3,
                       onTap: () => onDestinationSelected(3),
                     ),
                     _WebNavLink(
-                      label: 'Saved',
+                      label: context.tr('nav.saved'),
                       icon: Icons.favorite_rounded,
                       isSelected: selectedIndex == 1,
                       onTap: () => onDestinationSelected(1),
                     ),
                     _WebNavLink(
-                      label: 'Orders',
+                      label: context.tr('nav.orders'),
                       icon: Icons.receipt_long_rounded,
                       isSelected: false,
                       onTap: () => context.push('/orders'),
                     ),
                     if (role == 'driver')
                       _WebNavLink(
-                        label: 'Driver Portal',
+                        label: context.tr('driver.dashboard'),
                         icon: Icons.two_wheeler_rounded,
                         isSelected: false,
                         onTap: () => context.push('/driver-dashboard'),
@@ -295,7 +297,7 @@ class WebHeaderNavBar extends StatelessWidget {
                       ),
                     if (role == 'restaurant_owner' || role == 'admin')
                       _WebNavLink(
-                        label: 'Dashboard',
+                        label: context.tr('admin.dashboard'),
                         icon: Icons.storefront_rounded,
                         isSelected: false,
                         onTap: () => context.push('/restaurant-dashboard'),
@@ -305,7 +307,7 @@ class WebHeaderNavBar extends StatelessWidget {
                 ),
               ),
 
-              // ── Right Actions: Search, Cart, Theme, Profile ─────────
+              // ── Right Actions: Search, Cart, Language, Theme, Profile ─────────
               Row(
                 children: [
                   // Search Quick Button
@@ -362,7 +364,7 @@ class WebHeaderNavBar extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Cart',
+                                context.tr('nav.cart'),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -401,6 +403,38 @@ class WebHeaderNavBar extends StatelessWidget {
                           ),
                         ),
                     ],
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Language Toggle Button
+                  Consumer<LocaleProvider>(
+                    builder: (context, localeProvider, _) {
+                      return InkWell(
+                        onTap: () => localeProvider.toggleLanguage(),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: primaryColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            localeProvider.isKhmer ? '🇰🇭 ខ្មែរ' : '🇬🇧 EN',
+                            style: TextStyle(
+                              color: primaryColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(width: 8),
 
@@ -462,7 +496,7 @@ class WebHeaderNavBar extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            user?['username'] ?? 'Account',
+                            user?['username'] ?? context.tr('nav.profile'),
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -584,22 +618,22 @@ class WebFooter extends StatelessWidget {
                 runSpacing: 12,
                 children: [
                   _FooterLink(
-                    label: 'Track Order',
+                    label: context.tr('nav.trackOrder'),
                     isDark: isDark,
                     onTap: () => context.push('/track'),
                   ),
                   _FooterLink(
-                    label: 'Help & Support',
+                    label: context.tr('nav.helpSupport'),
                     isDark: isDark,
                     onTap: () => context.push('/support'),
                   ),
                   _FooterLink(
-                    label: 'Terms of Service',
+                    label: context.tr('nav.termsOfService'),
                     isDark: isDark,
                     onTap: () => context.push('/terms'),
                   ),
                   _FooterLink(
-                    label: 'Privacy Policy',
+                    label: context.tr('nav.privacyPolicy'),
                     isDark: isDark,
                     onTap: () => context.push('/privacy'),
                   ),

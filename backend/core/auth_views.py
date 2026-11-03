@@ -43,81 +43,25 @@ class FoodGoTokenObtainPairView(TokenObtainPairView):
                         or User.objects.filter(phone=identifier).first()
                     )
                     if user:
+                        from .serializers import UserSerializer
+                        response.data['user'] = UserSerializer(user).data
                         ip, ua = _extract_request_meta(request)
                         _run_async(record_user_login_mongo, args=(user, 'jwt_password', ip, ua))
             except Exception as e:
                 logger.warning(f"Failed to record JWT login to MongoDB: {e}")
         return response
 
-class RequestOTPView(APIView):
-    permission_classes = [AllowAny]
+from .phone_views import SendPhoneOTPView, VerifyPhoneOTPView
 
-    def post(self, request):
-        if not settings.DEBUG:
-            return Response({'detail': 'SMS OTP sending is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+class RequestOTPView(SendPhoneOTPView):
+    """Legacy alias routing to authoritative Cambodian Phone OTP challenge endpoint."""
+    pass
 
-        phone = request.data.get('phone')
-        if not phone:
-            return Response({'detail': 'Phone number is required.'}, status=400)
-        
-        # Generate a mock 4-digit OTP or environment-configured OTP
-        otp = "1234"
-        cache_key = f"sms_otp_{str(phone).strip()}"
-        cache.set(cache_key, otp, timeout=300)
-        
-        # Simulate sending SMS
-        return Response({'detail': 'OTP sent successfully.', 'mock_otp': otp})
+class VerifyOTPView(VerifyPhoneOTPView):
+    """Legacy alias routing to authoritative Cambodian Phone OTP verification endpoint."""
+    pass
 
-class VerifyOTPView(APIView):
-    permission_classes = [AllowAny]
 
-    def post(self, request):
-        if not settings.DEBUG:
-            return Response({'detail': 'SMS OTP verification is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-        phone = request.data.get('phone')
-        otp = request.data.get('otp')
-        
-        if not phone or not otp:
-            return Response({'detail': 'Phone and OTP are required.'}, status=400)
-            
-        cache_key = f"sms_otp_{str(phone).strip()}"
-        stored_otp = cache.get(cache_key)
-        if not stored_otp or str(stored_otp).strip() != str(otp).strip():
-            return Response({'detail': 'Invalid or expired OTP.'}, status=401)
-            
-        # Clean up OTP immediately (single-use, prevents replay attacks)
-        cache.delete(cache_key)
-        
-        # Get or create user based on phone number
-        user, created = User.objects.get_or_create(
-            phone=phone,
-            defaults={'username': f"user_{phone}", 'role': 'customer'}
-        )
-        
-        # Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
-
-        # Record login event to MongoDB Atlas (non-blocking)
-        try:
-            from .mongodb import record_user_login_mongo
-            from .signals import _run_async
-            ip, ua = _extract_request_meta(request)
-            _run_async(record_user_login_mongo, args=(user, 'phone_otp_debug', ip, ua))
-        except Exception:
-            pass
-
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'is_new_user': created,
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'role': user.role,
-                'phone': user.phone
-            }
-        })
 
 
 class GoogleLoginView(APIView):

@@ -18,9 +18,9 @@ void main() {
 
   group('Dynamic Theme & Color Palette Tests', () {
     test(
-      'PaletteData defines 29 complete brand, cultural, and seasonal palettes',
+      'PaletteData defines 31 complete brand, cultural, and seasonal palettes',
       () {
-        expect(PaletteData.allPalettes.length, 29);
+        expect(PaletteData.allPalettes.length, 31);
 
         for (final palette in PaletteData.allPalettes) {
           expect(palette.nameEn.isNotEmpty, isTrue);
@@ -45,8 +45,8 @@ void main() {
         final nonFestive = PaletteData.allPalettes
             .where((p) => !p.isFestive)
             .toList();
-        expect(festive.length, 15);
-        expect(nonFestive.length, 14);
+        expect(festive.length, 16);
+        expect(nonFestive.length, 15);
       },
     );
 
@@ -92,6 +92,14 @@ void main() {
           PaletteData.fromId(AppColorPalette.angkorHeritage).id,
           AppColorPalette.angkorHeritage,
         );
+        expect(
+          PaletteData.fromId(AppColorPalette.royalKhmerSilk).id,
+          AppColorPalette.royalKhmerSilk,
+        );
+        expect(
+          PaletteData.fromId(AppColorPalette.mekongSunset).id,
+          AppColorPalette.mekongSunset,
+        );
 
         // String lookups
         expect(
@@ -123,6 +131,14 @@ void main() {
         expect(
           PaletteData.fromString('angkorHeritage').id,
           AppColorPalette.angkorHeritage,
+        );
+        expect(
+          PaletteData.fromString('royalKhmerSilk').id,
+          AppColorPalette.royalKhmerSilk,
+        );
+        expect(
+          PaletteData.fromString('mekongSunset').id,
+          AppColorPalette.mekongSunset,
         );
         expect(
           PaletteData.fromString('unknown').id,
@@ -512,6 +528,7 @@ void main() {
           'seasonal_decorations_enabled': false,
           'reduced_motion': true,
           'snowfall_enabled': false,
+          'skin_animation_enabled': false,
         });
 
         final provider = ThemeProvider();
@@ -522,6 +539,7 @@ void main() {
         expect(provider.seasonalDecorationsEnabled, isFalse);
         expect(provider.reducedMotion, isTrue);
         expect(provider.snowfallEnabled, isFalse);
+        expect(provider.skinAnimationEnabled, isFalse);
       },
     );
 
@@ -582,6 +600,8 @@ void main() {
           PaletteData.darkGold,
           PaletteData.waterFestival,
           PaletteData.pchumBen,
+          PaletteData.royalKhmerSilk,
+          PaletteData.mekongSunset,
         ];
 
         for (final pal in stylesToTest) {
@@ -600,5 +620,38 @@ void main() {
         }
       },
     );
+
+    testWidgets('ThemedSkinBackdrop respects skinAnimationEnabled and reducedMotion', (
+      tester,
+    ) async {
+      final provider = ThemeProvider();
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: provider,
+          child: const MaterialApp(
+            home: ThemedSkinBackdrop(
+              animate: true,
+              child: Text('Animated Content'),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Animated Content'), findsOneWidget);
+
+      // Disable animations
+      provider.setSkinAnimationEnabled(false);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Animated Content'), findsOneWidget);
+
+      // Enable reduced motion
+      provider.setSkinAnimationEnabled(true);
+      provider.setReducedMotion(true);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Animated Content'), findsOneWidget);
+    });
   });
 }

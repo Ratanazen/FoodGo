@@ -528,3 +528,24 @@ else:
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
         },
     }
+
+# ==============================================================================
+# Cambodian SMS Gateway & Phone OTP Authentication Configuration (FoodGo v2.0)
+# ==============================================================================
+SMS_PROVIDER = os.environ.get('SMS_PROVIDER', 'simosms')
+SMS_API_KEY = os.environ.get('SMS_API_KEY', '')
+SMS_API_SECRET = os.environ.get('SMS_API_SECRET', '')
+SMS_SENDER_ID = os.environ.get('SMS_SENDER_ID', 'FoodGo')
+SMS_API_BASE_URL = os.environ.get('SMS_API_BASE_URL', 'https://smscambodia.com/smsapi')
+OTP_RESEND_COOLDOWN_SECONDS = int(os.environ.get('OTP_RESEND_COOLDOWN_SECONDS', '60'))
+OTP_EXPIRY_SECONDS = int(os.environ.get('OTP_EXPIRY_SECONDS', '300'))
+OTP_RATE_LIMIT_PER_HOUR = int(os.environ.get('OTP_RATE_LIMIT_PER_HOUR', '5'))
+
+# Payment environment and configuration
+PAYMENT_ENV = os.environ.get('PAYMENT_ENV', 'sandbox')
+PAYMENT_WEBHOOK_SECRET = os.environ.get('PAYMENT_WEBHOOK_SECRET', '')
+BAKONG_API_TOKEN = os.environ.get('BAKONG_API_TOKEN', os.environ.get('BAKONG_TOKEN', ''))
+BAKONG_ACCOUNT_ID = os.environ.get('BAKONG_ACCOUNT_ID', 'sonar_seang@bkrt')
+BAKONG_MERCHANT_NAME = os.environ.get('BAKONG_MERCHANT_NAME', 'FoodGo Restaurant')
+BAKONG_MERCHANT_CITY = os.environ.get('BAKONG_MERCHANT_CITY', 'Phnom Penh')
+

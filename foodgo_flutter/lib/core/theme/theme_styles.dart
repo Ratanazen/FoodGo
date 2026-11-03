@@ -68,6 +68,10 @@ class ThemeStyles {
         return 'High-Octane Cyberpunk Neon & Matrix Glow ⚡';
       case AppColorPalette.monochrome:
         return 'Editorial Studio Precision & Clarity 🏁';
+      case AppColorPalette.royalKhmerSilk:
+        return 'ព្រែខ្មែរមាសរាជវាំង! Royal Khmer Silk & Golden Splendor ✨';
+      case AppColorPalette.mekongSunset:
+        return 'រលកថ្ងៃលិចទន្លេមេគង្គ! Radiant Mekong Sunset Glow 🌅';
       case AppColorPalette.highContrast:
         return 'Maximum Contrast Accessible Experience 👁️';
     }
@@ -118,6 +122,10 @@ class ThemeStyles {
         return 'ឧទ្ទិសកុសលផលបុណ្យ ផ្កាឈូកបរិសុទ្ធ និងភាពសុខដុម';
       case AppColorPalette.angkorHeritage:
         return 'អរិយធម៌ដ៏រុងរឿង និងភាពអស្ចារ្យនៃប្រាសាទអង្គរវត្តខ្មែរ';
+      case AppColorPalette.royalKhmerSilk:
+        return 'រចនាបថព្រែខ្មែរពណ៌មាសឆ្អិនឆ្អៅ រំលេចក្បូរក្បាច់រាជវាំងប្រណិត';
+      case AppColorPalette.mekongSunset:
+        return 'សម្រស់ព្រះអាទិត្យអស្តង្គតកាត់ខ្សែទឹកទន្លេមេគង្គ ពណ៌ទឹកក្រូចផ្កាឈូកទាក់ទាញ';
       default:
         return p.descriptionKh;
     }

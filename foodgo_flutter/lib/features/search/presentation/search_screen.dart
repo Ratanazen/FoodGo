@@ -15,6 +15,7 @@ import '../../../services/api_service.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/vector_illustrations.dart';
 
 enum SearchScope { all, dishes, restaurants }
 
@@ -1187,17 +1188,9 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.search_off,
-                size: 48,
-                color: GlassTheme.textMuted,
-              ),
+            const VectorIllustration(
+              type: VectorIllustrationType.noSearchResults,
+              size: 140,
             ),
             const SizedBox(height: 14),
             Text(

@@ -9,6 +9,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
+import '../../../providers/locale_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -27,8 +28,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _orderUpdates = true;
   bool _promoAlerts = true;
-  String _selectedLanguage = 'English';
-  String _selectedFontSize = 'Medium';
 
   @override
   void initState() {
@@ -44,8 +43,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _notificationsEnabled = prefs.getBool('settings_notifications') ?? true;
         _orderUpdates = prefs.getBool('settings_order_updates') ?? true;
         _promoAlerts = prefs.getBool('settings_promo_alerts') ?? true;
-        _selectedLanguage = prefs.getString('settings_language') ?? 'English';
-        _selectedFontSize = prefs.getString('settings_font_size') ?? 'Medium';
       });
     } catch (_) {}
   }
@@ -62,6 +59,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLanguageDialog() {
+    final LocaleProvider localeProvider;
+    try {
+      localeProvider = context.read<LocaleProvider>();
+    } catch (_) {
+      return;
+    }
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -77,9 +80,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Select Language / ជ្រើសរើសភាសា',
-                style: TextStyle(
+              Text(
+                context.tr('settings.selectLanguage'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -87,16 +90,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 16),
               ...[
-                {'label': 'English (US)', 'name': 'English'},
-                {'label': 'ភាសាខ្មែរ (Khmer)', 'name': 'Khmer'},
-                {'label': 'Français (French)', 'name': 'French'},
-              ].map((lang) {
-                final isSel = _selectedLanguage == lang['name'];
+                {'lang': AppLanguage.english, 'label': 'English (US)'},
+                {'lang': AppLanguage.khmer, 'label': 'ភាសាខ្មែរ (Khmer)'},
+              ].map((item) {
+                final lang = item['lang'] as AppLanguage;
+                final isSel = localeProvider.language == lang;
                 return Material(
                   color: Colors.transparent,
                   child: ListTile(
                     title: Text(
-                      lang['label']!,
+                      item['label'] as String,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
@@ -108,19 +111,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             color: GlassTheme.primaryGreen,
                           )
                         : null,
-                    onTap: () {
-                      setState(() => _selectedLanguage = lang['name']!);
-                      _saveSetting('settings_language', lang['name']!);
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Language switched to ${lang['label']}',
+                    onTap: () async {
+                      await localeProvider.setLanguage(lang);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Language switched to ${item['label']}',
+                            ),
+                            duration: const Duration(seconds: 1),
+                            backgroundColor: GlassTheme.primaryGreen,
                           ),
-                          duration: const Duration(seconds: 1),
-                          backgroundColor: GlassTheme.primaryGreen,
-                        ),
-                      );
+                        );
+                      }
                     },
                   ),
                 );
@@ -548,47 +552,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showFontSizeDialog() {
+    final LocaleProvider localeProvider;
+    try {
+      localeProvider = context.read<LocaleProvider>();
+    } catch (_) {
+      return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: GlassTheme.dialogDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Text & Font Size',
-          style: TextStyle(color: Colors.white),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              context.tr('settings.textSize'),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                localeProvider.setTextScale(AppTextScale.standard);
+                Navigator.pop(ctx);
+              },
+              child: Text(
+                context.tr('common.reset'),
+                style: const TextStyle(
+                  color: GlassTheme.primaryGreenAccent,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: ['Small (90%)', 'Medium (Default 100%)', 'Large (115%)']
-              .map((size) {
-                final key = size.split(' ').first;
-                final isSelected = _selectedFontSize == key;
-                return ListTile(
-                  title: Text(
-                    size,
-                    style: TextStyle(
-                      color: isSelected
-                          ? GlassTheme.primaryGreen
-                          : Colors.white,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                  trailing: isSelected
-                      ? Icon(Icons.check_circle, color: GlassTheme.primaryGreen)
-                      : const Icon(
-                          Icons.circle_outlined,
-                          color: Colors.white38,
-                        ),
-                  onTap: () {
-                    setState(() => _selectedFontSize = key);
-                    _saveSetting('settings_font_size', key);
-                    Navigator.pop(ctx);
-                  },
-                );
-              })
-              .toList(),
+          children: AppTextScale.values.map((scale) {
+            final isSelected = localeProvider.textScale == scale;
+            return ListTile(
+              title: Text(
+                scale.label(localeProvider.isKhmer),
+                style: TextStyle(
+                  color: isSelected ? GlassTheme.primaryGreen : Colors.white,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              subtitle: Text(
+                'Sample text • អក្សរគំរូ',
+                style: TextStyle(
+                  fontSize: 12 * scale.factor,
+                  color: Colors.white60,
+                ),
+              ),
+              trailing: isSelected
+                  ? const Icon(Icons.check_circle, color: GlassTheme.primaryGreen)
+                  : const Icon(Icons.circle_outlined, color: Colors.white38),
+              onTap: () {
+                localeProvider.setTextScale(scale);
+                Navigator.pop(ctx);
+              },
+            );
+          }).toList(),
         ),
       ),
     );
@@ -1011,7 +1038,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: GlassAppBar(
-        title: 'Settings',
+        title: context.tr('settings.title'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -1023,7 +1050,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             // ── Appearance ──────────────────────
-            _SectionHeader(title: 'Appearance'),
+            _SectionHeader(title: context.tr('settings.appearance')),
             GlassContainer(
               borderRadius: GlassTheme.borderRadius,
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1032,10 +1059,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _SettingsTile(
                     icon: isDark ? Icons.dark_mode : Icons.light_mode,
                     iconColor: isDark ? Colors.indigo : Colors.amber,
-                    title: 'Dark Mode',
+                    title: context.tr('settings.themeMode'),
                     subtitle: isDark
-                        ? 'Dark theme active'
-                        : 'Light theme active',
+                        ? context.tr('settings.darkMode')
+                        : context.tr('settings.lightMode'),
                     trailing: Switch.adaptive(
                       value: isDark,
                       activeTrackColor: GlassTheme.primaryGreen,
@@ -1085,8 +1112,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _SettingsTile(
                     icon: Icons.language,
                     iconColor: GlassTheme.primaryGreen,
-                    title: 'Language',
-                    subtitle: _selectedLanguage,
+                    title: context.tr('settings.language'),
+                    subtitle: (() {
+                      try {
+                        return context.watch<LocaleProvider>().language.nativeName;
+                      } catch (_) {
+                        return 'English';
+                      }
+                    })(),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _showLanguageDialog,
                   ),
@@ -1094,8 +1127,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _SettingsTile(
                     icon: Icons.text_fields,
                     iconColor: Colors.blueAccent,
-                    title: 'Font Size',
-                    subtitle: _selectedFontSize,
+                    title: context.tr('settings.textSize'),
+                    subtitle: (() {
+                      try {
+                        final lp = context.watch<LocaleProvider>();
+                        return lp.textScale.label(lp.isKhmer);
+                      } catch (_) {
+                        return 'Default';
+                      }
+                    })(),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _showFontSizeDialog,
                   ),
@@ -1103,7 +1143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _SettingsTile(
                     icon: Icons.currency_exchange,
                     iconColor: Colors.amberAccent,
-                    title: 'Display Currency',
+                    title: context.tr('settings.displayCurrency'),
                     subtitle:
                         '${context.watch<CurrencyProvider>().currencySymbol} (${context.watch<CurrencyProvider>().currency.name.toUpperCase()}) • 1 USD = ${context.watch<CurrencyProvider>().khrPerUsd.toInt()} KHR',
                     trailing: const Icon(Icons.chevron_right),
@@ -1231,7 +1271,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         icon: Icons.info_outline,
                         iconColor: GlassTheme.primaryGreen,
                         title: 'App Version',
-                        subtitle: '1.0.0 (Build 12) • Production Ready',
+                        subtitle: '2.0.0 (Build 20) • Production Ready',
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => showAboutFoodGoDialog(context),
                       ),

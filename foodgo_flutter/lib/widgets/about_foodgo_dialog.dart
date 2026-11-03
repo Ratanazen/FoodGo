@@ -91,7 +91,7 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
                     ),
                   ),
                   child: Text(
-                    'Version 1.0.0 (Build 12) • Production Ready',
+                    'Version 2.0.0 (Build 20) • Production Ready',
                     style: TextStyle(
                       color: GlassTheme.dynamicPrimaryColor,
                       fontSize: 11.5,

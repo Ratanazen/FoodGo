@@ -8,11 +8,13 @@ import '../services/api_service.dart';
 class AuthProvider with ChangeNotifier {
   bool _isAuthenticated = false;
   String? _lastAuthError;
+  Map<String, dynamic>? _lastLoginUser;
   final ApiService _apiService = ApiService();
   final SecureStorage _secureStorage = SecureStorage();
 
   bool get isAuthenticated => _isAuthenticated;
   String? get lastAuthError => _lastAuthError;
+  Map<String, dynamic>? get lastLoginUser => _lastLoginUser;
 
   AuthProvider() {
     ApiClient.onSessionExpired = () {
@@ -37,10 +39,12 @@ class AuthProvider with ChangeNotifier {
     if (result.isSuccess) {
       _isAuthenticated = true;
       _lastAuthError = null;
+      _lastLoginUser = result.user;
       notifyListeners();
       return true;
     } else {
       _lastAuthError = result.errorMessage;
+      _lastLoginUser = null;
       notifyListeners();
       return false;
     }

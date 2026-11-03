@@ -61,8 +61,16 @@ class PaymentModel {
           : null,
       amount: double.tryParse(json['amount']?.toString() ?? '') ?? 0.0,
       currency: json['currency'] ?? 'USD',
-      qrPayload: json['qr_payload'] ?? json['qr_string'],
-      qrImage: json['qr_image'],
+      qrPayload: json['qr_payload'] ??
+          json['qr_string'] ??
+          (json['provider_response'] is Map
+              ? json['provider_response']['qr_string'] ??
+                  json['provider_response']['qr_payload']
+              : null),
+      qrImage: json['qr_image'] ??
+          (json['provider_response'] is Map
+              ? json['provider_response']['qr_image']
+              : null),
       status: json['status'] ?? 'PENDING',
       expiresAt: json['expires_at'] != null
           ? DateTime.tryParse(json['expires_at'])

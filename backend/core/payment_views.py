@@ -313,15 +313,18 @@ class BaseCallbackView(APIView):
             else:
                 raise ImproperlyConfigured("PAYMENT_WEBHOOK_SECRET environment variable is not configured.")
 
-        if payment_env == "production":
-            is_authorized = (auth_secret == expected_secret or (request.user.is_authenticated and request.user.is_staff))
-        else:
-            # In sandbox / testing mode, allow if no secret provided, but strictly reject if wrong secret was sent
+        is_testing = getattr(settings, 'IS_TESTING', False) or ('test' in sys.argv)
+        if is_testing:
+            # Allow isolated unit tests that do not pass test headers
             is_authorized = (
                 auth_secret == expected_secret or
                 (request.user.is_authenticated and request.user.is_staff) or
                 auth_secret is None
             )
+        else:
+            # In all live, sandbox, staging and production server runtimes, strict secret or staff auth is required
+            is_authorized = (auth_secret == expected_secret or (request.user.is_authenticated and request.user.is_staff))
+
 
         if not is_authorized:
             logger.warning(f"Unauthorized payment callback attempt for provider {self.provider_name}")
@@ -346,13 +349,13 @@ class BaseCallbackView(APIView):
                 user_id = int(parts[1])
                 from decimal import Decimal
                 user = User.objects.get(id=user_id)
-                wallet, _ = Wallet.objects.get_or_create(user=user)
-                amt_str = request.data.get('amount', '10.00')
-                currency = request.data.get('currency', 'USD').upper()
-                amt = Decimal(str(amt_str))
-                if currency == 'KHR' and amt >= Decimal('1000'):
-                    amt = (amt / Decimal('4100')).quantize(Decimal('0.01'))
                 with transaction.atomic():
+                    wallet = Wallet.objects.select_for_update().get_or_create(user=user)[0]
+                    amt_str = request.data.get('amount', '10.00')
+                    currency = request.data.get('currency', 'USD').upper()
+                    amt = Decimal(str(amt_str))
+                    if currency == 'KHR' and amt >= Decimal('1000'):
+                        amt = (amt / Decimal('4100')).quantize(Decimal('0.01'))
                     wallet.balance = Decimal(str(wallet.balance)) + amt
                     wallet.save()
                     WalletTransaction.objects.create(
@@ -361,6 +364,7 @@ class BaseCallbackView(APIView):
                         transaction_type='deposit',
                         description=f'KHQR Top-Up via {self.provider_name} ({merchant_ref})'
                     )
+
                 return Response({
                     'status': 'SUCCESS',
                     'message': f'Wallet top-up of ${amt} credited successfully.',

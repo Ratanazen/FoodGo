@@ -8,14 +8,16 @@ class AuthResult {
   final bool isSuccess;
   final String? errorMessage;
   final bool isNetworkError;
+  final Map<String, dynamic>? user;
 
-  const AuthResult.success()
+  const AuthResult.success({this.user})
     : isSuccess = true,
       errorMessage = null,
       isNetworkError = false;
 
   const AuthResult.failure(this.errorMessage, {this.isNetworkError = false})
-    : isSuccess = false;
+    : isSuccess = false,
+      user = null;
 }
 
 class ApiService {
@@ -89,7 +91,10 @@ class ApiService {
           accessToken: data['access'],
           refreshToken: data['refresh'],
         );
-        return const AuthResult.success();
+        final userData = data['user'] is Map<String, dynamic>
+            ? data['user'] as Map<String, dynamic>
+            : null;
+        return AuthResult.success(user: userData);
       }
       return const AuthResult.failure(
         'Authentication failed. Please check your credentials.',

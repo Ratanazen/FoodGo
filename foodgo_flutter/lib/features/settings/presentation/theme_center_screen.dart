@@ -907,6 +907,20 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               ),
               onChanged: (val) => provider.setSkinBackdropEnabled(val),
             ),
+            Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+            SwitchListTile(
+              value: provider.skinAnimationEnabled,
+              activeThumbColor: palette.primary,
+              title: const Text(
+                'Animated Theme Skins & Meshes',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              subtitle: const Text(
+                'ចលនារលក ពន្លឺ និងក្បាច់លម្អរស់រវើកនៅលើផ្ទៃខាងក្រោយ (Dynamic Harmonic Motion)',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+              onChanged: (val) => provider.setSkinAnimationEnabled(val),
+            ),
           ],
         ),
       ),

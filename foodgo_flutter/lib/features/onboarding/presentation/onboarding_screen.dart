@@ -7,6 +7,7 @@ import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/responsive_layout.dart';
+import '../../../../widgets/onboarding_illustrations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -25,7 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ស្វែងរកអាហារឆ្ងាញ់ៗ',
       'description':
           'Find your favorite meals from top-rated restaurants across Phnom Penh and Cambodia.',
-      'icon': AppIcons.foodCategory,
+      'scene': OnboardingScene.culinaryDiscovery,
       'accent': GlassTheme.limeAccent,
       'glow': GlassTheme.royalSmalt,
     },
@@ -34,7 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ដឹកជញ្ជូនរហ័សទាន់ចិត្ត',
       'description':
           'Real-time GPS tracking from the kitchen to your doorstep with instant milestone updates.',
-      'icon': AppIcons.delivery,
+      'scene': OnboardingScene.liveDelivery,
       'accent': GlassTheme.primaryGreen,
       'glow': GlassTheme.cobaltSmalt,
     },
@@ -43,7 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ទូទាត់ប្រាក់ងាយស្រួល និងសុវត្ថិភាព',
       'description':
           'Pay instantly via NBC Bakong KHQR, ABA Mobile, ACLEDA, or Cash on Delivery.',
-      'icon': AppIcons.qrScan,
+      'scene': OnboardingScene.securePayments,
       'accent': GlassTheme.limeAccent,
       'glow': GlassTheme.royalSmalt,
     },
@@ -216,22 +217,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       itemCount: _pages.length,
                       itemBuilder: (context, index) {
                         final item = _pages[index];
-                        final IconData iconData = item['icon'] as IconData;
+                        final OnboardingScene scene = item['scene'] as OnboardingScene;
                         final Color itemAccent = item['accent'] as Color;
                         final Color itemGlow = item['glow'] as Color;
 
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Hero Icon Illumination Card
+                              // Hero Vector Scene Illustration
                               Stack(
                                 alignment: Alignment.center,
                                 children: [
                                   // Back Glow Pulse
                                   Container(
-                                    width: 180,
+                                    width: 240,
                                     height: 180,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
@@ -247,12 +248,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     ),
                                   ),
                                   GlassContainer(
-                                    padding: const EdgeInsets.all(42),
-                                    borderRadius: BorderRadius.circular(36),
-                                    child: Icon(
-                                      iconData,
-                                      size: 88,
-                                      color: itemAccent,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    borderRadius: BorderRadius.circular(28),
+                                    child: OnboardingIllustration(
+                                      scene: scene,
+                                      width: 250,
+                                      height: 170,
+                                      primaryColor: itemAccent,
                                     ),
                                   ).animate().scale(
                                     duration: 500.ms,
@@ -260,7 +265,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 44),
+                              const SizedBox(height: 36),
 
                               // Khmer Subtitle Pill Badge
                               Container(

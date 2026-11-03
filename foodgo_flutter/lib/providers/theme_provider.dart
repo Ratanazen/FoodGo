@@ -11,6 +11,7 @@ class ThemeProvider extends ChangeNotifier {
   bool _reducedMotion = false;
   bool _snowfallEnabled = true;
   bool _skinBackdropEnabled = true;
+  bool _skinAnimationEnabled = true;
 
   ThemeMode get themeMode => _themeMode;
   bool get isDarkMode {
@@ -26,6 +27,7 @@ class ThemeProvider extends ChangeNotifier {
   bool get reducedMotion => _reducedMotion;
   bool get snowfallEnabled => _snowfallEnabled;
   bool get skinBackdropEnabled => _skinBackdropEnabled;
+  bool get skinAnimationEnabled => _skinAnimationEnabled;
 
   ThemeProvider() {
     _loadTheme();
@@ -106,6 +108,17 @@ class ThemeProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
+  void setSkinAnimationEnabled(bool enabled) async {
+    if (_skinAnimationEnabled == enabled) return;
+    _skinAnimationEnabled = enabled;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('skin_animation_enabled', enabled);
+    } catch (_) {}
+  }
+
   void resetToDefaults() async {
     _themeMode = ThemeMode.system;
     _palette = AppColorPalette.modernFoodGo;
@@ -113,6 +126,7 @@ class ThemeProvider extends ChangeNotifier {
     _reducedMotion = false;
     _snowfallEnabled = true;
     _skinBackdropEnabled = true;
+    _skinAnimationEnabled = true;
     GlassTheme.setActivePalette(_palette);
     notifyListeners();
 
@@ -128,6 +142,7 @@ class ThemeProvider extends ChangeNotifier {
       await prefs.setBool('reduced_motion', false);
       await prefs.setBool('snowfall_enabled', true);
       await prefs.setBool('skin_backdrop_enabled', true);
+      await prefs.setBool('skin_animation_enabled', true);
     } catch (_) {}
   }
 
@@ -141,6 +156,7 @@ class ThemeProvider extends ChangeNotifier {
       final savedMotion = prefs.getBool('reduced_motion');
       final savedSnowfall = prefs.getBool('snowfall_enabled');
       final savedBackdrop = prefs.getBool('skin_backdrop_enabled');
+      final savedSkinAnimation = prefs.getBool('skin_animation_enabled');
 
       if (savedThemeMode != null) {
         if (savedThemeMode == ThemeMode.light.name) {
@@ -176,6 +192,9 @@ class ThemeProvider extends ChangeNotifier {
       }
       if (savedBackdrop != null) {
         _skinBackdropEnabled = savedBackdrop;
+      }
+      if (savedSkinAnimation != null) {
+        _skinAnimationEnabled = savedSkinAnimation;
       }
     } catch (_) {
       GlassTheme.setActivePalette(_palette);

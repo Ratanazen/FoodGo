@@ -536,7 +536,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   children: [
                                     // Screen Heading
                                     Text(
-                                          'Create Account',
+                                          context.tr('auth.createAccount'),
                                           style: TextStyle(
                                             fontSize: 22,
                                             fontWeight: FontWeight.w800,
@@ -558,7 +558,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                                     // Supporting Subtitle
                                     Text(
-                                          'Fill your details below to register',
+                                          context.tr('auth.registerSubtitle'),
                                           style: TextStyle(
                                             fontSize: 12.5,
                                             color: isDark
@@ -646,7 +646,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         fontSize: 14,
                                       ),
                                       decoration: InputDecoration(
-                                        labelText: 'Full Name',
+                                        labelText: context.tr('auth.fullName'),
                                         hintText: 'e.g. David Kim',
                                         labelStyle: TextStyle(
                                           color: isDark
@@ -735,7 +735,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         fontSize: 14,
                                       ),
                                       decoration: InputDecoration(
-                                        labelText: 'Username',
+                                        labelText: context.tr('auth.username'),
                                         hintText: 'e.g. david_kim',
                                         helperText:
                                             'Letters, numbers, underscores (min 3)',
@@ -840,7 +840,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         fontSize: 14,
                                       ),
                                       decoration: InputDecoration(
-                                        labelText: 'Email Address',
+                                        labelText: context.tr('auth.email'),
                                         hintText: 'e.g. david@foodgo.com',
                                         labelStyle: TextStyle(
                                           color: isDark
@@ -934,7 +934,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         fontSize: 14,
                                       ),
                                       decoration: InputDecoration(
-                                        labelText: 'Password',
+                                        labelText: context.tr('auth.password'),
                                         hintText: 'Enter at least 6 characters',
                                         labelStyle: TextStyle(
                                           color: isDark
@@ -1155,7 +1155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                               strokeWidth: 2.2,
                                                             ),
                                                       )
-                                                    : const Row(
+                                                    : Row(
                                                         mainAxisAlignment:
                                                             MainAxisAlignment
                                                                 .center,
@@ -1168,7 +1168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                           ),
                                                           SizedBox(width: 8),
                                                           Text(
-                                                            'Create Account',
+                                                            context.tr('auth.createAccount'),
                                                             style: TextStyle(
                                                               fontSize: 15,
                                                               fontWeight:
@@ -1210,7 +1210,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             horizontal: 10,
                                           ),
                                           child: Text(
-                                            'Or Continue with',
+                                            context.tr('auth.orContinueWith'),
                                             style: TextStyle(
                                               color: isDark
                                                   ? Colors.grey[400]
@@ -1299,7 +1299,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                'Already have an account? ',
+                                '${context.tr('auth.alreadyHaveAccount')} ',
                                 style: TextStyle(
                                   color: isDark
                                       ? Colors.grey[400]
@@ -1316,13 +1316,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     context.go('/login');
                                   }
                                 },
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
                                     horizontal: 4,
                                     vertical: 2,
                                   ),
                                   child: Text(
-                                    'Sign in',
+                                    context.tr('auth.login'),
                                     style: TextStyle(
                                       color: GlassTheme.primaryGreen,
                                       fontSize: 13,

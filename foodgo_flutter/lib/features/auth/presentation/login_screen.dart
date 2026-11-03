@@ -75,6 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final authProvider = context.read<AuthProvider>();
+    final userProvider = context.read<UserProvider>();
     final success = await authProvider.login(identifier, password);
 
     if (!mounted) return;
@@ -82,11 +83,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       await _persistRememberMe(identifier);
       if (!mounted) return;
-      final userProvider = context.read<UserProvider>();
-      await userProvider.fetchUser();
+      if (authProvider.lastLoginUser != null) {
+        userProvider.setUser(authProvider.lastLoginUser!);
+        userProvider.fetchUser();
+      } else {
+        await userProvider.fetchUser();
+      }
       if (!mounted) return;
 
-      final role = userProvider.user?['role']?.toString().toLowerCase();
+      final role = userProvider.role;
       if (role == 'admin') {
         context.go('/admin-dashboard');
       } else if (role == 'driver') {
@@ -550,7 +555,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   children: [
                                     // Welcome Heading
                                     Text(
-                                          'Welcome Back',
+                                          context.tr('auth.welcomeBack'),
                                           style: TextStyle(
                                             fontSize: 22,
                                             fontWeight: FontWeight.w800,
@@ -572,7 +577,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                     // Supporting Subtitle
                                     Text(
-                                          'Sign in with your username or email to continue',
+                                          context.tr('auth.loginSubtitle'),
                                           style: TextStyle(
                                             fontSize: 12.5,
                                             color: isDark
@@ -661,7 +666,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         fontSize: 14,
                                       ),
                                       decoration: InputDecoration(
-                                        labelText: 'Username or Email',
+                                        labelText: context.tr('auth.usernameOrEmail'),
                                         hintText:
                                             'e.g. customer1 or user@foodgo.com',
                                         labelStyle: TextStyle(
@@ -753,7 +758,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         fontSize: 14,
                                       ),
                                       decoration: InputDecoration(
-                                        labelText: 'Password',
+                                        labelText: context.tr('auth.password'),
                                         hintText: 'Enter your password',
                                         labelStyle: TextStyle(
                                           color: isDark
@@ -895,7 +900,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 const SizedBox(width: 6),
                                                 Flexible(
                                                   child: Text(
-                                                    'Remember me',
+                                                    context.tr('auth.rememberMe'),
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     style: TextStyle(
@@ -924,8 +929,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                             tapTargetSize: MaterialTapTargetSize
                                                 .shrinkWrap,
                                           ),
-                                          child: const Text(
-                                            'Forgot password?',
+                                          child: Text(
+                                            context.tr('auth.forgotPassword'),
                                             style: TextStyle(
                                               color: GlassTheme.primaryGreen,
                                               fontSize: 13,
@@ -1013,7 +1018,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                               strokeWidth: 2.2,
                                                             ),
                                                       )
-                                                    : const Row(
+                                                    : Row(
                                                         mainAxisAlignment:
                                                             MainAxisAlignment
                                                                 .center,
@@ -1025,7 +1030,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                           ),
                                                           SizedBox(width: 8),
                                                           Text(
-                                                            'Sign In',
+                                                            context.tr('auth.login'),
                                                             style: TextStyle(
                                                               fontSize: 15,
                                                               fontWeight:
@@ -1067,7 +1072,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             horizontal: 10,
                                           ),
                                           child: Text(
-                                            'Or Continue with',
+                                            context.tr('auth.orContinueWith'),
                                             style: TextStyle(
                                               color: isDark
                                                   ? Colors.grey[400]
@@ -1250,13 +1255,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               AnimatedPressable(
                                 pressedScale: 0.94,
                                 onTap: () => context.push('/register'),
-                                child: const Padding(
+                                child: Padding(
                                   padding: EdgeInsets.symmetric(
                                     horizontal: 4,
                                     vertical: 2,
                                   ),
                                   child: Text(
-                                    'Sign up',
+                                    context.tr('auth.signUp'),
                                     style: TextStyle(
                                       color: GlassTheme.primaryGreen,
                                       fontSize: 13,

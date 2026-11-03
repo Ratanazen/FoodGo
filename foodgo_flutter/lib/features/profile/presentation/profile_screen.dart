@@ -11,6 +11,7 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../providers/locale_provider.dart';
 import '../../../widgets/phone_verification_modal.dart';
 import '../../../widgets/svg_icon.dart';
 import '../../../widgets/about_foodgo_dialog.dart';
@@ -24,20 +25,20 @@ class ProfileScreen extends StatelessWidget {
       builder: (dialogCtx) => AlertDialog(
         backgroundColor: GlassTheme.dialogDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Log Out',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Text(
+          context.tr('settings.logoutConfirmTitle'),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        content: const Text(
-          'Are you sure you want to log out of your FoodGo account?',
-          style: TextStyle(color: Colors.white70),
+        content: Text(
+          context.tr('settings.logoutConfirmMessage'),
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white60),
+            child: Text(
+              context.tr('common.cancel'),
+              style: const TextStyle(color: Colors.white60),
             ),
           ),
           ElevatedButton(
@@ -57,9 +58,9 @@ class ProfileScreen extends StatelessWidget {
               context.read<UserProvider>().clearUser();
               context.go('/login');
             },
-            child: const Text(
-              'Log Out',
-              style: TextStyle(
+            child: Text(
+              context.tr('auth.logout'),
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -326,12 +327,17 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   );
                 }
-                final String username = user?['username'] ?? 'Guest';
-                final String email = user?['email'] ?? 'guest@example.com';
-                final String phone = user?['phone'] ?? '';
+                final String displayName = userProvider.displayName;
+                final String email = userProvider.email.isNotEmpty
+                    ? userProvider.email
+                    : (user?['username'] != null
+                          ? '${user!['username']}@foodgo.app'
+                          : 'guest@example.com');
+                final String username = user?['username']?.toString() ?? '';
+                final String phone = userProvider.phone;
                 final bool isPhoneVerified = user?['is_phone_verified'] == true;
-                final String? avatarUrl =
-                    user?['avatar_url'] ?? user?['avatar'];
+                final String? avatarUrl = userProvider.avatarUrl;
+                final String initials = userProvider.initials;
 
                 return Column(
                   children: [
@@ -412,10 +418,7 @@ class ProfileScreen extends StatelessWidget {
                                                     backgroundColor: GlassTheme
                                                         .lightGreenSurface,
                                                     child: Text(
-                                                      username.isNotEmpty
-                                                          ? username[0]
-                                                                .toUpperCase()
-                                                          : 'G',
+                                                      initials,
                                                       style: const TextStyle(
                                                         fontSize: 32,
                                                         fontWeight:
@@ -431,9 +434,7 @@ class ProfileScreen extends StatelessWidget {
                                               backgroundColor:
                                                   GlassTheme.lightGreenSurface,
                                               child: Text(
-                                                username.isNotEmpty
-                                                    ? username[0].toUpperCase()
-                                                    : 'G',
+                                                initials,
                                                 style: const TextStyle(
                                                   fontSize: 32,
                                                   fontWeight: FontWeight.bold,
@@ -464,7 +465,7 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 14),
                               Text(
-                                username,
+                                displayName,
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w900,
@@ -473,6 +474,19 @@ class ProfileScreen extends StatelessWidget {
                                       : const Color(0xFF111827),
                                 ),
                               ),
+                              if (username.isNotEmpty &&
+                                  username != displayName &&
+                                  !username.startsWith('adb_user_')) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  '@$username',
+                                  style: const TextStyle(
+                                    color: GlassTheme.primaryGreen,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 4),
                               Text(
                                 email,
@@ -592,40 +606,94 @@ class ProfileScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: () => context.push('/edit-profile'),
-                                icon: const Icon(
-                                  AppIcons.edit,
-                                  size: 14,
-                                  color: GlassTheme.primaryGreen,
-                                ),
-                                label: Text(
-                                  'Edit Profile',
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF111827),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: GlassTheme.primaryGreen.withValues(
-                                      alpha: 0.5,
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () => context.push('/edit-profile'),
+                                    icon: const Icon(
+                                      AppIcons.edit,
+                                      size: 14,
+                                      color: GlassTheme.primaryGreen,
                                     ),
-                                    width: 1.2,
+                                    label: Text(
+                                      context.tr('profile.editProfile', fallback: 'Edit Profile'),
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : const Color(0xFF111827),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(
+                                        color: GlassTheme.primaryGreen.withValues(
+                                          alpha: 0.5,
+                                        ),
+                                        width: 1.2,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      backgroundColor: GlassTheme.primaryGreen
+                                          .withValues(alpha: 0.08),
+                                    ),
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
+                                  Builder(
+                                    builder: (context) {
+                                      LocaleProvider? localeProvider;
+                                      try {
+                                        localeProvider = context.watch<LocaleProvider>();
+                                      } catch (_) {
+                                        localeProvider = null;
+                                      }
+                                      final isKhmer = localeProvider?.isKhmer ?? false;
+                                      return InkWell(
+                                        onTap: () {
+                                          try {
+                                            context.read<LocaleProvider>().toggleLanguage();
+                                          } catch (_) {}
+                                        },
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: GlassTheme.primaryGreen
+                                                .withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: GlassTheme.primaryGreen
+                                                  .withValues(alpha: 0.4),
+                                              width: 1.2,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            isKhmer
+                                                ? '🇰🇭 ភាសាខ្មែរ'
+                                                : '🇬🇧 English',
+                                            style: TextStyle(
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : GlassTheme.textDark,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 18,
-                                    vertical: 8,
-                                  ),
-                                  backgroundColor: GlassTheme.primaryGreen
-                                      .withValues(alpha: 0.08),
-                                ),
+                                ],
                               ),
                               const SizedBox(height: 16),
                               // Quick Action Shortcuts: Addresses, Orders, KHQR
@@ -1217,7 +1285,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'FoodGo Enterprise Delivery v1.0.0',
+                    'FoodGo Enterprise Delivery v2.0.0',
                     style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
                   ),
                   const SizedBox(height: 4),

@@ -12,6 +12,7 @@ import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
 import '../../../widgets/shimmer_widgets.dart';
 import '../../../widgets/lottie_assets.dart';
+import '../../../widgets/vector_illustrations.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../services/api_service.dart';
@@ -360,7 +361,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            LottieAsset.emptyBox(size: 150),
+            const VectorIllustration(
+              type: VectorIllustrationType.emptyOrders,
+              size: 160,
+            ),
             const SizedBox(height: 16),
             const Text(
               'No orders yet',

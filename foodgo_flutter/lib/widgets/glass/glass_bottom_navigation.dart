@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/glass_theme.dart';
+import '../../core/localization/localization.dart';
 import '../../providers/cart_provider.dart';
 
 class GlassBottomNavigation extends StatelessWidget {
@@ -70,21 +71,21 @@ class GlassBottomNavigation extends StatelessWidget {
                       _PillNavItem(
                         icon: AppIcons.home,
                         selectedIcon: AppIcons.homeSelected,
-                        label: 'Home',
+                        label: context.tr('nav.home'),
                         isSelected: selectedIndex == 0,
                         onTap: () => onDestinationSelected(0),
                       ),
                       _PillNavItem(
                         icon: AppIcons.saved,
                         selectedIcon: AppIcons.savedSelected,
-                        label: 'Saved',
+                        label: context.tr('nav.saved'),
                         isSelected: selectedIndex == 1,
                         onTap: () => onDestinationSelected(1),
                       ),
                       _PillNavItem(
                         icon: AppIcons.cart,
                         selectedIcon: AppIcons.cartSelected,
-                        label: 'Cart',
+                        label: context.tr('nav.cart'),
                         badgeCount: cartCount,
                         isSelected: selectedIndex == 2,
                         onTap: () => onDestinationSelected(2),
@@ -92,14 +93,14 @@ class GlassBottomNavigation extends StatelessWidget {
                       _PillNavItem(
                         icon: AppIcons.offers,
                         selectedIcon: AppIcons.offersSelected,
-                        label: 'Offers',
+                        label: context.tr('nav.offers'),
                         isSelected: selectedIndex == 3,
                         onTap: () => onDestinationSelected(3),
                       ),
                       _PillNavItem(
                         icon: AppIcons.profile,
                         selectedIcon: AppIcons.profileSelected,
-                        label: 'Profile',
+                        label: context.tr('nav.profile'),
                         isSelected: selectedIndex == 4,
                         onTap: () => onDestinationSelected(4),
                       ),
@@ -323,8 +324,9 @@ class _PillNavItemState extends State<_PillNavItem>
                               ? FontWeight.w700
                               : FontWeight.w500,
                           fontSize: 10.5,
-                          letterSpacing: -0.2,
+                          letterSpacing: context.isKhmer ? 0.0 : -0.2,
                         ),
+
                         child: Text(
                           widget.label,
                           maxLines: 1,

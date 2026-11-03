@@ -454,6 +454,8 @@ class AuditLog(models.Model):
         ('REFUND_PAYMENT', 'Refund Payment'),
         ('TOGGLE_USER_ACTIVE', 'Toggle User Active Status'),
         ('TOGGLE_RESTAURANT', 'Toggle Restaurant Status'),
+        ('APPROVE_DRIVER', 'Approve Driver'),
+        ('SUSPEND_DRIVER', 'Suspend Driver'),
         ('UPDATE_MENU_ITEM', 'Update Menu Item'),
         ('SYSTEM_CONFIG', 'System Configuration Change'),
     )

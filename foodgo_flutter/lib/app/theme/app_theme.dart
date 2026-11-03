@@ -75,7 +75,8 @@ class AppTheme {
     );
   }
 
-  static TextTheme _buildTextTheme(Brightness brightness) {
+  static TextTheme _buildTextTheme(Brightness brightness, [Locale? locale]) {
+    final isKhmer = locale?.languageCode == 'km';
     final base = brightness == Brightness.dark
         ? ThemeData.dark().textTheme
         : ThemeData.light().textTheme;
@@ -88,123 +89,144 @@ class AppTheme {
         ? GlassTheme.textMutedLight
         : GlassTheme.textMuted;
 
-    final inter = GoogleFonts.interTextTheme(base);
+    final baseTextTheme = isKhmer
+        ? ThemeData(fontFamily: khmerPrimaryFont).textTheme
+        : GoogleFonts.interTextTheme(base);
 
-    // Derive every style from the Inter base and pair with Kantumruy Pro & Khmer fallbacks
-    return inter.copyWith(
-      displayLarge: inter.displayLarge?.copyWith(
+    // Derive every style from base and pair with Kantumruy Pro & Khmer fallbacks
+    return baseTextTheme.copyWith(
+      displayLarge: baseTextTheme.displayLarge?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 32,
         fontWeight: FontWeight.w800,
-        letterSpacing: -0.8,
-        height: 1.25,
+        letterSpacing: isKhmer ? 0.0 : -0.8,
+        height: isKhmer ? 1.4 : 1.25,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      displayMedium: inter.displayMedium?.copyWith(
+      displayMedium: baseTextTheme.displayMedium?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 28,
         fontWeight: FontWeight.w800,
-        letterSpacing: -0.6,
-        height: 1.25,
+        letterSpacing: isKhmer ? 0.0 : -0.6,
+        height: isKhmer ? 1.4 : 1.25,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      displaySmall: inter.displaySmall?.copyWith(
+      displaySmall: baseTextTheme.displaySmall?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 24,
         fontWeight: FontWeight.w700,
-        letterSpacing: -0.5,
-        height: 1.3,
+        letterSpacing: isKhmer ? 0.0 : -0.5,
+        height: isKhmer ? 1.45 : 1.3,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      headlineLarge: inter.headlineLarge?.copyWith(
+      headlineLarge: baseTextTheme.headlineLarge?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 22,
         fontWeight: FontWeight.w700,
-        letterSpacing: -0.4,
-        height: 1.3,
+        letterSpacing: isKhmer ? 0.0 : -0.4,
+        height: isKhmer ? 1.45 : 1.3,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      headlineMedium: inter.headlineMedium?.copyWith(
+      headlineMedium: baseTextTheme.headlineMedium?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 20,
         fontWeight: FontWeight.w700,
-        letterSpacing: -0.3,
-        height: 1.35,
+        letterSpacing: isKhmer ? 0.0 : -0.3,
+        height: isKhmer ? 1.45 : 1.35,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      headlineSmall: inter.headlineSmall?.copyWith(
+      headlineSmall: baseTextTheme.headlineSmall?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.2,
-        height: 1.35,
+        letterSpacing: isKhmer ? 0.0 : -0.2,
+        height: isKhmer ? 1.45 : 1.35,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      titleLarge: inter.titleLarge?.copyWith(
+      titleLarge: baseTextTheme.titleLarge?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 20,
         fontWeight: FontWeight.w700,
-        letterSpacing: -0.4,
-        height: 1.3,
+        letterSpacing: isKhmer ? 0.0 : -0.4,
+        height: isKhmer ? 1.4 : 1.3,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      titleMedium: inter.titleMedium?.copyWith(
+      titleMedium: baseTextTheme.titleMedium?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.2,
-        height: 1.35,
+        letterSpacing: isKhmer ? 0.0 : -0.2,
+        height: isKhmer ? 1.45 : 1.35,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      titleSmall: inter.titleSmall?.copyWith(
+      titleSmall: baseTextTheme.titleSmall?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        height: 1.4,
+        letterSpacing: 0.0,
+        height: isKhmer ? 1.5 : 1.4,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      bodyLarge: inter.bodyLarge?.copyWith(
+      bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 15,
         fontWeight: FontWeight.w400,
-        height: 1.5,
+        letterSpacing: 0.0,
+        height: isKhmer ? 1.6 : 1.5,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      bodyMedium: inter.bodyMedium?.copyWith(
+      bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 13.5,
         fontWeight: FontWeight.w400,
-        height: 1.5,
+        letterSpacing: 0.0,
+        height: isKhmer ? 1.6 : 1.5,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      bodySmall: inter.bodySmall?.copyWith(
+      bodySmall: baseTextTheme.bodySmall?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 12,
         fontWeight: FontWeight.w400,
-        height: 1.45,
+        letterSpacing: 0.0,
+        height: isKhmer ? 1.55 : 1.45,
         color: secondaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      labelLarge: inter.labelLarge?.copyWith(
+      labelLarge: baseTextTheme.labelLarge?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.2,
-        height: 1.25,
+        letterSpacing: isKhmer ? 0.0 : 0.2,
+        height: isKhmer ? 1.4 : 1.25,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      labelMedium: inter.labelMedium?.copyWith(
+      labelMedium: baseTextTheme.labelMedium?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        letterSpacing: 0.3,
-        height: 1.25,
+        letterSpacing: isKhmer ? 0.0 : 0.3,
+        height: isKhmer ? 1.4 : 1.25,
         color: primaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
-      labelSmall: inter.labelSmall?.copyWith(
+      labelSmall: baseTextTheme.labelSmall?.copyWith(
+        fontFamily: isKhmer ? khmerPrimaryFont : null,
         fontSize: 11,
         fontWeight: FontWeight.w500,
-        letterSpacing: 0.4,
-        height: 1.25,
+        letterSpacing: isKhmer ? 0.0 : 0.4,
+        height: isKhmer ? 1.4 : 1.25,
         color: secondaryTextColor,
         fontFamilyFallback: khmerFontFallbacks,
       ),
@@ -214,12 +236,12 @@ class AppTheme {
   static ThemeData get lightTheme => getLightTheme();
   static ThemeData get darkTheme => getDarkTheme();
 
-  static ThemeData getLightTheme([AppColorPalette? palette]) {
+  static ThemeData getLightTheme([AppColorPalette? palette, Locale? locale]) {
     final active = palette != null
         ? PaletteData.fromId(palette)
         : GlassTheme.activePalette;
     final primary = active.primary;
-    final textTheme = _buildTextTheme(Brightness.light);
+    final textTheme = _buildTextTheme(Brightness.light, locale);
 
     return ThemeData(
       useMaterial3: true,
@@ -325,12 +347,12 @@ class AppTheme {
     );
   }
 
-  static ThemeData getDarkTheme([AppColorPalette? palette]) {
+  static ThemeData getDarkTheme([AppColorPalette? palette, Locale? locale]) {
     final active = palette != null
         ? PaletteData.fromId(palette)
         : GlassTheme.activePalette;
     final primary = active.primary;
-    final textTheme = _buildTextTheme(Brightness.dark);
+    final textTheme = _buildTextTheme(Brightness.dark, locale);
 
     return ThemeData(
       useMaterial3: true,

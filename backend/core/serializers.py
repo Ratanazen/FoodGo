@@ -133,9 +133,18 @@ class DriverSerializer(serializers.ModelSerializer):
         )
         if not is_staff_or_self:
             data.pop('phone', None)
+            data.pop('email', None)
             data.pop('license_plate', None)
             data.pop('total_earnings', None)
             data.pop('today_earnings', None)
+            # Coordinates are only visible to staff, the driver themselves, or customers with an active in-transit delivery
+            is_active_customer = bool(
+                request and request.user and request.user.is_authenticated and
+                instance.deliveries.filter(order__customer=request.user, status__in=('assigned', 'picked_up', 'in_transit')).exists()
+            )
+            if not is_active_customer:
+                data.pop('current_lat', None)
+                data.pop('current_lng', None)
         return data
 
 

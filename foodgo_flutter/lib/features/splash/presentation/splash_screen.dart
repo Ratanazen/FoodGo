@@ -519,7 +519,7 @@ class _SplashScreenState extends State<SplashScreen>
                           const SizedBox(height: 6),
 
                           const Text(
-                            'FoodGo Organic Delivery v1.0.0 (Build 12)',
+                            'FoodGo Organic Delivery v2.0.0 (Build 20)',
                             style: TextStyle(fontSize: 10, color: versionColor),
                           ),
 

@@ -8,6 +8,8 @@ export 'animated_pressable.dart';
 export 'tilt_3d_card.dart';
 export 'themed_skin_backdrop.dart';
 export '../../core/theme/context_theme_extensions.dart';
+export '../../core/theme/app_typography.dart';
+export '../../core/localization/localization.dart';
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 import 'animated_pressable.dart';

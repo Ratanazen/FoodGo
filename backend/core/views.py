@@ -862,6 +862,16 @@ class OrderViewSet(viewsets.ModelViewSet):
             driver_lat = round(rest_lat + (cust_lat - rest_lat) * 0.45, 6)
             driver_lng = round(rest_lng + (cust_lng - rest_lng) * 0.45, 6)
             
+        cust_phone = ''
+        if order.customer:
+            cust_phone = getattr(order.customer, 'phone', '') or ''
+        if not cust_phone:
+            cust_phone = '+855 12 345 678'
+        
+        cust_name = 'Customer'
+        if order.customer:
+            cust_name = order.customer.get_full_name() or order.customer.username
+
         data = {
             'order_id': order.id,
             'status': order.status,
@@ -874,6 +884,12 @@ class OrderViewSet(viewsets.ModelViewSet):
             'customer_location': {
                 'lat': cust_lat,
                 'lng': cust_lng,
+            },
+            'customer': {
+                'name': cust_name,
+                'phone': cust_phone,
+                'address': str(order.address) if order.address else 'Phnom Penh, Cambodia',
+                'special_instructions': order.special_instructions or (order.address.delivery_instructions if order.address else ''),
             },
             'driver_location': {
                 'lat': driver_lat,
@@ -1906,18 +1922,64 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'error': 'Order not found for this driver'}, status=status.HTTP_404_NOT_FOUND)
 
         payment = getattr(order, 'payment', None)
-        if payment:
-            payment.status = 'PAID'
-            payment.paid_at = timezone.now()
-            payment.save(update_fields=['status', 'paid_at'])
-        order.payment_status = 'PAID'
-        order.save(update_fields=['payment_status', 'updated_at'])
+        is_bank_payment = payment and payment.provider in ('BAKONG', 'ABA', 'ACLEDA', 'BAKONG_KHQR', 'ABA_KHQR', 'ACLEDA_KHQR', 'KHQR')
+
+        if is_bank_payment:
+            # Bank QR payments cannot be manually confirmed by a driver button click
+            if order.payment_status != 'PAID':
+                try:
+                    from .payments.service import payment_service
+                    provider = payment_service.get_provider(payment.provider)
+                    status_info = provider.get_payment_status(payment)
+                    if status_info.get('status') == 'PAID':
+                        payment.status = 'PAID'
+                        payment.transaction_id = status_info.get('transaction_id') or payment.transaction_id
+                        payment.paid_at = status_info.get('paid_at') or timezone.now()
+                        payment.save(update_fields=['status', 'transaction_id', 'paid_at'])
+                        order.payment_status = 'PAID'
+                        order.save(update_fields=['payment_status', 'updated_at'])
+                        return Response({
+                            'status': 'SUCCESS',
+                            'message': 'Bank QR payment authoritatively verified by gateway.',
+                            'payment_status': order.payment_status,
+                        })
+                    else:
+                        return Response({
+                            'error': 'Bank QR payment has not been received. Delivery drivers cannot bypass bank payment verification.',
+                            'payment_status': order.payment_status,
+                            'provider': payment.provider
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                except Exception as exc:
+                    return Response({
+                        'error': f'Failed to query bank payment gateway: {exc}. Driver button cannot verify bank QR transactions.',
+                        'payment_status': order.payment_status
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({
+                    'status': 'SUCCESS',
+                    'message': 'Bank QR payment was already verified.',
+                    'payment_status': order.payment_status,
+                })
+
+        # Physical cash collection is strictly permitted only for Cash on Delivery (COD) orders
+        if not payment or payment.provider in ('COD', 'CASH_ON_DELIVERY'):
+            if payment:
+                payment.status = 'PAID'
+                payment.paid_at = timezone.now()
+                payment.save(update_fields=['status', 'paid_at'])
+            order.payment_status = 'PAID'
+            order.save(update_fields=['payment_status', 'updated_at'])
+            return Response({
+                'status': 'SUCCESS',
+                'message': 'Cash collection confirmed for COD order.',
+                'payment_status': order.payment_status,
+            })
 
         return Response({
-            'status': 'SUCCESS',
-            'message': 'Payment confirmed.',
-            'payment_status': order.payment_status,
-        })
+            'error': f'Cannot manually confirm payment for provider: {payment.provider if payment else "UNKNOWN"}',
+            'payment_status': order.payment_status
+        }, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()

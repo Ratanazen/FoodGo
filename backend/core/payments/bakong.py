@@ -21,9 +21,9 @@ class BakongKHQRProvider(PaymentProvider):
         self.enabled = os.environ.get("BAKONG_ENABLED", "True").lower() in ("true", "1", "yes")
         self.api_token = (
             os.environ.get("BAKONG_API_TOKEN")
-            or os.environ.get("BAKONG_TOKEN")
-            or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiYzczYTkwNDgyZTRlNDc4NSJ9LCJpYXQiOjE3OTAwNDU2MjEsImV4cCI6MTc5NzgyMTYyMX0.nUhrFmVcRMwA5hM08FE8eY92BsxrKhkkJRK7ML2-dKQ"
+            or os.environ.get("BAKONG_TOKEN", "")
         )
+
         self.api_url = os.environ.get(
             "BAKONG_API_URL",
             "https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5"

@@ -8,7 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
-import '../../../widgets/lottie_assets.dart';
+import '../../../widgets/vector_illustrations.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
@@ -742,23 +742,23 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
                       child: Text(
-                        'Proceed to Checkout',
+                        context.tr('cart.checkout'),
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
                         ),
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(AppIcons.forward, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Icon(AppIcons.forward, color: Colors.white, size: 20),
                   ],
                 ),
               ),
@@ -848,7 +848,7 @@ class _CartScreenState extends State<CartScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'My Cart',
+                  context.tr('cart.title'),
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 20,
@@ -955,23 +955,27 @@ class _CartScreenState extends State<CartScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      LottieAsset.emptyBox(size: 150),
+                      const VectorIllustration(
+                        type: VectorIllustrationType.emptyCart,
+                        size: 160,
+                      ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Your cart is empty',
-                        style: TextStyle(
+                      Text(
+                        context.tr('cart.emptyTitle'),
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Discover delicious food and add items to your cart',
+                        context.tr('cart.emptySubtitle'),
+                        textAlign: TextAlign.center,
                         style: TextStyle(color: GlassTheme.textMuted),
                       ),
                       const SizedBox(height: 32),
                       GlassButton(
-                        text: 'Explore Food',
+                        text: context.tr('cart.startOrdering'),
                         icon: AppIcons.foodCategory,
                         onPressed: () => context.go('/explore'),
                       ),

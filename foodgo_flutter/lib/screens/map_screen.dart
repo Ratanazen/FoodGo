@@ -27,7 +27,16 @@ import '../core/utils/location_helper.dart';
 
 class MapScreen extends StatefulWidget {
   final String orderId;
-  const MapScreen({super.key, required this.orderId});
+  final bool isDriver;
+  final bool? initialLoading;
+  final String? initialStatus;
+  const MapScreen({
+    super.key,
+    required this.orderId,
+    this.isDriver = false,
+    this.initialLoading,
+    this.initialStatus,
+  });
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -39,8 +48,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   WebSocketChannel? _channel;
 
   MapLayerType _selectedLayer = MapLayerType.openStreetMap;
-  bool _isLoading = true;
-  String _orderStatus = 'pending';
+  late bool _isLoading = widget.initialLoading ?? true;
+  late String _orderStatus = widget.initialStatus ?? 'pending';
   String? _restaurantName;
   String? _deliveryAddress;
 
@@ -50,6 +59,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   LatLng? _myLocation;
 
   Map<String, dynamic>? _driverInfo;
+  Map<String, dynamic>? _customerInfo;
   Timer? _liveMovementTimer;
   double _routeProgress = 0.45;
   double _currentSpeedKmH = 34.0;
@@ -67,13 +77,36 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1200),
     );
 
-    if (widget.orderId.isNotEmpty && widget.orderId != '0') {
-      _fetchOrderTrackingData();
-      _connectWebSocket();
-      _startLiveDriverMovementSimulation();
+    if (widget.initialLoading != false) {
+      if (widget.orderId.isNotEmpty && widget.orderId != '0') {
+        _fetchOrderTrackingData();
+        _connectWebSocket();
+        _startLiveDriverMovementSimulation();
+      } else {
+        _fetchNearbyRestaurants();
+        _autoInitLocation();
+      }
     } else {
-      _fetchNearbyRestaurants();
-      _autoInitLocation();
+      _restaurantLocation ??= const LatLng(11.5564, 104.9282);
+      _customerLocation ??= const LatLng(11.5621, 104.9160);
+      _driverLocation ??= const LatLng(11.5590, 104.9220);
+      _driverInfo ??= {
+        'id': 1,
+        'name': 'Ahmad Faizal',
+        'phone': '+855 12 888 999',
+        'vehicle_type': 'Honda EX5 • Red',
+        'license_plate': 'WXY 4821',
+        'rating': 4.9,
+        'trips': 2384,
+        'avatar':
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
+      };
+      _customerInfo ??= {
+        'name': 'Somnang Cust',
+        'phone': '+855 12 111 222',
+        'address': 'Street 271, Boeng Tumpun',
+        'special_instructions': 'Gate code 4321',
+      };
     }
   }
 
@@ -211,6 +244,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           };
         }
 
+        if (data['customer'] != null && data['customer'] is Map) {
+          _customerInfo = Map<String, dynamic>.from(data['customer']);
+        } else {
+          _customerInfo ??= {
+            'name': 'Customer',
+            'phone': '+855 12 345 678',
+            'address': _deliveryAddress ?? 'Phnom Penh, Cambodia',
+            'special_instructions': '',
+          };
+        }
+
         _isLoading = false;
       });
 
@@ -227,6 +271,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           _restaurantLocation = const LatLng(11.5564, 104.9282);
           _customerLocation = const LatLng(11.5621, 104.9160);
           _driverLocation = const LatLng(11.5590, 104.9220);
+          _customerInfo ??= {
+            'name': 'Customer',
+            'phone': '+855 12 345 678',
+            'address': 'Phnom Penh, Cambodia',
+            'special_instructions': '',
+          };
         });
       }
     }
@@ -720,7 +770,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   if (_driverLocation != null)
                     Marker(
                       point: _driverLocation!,
-                      width: 140,
+                      width: 180,
                       height: 80,
                       child: GestureDetector(
                         onTap: () => _showMarkerInfo(
@@ -770,12 +820,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                         end: const Offset(1.5, 1.5),
                                       ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    '${_driverInfo?['name'] ?? 'Driver'} • ${_currentSpeedKmH.toStringAsFixed(0)} km/h',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                  Flexible(
+                                    child: Text(
+                                      '${_driverInfo?['name'] ?? 'Driver'} • ${_currentSpeedKmH.toStringAsFixed(0)} km/h',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1125,7 +1179,15 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         children: [
           // Circular Back Button
           InkWell(
-            onTap: () => context.go('/home'),
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else if (widget.isDriver) {
+                context.go('/driver-dashboard');
+              } else {
+                context.go('/home');
+              }
+            },
             borderRadius: BorderRadius.circular(22),
             child: Container(
               width: 44,
@@ -1151,7 +1213,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
           // Order # Pill
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
@@ -1163,13 +1225,26 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            child: Text(
-              'Order #$orderNum',
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-                color: Colors.black87,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.isDriver) ...[
+                  const Icon(
+                    Icons.delivery_dining,
+                    size: 18,
+                    color: GlassTheme.primaryGreen,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  widget.isDriver ? 'Delivery #$orderNum' : 'Order #$orderNum',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -1234,15 +1309,32 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     String headline = 'Preparing your food';
     String subtitle = "${_restaurantName ?? "McDonald's"} is cooking it fresh";
-    if (_orderStatus == 'delivered') {
-      headline = 'Order Delivered!';
-      subtitle = 'Enjoy your delicious meal!';
-    } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
-      headline = 'On the way to you';
-      subtitle = '${driver['name']} is $distance km away';
-    } else if (_orderStatus == 'picked_up') {
-      headline = 'Rider Picked Up';
-      subtitle = '${driver['name']} picked up your order';
+    if (widget.isDriver) {
+      final custName = _customerInfo?['name'] ?? 'Customer';
+      if (_orderStatus == 'delivered') {
+        headline = 'Delivered to $custName';
+        subtitle = 'Delivery completed successfully';
+      } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
+        headline = 'Delivering to $custName';
+        subtitle = 'Drop-off is $distance km away • $etaMin min';
+      } else if (_orderStatus == 'picked_up') {
+        headline = 'Order Picked Up';
+        subtitle = 'Heading to customer: $custName';
+      } else {
+        headline = 'Pickup at ${_restaurantName ?? "Restaurant"}';
+        subtitle = 'Order preparing for pickup';
+      }
+    } else {
+      if (_orderStatus == 'delivered') {
+        headline = 'Order Delivered!';
+        subtitle = 'Enjoy your delicious meal!';
+      } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
+        headline = 'On the way to you';
+        subtitle = '${driver['name']} is $distance km away';
+      } else if (_orderStatus == 'picked_up') {
+        headline = 'Rider Picked Up';
+        subtitle = '${driver['name']} picked up your order';
+      }
     }
 
     return DraggableScrollableSheet(
@@ -1385,8 +1477,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               _buildFiveStepProgress(),
               const SizedBox(height: 20),
 
-              // Courier / Driver Contact Card
-              _buildDriverCard(context, driver, isDark),
+              // Courier / Driver Contact Card OR Customer Card (for Driver View)
+              widget.isDriver
+                  ? _buildCustomerCard(context, _customerInfo ?? {}, isDark)
+                  : _buildDriverCard(context, driver, isDark),
               const SizedBox(height: 20),
 
               // Order Status Timeline
@@ -1401,74 +1495,146 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               _buildItemizedOrderSection(isDark),
               const SizedBox(height: 24),
 
-              // Action Buttons: Show Delivery Confirmation QR / Scan Driver QR
-              ElevatedButton.icon(
-                onPressed: () => DeliveryQrModal.show(
-                  context,
-                  orderId: widget.orderId.toString(),
-                  isDriver: false,
-                  onDelivered: () => _fetchOrderTrackingData(),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.primaryGreen,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              // Action Buttons: Mode-Specific Handover & Back Navigation
+              if (widget.isDriver) ...[
+                ElevatedButton.icon(
+                  onPressed: () => DeliveryScannerModal.show(
+                    context,
+                    orderId: widget.orderId.toString(),
+                    isDriver: true,
+                    onConfirmed: () => _fetchOrderTrackingData(),
                   ),
-                  elevation: 2,
-                ),
-                icon: const Icon(Icons.qr_code_2, size: 22),
-                label: const Text(
-                  'Show Delivery Confirmation QR',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              OutlinedButton.icon(
-                onPressed: () => DeliveryScannerModal.show(
-                  context,
-                  orderId: widget.orderId.toString(),
-                  isDriver: false,
-                  onConfirmed: () => _fetchOrderTrackingData(),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: isDark ? Colors.white : Colors.black87,
-                  side: BorderSide(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.6),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: GlassTheme.primaryGreen,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 2,
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                  icon: const Icon(Icons.qr_code_scanner, size: 22),
+                  label: const Text(
+                    'Complete Delivery (Scan Drop-off QR)',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ),
-                icon: const Icon(Icons.qr_code_scanner, size: 18),
-                label: const Text(
-                  'Scan Driver Handover QR',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              OutlinedButton.icon(
-                onPressed: () => context.go('/home'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: isDark ? Colors.white : Colors.black87,
-                  side: BorderSide(
-                    color: isDark ? Colors.white24 : const Color(0xFFDDDDDD),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () => DeliveryQrModal.show(
+                    context,
+                    orderId: widget.orderId.toString(),
+                    isDriver: true,
+                    onDelivered: () => _fetchOrderTrackingData(),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    side: BorderSide(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.6),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.qr_code_2, size: 18),
+                  label: const Text(
+                    'Show Courier Handover QR',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                 ),
-                icon: const Icon(Icons.home_outlined, size: 18),
-                label: const Text(
-                  'Back to Home',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    } else {
+                      context.go('/driver-dashboard');
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    side: BorderSide(
+                      color: isDark ? Colors.white24 : const Color(0xFFDDDDDD),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.delivery_dining, size: 18),
+                  label: const Text(
+                    'Back to Driver Dashboard',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
+              ] else ...[
+                ElevatedButton.icon(
+                  onPressed: () => DeliveryQrModal.show(
+                    context,
+                    orderId: widget.orderId.toString(),
+                    isDriver: false,
+                    onDelivered: () => _fetchOrderTrackingData(),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: GlassTheme.primaryGreen,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 2,
+                  ),
+                  icon: const Icon(Icons.qr_code_2, size: 22),
+                  label: const Text(
+                    'Show Delivery Confirmation QR',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () => DeliveryScannerModal.show(
+                    context,
+                    orderId: widget.orderId.toString(),
+                    isDriver: false,
+                    onConfirmed: () => _fetchOrderTrackingData(),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    side: BorderSide(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.6),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.qr_code_scanner, size: 18),
+                  label: const Text(
+                    'Scan Driver Handover QR',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () => context.go('/home'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    side: BorderSide(
+                      color: isDark ? Colors.white24 : const Color(0xFFDDDDDD),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.home_outlined, size: 18),
+                  label: const Text(
+                    'Back to Home',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
             ],
           ),
@@ -1538,6 +1704,228 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           }),
         ),
       ],
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Customer Contact & Drop-off Card (Driver View)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildCustomerCard(
+    BuildContext context,
+    Map<String, dynamic> customer,
+    bool isDark,
+  ) {
+    final phone = customer['phone']?.toString() ?? '+855 12 345 678';
+    final name = customer['name']?.toString() ?? 'Customer';
+    final address =
+        customer['address']?.toString() ??
+        (_deliveryAddress ?? 'Customer Dropoff Location');
+    final instructions =
+        customer['special_instructions']?.toString() ?? '';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFFF9FBF9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.redAccent, width: 1.5),
+                ),
+                child: const Icon(
+                  Icons.person,
+                  color: Colors.redAccent,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF222222),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blueAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Recipient',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      phone,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: GlassTheme.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Message / Chat Button
+              InkWell(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Chat with customer $name opened.'),
+                      backgroundColor: GlassTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white12 : const Color(0xFFE8F5E9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.chat_bubble_outline,
+                    color: GlassTheme.primaryGreen,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Call Button
+              InkWell(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: phone));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Calling customer at $phone (copied to clipboard)',
+                      ),
+                      backgroundColor: GlassTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: const BoxDecoration(
+                    color: GlassTheme.primaryGreen,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.phone, color: Colors.white, size: 18),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Dropoff Address Box
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.location_on,
+                  color: Colors.redAccent,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    address,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white70 : const Color(0xFF334155),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (instructions.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Colors.amber, size: 14),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Note: $instructions',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.amber,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

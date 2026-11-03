@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../core/theme/app_icons.dart';
 import '../core/theme/glass_theme.dart';
+import '../core/utils/khmer_currency.dart';
 import '../providers/favorites_provider.dart';
 
 class FoodDeliveryCard extends StatefulWidget {
@@ -327,9 +328,9 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       Text(
                         isFreeDelivery
                             ? 'Free Delivery'
-                            : '\$${deliveryFee.toStringAsFixed(2)} delivery',
+                            : '${KhmerCurrency.formatDual(deliveryFee)} delivery',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w600,
                           color: isFreeDelivery
                               ? GlassTheme.primaryGreen

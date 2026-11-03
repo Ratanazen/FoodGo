@@ -32,6 +32,8 @@ enum AppColorPalette {
   minimalPremium,
   retroPop,
   neonNight,
+  royalKhmerSilk,
+  mekongSunset,
 }
 
 enum SkinBackdropStyle {
@@ -57,6 +59,8 @@ enum SkinBackdropStyle {
   liquidGlassPrism,
   retroMemphis,
   architecturalMinimal,
+  royalSilk,
+  sunsetWaves,
 }
 
 class PaletteData {
@@ -178,6 +182,10 @@ class PaletteData {
         return '80s Memphis Geometric Confetti';
       case SkinBackdropStyle.architecturalMinimal:
         return 'Architectural Studio Dot Grid';
+      case SkinBackdropStyle.royalSilk:
+        return 'Royal Khmer Golden Silk';
+      case SkinBackdropStyle.sunsetWaves:
+        return 'Mekong Sunset River Waves';
     }
   }
 
@@ -227,6 +235,10 @@ class PaletteData {
         return 'រចនាបថធរណីមាត្រ Retro 80s';
       case SkinBackdropStyle.architecturalMinimal:
         return 'ក្រឡាចំនុច Architectural Studio';
+      case SkinBackdropStyle.royalSilk:
+        return 'ព្រែខ្មែរមាសរាជវាំង';
+      case SkinBackdropStyle.sunsetWaves:
+        return 'រលកថ្ងៃលិចទន្លេមេគង្គ';
     }
   }
 
@@ -1671,6 +1683,96 @@ class PaletteData {
     backdropStyle: SkinBackdropStyle.cyberGrid,
   );
 
+  static const PaletteData royalKhmerSilk = PaletteData(
+    id: AppColorPalette.royalKhmerSilk,
+    nameEn: 'Royal Khmer Golden Silk',
+    nameKh: 'ព្រែខ្មែរមាសរាជវាំង',
+    descriptionEn: 'Shimmering Royal Palace gold and deep imperial violet with woven silk motifs',
+    descriptionKh: 'ពណ៌មាសព្រះបរមរាជវាំង និងស្វាយរាជវង្ស រួមជាមួយក្បាច់ត្បាញព្រែខ្មែរបុរាណ',
+    primary: Color(0xFFD4AF37),
+    primaryDark: Color(0xFFA67C00),
+    primaryAccent: Color(0xFFFFD700),
+    secondary: Color(0xFF7B1FA2),
+    ratingAccent: Color(0xFFFFB300),
+    backgroundLight: Color(0xFFFCFBF7),
+    backgroundDark: Color(0xFF130E1B),
+    surfaceDark: Color(0xFF1E1428),
+    surfaceCardDark: Color(0xFF281C36),
+    cardDark: Color(0xFF20162D),
+    dialogDark: Color(0xFF1A1124),
+    borderLight: Color(0xFFE8DFD0),
+    borderDark: Color(0x38D4AF37),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x80D4AF37),
+        Color(0x407B1FA2),
+        Color(0x20130E1B),
+        Color(0x80FFD700),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF281C36), Color(0xFF130E1B), Color(0xFFD4AF37)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFD4AF37),
+    pillCardShadowColor: Color(0x40D4AF37),
+    icon: Icons.auto_awesome,
+    categoryEn: 'Khmer & Festive Themes',
+    categoryKh: 'វប្បធម៌ខ្មែរ',
+    badgeText: 'ROYAL SILK',
+    isFestive: true,
+    backdropStyle: SkinBackdropStyle.royalSilk,
+  );
+
+  static const PaletteData mekongSunset = PaletteData(
+    id: AppColorPalette.mekongSunset,
+    nameEn: 'Mekong Sunset Waves',
+    nameKh: 'រលកថ្ងៃលិចទន្លេមេគង្គ',
+    descriptionEn: 'Sunset coral, glowing amber, and dusk river reflections over Phnom Penh',
+    descriptionKh: 'ពណ៌ទឹកក្រូចថ្ងៃលិច មាសរលោង និងស្រមោលរលកទន្លេមេគង្គនាពេលព្រលប់',
+    primary: Color(0xFFFF6F00),
+    primaryDark: Color(0xFFC43E00),
+    primaryAccent: Color(0xFFFF8F00),
+    secondary: Color(0xFFE91E63),
+    ratingAccent: Color(0xFFFFB74D),
+    backgroundLight: Color(0xFFFFF9F5),
+    backgroundDark: Color(0xFF150B14),
+    surfaceDark: Color(0xFF221120),
+    surfaceCardDark: Color(0xFF2E172B),
+    cardDark: Color(0xFF261324),
+    dialogDark: Color(0xFF1D0E1C),
+    borderLight: Color(0xFFFFE0D0),
+    borderDark: Color(0x38FF6F00),
+    liquidGlassBorderDark: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x80FF6F00),
+        Color(0x40E91E63),
+        Color(0x20150B14),
+        Color(0x80FFA000),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
+    headerGradient: LinearGradient(
+      colors: [Color(0xFF2E172B), Color(0xFF150B14), Color(0xFFFF6F00)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    auraColor: Color(0xFFFF6F00),
+    pillCardShadowColor: Color(0x40FF6F00),
+    icon: Icons.wb_twilight_rounded,
+    categoryEn: 'Signature Brand',
+    categoryKh: 'រចនាបថដើម',
+    badgeText: 'MEKONG SUNSET',
+    isFestive: false,
+    backdropStyle: SkinBackdropStyle.sunsetWaves,
+  );
+
   // ---------------------------------------------------------------------------
   // Palette Registry & Lookups
   // ---------------------------------------------------------------------------
@@ -1688,6 +1790,7 @@ class PaletteData {
     highContrast,
     glassmorphism,
     natureOrganic,
+    mekongSunset,
   ];
 
   /// The Core Seasonal & Cultural Themes from the FoodGo UI/UX Journey:
@@ -1705,6 +1808,7 @@ class PaletteData {
     summerTropical,
     blackFridayCyber,
     khmerHeritage,
+    royalKhmerSilk,
   ];
 
   static const List<PaletteData> allPalettes = [
@@ -1715,6 +1819,7 @@ class PaletteData {
     pchumBen,
     waterFestival,
     angkorHeritage,
+    royalKhmerSilk,
     christmasWonderland,
     newYearCelebration,
     halloweenNight,
@@ -1736,6 +1841,7 @@ class PaletteData {
     softMinimal,
     smaltBlue,
     darkGold,
+    mekongSunset,
 
     // ── Creative & Pop Themes ───────────────────────────────────────────────
     retroPop,
@@ -1808,6 +1914,10 @@ class PaletteData {
         return retroPop;
       case AppColorPalette.neonNight:
         return neonNight;
+      case AppColorPalette.royalKhmerSilk:
+        return royalKhmerSilk;
+      case AppColorPalette.mekongSunset:
+        return mekongSunset;
     }
   }
 
@@ -1816,6 +1926,8 @@ class PaletteData {
     if (key == 'christmas') return christmas;
     if (key == 'christmasWonderland') return christmasWonderland;
     if (key == 'lightClassic') return emeraldGreen;
+    if (key == 'royalKhmerSilk') return royalKhmerSilk;
+    if (key == 'mekongSunset') return mekongSunset;
     for (final palette in allPalettes) {
       if (palette.id.name == key) return palette;
     }

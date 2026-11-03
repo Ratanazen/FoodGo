@@ -1405,10 +1405,14 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    color: Colors.redAccent.withValues(alpha: 0.1),
+                                    color: Colors.redAccent.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: Colors.redAccent.withValues(alpha: 0.35),
+                                      color: Colors.redAccent.withValues(
+                                        alpha: 0.35,
+                                      ),
                                     ),
                                   ),
                                   child: Column(
@@ -1432,7 +1436,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                         'The payment gateway did not return a valid payable KHQR payload for this order. Please retry generating a code or choose a different payment option.',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          color: Colors.white.withValues(alpha: 0.75),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.75,
+                                          ),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -1503,7 +1509,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                               QrErrorCorrectLevel.M,
                                         )
                                       else if (qrImageData != null)
-                                        _buildQrImageFromBase64(qrImageData, qrSize),
+                                        _buildQrImageFromBase64(
+                                          qrImageData,
+                                          qrSize,
+                                        ),
                                       const SizedBox(height: 8),
                                       Text(
                                         '${payment.currency} ${payment.amount.toStringAsFixed(2)} • ${KhmerCurrency.formatKhr(payment.amount)}',

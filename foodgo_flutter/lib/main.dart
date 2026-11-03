@@ -83,10 +83,7 @@ class FoodGoApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en', 'US'),
-            Locale('km', 'KH'),
-          ],
+          supportedLocales: const [Locale('en', 'US'), Locale('km', 'KH')],
           themeMode: themeProvider.themeMode,
           theme: AppTheme.getLightTheme(
             themeProvider.currentPalette,
@@ -103,7 +100,8 @@ class FoodGoApp extends StatelessWidget {
           routerConfig: appRouter,
           builder: (context, child) {
             final media = MediaQuery.of(context);
-            final rawScale = media.textScaler.scale(1.0) * localeProvider.scaleFactor;
+            final rawScale =
+                media.textScaler.scale(1.0) * localeProvider.scaleFactor;
             final clampedScale = rawScale.clamp(0.85, 1.40);
             final effectiveMedia = media.copyWith(
               disableAnimations: themeProvider.reducedMotion,

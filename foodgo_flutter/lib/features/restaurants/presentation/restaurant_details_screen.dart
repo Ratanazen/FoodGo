@@ -597,7 +597,8 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                         TextOverflow.ellipsis,
                                                     maxLines: 1,
                                                     style: TextStyle(
-                                                      color: GlassTheme.textMuted,
+                                                      color:
+                                                          GlassTheme.textMuted,
                                                       fontSize: 12,
                                                     ),
                                                   ),
@@ -606,37 +607,41 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                 Container(
                                                   padding:
                                                       const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
                                                   decoration: BoxDecoration(
                                                     color:
                                                         (restaurant['is_active'] !=
                                                                     false
-                                                                ? Theme.of(context)
+                                                                ? Theme.of(
+                                                                        context,
+                                                                      )
                                                                       .colorScheme
                                                                       .primary
-                                                                : Colors.redAccent)
+                                                                : Colors
+                                                                      .redAccent)
                                                             .withValues(
-                                                      alpha: 0.2,
-                                                    ),
+                                                              alpha: 0.2,
+                                                            ),
                                                     borderRadius:
-                                                        BorderRadius.circular(6),
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                   ),
                                                   child: Text(
-                                                    restaurant['is_active'] != false
+                                                    restaurant['is_active'] !=
+                                                            false
                                                         ? 'Open Now'
                                                         : 'Closed',
                                                     style: TextStyle(
                                                       color:
                                                           restaurant['is_active'] !=
-                                                                  false
-                                                              ? Theme.of(
-                                                                  context,
-                                                                )
-                                                                  .colorScheme
-                                                                  .primary
-                                                              : Colors.redAccent,
+                                                              false
+                                                          ? Theme.of(context)
+                                                                .colorScheme
+                                                                .primary
+                                                          : Colors.redAccent,
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       fontSize: 10,

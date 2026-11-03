@@ -104,7 +104,10 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _progressController, curve: Curves.easeInOutCubic),
+      CurvedAnimation(
+        parent: _progressController,
+        curve: Curves.easeInOutCubic,
+      ),
     );
 
     _introController.forward();
@@ -265,7 +268,9 @@ class _SplashScreenState extends State<SplashScreen>
             child: AnimatedBuilder(
               animation: _pulseAnimation,
               builder: (context, _) {
-                final scale = reduceMotion ? 1.0 : (2.0 - _pulseAnimation.value);
+                final scale = reduceMotion
+                    ? 1.0
+                    : (2.0 - _pulseAnimation.value);
                 return Transform.scale(
                   scale: scale,
                   child: Container(
@@ -311,19 +316,33 @@ class _SplashScreenState extends State<SplashScreen>
                               _sweepController,
                             ]),
                             builder: (context, _) {
-                              final introS = reduceMotion ? 1.0 : _introScale.value;
-                              final introF = reduceMotion ? 1.0 : _introFade.value;
-                              final introR = reduceMotion ? 0.0 : _intro3dRot.value;
-                              final pulseVal = reduceMotion ? 1.0 : _pulseAnimation.value;
+                              final introS = reduceMotion
+                                  ? 1.0
+                                  : _introScale.value;
+                              final introF = reduceMotion
+                                  ? 1.0
+                                  : _introFade.value;
+                              final introR = reduceMotion
+                                  ? 0.0
+                                  : _intro3dRot.value;
+                              final pulseVal = reduceMotion
+                                  ? 1.0
+                                  : _pulseAnimation.value;
                               final sweepVal = _sweepAnimation.value;
 
                               // Subtle gyroscopic 3D floating tilt
                               final floatPitch = reduceMotion
                                   ? 0.0
-                                  : (math.sin(_pulseController.value * math.pi) * 0.06);
+                                  : (math.sin(
+                                          _pulseController.value * math.pi,
+                                        ) *
+                                        0.06);
                               final floatYaw = reduceMotion
                                   ? 0.0
-                                  : (math.cos(_pulseController.value * math.pi) * 0.05);
+                                  : (math.cos(
+                                          _pulseController.value * math.pi,
+                                        ) *
+                                        0.05);
 
                               return Opacity(
                                 opacity: introF.clamp(0.0, 1.0),
@@ -352,47 +371,50 @@ class _SplashScreenState extends State<SplashScreen>
 
                           // ── Organic Fresh Badge Pill ────────────────────────
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: brandOrange.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: brandOrange.withValues(alpha: 0.40),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: brandOrange.withValues(alpha: 0.15),
-                                  blurRadius: 10,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 6,
                                 ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  AppIcons.salad,
-                                  size: 14,
-                                  color: brandOrange,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  palette.isFestive && palette.badgeText.isNotEmpty
-                                      ? '100% FRESH & ORGANIC • ${palette.badgeText}'
-                                      : '100% FRESH & ORGANIC',
-                                  style: const TextStyle(
-                                    color: brandOrange,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 1.1,
+                                decoration: BoxDecoration(
+                                  color: brandOrange.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: brandOrange.withValues(alpha: 0.40),
+                                    width: 1.2,
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: brandOrange.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      blurRadius: 10,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          )
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      AppIcons.salad,
+                                      size: 14,
+                                      color: brandOrange,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      palette.isFestive &&
+                                              palette.badgeText.isNotEmpty
+                                          ? '100% FRESH & ORGANIC • ${palette.badgeText}'
+                                          : '100% FRESH & ORGANIC',
+                                      style: const TextStyle(
+                                        color: brandOrange,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 1.1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
                               .animate()
                               .fade(delay: 200.ms, duration: 500.ms)
                               .slideY(
@@ -406,26 +428,26 @@ class _SplashScreenState extends State<SplashScreen>
                           // ── Brand Title: FoodGo ─────────────────────────────
                           // Keeps exact text 'FoodGo' for screen reader & test discovery
                           Text(
-                            'FoodGo',
-                            style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.6,
-                              color: titleColor,
-                              shadows: [
-                                Shadow(
-                                  color: Color(0x60000000),
-                                  blurRadius: 16,
-                                  offset: Offset(0, 4),
+                                'FoodGo',
+                                style: const TextStyle(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.6,
+                                  color: titleColor,
+                                  shadows: [
+                                    Shadow(
+                                      color: Color(0x60000000),
+                                      blurRadius: 16,
+                                      offset: Offset(0, 4),
+                                    ),
+                                    Shadow(
+                                      color: Color(0x40FF5722),
+                                      blurRadius: 28,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
-                                Shadow(
-                                  color: Color(0x40FF5722),
-                                  blurRadius: 28,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                          )
+                              )
                               .animate()
                               .fade(delay: 350.ms, duration: 600.ms)
                               .slideY(
@@ -438,14 +460,14 @@ class _SplashScreenState extends State<SplashScreen>
 
                           // ── Tagline & Slogan ────────────────────────────────
                           Text(
-                            'Healthy Food Delivery • Phnom Penh',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: mutedColor,
-                              letterSpacing: 0.2,
-                            ),
-                          )
+                                'Healthy Food Delivery • Phnom Penh',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: mutedColor,
+                                  letterSpacing: 0.2,
+                                ),
+                              )
                               .animate()
                               .fade(delay: 450.ms, duration: 600.ms)
                               .slideY(
@@ -464,9 +486,7 @@ class _SplashScreenState extends State<SplashScreen>
                               color: brandOrange.withValues(alpha: 0.85),
                               letterSpacing: 0.3,
                             ),
-                          )
-                              .animate()
-                              .fade(delay: 550.ms, duration: 500.ms),
+                          ).animate().fade(delay: 550.ms, duration: 500.ms),
 
                           const SizedBox(height: 36),
 
@@ -626,10 +646,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
 
                       // FoodGo App Icon Logo with fork & knife plate
-                      const FoodGoAppIcon(
-                        size: 92,
-                        borderRadius: 24,
-                      ),
+                      const FoodGoAppIcon(size: 92, borderRadius: 24),
 
                       // Specular light trail sweep reflection across surface
                       Positioned.fill(
@@ -876,10 +893,7 @@ class _SplashScreenState extends State<SplashScreen>
           width: 1.2,
         ),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 14,
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 14),
         ],
       ),
       child: Column(
@@ -887,11 +901,7 @@ class _SplashScreenState extends State<SplashScreen>
         children: [
           Row(
             children: [
-              const Icon(
-                AppIcons.warning,
-                color: Colors.amber,
-                size: 20,
-              ),
+              const Icon(AppIcons.warning, color: Colors.amber, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -908,10 +918,7 @@ class _SplashScreenState extends State<SplashScreen>
           const SizedBox(height: 6),
           Text(
             _errorMessage ?? 'Unable to connect to FoodGo servers.',
-            style: TextStyle(
-              fontSize: 11.5,
-              color: subtitleColor,
-            ),
+            style: TextStyle(fontSize: 11.5, color: subtitleColor),
           ),
           const SizedBox(height: 14),
           Row(
@@ -1041,10 +1048,7 @@ class _GourmetFoodArtworkPainter extends CustomPainter {
       angle: 0.8,
       scale: 1.1,
     );
-    _drawPeppercornCluster(
-      canvas,
-      Offset(w * 0.78, h * 0.91 + floatY2),
-    );
+    _drawPeppercornCluster(canvas, Offset(w * 0.78, h * 0.91 + floatY2));
 
     // 3. Mid-Left Culinary Elements: Floating Fresh Basil & Golden Spices
     _drawBasilLeaf(
@@ -1053,10 +1057,7 @@ class _GourmetFoodArtworkPainter extends CustomPainter {
       angle: 0.35,
       scale: 0.85,
     );
-    _drawPeppercornCluster(
-      canvas,
-      Offset(w * 0.12, h * 0.49 + floatY2),
-    );
+    _drawPeppercornCluster(canvas, Offset(w * 0.12, h * 0.49 + floatY2));
 
     // 4. Mid-Right Culinary Elements: Floating Tomato & Herb Needle
     _drawCherryTomato(
@@ -1078,10 +1079,7 @@ class _GourmetFoodArtworkPainter extends CustomPainter {
       angle: 1.2,
       scale: 0.95,
     );
-    _drawPeppercornCluster(
-      canvas,
-      Offset(w * 0.88, h * 0.18 + floatY2),
-    );
+    _drawPeppercornCluster(canvas, Offset(w * 0.88, h * 0.18 + floatY2));
 
     // 6. Top-Left Delicate Herb Accent
     _drawCherryTomato(
@@ -1095,7 +1093,11 @@ class _GourmetFoodArtworkPainter extends CustomPainter {
   }
 
   /// Draws a dimensional cherry tomato with radial shading & specular gloss
-  void _drawCherryTomato(Canvas canvas, Offset center, {required double radius}) {
+  void _drawCherryTomato(
+    Canvas canvas,
+    Offset center, {
+    required double radius,
+  }) {
     // Tomato body with deep crimson/scarlet gradient
     final bodyPaint = Paint()
       ..shader = RadialGradient(
@@ -1184,11 +1186,7 @@ class _GourmetFoodArtworkPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          Color(0xFF43A047),
-          Color(0xFF2E7D32),
-          Color(0xFF1B5E20),
-        ],
+        colors: [Color(0xFF43A047), Color(0xFF2E7D32), Color(0xFF1B5E20)],
       ).createShader(const Rect.fromLTWH(-20, -22, 40, 46));
 
     // Drop shadow

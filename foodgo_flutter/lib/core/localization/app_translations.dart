@@ -85,7 +85,8 @@ class AppTranslations {
     'auth.createAccount': 'Create Account',
     'auth.registerSubtitle': 'Fill your details below to register',
     'auth.sessionExpired': 'Session expired. Please log in again',
-    'auth.termsAgreement': 'By continuing, you agree to our Terms of Service & Privacy Policy',
+    'auth.termsAgreement':
+        'By continuing, you agree to our Terms of Service & Privacy Policy',
 
     // Home & Feed
     'home.search': 'Search fresh food, drinks, groceries...',
@@ -159,7 +160,8 @@ class AppTranslations {
     'payment.expired': 'QR Code Expired',
     'payment.regenerate': 'Regenerate QR',
     'payment.saveQr': 'Save QR Image',
-    'payment.successSubtitle': 'Thank you! Your payment has been verified by National Bank of Cambodia',
+    'payment.successSubtitle':
+        'Thank you! Your payment has been verified by National Bank of Cambodia',
     'payment.cod': 'Cash on Delivery',
     'payment.payWithWallet': 'Pay with FoodGo Balance',
     'payment.payWithKhqr': 'Proceed to Pay with Bakong KHQR',
@@ -234,11 +236,13 @@ class AppTranslations {
     'settings.aboutFoodGo': 'About FoodGo',
     'settings.appVersion': 'App Version',
     'settings.logoutConfirmTitle': 'Log Out?',
-    'settings.logoutConfirmMessage': 'Are you sure you want to log out of your account?',
+    'settings.logoutConfirmMessage':
+        'Are you sure you want to log out of your account?',
 
     // Errors & Empty States
     'errors.network': 'No Internet Connection',
-    'errors.networkMessage': 'Please check your Wi-Fi or cellular network and try again',
+    'errors.networkMessage':
+        'Please check your Wi-Fi or cellular network and try again',
     'errors.somethingWentWrong': 'Something went wrong',
     'errors.serverError': 'Server Error',
     'errors.networkError': 'Unable to connect to server',
@@ -256,7 +260,6 @@ class AppTranslations {
     'auth.enterPassword': 'Enter your password',
     'auth.enterUsernameOrEmail': 'e.g. customer1 or user@foodgo.com',
   };
-
 
   static const Map<String, String> km = {
     // Common
@@ -332,7 +335,8 @@ class AppTranslations {
     'auth.sendOtp': 'ផ្ញើលេខកូដ',
     'auth.verifyOtp': 'ផ្ទៀងផ្ទាត់លេខកូដ',
     'auth.otpTitle': 'លេខកូដផ្ទៀងផ្ទាត់',
-    'auth.otpSubtitle': 'សូមបញ្ចូលលេខកូដ ៦ ខ្ទង់ដែលបានផ្ញើទៅកាន់ទូរស័ព្ទរបស់អ្នក',
+    'auth.otpSubtitle':
+        'សូមបញ្ចូលលេខកូដ ៦ ខ្ទង់ដែលបានផ្ញើទៅកាន់ទូរស័ព្ទរបស់អ្នក',
     'auth.rememberMe': 'ចងចាំខ្ញុំ',
     'auth.usernameOrEmail': 'ឈ្មោះអ្នកប្រើ ឬ អ៊ីមែល',
     'auth.orContinueWith': 'ឬបន្តជាមួយ',
@@ -344,7 +348,8 @@ class AppTranslations {
     'auth.createAccount': 'បង្កើតគណនីថ្មី',
     'auth.registerSubtitle': 'សូមបំពេញព័ត៌មានខាងក្រោមដើម្បីចុះឈ្មោះ',
     'auth.sessionExpired': 'វគ្គបានផុតកំណត់។ សូមចូលគណនីម្តងទៀត',
-    'auth.termsAgreement': 'តាមរយៈការបន្ត អ្នកយល់ព្រមនឹងលក្ខខណ្ឌប្រើប្រាស់ និងគោលការណ៍ឯកជនភាពរបស់យើង',
+    'auth.termsAgreement':
+        'តាមរយៈការបន្ត អ្នកយល់ព្រមនឹងលក្ខខណ្ឌប្រើប្រាស់ និងគោលការណ៍ឯកជនភាពរបស់យើង',
 
     // Home & Feed
     'home.search': 'ស្វែងរកអាហារ ភេសជ្ជៈ ឬបន្លែផ្លែឈើ...',
@@ -406,7 +411,8 @@ class AppTranslations {
     // Payment & QR
     'payment.qrTitle': 'ទូទាត់ប្រាក់តាម KHQR',
     'payment.scanToPay': 'ស្កេនជាមួយកម្មវិធីធនាគារណាមួយ',
-    'payment.supportedBanks': 'គាំទ្របាគង, ABA, អេស៊ីលីដា និងធនាគារជាង ៣០ ផ្សេងទៀត',
+    'payment.supportedBanks':
+        'គាំទ្របាគង, ABA, អេស៊ីលីដា និងធនាគារជាង ៣០ ផ្សេងទៀត',
     'payment.amountToPay': 'ចំនួនទឹកប្រាក់ត្រូវទូទាត់',
     'payment.reference': 'លេខយោងបញ្ជាទិញ',
     'payment.merchant': 'ឈ្មោះអាជីវករ',
@@ -418,7 +424,8 @@ class AppTranslations {
     'payment.expired': 'កូដ QR ផុតកំណត់',
     'payment.regenerate': 'បង្កើតកូដ QR ឡើងវិញ',
     'payment.saveQr': 'រក្សាទុកកូដ QR',
-    'payment.successSubtitle': 'សូមអរគុណ! ការទូទាត់របស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់ដោយធនាគារជាតិនៃកម្ពុជា',
+    'payment.successSubtitle':
+        'សូមអរគុណ! ការទូទាត់របស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់ដោយធនាគារជាតិនៃកម្ពុជា',
     'payment.cod': 'ទូទាត់ប្រាក់ពេលទំនិញមកដល់',
     'payment.payWithWallet': 'ទូទាត់តាមសមតុល្យ FoodGo',
     'payment.payWithKhqr': 'ផ្ទេរប្រាក់តាម KHQR',
@@ -492,11 +499,13 @@ class AppTranslations {
     'settings.aboutFoodGo': 'អំពី FoodGo',
     'settings.appVersion': 'កំណែកម្មវិធី',
     'settings.logoutConfirmTitle': 'ចាកចេញពីគណនី?',
-    'settings.logoutConfirmMessage': 'តើអ្នកប្រាកដជាចង់ចាកចេញពីគណនីរបស់អ្នកមែនទេ?',
+    'settings.logoutConfirmMessage':
+        'តើអ្នកប្រាកដជាចង់ចាកចេញពីគណនីរបស់អ្នកមែនទេ?',
 
     // Errors & Empty States
     'errors.network': 'គ្មានការតភ្ជាប់អ៊ីនធឺណិត',
-    'errors.networkMessage': 'សូមពិនិត្យមើលប្រព័ន្ធ Wi-Fi ឬទិន្នន័យចល័ត ហើយព្យាយាមម្តងទៀត',
+    'errors.networkMessage':
+        'សូមពិនិត្យមើលប្រព័ន្ធ Wi-Fi ឬទិន្នន័យចល័ត ហើយព្យាយាមម្តងទៀត',
     'errors.somethingWentWrong': 'មានបញ្ហាមិនប្រក្រតីបានកើតឡើង',
     'errors.serverError': 'កំហុសម៉ាស៊ីនមេ',
     'errors.networkError': 'មិនអាចភ្ជាប់ទៅកាន់ម៉ាស៊ីនមេបានទេ',
@@ -514,7 +523,6 @@ class AppTranslations {
     'auth.enterPassword': 'បញ្ចូលពាក្យសម្ងាត់របស់អ្នក',
     'auth.enterUsernameOrEmail': 'ឧទាហរណ៍៖ customer1 ឬ user@foodgo.com',
   };
-
 
   static String get(
     String key,

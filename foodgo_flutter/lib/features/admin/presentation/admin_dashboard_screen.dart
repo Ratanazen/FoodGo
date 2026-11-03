@@ -123,7 +123,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
         title: Row(
           children: [
-            Icon(AppIcons.security, color: GlassTheme.dynamicPrimaryColor, size: 24),
+            Icon(
+              AppIcons.security,
+              color: GlassTheme.dynamicPrimaryColor,
+              size: 24,
+            ),
             const SizedBox(width: 8),
             const Text(
               'Admin Console',
@@ -193,7 +197,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       builder: (context, admin, _) {
         if (admin.isLoading && admin.analytics == null) {
           return Center(
-            child: CircularProgressIndicator(color: GlassTheme.dynamicPrimaryColor),
+            child: CircularProgressIndicator(
+              color: GlassTheme.dynamicPrimaryColor,
+            ),
           );
         }
 
@@ -314,7 +320,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 fontSize: 13,
               ),
               side: BorderSide(
-                color: isSelected ? GlassTheme.dynamicPrimaryColor : Colors.white12,
+                color: isSelected
+                    ? GlassTheme.dynamicPrimaryColor
+                    : Colors.white12,
               ),
             ),
           );
@@ -769,7 +777,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 fontSize: 12,
               ),
               side: BorderSide(
-                color: isSelected ? GlassTheme.dynamicPrimaryColor : Colors.white12,
+                color: isSelected
+                    ? GlassTheme.dynamicPrimaryColor
+                    : Colors.white12,
               ),
             ),
           );
@@ -879,7 +889,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ? Icons.sports_motorsports_rounded
                     : Icons.person_search_rounded,
                 size: 16,
-                color: driver != null ? GlassTheme.dynamicPrimaryColor : Colors.white38,
+                color: driver != null
+                    ? GlassTheme.dynamicPrimaryColor
+                    : Colors.white38,
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -1573,7 +1585,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                               children: [
                                 CircleAvatar(
                                   radius: 20,
-                                  backgroundColor: GlassTheme.dynamicPrimaryColor
+                                  backgroundColor: GlassTheme
+                                      .dynamicPrimaryColor
                                       .withValues(alpha: 0.15),
                                   child: Text(
                                     (user['username'] ?? 'U')[0].toUpperCase(),
@@ -1606,7 +1619,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                               vertical: 2,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: GlassTheme.dynamicPrimaryColor
+                                              color: GlassTheme
+                                                  .dynamicPrimaryColor
                                                   .withValues(alpha: 0.15),
                                               borderRadius:
                                                   BorderRadius.circular(6),
@@ -1614,7 +1628,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                             child: Text(
                                               role.toUpperCase(),
                                               style: TextStyle(
-                                                color: GlassTheme.dynamicPrimaryColor,
+                                                color: GlassTheme
+                                                    .dynamicPrimaryColor,
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -1635,7 +1650,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                 ),
                                 Switch(
                                   value: isActive,
-                                  activeThumbColor: GlassTheme.dynamicPrimaryColor,
+                                  activeThumbColor:
+                                      GlassTheme.dynamicPrimaryColor,
                                   onChanged: (_) {
                                     if (isActive) {
                                       _confirmToggleUser(context, user, admin);
@@ -1752,7 +1768,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
         if (admin.isLoading && restaurants.isEmpty) {
           return Center(
-            child: CircularProgressIndicator(color: GlassTheme.dynamicPrimaryColor),
+            child: CircularProgressIndicator(
+              color: GlassTheme.dynamicPrimaryColor,
+            ),
           );
         }
 
@@ -1859,7 +1877,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
         if (admin.isLoading && logs.isEmpty) {
           return Center(
-            child: CircularProgressIndicator(color: GlassTheme.dynamicPrimaryColor),
+            child: CircularProgressIndicator(
+              color: GlassTheme.dynamicPrimaryColor,
+            ),
           );
         }
 

@@ -1314,7 +1314,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       if (_orderStatus == 'delivered') {
         headline = 'Delivered to $custName';
         subtitle = 'Delivery completed successfully';
-      } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
+      } else if (_orderStatus == 'on_the_way' ||
+          _orderStatus == 'on_delivery') {
         headline = 'Delivering to $custName';
         subtitle = 'Drop-off is $distance km away • $etaMin min';
       } else if (_orderStatus == 'picked_up') {
@@ -1328,7 +1329,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       if (_orderStatus == 'delivered') {
         headline = 'Order Delivered!';
         subtitle = 'Enjoy your delicious meal!';
-      } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
+      } else if (_orderStatus == 'on_the_way' ||
+          _orderStatus == 'on_delivery') {
         headline = 'On the way to you';
         subtitle = '${driver['name']} is $distance km away';
       } else if (_orderStatus == 'picked_up') {
@@ -1720,8 +1722,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     final address =
         customer['address']?.toString() ??
         (_deliveryAddress ?? 'Customer Dropoff Location');
-    final instructions =
-        customer['special_instructions']?.toString() ?? '';
+    final instructions = customer['special_instructions']?.toString() ?? '';
 
     return Container(
       padding: const EdgeInsets.all(14),

@@ -1687,8 +1687,10 @@ class PaletteData {
     id: AppColorPalette.royalKhmerSilk,
     nameEn: 'Royal Khmer Golden Silk',
     nameKh: 'ព្រែខ្មែរមាសរាជវាំង',
-    descriptionEn: 'Shimmering Royal Palace gold and deep imperial violet with woven silk motifs',
-    descriptionKh: 'ពណ៌មាសព្រះបរមរាជវាំង និងស្វាយរាជវង្ស រួមជាមួយក្បាច់ត្បាញព្រែខ្មែរបុរាណ',
+    descriptionEn:
+        'Shimmering Royal Palace gold and deep imperial violet with woven silk motifs',
+    descriptionKh:
+        'ពណ៌មាសព្រះបរមរាជវាំង និងស្វាយរាជវង្ស រួមជាមួយក្បាច់ត្បាញព្រែខ្មែរបុរាណ',
     primary: Color(0xFFD4AF37),
     primaryDark: Color(0xFFA67C00),
     primaryAccent: Color(0xFFFFD700),
@@ -1732,8 +1734,10 @@ class PaletteData {
     id: AppColorPalette.mekongSunset,
     nameEn: 'Mekong Sunset Waves',
     nameKh: 'រលកថ្ងៃលិចទន្លេមេគង្គ',
-    descriptionEn: 'Sunset coral, glowing amber, and dusk river reflections over Phnom Penh',
-    descriptionKh: 'ពណ៌ទឹកក្រូចថ្ងៃលិច មាសរលោង និងស្រមោលរលកទន្លេមេគង្គនាពេលព្រលប់',
+    descriptionEn:
+        'Sunset coral, glowing amber, and dusk river reflections over Phnom Penh',
+    descriptionKh:
+        'ពណ៌ទឹកក្រូចថ្ងៃលិច មាសរលោង និងស្រមោលរលកទន្លេមេគង្គនាពេលព្រលប់',
     primary: Color(0xFFFF6F00),
     primaryDark: Color(0xFFC43E00),
     primaryAccent: Color(0xFFFF8F00),

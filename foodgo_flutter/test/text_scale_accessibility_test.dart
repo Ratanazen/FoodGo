@@ -73,9 +73,7 @@ void main() {
     });
 
     test('Loads persisted text scale on startup', () async {
-      SharedPreferences.setMockInitialValues({
-        'app_text_scale': 'extraLarge',
-      });
+      SharedPreferences.setMockInitialValues({'app_text_scale': 'extraLarge'});
 
       final provider = LocaleProvider();
       await Future<void>.delayed(const Duration(milliseconds: 20));
@@ -99,88 +97,95 @@ void main() {
               size: size,
               textScaler: TextScaler.linear(localeProvider.scaleFactor),
             ),
-            child: Scaffold(
-              body: child,
-            ),
+            child: Scaffold(body: child),
           ),
         ),
       );
     }
 
-    testWidgets('GlassButton with Khmer text renders without overflow at 1.30x scale', (tester) async {
-      final provider = LocaleProvider();
-      await provider.setLanguage(AppLanguage.khmer);
-      await provider.setTextScale(AppTextScale.extraLarge);
+    testWidgets(
+      'GlassButton with Khmer text renders without overflow at 1.30x scale',
+      (tester) async {
+        final provider = LocaleProvider();
+        await provider.setLanguage(AppLanguage.khmer);
+        await provider.setTextScale(AppTextScale.extraLarge);
 
-      await tester.pumpWidget(
-        buildTestHarness(
-          localeProvider: provider,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GlassButton(
-              text: 'បន្តទៅការទូទាត់ប្រាក់',
-              onPressed: () {},
+        await tester.pumpWidget(
+          buildTestHarness(
+            localeProvider: provider,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: GlassButton(
+                text: 'បន្តទៅការទូទាត់ប្រាក់',
+                onPressed: () {},
+              ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('បន្តទៅការទូទាត់ប្រាក់'), findsOneWidget);
-    });
+        expect(tester.takeException(), isNull);
+        expect(find.text('បន្តទៅការទូទាត់ប្រាក់'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Bilingual text rows do not overflow at 1.30x extra large scale', (tester) async {
-      final provider = LocaleProvider();
-      await provider.setLanguage(AppLanguage.khmer);
-      await provider.setTextScale(AppTextScale.extraLarge);
+    testWidgets(
+      'Bilingual text rows do not overflow at 1.30x extra large scale',
+      (tester) async {
+        final provider = LocaleProvider();
+        await provider.setLanguage(AppLanguage.khmer);
+        await provider.setTextScale(AppTextScale.extraLarge);
 
-      await tester.pumpWidget(
-        buildTestHarness(
-          localeProvider: provider,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        'ចំនួនទឹកប្រាក់ត្រូវទូទាត់',
-                        style: const TextStyle(fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
+        await tester.pumpWidget(
+          buildTestHarness(
+            localeProvider: provider,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'ចំនួនទឹកប្រាក់ត្រូវទូទាត់',
+                          style: const TextStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      r'$12.50 (៛51,250)',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'គាំទ្របាគង, ABA, អេស៊ីលីដា និងធនាគារជាង ៣០ ផ្សេងទៀត',
-                        style: const TextStyle(fontSize: 12),
+                      const SizedBox(width: 8),
+                      Text(
+                        r'$12.50 (៛51,250)',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'គាំទ្របាគង, ABA, អេស៊ីលីដា និងធនាគារជាង ៣០ ផ្សេងទៀត',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('ចំនួនទឹកប្រាក់ត្រូវទូទាត់'), findsOneWidget);
-      expect(find.text(r'$12.50 (៛51,250)'), findsOneWidget);
-    });
+        expect(tester.takeException(), isNull);
+        expect(find.text('ចំនួនទឹកប្រាក់ត្រូវទូទាត់'), findsOneWidget);
+        expect(find.text(r'$12.50 (៛51,250)'), findsOneWidget);
+      },
+    );
   });
 }

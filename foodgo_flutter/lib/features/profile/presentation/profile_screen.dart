@@ -27,7 +27,10 @@ class ProfileScreen extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           context.tr('settings.logoutConfirmTitle'),
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         content: Text(
           context.tr('settings.logoutConfirmMessage'),
@@ -612,14 +615,18 @@ class ProfileScreen extends StatelessWidget {
                                 runSpacing: 8,
                                 children: [
                                   OutlinedButton.icon(
-                                    onPressed: () => context.push('/edit-profile'),
+                                    onPressed: () =>
+                                        context.push('/edit-profile'),
                                     icon: const Icon(
                                       AppIcons.edit,
                                       size: 14,
                                       color: GlassTheme.primaryGreen,
                                     ),
                                     label: Text(
-                                      context.tr('profile.editProfile', fallback: 'Edit Profile'),
+                                      context.tr(
+                                        'profile.editProfile',
+                                        fallback: 'Edit Profile',
+                                      ),
                                       style: TextStyle(
                                         color: isDark
                                             ? Colors.white
@@ -630,9 +637,8 @@ class ProfileScreen extends StatelessWidget {
                                     ),
                                     style: OutlinedButton.styleFrom(
                                       side: BorderSide(
-                                        color: GlassTheme.primaryGreen.withValues(
-                                          alpha: 0.5,
-                                        ),
+                                        color: GlassTheme.primaryGreen
+                                            .withValues(alpha: 0.5),
                                         width: 1.2,
                                       ),
                                       shape: RoundedRectangleBorder(
@@ -650,15 +656,19 @@ class ProfileScreen extends StatelessWidget {
                                     builder: (context) {
                                       LocaleProvider? localeProvider;
                                       try {
-                                        localeProvider = context.watch<LocaleProvider>();
+                                        localeProvider = context
+                                            .watch<LocaleProvider>();
                                       } catch (_) {
                                         localeProvider = null;
                                       }
-                                      final isKhmer = localeProvider?.isKhmer ?? false;
+                                      final isKhmer =
+                                          localeProvider?.isKhmer ?? false;
                                       return InkWell(
                                         onTap: () {
                                           try {
-                                            context.read<LocaleProvider>().toggleLanguage();
+                                            context
+                                                .read<LocaleProvider>()
+                                                .toggleLanguage();
                                           } catch (_) {}
                                         },
                                         borderRadius: BorderRadius.circular(20),
@@ -670,7 +680,9 @@ class ProfileScreen extends StatelessWidget {
                                           decoration: BoxDecoration(
                                             color: GlassTheme.primaryGreen
                                                 .withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                             border: Border.all(
                                               color: GlassTheme.primaryGreen
                                                   .withValues(alpha: 0.4),

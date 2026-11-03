@@ -29,7 +29,8 @@ class VectorIllustration extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = primaryColor ?? GlassTheme.dynamicPrimaryColor;
-    final secondary = secondaryColor ?? (isDark ? Colors.white70 : const Color(0xFF475569));
+    final secondary =
+        secondaryColor ?? (isDark ? Colors.white70 : const Color(0xFF475569));
 
     return SizedBox(
       width: size,
@@ -181,7 +182,12 @@ class _VectorIllustrationPainter extends CustomPainter {
       const Rect.fromLTWH(65, 38, 30, 14),
       const Radius.circular(4),
     );
-    canvas.drawRRect(clipTop, Paint()..color = primaryColor..style = PaintingStyle.fill);
+    canvas.drawRRect(
+      clipTop,
+      Paint()
+        ..color = primaryColor
+        ..style = PaintingStyle.fill,
+    );
 
     // Receipt text lines
     final linePaint = Paint()
@@ -262,11 +268,15 @@ class _VectorIllustrationPainter extends CustomPainter {
     canvas.drawCircle(const Offset(100, 60), 22, primaryStroke);
 
     // Magnifying glass handle
-    canvas.drawLine(const Offset(116, 76), const Offset(132, 92), Paint()
-      ..color = primaryColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5.0
-      ..strokeCap = StrokeCap.round);
+    canvas.drawLine(
+      const Offset(116, 76),
+      const Offset(132, 92),
+      Paint()
+        ..color = primaryColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5.0
+        ..strokeCap = StrokeCap.round,
+    );
   }
 
   void _paintNetworkOffline(Canvas canvas) {
@@ -314,7 +324,13 @@ class _VectorIllustrationPainter extends CustomPainter {
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(const Offset(80, 99), const Offset(80, 106), alertExclaim);
-    canvas.drawCircle(const Offset(80, 110), 1.2, Paint()..color = Colors.white..style = PaintingStyle.fill);
+    canvas.drawCircle(
+      const Offset(80, 110),
+      1.2,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill,
+    );
   }
 
   void _paintOrderSuccess(Canvas canvas) {
@@ -348,9 +364,15 @@ class _VectorIllustrationPainter extends CustomPainter {
     canvas.drawPath(checkPath, checkPaint);
 
     // Confetti particles around
-    final confetti1 = Paint()..color = const Color(0xFFF59E0B)..style = PaintingStyle.fill;
-    final confetti2 = Paint()..color = const Color(0xFF3B82F6)..style = PaintingStyle.fill;
-    final confetti3 = Paint()..color = const Color(0xFFEC4899)..style = PaintingStyle.fill;
+    final confetti1 = Paint()
+      ..color = const Color(0xFFF59E0B)
+      ..style = PaintingStyle.fill;
+    final confetti2 = Paint()
+      ..color = const Color(0xFF3B82F6)
+      ..style = PaintingStyle.fill;
+    final confetti3 = Paint()
+      ..color = const Color(0xFFEC4899)
+      ..style = PaintingStyle.fill;
 
     canvas.drawCircle(const Offset(42, 45), 3, confetti1);
     canvas.drawCircle(const Offset(120, 48), 3.5, confetti2);

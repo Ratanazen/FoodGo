@@ -143,7 +143,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: stagedData.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
@@ -207,7 +210,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
 
                 if (_selectedTopTab == 0) ...[
                   // ── 1. Current Theme Hero Banner ───────────────────────────
-                  _buildCurrentThemeHero(stagedData, activeData, isDark, hasUnsavedChanges),
+                  _buildCurrentThemeHero(
+                    stagedData,
+                    activeData,
+                    isDark,
+                    hasUnsavedChanges,
+                  ),
                   const SizedBox(height: 20),
 
                   // ── 2. Appearance Mode Quick Selector ──────────────────────
@@ -302,11 +310,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   if (_activeCategoryFilter != 'All' &&
                       _activeCategoryFilter != 'Theme Styles' &&
                       _activeCategoryFilter != 'Seasonal Themes') ...[
-                    _buildThemeGallery(
-                      filteredPalettes,
-                      themeProvider,
-                      isDark,
-                    ),
+                    _buildThemeGallery(filteredPalettes, themeProvider, isDark),
                     const SizedBox(height: 24),
                   ],
                 ] else ...[
@@ -494,11 +498,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   ],
                 ),
                 child: Center(
-                  child: Icon(
-                    staged.icon,
-                    color: staged.onPrimary,
-                    size: 26,
-                  ),
+                  child: Icon(staged.icon, color: staged.onPrimary, size: 26),
                 ),
               ),
               const SizedBox(width: 14),
@@ -518,7 +518,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : const Color(0xFF111827),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF111827),
                             ),
                           ),
                         ),
@@ -535,10 +537,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: (isStagedApplied
-                                        ? const Color(0xFF10B981)
-                                        : staged.primary)
-                                    .withValues(alpha: 0.35),
+                                color:
+                                    (isStagedApplied
+                                            ? const Color(0xFF10B981)
+                                            : staged.primary)
+                                        .withValues(alpha: 0.35),
                                 blurRadius: 6,
                               ),
                             ],
@@ -574,7 +577,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11.5,
-                        color: isDark ? Colors.white60 : const Color(0xFF6B7280),
+                        color: isDark
+                            ? Colors.white60
+                            : const Color(0xFF6B7280),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -683,7 +688,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.4),
@@ -2293,15 +2301,19 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     final borderColor = isApplied
         ? palette.primary
         : (isStaged
-            ? palette.primaryAccent
-            : (isDark ? Colors.white12 : Colors.black12));
+              ? palette.primaryAccent
+              : (isDark ? Colors.white12 : Colors.black12));
     final cardBg = isDark ? palette.surfaceCardDark : Colors.white;
 
     return Semantics(
       button: true,
       selected: isApplied,
       label:
-          '${palette.nameEn}. ${palette.descriptionEn}${isApplied ? '. Active theme.' : isStaged ? '. Previewing.' : ''}',
+          '${palette.nameEn}. ${palette.descriptionEn}${isApplied
+              ? '. Active theme.'
+              : isStaged
+              ? '. Previewing.'
+              : ''}',
       child: ExcludeSemantics(
         child: AnimatedPressable(
           onTap: onTap,
@@ -2341,9 +2353,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                 Container(
                   height: 105,
                   width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: palette.headerGradient,
-                  ),
+                  decoration: BoxDecoration(gradient: palette.headerGradient),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -2366,7 +2376,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: palette.auraColor.withValues(alpha: 0.35),
+                                color: palette.auraColor.withValues(
+                                  alpha: 0.35,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -2425,9 +2437,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF10B981).withValues(
-                                        alpha: 0.4,
-                                      ),
+                                      color: const Color(
+                                        0xFF10B981,
+                                      ).withValues(alpha: 0.4),
                                       blurRadius: 6,
                                     ),
                                   ],
@@ -2453,25 +2465,25 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                                 ),
                               )
                             : (palette.isSeasonallyActive
-                                ? Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 7,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF59E0B),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Text(
-                                      'In Season',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
+                                  ? Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 3,
                                       ),
-                                    ),
-                                  )
-                                : const SizedBox.shrink()),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF59E0B),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Text(
+                                        'In Season',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  : const SizedBox.shrink()),
                       ),
                     ],
                   ),
@@ -2490,7 +2502,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF111827),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF111827),
                         ),
                       ),
                       const SizedBox(height: 2),

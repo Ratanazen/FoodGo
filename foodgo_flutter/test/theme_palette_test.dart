@@ -621,37 +621,38 @@ void main() {
       },
     );
 
-    testWidgets('ThemedSkinBackdrop respects skinAnimationEnabled and reducedMotion', (
-      tester,
-    ) async {
-      final provider = ThemeProvider();
-      await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: provider,
-          child: const MaterialApp(
-            home: ThemedSkinBackdrop(
-              animate: true,
-              child: Text('Animated Content'),
+    testWidgets(
+      'ThemedSkinBackdrop respects skinAnimationEnabled and reducedMotion',
+      (tester) async {
+        final provider = ThemeProvider();
+        await tester.pumpWidget(
+          ChangeNotifierProvider.value(
+            value: provider,
+            child: const MaterialApp(
+              home: ThemedSkinBackdrop(
+                animate: true,
+                child: Text('Animated Content'),
+              ),
             ),
           ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(find.text('Animated Content'), findsOneWidget);
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(find.text('Animated Content'), findsOneWidget);
 
-      // Disable animations
-      provider.setSkinAnimationEnabled(false);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Animated Content'), findsOneWidget);
+        // Disable animations
+        provider.setSkinAnimationEnabled(false);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.text('Animated Content'), findsOneWidget);
 
-      // Enable reduced motion
-      provider.setSkinAnimationEnabled(true);
-      provider.setReducedMotion(true);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Animated Content'), findsOneWidget);
-    });
+        // Enable reduced motion
+        provider.setSkinAnimationEnabled(true);
+        provider.setReducedMotion(true);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.text('Animated Content'), findsOneWidget);
+      },
+    );
   });
 }

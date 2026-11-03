@@ -114,7 +114,11 @@ class EmptyStateView extends StatelessWidget {
               GlassContainer(
                 padding: const EdgeInsets.all(24),
                 borderRadius: BorderRadius.circular(100),
-                child: Icon(icon ?? Icons.inbox_outlined, size: 64, color: GlassTheme.dynamicPrimaryColor),
+                child: Icon(
+                  icon ?? Icons.inbox_outlined,
+                  size: 64,
+                  color: GlassTheme.dynamicPrimaryColor,
+                ),
               ),
             const SizedBox(height: 20),
             Text(

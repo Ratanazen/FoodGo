@@ -608,7 +608,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               trailing: isSelected
-                  ? const Icon(Icons.check_circle, color: GlassTheme.primaryGreen)
+                  ? const Icon(
+                      Icons.check_circle,
+                      color: GlassTheme.primaryGreen,
+                    )
                   : const Icon(Icons.circle_outlined, color: Colors.white38),
               onTap: () {
                 localeProvider.setTextScale(scale);
@@ -1115,7 +1118,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: context.tr('settings.language'),
                     subtitle: (() {
                       try {
-                        return context.watch<LocaleProvider>().language.nativeName;
+                        return context
+                            .watch<LocaleProvider>()
+                            .language
+                            .nativeName;
                       } catch (_) {
                         return 'English';
                       }

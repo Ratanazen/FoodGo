@@ -61,13 +61,15 @@ class PaymentModel {
           : null,
       amount: double.tryParse(json['amount']?.toString() ?? '') ?? 0.0,
       currency: json['currency'] ?? 'USD',
-      qrPayload: json['qr_payload'] ??
+      qrPayload:
+          json['qr_payload'] ??
           json['qr_string'] ??
           (json['provider_response'] is Map
               ? json['provider_response']['qr_string'] ??
-                  json['provider_response']['qr_payload']
+                    json['provider_response']['qr_payload']
               : null),
-      qrImage: json['qr_image'] ??
+      qrImage:
+          json['qr_image'] ??
           (json['provider_response'] is Map
               ? json['provider_response']['qr_image']
               : null),
@@ -161,7 +163,8 @@ class PaymentMethodConfig {
       method: json['method']?.toString() ?? 'KHQR',
       isEnabled: json['is_enabled'] == true,
       isConfigured: json['is_configured'] != false,
-      currencies: (json['currencies'] as List<dynamic>?)
+      currencies:
+          (json['currencies'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           ['USD'],

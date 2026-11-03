@@ -427,7 +427,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   void _showDeliveryCompletionSheet(Map<String, dynamic> order) {
     final orderId = order['id'].toString();
     final isUnpaid = order['payment_status'] != 'PAID';
-    final rawProvider = (order['payment_info'] is Map
+    final rawProvider =
+        (order['payment_info'] is Map
             ? order['payment_info']['provider']
             : null) ??
         order['payment_provider'] ??
@@ -442,7 +443,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       'ACLEDA_KHQR',
       'KHQR',
     }.contains(provider);
-    final isCod = provider == 'COD' ||
+    final isCod =
+        provider == 'COD' ||
         provider == 'CASH_ON_DELIVERY' ||
         (!isBankPayment && provider.isEmpty);
 
@@ -1116,7 +1118,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     Text(
                       context.tr('driver.onlineAvailable'),
                       style: TextStyle(
-
                         color: GlassTheme.primaryGreen,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1149,9 +1150,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Widget _buildTabSelector() {
     final tabs = [
-      {'title': '${context.tr('driver.activeDeliveries')} (${_activeOrders.length})', 'icon': AppIcons.delivery},
       {
-        'title': '${context.tr('driver.availableOrders')} (${_availableOrders.length})',
+        'title':
+            '${context.tr('driver.activeDeliveries')} (${_activeOrders.length})',
+        'icon': AppIcons.delivery,
+      },
+      {
+        'title':
+            '${context.tr('driver.availableOrders')} (${_availableOrders.length})',
         'icon': AppIcons.orders,
       },
       {'title': context.tr('driver.earnings'), 'icon': AppIcons.payment},
@@ -1322,7 +1328,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final totalAmount = order['total_amount']?.toString() ?? '0.00';
     final deliveryFee = order['delivery_fee_charged']?.toString() ?? '2.00';
     final isPaid = order['payment_status'] == 'PAID';
-    final rawProvider = (order['payment_info'] is Map
+    final rawProvider =
+        (order['payment_info'] is Map
             ? order['payment_info']['provider']
             : null) ??
         order['payment_provider'] ??
@@ -1447,9 +1454,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         'Map Route',
                         style: TextStyle(fontSize: 11),
                       ),
-                      onPressed: () => context.push(
-                        '/map/${order['id']}?isDriver=true',
-                      ),
+                      onPressed: () =>
+                          context.push('/map/${order['id']}?isDriver=true'),
                     ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
@@ -1560,9 +1566,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      onPressed: () => context.push(
-                        '/map/${order['id']}?isDriver=true',
-                      ),
+                      onPressed: () =>
+                          context.push('/map/${order['id']}?isDriver=true'),
                     ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
@@ -1633,8 +1638,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           isPaid
                               ? 'PAID ONLINE'
                               : (isBankPayment
-                                  ? 'KHQR PENDING VERIFICATION'
-                                  : 'CASH DUE ON DELIVERY'),
+                                    ? 'KHQR PENDING VERIFICATION'
+                                    : 'CASH DUE ON DELIVERY'),
                           style: TextStyle(
                             color: isPaid
                                 ? GlassTheme.primaryGreen
@@ -2038,7 +2043,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final deliveryFee = order['delivery_fee_charged']?.toString() ?? '2.00';
     final totalAmount = order['total_amount']?.toString() ?? '0.00';
     final isPaid = order['payment_status'] == 'PAID';
-    final rawProvider = (order['payment_info'] is Map
+    final rawProvider =
+        (order['payment_info'] is Map
             ? order['payment_info']['provider']
             : null) ??
         order['payment_provider'] ??
@@ -2079,7 +2085,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  isPaid ? 'PAID' : (isBankPayment ? 'KHQR PENDING' : 'COD DUE'),
+                  isPaid
+                      ? 'PAID'
+                      : (isBankPayment ? 'KHQR PENDING' : 'COD DUE'),
                   style: TextStyle(
                     color: isPaid ? GlassTheme.primaryGreen : Colors.amber,
                     fontSize: 10,

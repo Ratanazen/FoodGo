@@ -75,7 +75,8 @@ class AppTypography {
     double? letterSpacing,
     bool isKhmer = false,
   }) {
-    final effectiveHeight = height ?? (fontSize >= fontSizeXl ? lineHeightHeading : lineHeightBody);
+    final effectiveHeight =
+        height ?? (fontSize >= fontSizeXl ? lineHeightHeading : lineHeightBody);
     final effectiveLetterSpacing = isKhmer ? 0.0 : letterSpacing;
 
     return TextStyle(

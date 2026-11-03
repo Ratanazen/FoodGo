@@ -96,9 +96,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       setState(() {
         _availablePaymentMethods = methods;
         _isLoadingPaymentMethods = false;
-        final isSelectedActive = methods.any((m) => m.code == _selectedProvider && m.isEnabled);
+        final isSelectedActive = methods.any(
+          (m) => m.code == _selectedProvider && m.isEnabled,
+        );
         if (!isSelectedActive && methods.isNotEmpty) {
-          final firstEnabled = methods.firstWhere((m) => m.isEnabled, orElse: () => methods.first);
+          final firstEnabled = methods.firstWhere(
+            (m) => m.isEnabled,
+            orElse: () => methods.first,
+          );
           _selectedProvider = firstEnabled.code;
         }
       });
@@ -728,7 +733,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // ── Delivery Address Section ─────────────────────────────
               Text(
                 context.tr('checkout.deliveryAddress'),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               GlassCard(
@@ -1295,7 +1303,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // ── Select Payment Method Section ────────────────────────
               Text(
                 context.tr('checkout.paymentMethod'),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               if (_isLoadingPaymentMethods && _availablePaymentMethods.isEmpty)
                 const Padding(

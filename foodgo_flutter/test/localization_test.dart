@@ -15,26 +15,29 @@ void main() {
   });
 
   group('Key Parity & Missing Key Detector', () {
-    test('AppTranslations.en and AppTranslations.km have identical key sets (100% Parity)', () {
-      final enKeys = AppTranslations.en.keys.toSet();
-      final kmKeys = AppTranslations.km.keys.toSet();
+    test(
+      'AppTranslations.en and AppTranslations.km have identical key sets (100% Parity)',
+      () {
+        final enKeys = AppTranslations.en.keys.toSet();
+        final kmKeys = AppTranslations.km.keys.toSet();
 
-      final missingInKm = enKeys.difference(kmKeys);
-      final missingInEn = kmKeys.difference(enKeys);
+        final missingInKm = enKeys.difference(kmKeys);
+        final missingInEn = kmKeys.difference(enKeys);
 
-      expect(
-        missingInKm,
-        isEmpty,
-        reason: 'Keys defined in English but missing in Khmer: $missingInKm',
-      );
-      expect(
-        missingInEn,
-        isEmpty,
-        reason: 'Keys defined in Khmer but missing in English: $missingInEn',
-      );
-      expect(enKeys.length, kmKeys.length);
-      expect(enKeys.length, greaterThanOrEqualTo(100));
-    });
+        expect(
+          missingInKm,
+          isEmpty,
+          reason: 'Keys defined in English but missing in Khmer: $missingInKm',
+        );
+        expect(
+          missingInEn,
+          isEmpty,
+          reason: 'Keys defined in Khmer but missing in English: $missingInEn',
+        );
+        expect(enKeys.length, kmKeys.length);
+        expect(enKeys.length, greaterThanOrEqualTo(100));
+      },
+    );
 
     test('No translation strings in EN or KM are empty or whitespace-only', () {
       for (final entry in AppTranslations.en.entries) {
@@ -71,8 +74,12 @@ void main() {
       ];
 
       for (final domain in domains) {
-        final enDomainKeys = AppTranslations.en.keys.where((k) => k.startsWith(domain));
-        final kmDomainKeys = AppTranslations.km.keys.where((k) => k.startsWith(domain));
+        final enDomainKeys = AppTranslations.en.keys.where(
+          (k) => k.startsWith(domain),
+        );
+        final kmDomainKeys = AppTranslations.km.keys.where(
+          (k) => k.startsWith(domain),
+        );
 
         expect(
           enDomainKeys,
@@ -139,10 +146,7 @@ void main() {
         provider.translate('unknown.key', fallback: 'Default Fallback'),
         'Default Fallback',
       );
-      expect(
-        provider.translate('unknown.key'),
-        'unknown.key',
-      );
+      expect(provider.translate('unknown.key'), 'unknown.key');
     });
   });
 
@@ -159,9 +163,7 @@ void main() {
     });
 
     test('Loads saved Khmer language preference on startup', () async {
-      SharedPreferences.setMockInitialValues({
-        'app_language': 'km',
-      });
+      SharedPreferences.setMockInitialValues({'app_language': 'km'});
 
       final provider = LocaleProvider();
       // Allow async _loadPreferences() to complete
@@ -188,35 +190,44 @@ void main() {
   });
 
   group('Khmer Script & Theme Integration', () {
-    test('Khmer translations contain valid Khmer Unicode characters (U+1780 to U+17FF)', () {
-      final khmerRegex = RegExp(r'[\u1780-\u17FF]');
-      final sampleKhmerKeys = [
-        'common.save',
-        'nav.home',
-        'auth.login',
-        'payment.qrTitle',
-        'orders.title',
-      ];
+    test(
+      'Khmer translations contain valid Khmer Unicode characters (U+1780 to U+17FF)',
+      () {
+        final khmerRegex = RegExp(r'[\u1780-\u17FF]');
+        final sampleKhmerKeys = [
+          'common.save',
+          'nav.home',
+          'auth.login',
+          'payment.qrTitle',
+          'orders.title',
+        ];
 
-      for (final key in sampleKhmerKeys) {
-        final text = AppTranslations.km[key]!;
-        expect(
-          khmerRegex.hasMatch(text),
-          isTrue,
-          reason: 'Key "$key" should contain Khmer Unicode characters',
+        for (final key in sampleKhmerKeys) {
+          final text = AppTranslations.km[key]!;
+          expect(
+            khmerRegex.hasMatch(text),
+            isTrue,
+            reason: 'Key "$key" should contain Khmer Unicode characters',
+          );
+        }
+      },
+    );
+
+    test(
+      'AppTheme.getLightTheme configures Kantumruy Pro with zero negative letterSpacing for Khmer',
+      () {
+        final lightKhmerTheme = AppTheme.getLightTheme(
+          null,
+          const Locale('km'),
         );
-      }
-    });
+        final bodyLarge = lightKhmerTheme.textTheme.bodyLarge;
 
-    test('AppTheme.getLightTheme configures Kantumruy Pro with zero negative letterSpacing for Khmer', () {
-      final lightKhmerTheme = AppTheme.getLightTheme(null, const Locale('km'));
-      final bodyLarge = lightKhmerTheme.textTheme.bodyLarge;
-
-      expect(bodyLarge, isNotNull);
-      expect(bodyLarge?.fontFamily, 'Kantumruy Pro');
-      expect(bodyLarge?.letterSpacing ?? 0.0, greaterThanOrEqualTo(0.0));
-      expect(bodyLarge?.height, greaterThanOrEqualTo(1.4));
-    });
+        expect(bodyLarge, isNotNull);
+        expect(bodyLarge?.fontFamily, 'Kantumruy Pro');
+        expect(bodyLarge?.letterSpacing ?? 0.0, greaterThanOrEqualTo(0.0));
+        expect(bodyLarge?.height, greaterThanOrEqualTo(1.4));
+      },
+    );
 
     test('AppTheme.getDarkTheme configures Kantumruy Pro for Khmer', () {
       final darkKhmerTheme = AppTheme.getDarkTheme(null, const Locale('km'));

@@ -52,7 +52,8 @@ class _ThemedSkinBackdropState extends State<ThemedSkinBackdrop>
       themeProvider = context.watch<ThemeProvider>();
     } catch (_) {}
 
-    final palette = widget.customPalette ??
+    final palette =
+        widget.customPalette ??
         themeProvider?.paletteData ??
         PaletteData.modernFoodGo;
 
@@ -62,7 +63,8 @@ class _ThemedSkinBackdropState extends State<ThemedSkinBackdrop>
     final bool runsInProduction =
         WidgetsBinding.instance is WidgetsFlutterBinding;
     final bool allowAnimation = widget.animate ?? runsInProduction;
-    final isAnimationActive = (themeProvider?.skinAnimationEnabled ?? true) &&
+    final isAnimationActive =
+        (themeProvider?.skinAnimationEnabled ?? true) &&
         !(themeProvider?.reducedMotion ?? false) &&
         allowAnimation;
 
@@ -77,14 +79,15 @@ class _ThemedSkinBackdropState extends State<ThemedSkinBackdrop>
     }
 
     // If an ancestor ThemedSkinBackdrop is already active and no custom palette is requested, avoid double-painting
-    final parentScope =
-        context.dependOnInheritedWidgetOfExactType<_ThemedSkinScope>();
+    final parentScope = context
+        .dependOnInheritedWidgetOfExactType<_ThemedSkinScope>();
     if (parentScope != null && widget.customPalette == null) {
       return widget.child;
     }
 
-    final backgroundColor =
-        isDark ? palette.backgroundDark : palette.backgroundLight;
+    final backgroundColor = isDark
+        ? palette.backgroundDark
+        : palette.backgroundLight;
 
     return _ThemedSkinScope(
       palette: palette,
@@ -1376,8 +1379,10 @@ class ThemedSkinPainter extends CustomPainter {
       final swayX = math.sin(t * speed + seedX * 10) * 16.0;
       final currentX = ((seedX * size.width) + swayX) % size.width;
 
-      final moteAlpha =
-          (0.2 + 0.3 * math.sin(t * 1.5 + seedX * 6.28)).clamp(0.05, 0.45);
+      final moteAlpha = (0.2 + 0.3 * math.sin(t * 1.5 + seedX * 6.28)).clamp(
+        0.05,
+        0.45,
+      );
       motePaint.color = (i % 3 == 0 ? secondary : primary).withValues(
         alpha: isDark ? moteAlpha : moteAlpha * 0.7,
       );
@@ -1470,7 +1475,8 @@ class ThemedSkinPainter extends CustomPainter {
       for (int i = 0; i <= segments; i++) {
         final x = (size.width / segments) * i;
         final normalizedX = x / size.width;
-        final waveY = baseY +
+        final waveY =
+            baseY +
             math.sin((normalizedX * 4 * math.pi) + wavePhase) * amplitude +
             math.cos((normalizedX * 2 * math.pi) + wavePhase * 0.7) *
                 (amplitude * 0.4);
@@ -1497,8 +1503,8 @@ class ThemedSkinPainter extends CustomPainter {
       final rx = (size.width * 0.5) + (seedX - 0.5) * (size.width * 0.65);
       final ry = horizonY + 10 + seedY * (size.height - horizonY - 20);
 
-      final sparkleAlpha =
-          (0.15 + 0.35 * math.sin(t * 2.0 + seedX * 8.0)).clamp(0.04, 0.45);
+      final sparkleAlpha = (0.15 + 0.35 * math.sin(t * 2.0 + seedX * 8.0))
+          .clamp(0.04, 0.45);
       glitterPaint.color = (i % 2 == 0 ? secondary : primary).withValues(
         alpha: isDark ? sparkleAlpha : sparkleAlpha * 0.7,
       );

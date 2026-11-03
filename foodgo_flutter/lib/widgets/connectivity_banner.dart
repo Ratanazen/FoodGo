@@ -6,7 +6,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../core/theme/glass_theme.dart';
 import '../core/localization/localization_extensions.dart';
 
-
 class ConnectivityBanner extends StatefulWidget {
   final Widget child;
 
@@ -75,7 +74,6 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
                   ],
                 )
               : const SizedBox.shrink(),
-
         ),
         Expanded(child: widget.child),
       ],

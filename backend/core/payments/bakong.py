@@ -19,7 +19,7 @@ class BakongKHQRProvider(PaymentProvider):
 
     def __init__(self):
         self.enabled = os.environ.get("BAKONG_ENABLED", "True").lower() in ("true", "1", "yes")
-        self.api_token = (
+        self._api_token = (
             os.environ.get("BAKONG_API_TOKEN")
             or os.environ.get("BAKONG_TOKEN", "")
         )
@@ -31,6 +31,19 @@ class BakongKHQRProvider(PaymentProvider):
         self.account_id = os.environ.get("BAKONG_ACCOUNT_ID", "sonar_seang@bkrt")
         self.merchant_name = os.environ.get("BAKONG_MERCHANT_NAME", "FoodGo Restaurant")
         self.merchant_city = os.environ.get("BAKONG_MERCHANT_CITY", "Phnom Penh")
+
+    @property
+    def api_token(self) -> str:
+        return (
+            os.environ.get("BAKONG_API_TOKEN")
+            or os.environ.get("BAKONG_TOKEN")
+            or self._api_token
+            or ""
+        )
+
+    @api_token.setter
+    def api_token(self, value: str):
+        self._api_token = value
 
     @staticmethod
     def _crc16_ccitt(data: str) -> str:

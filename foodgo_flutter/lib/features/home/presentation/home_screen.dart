@@ -1252,7 +1252,10 @@ class _HomeScreenState extends State<HomeScreen> {
   // 4. "Recommended" Section Header (Mockup Style)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildRecommendedHeader(BuildContext context, bool isDark) {
-    return _buildSectionHeader(context.tr('home.recommended'), () => context.push('/explore'));
+    return _buildSectionHeader(
+      context.tr('home.recommended'),
+      () => context.push('/explore'),
+    );
   }
 
   // ──────────────────────────────────────────────────────────────────────────

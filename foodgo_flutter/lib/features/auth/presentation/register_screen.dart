@@ -1168,7 +1168,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                           ),
                                                           SizedBox(width: 8),
                                                           Text(
-                                                            context.tr('auth.createAccount'),
+                                                            context.tr(
+                                                              'auth.createAccount',
+                                                            ),
                                                             style: TextStyle(
                                                               fontSize: 15,
                                                               fontWeight:

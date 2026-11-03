@@ -666,7 +666,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                         fontSize: 14,
                                       ),
                                       decoration: InputDecoration(
-                                        labelText: context.tr('auth.usernameOrEmail'),
+                                        labelText: context.tr(
+                                          'auth.usernameOrEmail',
+                                        ),
                                         hintText:
                                             'e.g. customer1 or user@foodgo.com',
                                         labelStyle: TextStyle(
@@ -900,7 +902,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 const SizedBox(width: 6),
                                                 Flexible(
                                                   child: Text(
-                                                    context.tr('auth.rememberMe'),
+                                                    context.tr(
+                                                      'auth.rememberMe',
+                                                    ),
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     style: TextStyle(
@@ -1030,7 +1034,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                           ),
                                                           SizedBox(width: 8),
                                                           Text(
-                                                            context.tr('auth.login'),
+                                                            context.tr(
+                                                              'auth.login',
+                                                            ),
                                                             style: TextStyle(
                                                               fontSize: 15,
                                                               fontWeight:

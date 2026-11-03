@@ -217,7 +217,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       itemCount: _pages.length,
                       itemBuilder: (context, index) {
                         final item = _pages[index];
-                        final OnboardingScene scene = item['scene'] as OnboardingScene;
+                        final OnboardingScene scene =
+                            item['scene'] as OnboardingScene;
                         final Color itemAccent = item['accent'] as Color;
                         final Color itemGlow = item['glow'] as Color;
 

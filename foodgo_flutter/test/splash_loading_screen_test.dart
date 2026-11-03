@@ -34,7 +34,10 @@ void main() {
       expect(find.text('FoodGo'), findsOneWidget);
       expect(find.text('100% FRESH & ORGANIC'), findsOneWidget);
       expect(find.text('Healthy Food Delivery • Phnom Penh'), findsOneWidget);
-      expect(find.text('Good Food • Fast Delivery • Happy Life'), findsOneWidget);
+      expect(
+        find.text('Good Food • Fast Delivery • Happy Life'),
+        findsOneWidget,
+      );
       expect(
         find.text('Powered by NBC Bakong KHQR • Real-time Delivery'),
         findsOneWidget,

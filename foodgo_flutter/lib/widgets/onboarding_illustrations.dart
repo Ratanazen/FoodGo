@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/glass_theme.dart';
 
-enum OnboardingScene {
-  culinaryDiscovery,
-  liveDelivery,
-  securePayments,
-}
+enum OnboardingScene { culinaryDiscovery, liveDelivery, securePayments }
 
 /// Custom vector illustration painter for high-resolution, offline-capable Onboarding scenes.
 class OnboardingIllustration extends StatelessWidget {
@@ -28,7 +24,9 @@ class OnboardingIllustration extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = primaryColor ?? GlassTheme.dynamicPrimaryColor;
-    final accent = accentColor ?? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB));
+    final accent =
+        accentColor ??
+        (isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB));
 
     return SizedBox(
       width: width,
@@ -66,7 +64,10 @@ class _OnboardingPainter extends CustomPainter {
     final scale = scaleX < scaleY ? scaleX : scaleY;
 
     canvas.save();
-    canvas.translate((size.width - 280.0 * scale) / 2, (size.height - 200.0 * scale) / 2);
+    canvas.translate(
+      (size.width - 280.0 * scale) / 2,
+      (size.height - 200.0 * scale) / 2,
+    );
     canvas.scale(scale, scale);
 
     // Decorative backdrop halo
@@ -125,9 +126,13 @@ class _OnboardingPainter extends CustomPainter {
     canvas.drawCircle(const Offset(175, 105), 18, greensPaint);
 
     // Sliced Tomato / Avocado
-    final tomatoPaint = Paint()..color = const Color(0xFFEF4444)..style = PaintingStyle.fill;
+    final tomatoPaint = Paint()
+      ..color = const Color(0xFFEF4444)
+      ..style = PaintingStyle.fill;
     canvas.drawCircle(const Offset(120, 95), 10, tomatoPaint);
-    final avoPaint = Paint()..color = const Color(0xFF84CC16)..style = PaintingStyle.fill;
+    final avoPaint = Paint()
+      ..color = const Color(0xFF84CC16)
+      ..style = PaintingStyle.fill;
     canvas.drawCircle(const Offset(160, 95), 12, avoPaint);
 
     // Chopsticks / Fork angled
@@ -145,13 +150,19 @@ class _OnboardingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
-    final aroma1 = Path()..moveTo(110, 80)..quadraticBezierTo(115, 65, 110, 50);
-    final aroma2 = Path()..moveTo(140, 75)..quadraticBezierTo(145, 60, 140, 45);
+    final aroma1 = Path()
+      ..moveTo(110, 80)
+      ..quadraticBezierTo(115, 65, 110, 50);
+    final aroma2 = Path()
+      ..moveTo(140, 75)
+      ..quadraticBezierTo(145, 60, 140, 45);
     canvas.drawPath(aroma1, aromaPaint);
     canvas.drawPath(aroma2, aromaPaint);
 
     // Floating spices / sesame seeds
-    final seedPaint = Paint()..color = const Color(0xFFF59E0B)..style = PaintingStyle.fill;
+    final seedPaint = Paint()
+      ..color = const Color(0xFFF59E0B)
+      ..style = PaintingStyle.fill;
     canvas.drawCircle(const Offset(85, 80), 2.5, seedPaint);
     canvas.drawCircle(const Offset(130, 40), 3.0, seedPaint);
     canvas.drawCircle(const Offset(195, 45), 2.8, seedPaint);
@@ -165,7 +176,9 @@ class _OnboardingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    final primaryPaint = Paint()..color = primaryColor..style = PaintingStyle.fill;
+    final primaryPaint = Paint()
+      ..color = primaryColor
+      ..style = PaintingStyle.fill;
 
     // Road dashed line
     final roadPaint = Paint()
@@ -177,7 +190,9 @@ class _OnboardingPainter extends CustomPainter {
 
     // Wheels of scooter
     final wheelPaint = Paint()
-      ..color = isDark ? Colors.white.withValues(alpha: 0.87) : const Color(0xFF1E293B)
+      ..color = isDark
+          ? Colors.white.withValues(alpha: 0.87)
+          : const Color(0xFF1E293B)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5.0;
     canvas.drawCircle(const Offset(95, 145), 18, wheelPaint);
@@ -212,7 +227,13 @@ class _OnboardingPainter extends CustomPainter {
     canvas.drawRRect(bagRect, outlinePaint);
 
     // FoodGo bag emblem
-    canvas.drawCircle(const Offset(120, 105), 8, Paint()..color = Colors.white..style = PaintingStyle.fill);
+    canvas.drawCircle(
+      const Offset(120, 105),
+      8,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill,
+    );
 
     // Wind motion streaks
     final windPaint = Paint()
@@ -224,14 +245,22 @@ class _OnboardingPainter extends CustomPainter {
     canvas.drawLine(const Offset(45, 110), const Offset(80, 110), windPaint);
 
     // GPS Location Pin in top right
-    final pinPaint = Paint()..color = const Color(0xFFEF4444)..style = PaintingStyle.fill;
+    final pinPaint = Paint()
+      ..color = const Color(0xFFEF4444)
+      ..style = PaintingStyle.fill;
     final pinPath = Path()
       ..moveTo(220, 55)
       ..cubicTo(205, 55, 205, 75, 220, 95)
       ..cubicTo(235, 75, 235, 55, 220, 55)
       ..close();
     canvas.drawPath(pinPath, pinPaint);
-    canvas.drawCircle(const Offset(220, 68), 5, Paint()..color = Colors.white..style = PaintingStyle.fill);
+    canvas.drawCircle(
+      const Offset(220, 68),
+      5,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill,
+    );
   }
 
   void _paintSecurePayments(Canvas canvas) {
@@ -257,18 +286,31 @@ class _OnboardingPainter extends CustomPainter {
     canvas.drawPath(shield, outlinePaint);
 
     // KHQR / Bank code pattern grid inside shield
-    final qrPaint = Paint()..color = primaryColor..style = PaintingStyle.fill;
+    final qrPaint = Paint()
+      ..color = primaryColor
+      ..style = PaintingStyle.fill;
     // Corner squares
     canvas.drawRect(const Rect.fromLTWH(105, 75, 18, 18), qrPaint);
     canvas.drawRect(const Rect.fromLTWH(157, 75, 18, 18), qrPaint);
     canvas.drawRect(const Rect.fromLTWH(105, 110, 18, 18), qrPaint);
     // Inner holes
-    canvas.drawRect(const Rect.fromLTWH(110, 80, 8, 8), Paint()..color = isDark ? const Color(0xFF0F172A) : Colors.white);
-    canvas.drawRect(const Rect.fromLTWH(162, 80, 8, 8), Paint()..color = isDark ? const Color(0xFF0F172A) : Colors.white);
-    canvas.drawRect(const Rect.fromLTWH(110, 115, 8, 8), Paint()..color = isDark ? const Color(0xFF0F172A) : Colors.white);
+    canvas.drawRect(
+      const Rect.fromLTWH(110, 80, 8, 8),
+      Paint()..color = isDark ? const Color(0xFF0F172A) : Colors.white,
+    );
+    canvas.drawRect(
+      const Rect.fromLTWH(162, 80, 8, 8),
+      Paint()..color = isDark ? const Color(0xFF0F172A) : Colors.white,
+    );
+    canvas.drawRect(
+      const Rect.fromLTWH(110, 115, 8, 8),
+      Paint()..color = isDark ? const Color(0xFF0F172A) : Colors.white,
+    );
 
     // Center check badge
-    final badgePaint = Paint()..color = const Color(0xFF22C55E)..style = PaintingStyle.fill;
+    final badgePaint = Paint()
+      ..color = const Color(0xFF22C55E)
+      ..style = PaintingStyle.fill;
     canvas.drawCircle(const Offset(140, 102), 16, badgePaint);
 
     final checkPaint = Paint()
@@ -284,18 +326,36 @@ class _OnboardingPainter extends CustomPainter {
     canvas.drawPath(checkPath, checkPaint);
 
     // Currency Badges (USD & KHR) floating
-    final badgeUsd = Paint()..color = const Color(0xFF3B82F6)..style = PaintingStyle.fill;
+    final badgeUsd = Paint()
+      ..color = const Color(0xFF3B82F6)
+      ..style = PaintingStyle.fill;
     canvas.drawCircle(const Offset(65, 85), 18, badgeUsd);
     final textPainterUsd = TextPainter(
-      text: const TextSpan(text: '\$', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+      text: const TextSpan(
+        text: '\$',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       textDirection: TextDirection.ltr,
     )..layout();
     textPainterUsd.paint(canvas, const Offset(59, 74));
 
-    final badgeKhr = Paint()..color = const Color(0xFFEAB308)..style = PaintingStyle.fill;
+    final badgeKhr = Paint()
+      ..color = const Color(0xFFEAB308)
+      ..style = PaintingStyle.fill;
     canvas.drawCircle(const Offset(215, 115), 18, badgeKhr);
     final textPainterKhr = TextPainter(
-      text: const TextSpan(text: '៛', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+      text: const TextSpan(
+        text: '៛',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       textDirection: TextDirection.ltr,
     )..layout();
     textPainterKhr.paint(canvas, const Offset(209, 103));

@@ -528,7 +528,7 @@ class PaymentWebSocketConsumerTests(TransactionTestCase):
             }
         }
 
-        with mock.patch('requests.post', return_value=mock_resp):
+        with mock.patch.dict(os.environ, {'BAKONG_API_TOKEN': 'mock_token'}), mock.patch('requests.post', return_value=mock_resp):
             status_url = reverse('payment_status', args=[payment_id])
             res = self.client.post(status_url, {}, format='json')
             self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -555,7 +555,7 @@ class PaymentWebSocketConsumerTests(TransactionTestCase):
             }
         }
 
-        with mock.patch('requests.post', return_value=mock_resp):
+        with mock.patch.dict(os.environ, {'BAKONG_API_TOKEN': 'mock_token'}), mock.patch('requests.post', return_value=mock_resp):
             status_url = reverse('payment_status', args=[payment_id])
             res = self.client.post(status_url, {}, format='json')
             self.assertEqual(res.status_code, status.HTTP_200_OK)

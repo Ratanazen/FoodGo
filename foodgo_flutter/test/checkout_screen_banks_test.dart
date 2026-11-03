@@ -73,10 +73,7 @@ void main() {
       expect(find.text('Canadia'), findsOneWidget);
 
       // Verify Button Text
-      expect(
-        find.text('Proceed to Pay with Bakong KHQR'),
-        findsOneWidget,
-      );
+      expect(find.text('Proceed to Pay with Bakong KHQR'), findsOneWidget);
     },
   );
 
@@ -120,7 +117,9 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider<CartProvider>.value(value: cartProvider),
-            ChangeNotifierProvider<AddressProvider>.value(value: addressProvider),
+            ChangeNotifierProvider<AddressProvider>.value(
+              value: addressProvider,
+            ),
             ChangeNotifierProvider<CurrencyProvider>(
               create: (_) => CurrencyProvider(),
             ),
@@ -140,10 +139,7 @@ void main() {
       expect(cartProvider.totalAmount, 0.00);
       expect(find.text('Checkout'), findsOneWidget);
       expect(find.text('Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)'), findsOneWidget);
-      expect(
-        find.text('Proceed to Pay with Bakong KHQR'),
-        findsOneWidget,
-      );
+      expect(find.text('Proceed to Pay with Bakong KHQR'), findsOneWidget);
     },
   );
 }

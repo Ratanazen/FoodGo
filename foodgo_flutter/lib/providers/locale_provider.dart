@@ -65,7 +65,9 @@ class LocaleProvider with ChangeNotifier {
   }
 
   Future<void> toggleLanguage() async {
-    final next = _language == AppLanguage.english ? AppLanguage.khmer : AppLanguage.english;
+    final next = _language == AppLanguage.english
+        ? AppLanguage.khmer
+        : AppLanguage.english;
     await setLanguage(next);
   }
 
@@ -92,11 +94,7 @@ class LocaleProvider with ChangeNotifier {
     } catch (_) {}
   }
 
-  String translate(
-    String key, {
-    Map<String, dynamic>? args,
-    String? fallback,
-  }) {
+  String translate(String key, {Map<String, dynamic>? args, String? fallback}) {
     return AppTranslations.get(
       key,
       _language.code,

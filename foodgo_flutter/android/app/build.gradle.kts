@@ -44,15 +44,20 @@ android {
                 storeFile = file(storeFileProp)
                 storePassword = storePasswordProp
             } else {
-                // Safe development fallback: use debug signing config if release keystore is not provisioned
-                initWith(signingConfigs.getByName("debug"))
+                val debugConfig = signingConfigs.getByName("debug")
+                if (debugConfig.storeFile?.exists() == true) {
+                    initWith(debugConfig)
+                }
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            val releaseConfig = signingConfigs.getByName("release")
+            if (releaseConfig.storeFile?.exists() == true) {
+                signingConfig = releaseConfig
+            }
         }
     }
 }

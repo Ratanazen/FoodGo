@@ -13,6 +13,18 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 
 ---
 
+## Showcase Video & Release Deliverables
+
+| Package | Contents |
+| :--- | :--- |
+| **[`Slide/video/FoodGo_v2_Showcase.mp4`](./Slide/video/FoodGo_v2_Showcase.mp4)** | Full HD (`1920×1080`, 30 FPS) FoodGo v2.0 Showcase Video with Khmer neural voiceover (`km-KH-SreymomNeural`), bilingual subtitles, and ambient soundtrack |
+| **[`APK/`](./APK/)** | Android Release APK download guide, SHA-1 checksum, API host setup, and instant QR login passcodes |
+| **[`Database/`](./Database/)** | Pre-seeded `db.sqlite3`, full SQL schema/seed dump (`foodgo_schema_and_seed.sql`), and Entity-Relationship Diagram |
+| **[`Figma/`](./Figma/)** | Interactive Figma Design System & Multi-Screen Canvas (`FoodGo_v2_Figma_Design_Showcase.html`) and handoff specs |
+| **[`Slide/`](./Slide/)** | Interactive HTML Presentation Deck (`FoodGo_v2_Presentation_Slide.html`), Markdown Slide Deck, and QA Report |
+
+---
+
 ## Core Features & Modern UI/UX
 
 ### 1. Modern Food Delivery Experience

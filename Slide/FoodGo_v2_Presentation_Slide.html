@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FoodGo v2.0 — AUB Group 7 Presentation Slides</title>
+  <style>
+    :root {
+      --bg: #0b0d13;
+      --card: rgba(25, 30, 42, 0.88);
+      --primary: #ff6b35;
+      --gold: #ffc107;
+      --emerald: #10b981;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    body { background: radial-gradient(circle at 80% 10%, #23192d, #0b0d13 65%); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 60px; }
+    .slide { display: none; max-width: 1100px; width: 100%; margin: auto; background: var(--card); border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; padding: 48px; box-shadow: 0 25px 70px rgba(0,0,0,0.55); }
+    .slide.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .pill { display: inline-block; background: rgba(255,107,53,0.18); color: var(--primary); border: 1px solid rgba(255,107,53,0.4); padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: 0.8px; margin-bottom: 16px; }
+    h1 { font-size: 38px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+    h2 { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--gold); }
+    p, li { font-size: 17px; line-height: 1.65; color: #e2e8f0; }
+    ul { margin-left: 24px; display: grid; gap: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-top: 24px; }
+    .box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 20px; }
+    .box h3 { font-size: 17px; color: var(--primary); margin-bottom: 8px; }
+    footer { display: flex; justify-content: space-between; align-items: center; max-width: 1100px; width: 100%; margin: 24px auto 0; color: var(--muted); font-size: 14px; }
+    .nav-btn { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; }
+    .nav-btn:hover { background: var(--primary); border-color: var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="slide active">
+    <span class="pill">ACLEDA UNIVERSITY OF BUSINESS (AUB) • BATCH 09 • Y3S1 • GROUP 7</span>
+    <h1>FoodGo v2.0 — Cambodian Food Delivery Ecosystem</h1>
+    <p>Full-Stack Mobile, Web & REST API Platform with Bakong KHQR Payment, Instant QR Pass Login, Delivery Driver Portal, and Kitchen Admin KDS.</p>
+    <div class="grid">
+      <div class="box"><h3>foodgo-mobile & APK</h3><p>Flutter 3.x Android & Multi-Platform App with Frosted Glass UI & Khmer/English localization.</p></div>
+      <div class="box"><h3>foodgo-server & Database</h3><p>Django 5.1 REST API + SimpleJWT + SQLite3 / SQL Seed with 7 restaurants & 23 dishes.</p></div>
+      <div class="box"><h3>foodgo-web & Figma</h3><p>Compiled Web App + Interactive Figma Design System & 22-screen specifications.</p></div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <span class="pill">SLIDE 02 • PROBLEM & SOLUTION</span>
+    <h2>Designed for Cambodia's Digital Food Ecosystem</h2>
+    <ul>
+      <li><strong>Bilingual Khmer & English UI:</strong> 1-tap toggle between English and <code>ភាសាខ្មែរ</code> with Noto Sans Khmer typography.</li>
+      <li><strong>Dual Currency Engine:</strong> Real-time <code>USD ($)</code> and <code>KHR (៛)</code> display (<code>1 USD = 4,100 KHR</code>) with automatic free delivery on orders <code>&gt;= $15.00</code>.</li>
+      <li><strong>Bakong / ABA KHQR Integration:</strong> Supports ABA PAY, Bakong, ACLEDA, and Wing with EMVCo QR payload copy and timer refresh.</li>
+      <li><strong>Configurable API Hosting:</strong> Switch between <code>127.0.0.1:8000</code>, Android Emulator <code>10.0.2.2:8000</code>, or LAN/Cloud server with live <code>/api/health/</code> testing.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <span class="pill">SLIDE 03 • MULTI-ROLE WORKFLOWS</span>
+    <h2>Three Connected Portals in One Platform</h2>
+    <div class="grid">
+      <div class="box">
+        <h3>1. Customer Portal</h3>
+        <p>Smart discovery, category filters, Spice & Add-on Customizer, Cart promo codes (<code>FOODGO30</code>), KHQR checkout, live map tracking, and 1-tap Reorder.</p>
+      </div>
+      <div class="box">
+        <h3>2. Delivery Driver (driver_sokha)</h3>
+        <p>Dedicated Delivery Account with QR Pass login (<code>FG-QR:driver:driver_sokha</code>), 4-step delivery progression, live trip earnings, and KHQR instant cashout.</p>
+      </div>
+      <div class="box">
+        <h3>3. Kitchen Admin (chef_kravanh)</h3>
+        <p>Live Kitchen Display System (KDS) synced with active orders, status progression, and real-time menu availability switches.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <span class="pill">SLIDE 04 • DATABASE & QA VERIFICATION</span>
+    <h2>Verified Architecture & Automated Test Suite</h2>
+    <ul>
+      <li><strong>14 Relational Tables:</strong> Users, RestaurantCategories, Restaurants, FoodCategories, FoodItems, Addresses, Orders, OrderItems, Payments, Drivers, Deliveries, Reviews, Favorites, Notifications.</li>
+      <li><strong>Flutter Analysis & Tests:</strong> <code>flutter analyze</code> (0 issues) &amp; <code>flutter test</code> (15/15 unit tests passed).</li>
+      <li><strong>Django Backend Tests:</strong> <code>python manage.py test core</code> (11/11 API &amp; authentication tests passed).</li>
+    </ul>
+  </div>
+
+  <footer>
+    <div>AUB Batch 09 • Year 3 Semester 1 • Group 7 (`aub-batch-09-y3-s1-m-g7-Food-Delivery-App`)</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="nav-btn" onclick="move(-1)">← Previous</button>
+      <span id="counter">1 / 4</span>
+      <button class="nav-btn" onclick="move(1)">Next →</button>
+    </div>
+  </footer>
+
+  <script>
+    let idx = 0;
+    const slides = document.querySelectorAll('.slide');
+    function move(step) {
+      slides[idx].classList.remove('active');
+      idx = (idx + step + slides.length) % slides.length;
+      slides[idx].classList.add('active');
+      document.getElementById('counter').textContent = (idx + 1) + ' / ' + slides.length;
+    }
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') move(1);
+      if (e.key === 'ArrowLeft') move(-1);
+    });
+  </script>
+</body>
+</html>

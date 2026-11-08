@@ -172,7 +172,10 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                 ? 'orders/${widget.orderId}/delivery_qr/'
                 : 'orders/${widget.orderId}/customer_delivery_qr/');
 
-      final data = await _api.post(endpoint, {});
+      final data = await _api.post(
+        endpoint,
+        regenerate ? {'regenerate': true} : {},
+      );
       if (!mounted || requestId != _requestId) return;
 
       // Compose a payload only from server-issued values. A local placeholder

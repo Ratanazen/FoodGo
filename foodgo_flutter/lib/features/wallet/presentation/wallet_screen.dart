@@ -99,6 +99,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Future<void> _showKHQRTopUpDialog(double amount) async {
     if (amount <= 0) return;
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _isProcessing = true);
     try {
       final res = await _api.post('wallets/khqr_topup/', {
@@ -107,12 +108,24 @@ class _WalletScreenState extends State<WalletScreen> {
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
-      final String qrPayload = res['qr_payload'] ?? '';
-      final String merchantRef = res['merchant_reference'] ?? '';
-      final String effectivePayload = qrPayload.isNotEmpty
-          ? qrPayload
-          : 'FOODGO-KHQR-TOPUP';
+      final String qrPayload = (res['qr_payload'] ?? '').toString().trim();
+      final String merchantRef = (res['merchant_reference'] ?? '').toString();
+      final String md5Hash = (res['md5'] ?? '').toString();
+      if (qrPayload.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Payment server did not return a valid KHQR payload.',
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      final String effectivePayload = qrPayload;
       bool showRawPayload = false;
+      bool isVerifyingTopUp = false;
 
       showDialog(
         context: context,
@@ -353,12 +366,74 @@ class _WalletScreenState extends State<WalletScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: GlassButton(
-                      text: 'Simulate Successful Payment',
-                      icon: Icons.check_circle_outline,
-                      onPressed: () async {
-                        Navigator.of(dialogCtx).pop();
-                        await _instantTopUp(amount);
-                      },
+                      text: isVerifyingTopUp
+                          ? 'Verifying KHQR Payment...'
+                          : 'I Have Paid · Verify Top-Up',
+                      icon: Icons.verified_outlined,
+                      isLoading: isVerifyingTopUp,
+                      onPressed: isVerifyingTopUp
+                          ? null
+                          : () async {
+                              setDialogState(() => isVerifyingTopUp = true);
+                              try {
+                                final verifyRes = await _api
+                                    .post('wallets/verify_topup/', {
+                                      'merchant_reference': merchantRef,
+                                      'md5': md5Hash,
+                                      'qr_payload': effectivePayload,
+                                      'amount': amount.toStringAsFixed(2),
+                                      'currency': 'USD',
+                                    });
+                                if (!mounted) return;
+                                final statusStr = (verifyRes['status'] ?? '')
+                                    .toString()
+                                    .toUpperCase();
+                                if (statusStr == 'CREDITED') {
+                                  if (dialogCtx.mounted) {
+                                    Navigator.of(dialogCtx).pop();
+                                  }
+                                  await _fetchWallet();
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'KHQR Top-Up of \$${amount.toStringAsFixed(2)} verified and credited!',
+                                      ),
+                                      backgroundColor: GlassTheme.primaryGreen,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                } else {
+                                  setDialogState(
+                                    () => isVerifyingTopUp = false,
+                                  );
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        verifyRes['message']?.toString() ??
+                                            'Payment not yet confirmed by bank. Please complete the scan first.',
+                                      ),
+                                      backgroundColor: Colors.orangeAccent,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              } catch (err) {
+                                if (dialogCtx.mounted) {
+                                  setDialogState(
+                                    () => isVerifyingTopUp = false,
+                                  );
+                                }
+                                if (!mounted) return;
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text('Verification error: $err'),
+                                    backgroundColor: Colors.redAccent,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            },
                     ),
                   ),
                 ],

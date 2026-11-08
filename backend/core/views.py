@@ -1213,9 +1213,10 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         now = timezone.now()
         token_obj = DeliveryConfirmationToken.objects.filter(order=order).first()
+        force_regenerate = str(request.data.get('regenerate', '')).lower() in ('true', '1', 'yes')
 
-        # If existing token is still valid (unused and expires in > 2 min), reuse it
-        if token_obj and not token_obj.is_used and token_obj.expires_at > now + timedelta(minutes=2):
+        # If existing token is still valid (unused and expires in > 2 min) and not explicitly regenerated, reuse it
+        if not force_regenerate and token_obj and not token_obj.is_used and token_obj.expires_at > now + timedelta(minutes=2):
             pass
         else:
             # Generate cryptographically secure token and 6-digit verification PIN
@@ -1231,6 +1232,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 token_obj.expires_at = expires_at
                 token_obj.is_used = False
                 token_obj.used_at = None
+                if force_regenerate:
+                    token_obj.rotation_count = (token_obj.rotation_count or 0) + 1
                 token_obj.save()
             else:
                 token_obj = DeliveryConfirmationToken.objects.create(
@@ -2175,22 +2178,25 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
             return Response({'detail': 'Invalid amount'}, status=400)
 
         from .payments.aba import ABAKHQRProvider
+        from .payments.utils import generate_qr_base64
         aba = ABAKHQRProvider()
         merchant_ref = f"TOPUP-{request.user.id}-{int(timezone.now().timestamp())}"
-        qr_string, _ = aba.generate_khqr(merchant_ref=merchant_ref, amount=val, currency=currency)
+        qr_string, md5_hash = aba.generate_khqr(merchant_ref=merchant_ref, amount=val, currency=currency)
+        qr_image = generate_qr_base64(qr_string)
 
         return Response({
             'merchant_reference': merchant_ref,
             'amount': str(val),
             'currency': currency,
             'qr_payload': qr_string,
+            'qr_image': qr_image,
+            'md5': md5_hash,
             'instructions': 'Scan with ABA Mobile, Bakong, or any Cambodian banking app to top up'
         })
 
     @action(detail=False, methods=['post'])
     def verify_topup(self, request):
-        """Check if a pending top-up has been settled via callback.  Does NOT
-        credit balance — that is done exclusively in BaseCallbackView."""
+        """Check if a pending top-up has been settled via callback or NBC Bakong Open API."""
         merchant_ref = request.data.get('merchant_reference')
         if not merchant_ref:
             return Response({'detail': 'merchant_reference required'}, status=400)
@@ -2207,6 +2213,63 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
                 'amount': str(existing_tx.amount),
                 'new_balance': str(wallet.balance),
             })
+
+        # Fallback: verify via NBC Bakong Open API when BAKONG_API_TOKEN is configured and md5/qr_payload is supplied
+        md5_hash = request.data.get('md5')
+        qr_payload = request.data.get('qr_payload')
+        if not md5_hash and qr_payload:
+            import hashlib
+            md5_hash = hashlib.md5(str(qr_payload).encode('utf-8')).hexdigest()
+
+        import os
+        bakong_token = os.environ.get('BAKONG_API_TOKEN', '')
+        if md5_hash and bakong_token and str(merchant_ref).startswith(f"TOPUP-{request.user.id}-"):
+            try:
+                import requests as http_requests
+                from .payments.bakong import BakongKHQRProvider
+                bakong = BakongKHQRProvider()
+                resp = http_requests.post(
+                    bakong.api_url,
+                    headers={
+                        'Authorization': f'Bearer {bakong_token}',
+                        'Content-Type': 'application/json',
+                    },
+                    json={'md5': md5_hash},
+                    timeout=5,
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get('responseCode') == 0 and data.get('data'):
+                        txn_data = data.get('data')
+                        txn_amount = txn_data.get('amount') or request.data.get('amount')
+                        txn_currency = (txn_data.get('currency') or request.data.get('currency') or 'USD').upper()
+                        if txn_amount is not None:
+                            amt = Decimal(str(txn_amount))
+                            if txn_currency == 'KHR' and amt >= Decimal('1000'):
+                                amt = (amt / Decimal('4100')).quantize(Decimal('0.01'))
+                            if amt > 0:
+                                with transaction.atomic():
+                                    wallet = Wallet.objects.select_for_update().get_or_create(user=request.user)[0]
+                                    already = WalletTransaction.objects.filter(
+                                        wallet=wallet, description__contains=merchant_ref
+                                    ).first()
+                                    if not already:
+                                        wallet.balance = Decimal(str(wallet.balance)) + amt
+                                        wallet.save(update_fields=['balance'])
+                                        WalletTransaction.objects.create(
+                                            wallet=wallet,
+                                            amount=amt,
+                                            transaction_type='deposit',
+                                            description=f'KHQR Top-Up via BAKONG ({merchant_ref})'
+                                        )
+                                    return Response({
+                                        'status': 'CREDITED',
+                                        'amount': str(amt),
+                                        'new_balance': str(wallet.balance),
+                                    })
+            except Exception as exc:
+                logger.warning(f"Failed to check Bakong Open API for top-up {merchant_ref}: {exc}")
+
         return Response({'status': 'PENDING', 'message': 'Top-up not yet confirmed by payment provider.'})
 
 

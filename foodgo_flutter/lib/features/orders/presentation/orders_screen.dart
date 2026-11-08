@@ -97,10 +97,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
               payInfo['provider'] != null &&
               payInfo['provider'].toString().isNotEmpty)
           ? payInfo['provider'].toString().toUpperCase()
-          : 'ABA';
+          : 'BAKONG';
       final payment = await paymentService.createPayment(
         orderId: orderId,
-        provider: provider == 'COD' || provider == 'WALLET' ? 'ABA' : provider,
+        provider: provider == 'COD' || provider == 'WALLET'
+            ? 'BAKONG'
+            : provider,
         currency: 'USD',
       );
       if (mounted) {

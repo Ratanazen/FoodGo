@@ -531,4 +531,25 @@ class DeliveryConfirmationQRTests(TestCase):
         # Crucial: Delivery confirmation strictly separates from payment
         self.assertEqual(self.order.payment_status, 'UNPAID')
 
+    def test_driver_delivery_qr_regenerate_flag_rotates_token(self):
+        """Passing regenerate=True to delivery_qr rotates the token and increments rotation_count."""
+        self.client.force_authenticate(user=self.driver_user1)
+        url = reverse('order-delivery-qr', args=[self.order.id])
+
+        resp1 = self.client.post(url, {}, format='json')
+        self.assertEqual(resp1.status_code, status.HTTP_200_OK)
+        token1 = resp1.data['token']
+
+        # Without regenerate=True, unexpired token is reused
+        resp2 = self.client.post(url, {}, format='json')
+        self.assertEqual(resp2.data['token'], token1)
+
+        # With regenerate=True, a new token is generated and rotation_count increments
+        resp3 = self.client.post(url, {'regenerate': True}, format='json')
+        self.assertEqual(resp3.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(resp3.data['token'], token1)
+        token_obj = DeliveryConfirmationToken.objects.get(order=self.order)
+        self.assertEqual(token_obj.rotation_count, 1)
+
+
 

@@ -71,13 +71,32 @@ class ACLEDAKHQRProvider(PaymentProvider):
         return bool(self.enabled and self.merchant_id and self.api_key and self.api_secret)
 
     def get_payment_status(self, payment):
-        if timezone.now() > payment.expires_at and payment.status == "PENDING":
+        if payment.status == "PAID":
+            return {
+                "status": "PAID",
+                "transaction_id": payment.transaction_id,
+                "paid_at": payment.paid_at,
+                "raw_response": payment.provider_response or {}
+            }
+
+        if payment.expires_at and timezone.now() > payment.expires_at and payment.status == "PENDING":
             return {
                 "status": "EXPIRED",
                 "transaction_id": payment.transaction_id,
                 "paid_at": None,
                 "raw_response": {"reason": "Payment window expired"}
             }
+
+        # Universal Bakong KHQR Open API verification fallback when BAKONG_API_TOKEN is configured
+        bakong_token = os.environ.get("BAKONG_API_TOKEN", "")
+        if payment.status == "PENDING" and bakong_token:
+            from .bakong import BakongKHQRProvider
+            bakong = BakongKHQRProvider()
+            bakong.account_id = self.merchant_id
+            bakong_status = bakong.get_payment_status(payment)
+            if bakong_status.get("status") in ("PAID", "FAILED"):
+                return bakong_status
+
         return {
             "status": payment.status,
             "transaction_id": payment.transaction_id,

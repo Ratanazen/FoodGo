@@ -86,24 +86,39 @@ def run_all_payment_tests():
     assert pay_data['status'] == 'PENDING'
     print_success("Initial status is PENDING (waiting for customer scan)")
 
-    # Test direct simulation
-    print_info("Simulating customer scan and payment via test endpoint...")
+    # Verify client-side simulation is rejected (stays PENDING)
+    print_info("Verifying client-side status simulation is blocked...")
     res_sim = client.post(f'/api/payments/{bkg_payment_id}/status/', {
         'simulate': True,
         'status': 'PAID'
     }, format='json')
-
     assert res_sim.status_code == status.HTTP_200_OK, f"Status failed: {res_sim.data}"
-    updated_data = res_sim.data
+    assert res_sim.data['status'] == 'PENDING', f"Client simulation should not mark PAID: {res_sim.data}"
+    print_success("Client-side simulation blocked (status remains PENDING).")
+
+    # Verify authoritative webhook callback transitions Bakong payment to PAID
+    webhook_secret = os.environ.get('PAYMENT_WEBHOOK_SECRET', 'foodgo_webhook_secure_key_2026')
+    os.environ['PAYMENT_WEBHOOK_SECRET'] = webhook_secret
+    res_cb = client.post('/api/payments/bakong/callback/', {
+        'merchant_reference': merchant_ref,
+        'amount': '18.50',
+        'currency': 'USD',
+        'transaction_id': f'BKG-TXN-{bkg_payment_id}',
+        'status': 'PAID',
+    }, format='json', HTTP_X_WEBHOOK_SECRET=webhook_secret)
+    assert res_cb.status_code == status.HTTP_200_OK, f"Callback failed: {res_cb.data}"
+
+    res_status = client.get(f'/api/payments/{bkg_payment_id}/status/')
+    updated_data = res_status.data
     assert updated_data['status'] == 'PAID'
-    print_success(f"Payment status transitioned to PAID! TxnID: {updated_data['transaction_id']}")
+    print_success(f"Payment status transitioned to PAID via authoritative callback! TxnID: {updated_data['transaction_id']}")
 
     order_bkg.refresh_from_db()
     assert order_bkg.payment_status == 'PAID'
     assert order_bkg.status == 'confirmed'
     print_success(f"Order #{order_bkg.id} transitioned to confirmed and payment_status=PAID!")
 
-    # 3. Test ABA KHQR Payment Flow & Simulation
+    # 3. Test ABA KHQR Payment Flow
     print_header("Test Provider 2: ABA Bank KHQR")
     order_aba = Order.objects.create(
         customer=user,
@@ -119,13 +134,21 @@ def run_all_payment_tests():
     }, format='json')
     assert res_aba.status_code == status.HTTP_201_CREATED
     aba_payment_id = res_aba.data['id']
+    aba_ref = res_aba.data['merchant_reference']
     print_success(f"ABA Payment Created: ID={aba_payment_id}, Provider=ABA, Method=KHQR")
 
-    # Simulate ABA payment
-    res_aba_sim = client.post(f'/api/payments/{aba_payment_id}/status/?simulate=true', format='json')
-    assert res_aba_sim.status_code == status.HTTP_200_OK
-    assert res_aba_sim.data['status'] == 'PAID'
-    print_success("ABA Payment transitioned to PAID via GET/POST query simulation!")
+    # Confirm via authoritative ABA webhook
+    res_aba_cb = client.post('/api/payments/aba/callback/', {
+        'merchant_reference': aba_ref,
+        'amount': '14.00',
+        'currency': 'USD',
+        'transaction_id': f'ABA-TXN-{aba_payment_id}',
+        'status': 'PAID',
+    }, format='json', HTTP_X_WEBHOOK_SECRET=webhook_secret)
+    assert res_aba_cb.status_code == status.HTTP_200_OK
+    res_aba_status = client.get(f'/api/payments/{aba_payment_id}/status/')
+    assert res_aba_status.data['status'] == 'PAID'
+    print_success("ABA Payment transitioned to PAID via authoritative webhook verification!")
 
     # 4. Test ACLEDA KHQR Payment Flow
     print_header("Test Provider 3: ACLEDA Bank KHQR")
@@ -143,12 +166,20 @@ def run_all_payment_tests():
     }, format='json')
     assert res_acleda.status_code == status.HTTP_201_CREATED
     acleda_payment_id = res_acleda.data['id']
+    acleda_ref = res_acleda.data['merchant_reference']
     print_success(f"ACLEDA Payment Created: ID={acleda_payment_id}, Provider=ACLEDA, Method=KHQR")
 
-    res_acleda_sim = client.post(f'/api/payments/{acleda_payment_id}/status/', {'simulate': True}, format='json')
-    assert res_acleda_sim.status_code == status.HTTP_200_OK
-    assert res_acleda_sim.data['status'] == 'PAID'
-    print_success("ACLEDA Payment transitioned to PAID successfully!")
+    res_acleda_cb = client.post('/api/payments/acleda/callback/', {
+        'merchant_reference': acleda_ref,
+        'amount': '22.00',
+        'currency': 'USD',
+        'transaction_id': f'AC-TXN-{acleda_payment_id}',
+        'status': 'PAID',
+    }, format='json', HTTP_X_WEBHOOK_SECRET=webhook_secret)
+    assert res_acleda_cb.status_code == status.HTTP_200_OK
+    res_acleda_status = client.get(f'/api/payments/{acleda_payment_id}/status/')
+    assert res_acleda_status.data['status'] == 'PAID'
+    print_success("ACLEDA Payment transitioned to PAID via authoritative webhook verification!")
 
     # 5. Test Cash on Delivery (COD) Flow
     print_header("Test Provider 4: Cash On Delivery (COD)")

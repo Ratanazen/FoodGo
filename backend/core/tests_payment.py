@@ -587,4 +587,73 @@ class PaymentWebSocketConsumerTests(TransactionTestCase):
         self.order.refresh_from_db()
         self.assertNotEqual(self.order.payment_status, 'PAID')
 
+    def test_aba_and_acleda_universal_bakong_fallback_and_null_expires_safety(self):
+        """ABA and ACLEDA providers safely handle expires_at=None and support universal Bakong Open API verification."""
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+        payment = Payment.objects.get(id=payment_id)
+        payment.expires_at = None
+        payment.save(update_fields=['expires_at'])
+
+        # Status check with expires_at=None must not raise TypeError
+        status_url = reverse('payment_status', args=[payment_id])
+        res1 = self.client.get(status_url)
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        self.assertEqual(res1.data['status'], 'PENDING')
+
+        # Universal Bakong Open API check confirms ABA KHQR payment when BAKONG_API_TOKEN is set
+        mock_resp = mock.MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "responseCode": 0,
+            "data": {
+                "hash": "BAKONG-ABA-UNIV-777",
+                "amount": "20.00",
+                "currency": "USD",
+            }
+        }
+        with mock.patch.dict(os.environ, {'BAKONG_API_TOKEN': 'mock_token'}), mock.patch('requests.post', return_value=mock_resp):
+            res2 = self.client.post(status_url, {}, format='json')
+            self.assertEqual(res2.status_code, status.HTTP_200_OK)
+            self.assertEqual(res2.data['status'], 'PAID')
+            self.assertEqual(res2.data['transaction_id'], 'BAKONG-ABA-UNIV-777')
+
+    def test_wallet_khqr_topup_and_verify_topup_via_bakong(self):
+        """Wallet khqr_topup returns qr_payload/qr_image/md5 and verify_topup settles via Bakong Open API."""
+        res_topup = self.client.post('/api/wallets/khqr_topup/', {'amount': '15.00', 'currency': 'USD'}, format='json')
+        self.assertEqual(res_topup.status_code, status.HTTP_200_OK)
+        self.assertIn('qr_payload', res_topup.data)
+        self.assertIn('qr_image', res_topup.data)
+        self.assertIn('md5', res_topup.data)
+        merchant_ref = res_topup.data['merchant_reference']
+        md5_val = res_topup.data['md5']
+
+        # Before settlement, verify_topup returns PENDING
+        res_pending = self.client.post('/api/wallets/verify_topup/', {'merchant_reference': merchant_ref}, format='json')
+        self.assertEqual(res_pending.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_pending.data['status'], 'PENDING')
+
+        # With Bakong Open API confirming MD5, verify_topup credits wallet idempotently
+        mock_resp = mock.MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "responseCode": 0,
+            "data": {
+                "hash": "BAKONG-TOPUP-HASH-001",
+                "amount": "15.00",
+                "currency": "USD",
+            }
+        }
+        with mock.patch.dict(os.environ, {'BAKONG_API_TOKEN': 'mock_token'}), mock.patch('requests.post', return_value=mock_resp):
+            res_credit = self.client.post('/api/wallets/verify_topup/', {
+                'merchant_reference': merchant_ref,
+                'md5': md5_val,
+                'amount': '15.00',
+                'currency': 'USD',
+            }, format='json')
+            self.assertEqual(res_credit.status_code, status.HTTP_200_OK)
+            self.assertEqual(res_credit.data['status'], 'CREDITED')
+            self.assertEqual(res_credit.data['new_balance'], '15.00')
+
+
 

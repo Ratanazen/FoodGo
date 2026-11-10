@@ -1029,10 +1029,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                         Flexible(
                                           child: GestureDetector(
                                             onTap: () {
-                                              setState(
-                                                () =>
-                                                    _rememberMe = !_rememberMe,
-                                              );
+                                              setState(() {
+                                                _rememberMe = !_rememberMe;
+                                                _saveAccountOnPhone = _rememberMe;
+                                              });
                                             },
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -1056,10 +1056,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                                           ),
                                                     ),
                                                     onChanged: (val) {
-                                                      setState(
-                                                        () => _rememberMe =
-                                                            val ?? false,
-                                                      );
+                                                      setState(() {
+                                                        _rememberMe =
+                                                            val ?? false;
+                                                        _saveAccountOnPhone =
+                                                            _rememberMe;
+                                                      });
                                                     },
                                                   ),
                                                 ),

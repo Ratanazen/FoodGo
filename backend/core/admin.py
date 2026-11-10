@@ -556,18 +556,19 @@ class FoodItemAdmin(admin.ModelAdmin):
         if obj.is_spicy:
             tags.append('<span style="background:#fff5f5;color:#fa5252;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:600;">🌶 Spicy</span>')
         if not tags:
-            return format_html('<span style="color:#adb5bd;font-size:11px;">Standard</span>')
-        return format_html(' '.join(tags))
+            return mark_safe('<span style="color:#adb5bd;font-size:11px;">Standard</span>')
+        return mark_safe(' '.join(tags))
 
     @admin.display(description='Price', ordering='price')
     def price_display(self, obj):
         if obj.original_price and obj.original_price > obj.price:
             return format_html(
-                '<span style="font-weight:700;color:#27ae60;">${:.2f}</span> '
-                '<span style="text-decoration:line-through;color:#868e96;font-size:11px;">${:.2f}</span>',
-                float(obj.price), float(obj.original_price)
+                '<span style="font-weight:700;color:#27ae60;">${}</span> '
+                '<span style="text-decoration:line-through;color:#868e96;font-size:11px;">${}</span>',
+                f"{float(obj.price):.2f}",
+                f"{float(obj.original_price):.2f}"
             )
-        return format_html('<span style="font-weight:700;color:#27ae60;">${:.2f}</span>', f"{float(obj.price):.2f}")
+        return format_html('<span style="font-weight:700;color:#27ae60;">${}</span>', f"{float(obj.price):.2f}")
 
 
 

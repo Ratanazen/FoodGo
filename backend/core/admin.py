@@ -503,7 +503,7 @@ class FoodItemAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'category', 'is_available'),
+            'fields': (('name', 'category'), 'is_available'),
             'description': 'Select the food category and enter the food item name.',
         }),
         ('Pricing & Preparation', {

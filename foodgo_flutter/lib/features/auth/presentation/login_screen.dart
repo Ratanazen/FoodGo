@@ -58,7 +58,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = true;
   bool _saveAccountOnPhone = true;
   String? _loginErrorMessage;
-  String? _selectedSavedUsername;
   List<SavedPhoneAccount> _savedAccounts = [];
 
   static const List<SavedPhoneAccount> _presetAccounts = [
@@ -177,30 +176,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _removeSavedAccount(String username) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final updatedList = _savedAccounts
-          .where((a) => a.username.toLowerCase() != username.toLowerCase())
-          .toList();
-      final jsonStr = jsonEncode(updatedList.map((a) => a.toJson()).toList());
-      await prefs.setString('foodgo_saved_phone_accounts', jsonStr);
-      if (mounted) {
-        setState(() {
-          _savedAccounts = updatedList;
-          if (_selectedSavedUsername?.toLowerCase() == username.toLowerCase()) {
-            _selectedSavedUsername = null;
-          }
-        });
-      }
-    } catch (e) {
-      debugPrint('Error removing saved account: $e');
-    }
-  }
-
   void _selectSavedAccount(SavedPhoneAccount acc) {
     setState(() {
-      _selectedSavedUsername = acc.username;
       _usernameController.text = acc.username;
       _passwordController.text = acc.password;
       _rememberMe = true;
@@ -405,6 +382,56 @@ class _LoginScreenState extends State<LoginScreen> {
                       'https://foodgo.rtnaeam611.workers.dev/api/',
                 ),
               ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Quick Demo Autofill:',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    _autoAddAllAccounts();
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text(
+                    '⚡ Save All to Phone',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: GlassTheme.primaryGreen,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: _presetAccounts.map((acc) {
+                return ActionChip(
+                  avatar: const Icon(
+                    Icons.person,
+                    size: 13,
+                    color: GlassTheme.primaryGreen,
+                  ),
+                  label: Text(
+                    '${acc.fullName} (@${acc.username})',
+                    style: const TextStyle(fontSize: 10.5),
+                  ),
+                  onPressed: () {
+                    _selectSavedAccount(acc);
+                    Navigator.pop(ctx);
+                  },
+                );
+              }).toList(),
             ),
           ],
         ),
@@ -1330,11 +1357,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       ),
                                     ).animate().fade(delay: 500.ms),
-
-                                    const SizedBox(height: 20),
-
-                                    // ── Saved Accounts on Phone Section ──
-                                    _buildSavedAccountsSection(isDark),
                                   ],
                                 ),
                               ),
@@ -1385,312 +1407,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSavedAccountsSection(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.phone_android_rounded,
-                    size: 16,
-                    color: isDark ? Colors.white70 : const Color(0xFF475569),
-                  ),
-                  const SizedBox(width: 5),
-                  Flexible(
-                    child: Text(
-                      context.tr('auth.savedAccounts'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  if (_savedAccounts.isNotEmpty) ...[
-                    const SizedBox(width: 5),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 1.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${_savedAccounts.length}',
-                        style: const TextStyle(
-                          color: GlassTheme.primaryGreen,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: _autoAddAllAccounts,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.4),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.bolt_rounded,
-                      size: 14,
-                      color: Colors.amberAccent,
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      context.tr('auth.autoAddAll'),
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (_savedAccounts.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.04)
-                  : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
-              ),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.save_outlined,
-                  size: 24,
-                  color: isDark ? Colors.white38 : Colors.black38,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'No accounts saved on this phone yet.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: _autoAddAllAccounts,
-                  icon: const Icon(
-                    Icons.bolt,
-                    size: 16,
-                    color: Colors.amberAccent,
-                  ),
-                  label: const Text(
-                    '⚡ Auto Add All Accounts',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: GlassTheme.primaryGreen,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          Column(
-            children: _savedAccounts.map((acc) {
-              final isSelected =
-                  _selectedSavedUsername?.toLowerCase() ==
-                  acc.username.toLowerCase();
-              return _buildSavedAccountCard(acc, isSelected, isDark);
-            }).toList(),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildSavedAccountCard(
-    SavedPhoneAccount acc,
-    bool isSelected,
-    bool isDark,
-  ) {
-    Color roleColor;
-    IconData roleIcon;
-    String roleLabel;
-
-    switch (acc.role.toLowerCase()) {
-      case 'admin':
-        roleColor = const Color(0xFFF59E0B);
-        roleIcon = Icons.admin_panel_settings_rounded;
-        roleLabel = 'Admin';
-        break;
-      case 'driver':
-        roleColor = const Color(0xFF0EA5E9);
-        roleIcon = Icons.two_wheeler_rounded;
-        roleLabel = 'Delivery';
-        break;
-      case 'restaurant_owner':
-        roleColor = const Color(0xFFA855F7);
-        roleIcon = Icons.storefront_rounded;
-        roleLabel = 'Owner';
-        break;
-      default:
-        roleColor = GlassTheme.primaryGreen;
-        roleIcon = Icons.person_rounded;
-        roleLabel = 'Customer';
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? roleColor.withValues(alpha: isDark ? 0.18 : 0.08)
-            : (isDark ? const Color(0xFF1E293B) : Colors.white),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isSelected
-              ? roleColor
-              : (isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : const Color(0xFFE2E8F0)),
-          width: isSelected ? 1.5 : 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => _selectSavedAccount(acc),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                // Role Icon Badge
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: roleColor.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(roleIcon, size: 18, color: roleColor),
-                ),
-                const SizedBox(width: 10),
-
-                // Name & Username
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              acc.fullName.isNotEmpty
-                                  ? acc.fullName
-                                  : acc.username,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF1E293B),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 1.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: roleColor.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              roleLabel,
-                              style: TextStyle(
-                                color: roleColor,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '@${acc.username}',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: isDark
-                              ? Colors.white54
-                              : const Color(0xFF64748B),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Actions: Quick Select or Delete
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                  color: isSelected
-                      ? roleColor
-                      : (isDark ? Colors.white38 : Colors.black38),
-                  tooltip: 'Fill credentials',
-                  onPressed: () => _selectSavedAccount(acc),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 16),
-                  color: isDark ? Colors.white30 : Colors.black26,
-                  tooltip: 'Remove from phone',
-                  onPressed: () => _removeSavedAccount(acc.username),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 from .aba import ABAKHQRProvider
 from .acleda import ACLEDAKHQRProvider
 from .bakong import BakongKHQRProvider
+from .card import CardPaymentProvider
 from .cod import CODProvider
 from .wallet import WalletPaymentProvider
 
@@ -9,12 +10,15 @@ class PaymentService:
         bakong = BakongKHQRProvider()
         aba = ABAKHQRProvider()
         acleda = ACLEDAKHQRProvider()
+        card = CardPaymentProvider()
         cod = CODProvider()
         wallet = WalletPaymentProvider()
         self._providers = {
             "BAKONG": bakong,
             "BAKONG_KHQR": bakong,
             "KHQR": bakong,
+            "CARD": card,
+            "CREDIT_CARD": card,
             "ABA": aba,
             "ABA_KHQR": aba,
             "ACLEDA": acleda,
@@ -34,8 +38,11 @@ class PaymentService:
         """
         Returns supported and configured payment methods metadata for clients,
         strictly omitting secret keys, passwords, and private tokens.
+        Only one Bank method is presented (Bakong KHQR - universal Cambodian rail),
+        alongside Card, COD, and Wallet.
         """
         bakong = self._providers["BAKONG"]
+        card = self._providers["CARD"]
         aba = self._providers["ABA"]
         acleda = self._providers["ACLEDA"]
         cod = self._providers["COD"]
@@ -51,7 +58,18 @@ class PaymentService:
                 "is_configured": getattr(bakong, "is_configured", True),
                 "currencies": ["USD", "KHR"],
                 "icon": "bakong_logo",
-                "description": "National Bank of Cambodia universal KHQR rail"
+                "description": "National Bank of Cambodia universal KHQR rail — supports Bakong, ABA, ACLEDA & 50+ banks"
+            },
+            {
+                "code": "CARD",
+                "name": "Credit / Debit Card",
+                "khmer_name": "កាតឥណទាន / ឥណពន្ធ (Card)",
+                "method": "CARD",
+                "is_enabled": getattr(card, "enabled", True),
+                "is_configured": getattr(card, "is_configured", True),
+                "currencies": ["USD"],
+                "icon": "card",
+                "description": "Pay with Visa, Mastercard, JCB, or UnionPay"
             },
             {
                 "code": "ABA",

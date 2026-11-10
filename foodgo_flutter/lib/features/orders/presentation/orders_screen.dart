@@ -168,8 +168,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
       final qty = int.tryParse(it['quantity']?.toString() ?? '1') ?? 1;
       final img = it['image']?.toString();
 
+      final restId =
+          int.tryParse(
+            order['restaurant']?.toString() ??
+                order['restaurant_id']?.toString() ??
+                '',
+          ) ??
+          1;
+      final restName = order['restaurant_name']?.toString() ?? 'FoodGo Kitchen';
+
       for (int i = 0; i < qty; i++) {
-        cart.addItem(id, name, price, img);
+        cart.addItem(
+          id,
+          name,
+          price,
+          img,
+          restaurantId: restId,
+          restaurantName: restName,
+        );
         addedCount++;
       }
     }

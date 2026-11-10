@@ -51,6 +51,7 @@ class MockPaymentService extends FlutterPaymentService {
     required String provider,
     String currency = 'USD',
     bool regenerate = false,
+    Map<String, dynamic>? cardDetails,
   }) async {
     createCalled = true;
     return PaymentModel(

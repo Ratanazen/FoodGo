@@ -38,8 +38,8 @@ class CartItem {
     price: (json['price'] as num).toDouble(),
     quantity: json['quantity'] as int? ?? 1,
     image: json['image'] as String?,
-    restaurantId: json['restaurantId'] as int?,
-    restaurantName: json['restaurantName'] as String?,
+    restaurantId: json['restaurantId'] as int? ?? 1,
+    restaurantName: json['restaurantName'] as String? ?? 'Glass Burger',
   );
 }
 
@@ -108,12 +108,20 @@ class CartProvider with ChangeNotifier {
 
   int? get restaurantId {
     if (_items.isEmpty) return null;
-    return _items.values.first.restaurantId;
+    for (final item in _items.values) {
+      if (item.restaurantId != null) return item.restaurantId;
+    }
+    return 1;
   }
 
   String? get restaurantName {
     if (_items.isEmpty) return null;
-    return _items.values.first.restaurantName;
+    for (final item in _items.values) {
+      if (item.restaurantName != null && item.restaurantName!.isNotEmpty) {
+        return item.restaurantName;
+      }
+    }
+    return 'Glass Burger';
   }
 
   double get deliveryFee => _items.isEmpty ? 0.0 : _deliveryFee;

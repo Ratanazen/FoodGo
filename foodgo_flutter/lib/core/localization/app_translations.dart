@@ -163,6 +163,7 @@ class AppTranslations {
     'payment.successSubtitle':
         'Thank you! Your payment has been verified by National Bank of Cambodia',
     'payment.cod': 'Cash on Delivery',
+    'payment.card': 'Pay with Card',
     'payment.payWithWallet': 'Pay with FoodGo Balance',
     'payment.payWithKhqr': 'Proceed to Pay with Bakong KHQR',
     'payment.payWithAba': 'ABA Pay',
@@ -427,6 +428,7 @@ class AppTranslations {
     'payment.successSubtitle':
         'សូមអរគុណ! ការទូទាត់របស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់ដោយធនាគារជាតិនៃកម្ពុជា',
     'payment.cod': 'ទូទាត់ប្រាក់ពេលទំនិញមកដល់',
+    'payment.card': 'ទូទាត់តាមកាត',
     'payment.payWithWallet': 'ទូទាត់តាមសមតុល្យ FoodGo',
     'payment.payWithKhqr': 'ផ្ទេរប្រាក់តាម KHQR',
     'payment.payWithAba': 'ABA Pay',

@@ -58,10 +58,18 @@ void main() {
       expect(find.text('Delivery Address'), findsOneWidget);
       expect(find.text('Select Payment Method'), findsOneWidget);
 
-      // Verify Bank Options
+      // Verify Bank Options: Only 1 Bank (Bakong KHQR), plus Card, COD, and Balance
       expect(find.text('Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)'), findsOneWidget);
-      expect(find.text('ABA KHQR (ABA Mobile / PayWay)'), findsOneWidget);
-      expect(find.text('ACLEDA KHQR (ACLEDA Mobile)'), findsOneWidget);
+      expect(find.text('Credit / Debit Card (ទូទាត់តាមកាត)'), findsOneWidget);
+      expect(
+        find.text('Cash on Delivery / COD (ទូទាត់ពេលដឹកដល់)'),
+        findsOneWidget,
+      );
+      expect(find.text('FoodGo Balance (សមតុល្យគណនី)'), findsOneWidget);
+
+      // Verify separate bank tiles are not shown (only 1 bank is Bakong)
+      expect(find.text('ABA KHQR (ABA Mobile / PayWay)'), findsNothing);
+      expect(find.text('ACLEDA KHQR (ACLEDA Mobile)'), findsNothing);
 
       // Verify Live KHQR Active banner & Bank Chips
       expect(find.text('Live Real-Time KHQR Active'), findsOneWidget);

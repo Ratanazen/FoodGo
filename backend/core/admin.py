@@ -131,6 +131,33 @@ def custom_admin_index(request, extra_context=None):
             status_counts[row['status']] = row['c']
     status_data = list(status_counts.values())
 
+    # ── Today & "needs attention" (business day in Phnom Penh time) ──
+    from zoneinfo import ZoneInfo
+    from django.db.models import Q
+    local_tz = ZoneInfo('Asia/Phnom_Penh')
+    local_now = timezone.now().astimezone(local_tz)
+    start_of_day = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    yesterday_start = start_of_day - timezone.timedelta(days=1)
+
+    closed_statuses = ['delivered', 'cancelled', 'failed_delivery']
+    todays_orders_qs = Order.objects.filter(created_at__gte=start_of_day)
+    today_orders = todays_orders_qs.count()
+    yesterday_orders = Order.objects.filter(created_at__gte=yesterday_start, created_at__lt=start_of_day).count()
+    today_revenue = todays_orders_qs.exclude(status__in=['cancelled', 'failed_delivery']).aggregate(
+        total=Sum('total_amount'))['total'] or 0
+    today_delivered = todays_orders_qs.filter(status='delivered').count()
+
+    active_orders_qs = Order.objects.exclude(status__in=closed_statuses)
+    active_orders = active_orders_qs.count()
+    unassigned_qs = active_orders_qs.filter(Q(delivery__isnull=True) | Q(delivery__driver__isnull=True))
+    unassigned_orders = unassigned_qs.count()
+    drivers_pending_approval = Driver.objects.filter(is_approved=False).count()
+    unavailable_items = FoodItem.objects.filter(is_available=False).count()
+
+    attention_orders = (
+        unassigned_qs.select_related('customer', 'restaurant').order_by('created_at')[:6]
+    )
+
     if extra_context is None:
         extra_context = {}
     extra_context.update({
@@ -153,6 +180,16 @@ def custom_admin_index(request, extra_context=None):
         'chart_labels': json.dumps(chart_labels),
         'chart_data': json.dumps(chart_data),
         'status_data': json.dumps(status_data),
+        'today_orders': today_orders,
+        'yesterday_orders': yesterday_orders,
+        'today_revenue': f'{today_revenue:,.2f}',
+        'today_delivered': today_delivered,
+        'active_orders': active_orders,
+        'unassigned_orders': unassigned_orders,
+        'drivers_pending_approval': drivers_pending_approval,
+        'unavailable_items': unavailable_items,
+        'attention_orders': attention_orders,
+        'dashboard_updated_at': local_now.strftime('%H:%M'),
     })
     return _original_index(request, extra_context)
 

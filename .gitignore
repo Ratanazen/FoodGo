@@ -52,3 +52,8 @@ frontend/npm-debug.log
 frontend/.eslintcache
 .vscode/
 .idea/
+
+# Local Video / Studio Render Artifacts & Large Media
+artifacts/
+whatif-2d-studio/
+

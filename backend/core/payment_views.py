@@ -102,15 +102,19 @@ class CreatePaymentView(APIView):
 
             try:
                 provider = payment_service.get_provider(provider_name)
+                card_last4 = request.data.get('card_last4') or '4242'
+                card_brand = request.data.get('card_brand') or 'Visa'
                 result = provider.create_payment(
                     order=order,
                     amount=order.total_amount,
-                    currency=currency
+                    currency=currency,
+                    card_last4=card_last4,
+                    card_brand=card_brand
                 )
             except ValueError as e:
                 return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-            method = 'WALLET' if provider_name == 'WALLET' else ('COD' if provider_name == 'COD' else 'KHQR')
+            method = 'WALLET' if provider_name == 'WALLET' else ('COD' if provider_name == 'COD' else ('CARD' if provider_name == 'CARD' else 'KHQR'))
             payment_status = result.get('status', 'PENDING')
 
             # Atomically update existing payment or create fresh record without hard deleting audit history

@@ -487,6 +487,7 @@ class PaymentWebSocketConsumerTests(TransactionTestCase):
         self.assertTrue(isinstance(res.data, list))
         codes = [m['code'] for m in res.data]
         self.assertIn('BAKONG', codes)
+        self.assertIn('CARD', codes)
         self.assertIn('ABA', codes)
         self.assertIn('ACLEDA', codes)
         self.assertIn('COD', codes)
@@ -497,6 +498,25 @@ class PaymentWebSocketConsumerTests(TransactionTestCase):
             self.assertNotIn('api_secret', m)
             self.assertNotIn('api_token', m)
             self.assertNotIn('token', m)
+
+    def test_card_payment_creation_and_order_confirmation(self):
+        """Card payment creates a paid payment record and immediately confirms order."""
+        url = reverse('payment_create')
+        res = self.client.post(url, {
+            'order_id': self.order.id,
+            'provider': 'CARD',
+            'currency': 'USD',
+            'card_last4': '4242',
+            'card_brand': 'Visa'
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['provider'], 'CARD')
+        self.assertEqual(res.data['status'], 'PAID')
+        self.assertEqual(res.data['method'], 'CARD')
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, 'PAID')
+        self.assertEqual(self.order.status, 'confirmed')
 
     def test_get_payment_by_order_id(self):
         """Can retrieve payment bound to an order."""

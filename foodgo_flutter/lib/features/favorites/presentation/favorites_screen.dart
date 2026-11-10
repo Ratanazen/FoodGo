@@ -277,7 +277,26 @@ class FavoritesScreen extends StatelessWidget {
                                         item['id']?.toString() ?? '0',
                                       ) ??
                                       0;
-                                  cart.addItem(id, name, price, imgUrl);
+                                  final restId =
+                                      int.tryParse(
+                                        item['restaurant_id']?.toString() ??
+                                            item['restaurantId']?.toString() ??
+                                            item['restaurant']?.toString() ??
+                                            '',
+                                      ) ??
+                                      1;
+                                  final restName =
+                                      item['restaurant_name']?.toString() ??
+                                      item['restaurantName']?.toString() ??
+                                      'FoodGo Kitchen';
+                                  cart.addItem(
+                                    id,
+                                    name,
+                                    price,
+                                    imgUrl,
+                                    restaurantId: restId,
+                                    restaurantName: restName,
+                                  );
                                   ScaffoldMessenger.of(
                                     context,
                                   ).hideCurrentSnackBar();

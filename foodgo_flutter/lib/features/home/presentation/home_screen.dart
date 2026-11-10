@@ -1118,6 +1118,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             item['name'] as String,
                             item['price'] as double,
                             item['image'] as String,
+                            restaurantId: item['restaurantId'] as int? ?? 1,
+                            restaurantName:
+                                item['restaurantName'] as String? ??
+                                'Glass Burger',
                           );
                           ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -1459,6 +1463,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               item['name'] as String,
                               item['price'] as double,
                               item['image'] as String,
+                              restaurantId: item['restaurantId'] as int? ?? 1,
+                              restaurantName:
+                                  item['restaurantName'] as String? ??
+                                  'Glass Burger',
                             );
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(

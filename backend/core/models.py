@@ -226,6 +226,7 @@ class CartItem(models.Model):
 class Payment(models.Model):
     PROVIDER_CHOICES = (
         ('BAKONG', 'Bakong KHQR'),
+        ('CARD', 'Credit / Debit Card'),
         ('ABA', 'ABA KHQR'),
         ('ACLEDA', 'ACLEDA KHQR'),
         ('COD', 'Cash on Delivery'),
@@ -233,6 +234,7 @@ class Payment(models.Model):
     )
     METHOD_CHOICES = (
         ('KHQR', 'KHQR'),
+        ('CARD', 'Credit / Debit Card'),
         ('COD', 'Cash on Delivery'),
         ('WALLET', 'Wallet Account Balance'),
     )

@@ -406,6 +406,9 @@ JAZZMIN_SETTINGS = {
         {"name": "Users", "model": "core.User", "icon": "fas fa-users"},
         {"name": "Orders", "model": "core.Order", "icon": "fas fa-box"},
         {"name": "Restaurants", "model": "core.Restaurant", "icon": "fas fa-store"},
+        # Quick shortcuts (available on every admin page)
+        {"name": "Pending Orders", "url": "/admin/core/order/?status__exact=pending", "icon": "fas fa-clock"},
+        {"name": "+ Food Item", "url": "admin:core_fooditem_add", "icon": "fas fa-plus"},
     ],
 
     #############

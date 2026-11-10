@@ -51,8 +51,18 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
       name,
       price,
       imageUrl,
-      restaurantId: data['restaurantId'],
-      restaurantName: data['restaurantName'],
+      restaurantId:
+          int.tryParse(
+            data['restaurantId']?.toString() ??
+                data['restaurant_id']?.toString() ??
+                data['restaurant']?.toString() ??
+                '',
+          ) ??
+          1,
+      restaurantName:
+          data['restaurantName']?.toString() ??
+          data['restaurant_name']?.toString() ??
+          'FoodGo Kitchen',
       quantity: _quantity,
     );
     if (buyNow) {

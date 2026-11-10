@@ -38,26 +38,15 @@ class FlutterPaymentService {
         description: 'National Bank of Cambodia universal KHQR rail',
       ),
       PaymentMethodConfig(
-        code: 'ABA',
-        name: 'ABA KHQR',
-        khmerName: 'ABA KHQR (ABA Mobile / PayWay)',
-        method: 'KHQR',
+        code: 'CARD',
+        name: 'Credit / Debit Card',
+        khmerName: 'កាតឥណទាន / ឥណពន្ធ (Card)',
+        method: 'CARD',
         isEnabled: true,
         isConfigured: true,
-        currencies: ['USD', 'KHR'],
-        icon: 'khqr_logo',
-        description: 'Pay with ABA Mobile or any KHQR app',
-      ),
-      PaymentMethodConfig(
-        code: 'ACLEDA',
-        name: 'ACLEDA KHQR',
-        khmerName: 'ACLEDA KHQR (ACLEDA Mobile)',
-        method: 'KHQR',
-        isEnabled: true,
-        isConfigured: true,
-        currencies: ['USD', 'KHR'],
-        icon: 'khqr_logo',
-        description: 'Pay with ACLEDA Mobile or any KHQR app',
+        currencies: ['USD'],
+        icon: 'card',
+        description: 'Visa, Mastercard, JCB, UnionPay',
       ),
       PaymentMethodConfig(
         code: 'COD',
@@ -89,13 +78,16 @@ class FlutterPaymentService {
     required String provider,
     String currency = 'USD',
     bool regenerate = false,
+    Map<String, dynamic>? cardDetails,
   }) async {
-    final response = await _api.post('payments/create/', {
+    final Map<String, dynamic> payload = {
       'order_id': orderId,
       'provider': provider,
       'currency': currency,
       if (regenerate) 'regenerate': true,
-    });
+      ...?cardDetails,
+    };
+    final response = await _api.post('payments/create/', payload);
     return PaymentModel.fromJson(response);
   }
 

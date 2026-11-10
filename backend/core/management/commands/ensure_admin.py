@@ -40,6 +40,8 @@ class Command(BaseCommand):
             admin_user = User.objects.create(
                 username=admin_username,
                 email=admin_email,
+                first_name='FoodGo',
+                last_name='Admin',
                 role='admin',
                 is_staff=True,
                 is_superuser=True,
@@ -51,6 +53,10 @@ class Command(BaseCommand):
             admin_user.is_superuser = True
             admin_user.is_active = True
             admin_user.role = 'admin'
+            if not admin_user.first_name:
+                admin_user.first_name = 'FoodGo'
+            if not admin_user.last_name:
+                admin_user.last_name = 'Admin'
             if not admin_user.email:
                 admin_user.email = admin_email
             self.stdout.write(f"Updated existing admin user: {admin_username}")
@@ -196,6 +202,8 @@ class Command(BaseCommand):
             owner_user = User.objects.create(
                 username='owner',
                 email='owner@foodgo.com',
+                first_name='Restaurant',
+                last_name='Owner',
                 role='restaurant_owner',
                 is_active=True
             )
@@ -203,6 +211,10 @@ class Command(BaseCommand):
             owner_user.email = 'owner@foodgo.com'
             owner_user.role = 'restaurant_owner'
             owner_user.is_active = True
+            if not owner_user.first_name:
+                owner_user.first_name = 'Restaurant'
+            if not owner_user.last_name:
+                owner_user.last_name = 'Owner'
         _set_password(owner_user, 'owner123')
         owner_user.save()
 

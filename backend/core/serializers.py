@@ -3,14 +3,20 @@ from rest_framework import serializers
 from .models import *
 
 class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    def get_full_name(self, obj):
+        name = f"{obj.first_name or ''} {obj.last_name or ''}".strip()
+        return name or obj.username
+
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'role', 'phone', 'phone_normalized',
             'is_phone_verified', 'phone_verified_at', 'first_name', 'last_name',
-            'avatar', 'avatar_url'
+            'full_name', 'avatar', 'avatar_url'
         ]
-        read_only_fields = ['id', 'phone_normalized', 'is_phone_verified', 'phone_verified_at']
+        read_only_fields = ['id', 'phone_normalized', 'is_phone_verified', 'phone_verified_at', 'full_name']
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:

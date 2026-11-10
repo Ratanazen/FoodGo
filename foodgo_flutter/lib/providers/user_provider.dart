@@ -28,6 +28,10 @@ class UserProvider with ChangeNotifier {
     if (firstName.isNotEmpty) {
       return lastName.isNotEmpty ? '$firstName $lastName' : firstName;
     }
+    final fullName = _user?['full_name']?.toString().trim() ?? '';
+    if (fullName.isNotEmpty && !fullName.startsWith('adb_user_')) {
+      return fullName;
+    }
     final username = _user?['username']?.toString().trim() ?? '';
     if (username.isNotEmpty && !username.startsWith('adb_user_')) {
       return username;
@@ -41,6 +45,8 @@ class UserProvider with ChangeNotifier {
     }
     return username.isNotEmpty ? username : 'Foodie';
   }
+
+  String get fullName => displayName;
 
   String get email => _user?['email']?.toString().trim() ?? '';
   String get phone => _user?['phone']?.toString().trim() ?? '';

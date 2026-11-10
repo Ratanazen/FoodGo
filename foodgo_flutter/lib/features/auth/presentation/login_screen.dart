@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -9,9 +11,36 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
-import '../../../services/google_auth_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
+
+class SavedPhoneAccount {
+  final String username;
+  final String password;
+  final String fullName;
+  final String role; // 'admin', 'driver', 'customer', 'restaurant_owner'
+
+  const SavedPhoneAccount({
+    required this.username,
+    required this.password,
+    required this.fullName,
+    required this.role,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'username': username,
+    'password': password,
+    'fullName': fullName,
+    'role': role,
+  };
+
+  factory SavedPhoneAccount.fromJson(Map<String, dynamic> json) => SavedPhoneAccount(
+    username: json['username']?.toString() ?? '',
+    password: json['password']?.toString() ?? '',
+    fullName: json['fullName']?.toString() ?? '',
+    role: json['role']?.toString() ?? 'customer',
+  );
+}
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,13 +55,56 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _rememberMe = false;
+  bool _rememberMe = true;
+  bool _saveAccountOnPhone = true;
   String? _loginErrorMessage;
+  String? _selectedSavedUsername;
+  List<SavedPhoneAccount> _savedAccounts = [];
+
+  static const List<SavedPhoneAccount> _presetAccounts = [
+    SavedPhoneAccount(
+      username: 'admin',
+      password: 'admin123',
+      fullName: 'FoodGo Admin',
+      role: 'admin',
+    ),
+    SavedPhoneAccount(
+      username: 'driver1',
+      password: 'driver123',
+      fullName: 'Bob Rider (Driver)',
+      role: 'driver',
+    ),
+    SavedPhoneAccount(
+      username: 'driver2',
+      password: 'driver123',
+      fullName: 'Sophea Swift (Driver)',
+      role: 'driver',
+    ),
+    SavedPhoneAccount(
+      username: 'customer1',
+      password: 'customer123',
+      fullName: 'Alice Smith (Customer)',
+      role: 'customer',
+    ),
+    SavedPhoneAccount(
+      username: 'Ratana',
+      password: 'ratana123',
+      fullName: 'Ratana Zen (Customer)',
+      role: 'customer',
+    ),
+    SavedPhoneAccount(
+      username: 'owner',
+      password: 'owner123',
+      fullName: 'Restaurant Owner',
+      role: 'restaurant_owner',
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
     _loadSavedCredentials();
+    _loadSavedPhoneAccounts();
   }
 
   Future<void> _loadSavedCredentials() async {
@@ -43,6 +115,130 @@ class _LoginScreenState extends State<LoginScreen> {
         _usernameController.text = savedUser;
         _rememberMe = true;
       });
+    }
+  }
+
+  Future<void> _loadSavedPhoneAccounts() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonStr = prefs.getString('foodgo_saved_phone_accounts');
+      if (jsonStr != null && jsonStr.isNotEmpty) {
+        final decoded = jsonDecode(jsonStr);
+        if (decoded is List) {
+          final list = decoded
+              .map((e) => SavedPhoneAccount.fromJson(Map<String, dynamic>.from(e)))
+              .where((a) => a.username.isNotEmpty)
+              .toList();
+          if (mounted) {
+            setState(() {
+              _savedAccounts = list;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading saved phone accounts: $e');
+    }
+  }
+
+  Future<void> _autoAddAllAccounts() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final merged = <String, SavedPhoneAccount>{};
+      for (final a in _presetAccounts) {
+        merged[a.username.toLowerCase()] = a;
+      }
+      for (final a in _savedAccounts) {
+        if (!merged.containsKey(a.username.toLowerCase())) {
+          merged[a.username.toLowerCase()] = a;
+        }
+      }
+      final updatedList = merged.values.toList();
+      final jsonStr = jsonEncode(updatedList.map((a) => a.toJson()).toList());
+      await prefs.setString('foodgo_saved_phone_accounts', jsonStr);
+
+      if (mounted) {
+        setState(() {
+          _savedAccounts = updatedList;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '⚡ All 6 accounts saved on phone (Admin, Delivery, Customer, Owner)! Tap any card to auto-fill.',
+            ),
+            backgroundColor: GlassTheme.primaryGreen,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error auto-adding accounts: $e');
+    }
+  }
+
+  Future<void> _removeSavedAccount(String username) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final updatedList = _savedAccounts
+          .where((a) => a.username.toLowerCase() != username.toLowerCase())
+          .toList();
+      final jsonStr = jsonEncode(updatedList.map((a) => a.toJson()).toList());
+      await prefs.setString('foodgo_saved_phone_accounts', jsonStr);
+      if (mounted) {
+        setState(() {
+          _savedAccounts = updatedList;
+          if (_selectedSavedUsername?.toLowerCase() == username.toLowerCase()) {
+            _selectedSavedUsername = null;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error removing saved account: $e');
+    }
+  }
+
+  void _selectSavedAccount(SavedPhoneAccount acc) {
+    setState(() {
+      _selectedSavedUsername = acc.username;
+      _usernameController.text = acc.username;
+      _passwordController.text = acc.password;
+      _rememberMe = true;
+    });
+  }
+
+  Future<void> _saveAccountToPhoneOnLogin(
+    String username,
+    String password, {
+    String? fullName,
+    String? role,
+  }) async {
+    if (!_saveAccountOnPhone) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final map = <String, SavedPhoneAccount>{};
+      for (final a in _savedAccounts) {
+        map[a.username.toLowerCase()] = a;
+      }
+      final existing = map[username.toLowerCase()];
+      map[username.toLowerCase()] = SavedPhoneAccount(
+        username: username,
+        password: password,
+        fullName: fullName != null && fullName.isNotEmpty
+            ? fullName
+            : existing?.fullName ?? username,
+        role: role ?? existing?.role ?? 'customer',
+      );
+      final updatedList = map.values.toList();
+      final jsonStr = jsonEncode(updatedList.map((a) => a.toJson()).toList());
+      await prefs.setString('foodgo_saved_phone_accounts', jsonStr);
+      if (mounted) {
+        setState(() {
+          _savedAccounts = updatedList;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error saving account to phone: $e');
     }
   }
 
@@ -82,6 +278,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       await _persistRememberMe(identifier);
+
+      if (_saveAccountOnPhone) {
+        final lastUser = authProvider.lastLoginUser;
+        final fName = lastUser != null
+            ? (lastUser['first_name'] != null && lastUser['last_name'] != null && '${lastUser['first_name']} ${lastUser['last_name']}'.trim().isNotEmpty
+                ? '${lastUser['first_name']} ${lastUser['last_name']}'.trim()
+                : lastUser['full_name'] ?? lastUser['name'] ?? identifier)
+            : identifier;
+        final r = lastUser?['role']?.toString().toLowerCase() ?? 'customer';
+        await _saveAccountToPhoneOnLogin(identifier, password, fullName: fName.toString(), role: r);
+      }
+
       if (!mounted) return;
       if (authProvider.lastLoginUser != null) {
         userProvider.setUser(authProvider.lastLoginUser!);
@@ -107,50 +315,6 @@ class _LoginScreenState extends State<LoginScreen> {
         _loginErrorMessage =
             authProvider.lastAuthError ??
             'Login failed. Please check your credentials and try again.';
-      });
-    }
-  }
-
-  void _loginWithGoogle() async {
-    if (_isLoading) return;
-    final googleResult = await GoogleAuthService.signIn(context);
-    if (googleResult == null) return;
-
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _loginErrorMessage = null;
-    });
-
-    final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.loginWithGoogle(
-      idToken: googleResult.idToken,
-      email: googleResult.email,
-      displayName: googleResult.displayName,
-      avatarUrl: googleResult.photoUrl,
-    );
-
-    if (!mounted) return;
-
-    if (success) {
-      final userProvider = context.read<UserProvider>();
-      await userProvider.fetchUser();
-      if (!mounted) return;
-      final role = userProvider.user?['role']?.toString().toLowerCase();
-      if (role == 'admin') {
-        context.go('/admin-dashboard');
-      } else if (role == 'driver') {
-        context.go('/driver-dashboard');
-      } else if (role == 'restaurant_owner') {
-        context.go('/restaurant-dashboard');
-      } else {
-        context.go('/home');
-      }
-    } else {
-      setState(() {
-        _isLoading = false;
-        _loginErrorMessage =
-            'Google Sign-In could not be completed. Please try again.';
       });
     }
   }
@@ -1100,142 +1264,75 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                     const SizedBox(height: 16),
 
-                                    // Social Login Buttons: Google & Phone
-                                    Row(
-                                      children: [
-                                        // Google Button
-                                        Expanded(
-                                          child: SizedBox(
-                                            height: 44,
-                                            child: AnimatedPressable(
-                                              pressedScale: 0.95,
-                                              onTap: _isLoading
-                                                  ? null
-                                                  : _loginWithGoogle,
-                                              child: OutlinedButton(
-                                                onPressed: _isLoading
-                                                    ? null
-                                                    : _loginWithGoogle,
-                                                style: OutlinedButton.styleFrom(
-                                                  backgroundColor: isDark
-                                                      ? const Color(0xFF1E293B)
-                                                      : Colors.white,
-                                                  side: BorderSide(
-                                                    color: isDark
-                                                        ? Colors.white
-                                                              .withValues(
-                                                                alpha: 0.16,
-                                                              )
-                                                        : const Color(
-                                                            0xFFCBD5E1,
-                                                          ),
-                                                    width: 1.2,
-                                                  ),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                      ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    const GoogleLogo(size: 20),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      'Google',
-                                                      style: TextStyle(
-                                                        color: isDark
-                                                            ? Colors.white
-                                                            : const Color(
-                                                                0xFF1E293B,
-                                                              ),
-                                                        fontSize: 13,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                    // Phone Login Alternative Button (Clean SMS OTP)
+                                    SizedBox(
+                                      height: 46,
+                                      width: double.infinity,
+                                      child: AnimatedPressable(
+                                        pressedScale: 0.96,
+                                        onTap: _isLoading
+                                            ? null
+                                            : () => context.push(
+                                                '/phone-login',
                                               ),
+                                        child: OutlinedButton.icon(
+                                          onPressed: _isLoading
+                                              ? null
+                                              : () => context.push(
+                                                  '/phone-login',
+                                                ),
+                                          style: OutlinedButton.styleFrom(
+                                            backgroundColor: isDark
+                                                ? const Color(0xFF1E293B)
+                                                : Colors.white,
+                                            side: BorderSide(
+                                              color: isDark
+                                                  ? Colors.white
+                                                        .withValues(
+                                                          alpha: 0.16,
+                                                        )
+                                                  : const Color(
+                                                      0xFFCBD5E1,
+                                                    ),
+                                              width: 1.2,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    12,
+                                                  ),
+                                            ),
+                                            padding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 14,
+                                                ),
+                                          ),
+                                          icon: const Icon(
+                                            AppIcons.phone,
+                                            size: 18,
+                                            color:
+                                                GlassTheme.primaryGreen,
+                                          ),
+                                          label: Text(
+                                            context.tr('auth.phoneOtpLogin'),
+                                            style: TextStyle(
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : const Color(
+                                                      0xFF1E293B,
+                                                    ),
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 12),
-
-                                        // Phone Login Alternative Button
-                                        Expanded(
-                                          child: SizedBox(
-                                            height: 44,
-                                            child: AnimatedPressable(
-                                              pressedScale: 0.95,
-                                              onTap: _isLoading
-                                                  ? null
-                                                  : () => context.push(
-                                                      '/phone-login',
-                                                    ),
-                                              child: OutlinedButton.icon(
-                                                onPressed: _isLoading
-                                                    ? null
-                                                    : () => context.push(
-                                                        '/phone-login',
-                                                      ),
-                                                style: OutlinedButton.styleFrom(
-                                                  backgroundColor: isDark
-                                                      ? const Color(0xFF1E293B)
-                                                      : Colors.white,
-                                                  side: BorderSide(
-                                                    color: isDark
-                                                        ? Colors.white
-                                                              .withValues(
-                                                                alpha: 0.16,
-                                                              )
-                                                        : const Color(
-                                                            0xFFCBD5E1,
-                                                          ),
-                                                    width: 1.2,
-                                                  ),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10,
-                                                      ),
-                                                ),
-                                                icon: const Icon(
-                                                  AppIcons.phone,
-                                                  size: 18,
-                                                  color:
-                                                      GlassTheme.primaryGreen,
-                                                ),
-                                                label: Text(
-                                                  'Phone OTP',
-                                                  style: TextStyle(
-                                                    color: isDark
-                                                        ? Colors.white
-                                                        : const Color(
-                                                            0xFF1E293B,
-                                                          ),
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ).animate().fade(delay: 500.ms),
+
+                                    const SizedBox(height: 20),
+
+                                    // ── Saved Accounts on Phone Section ──
+                                    _buildSavedAccountsSection(isDark),
                                   ],
                                 ),
                               ),
@@ -1286,6 +1383,312 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavedAccountsSection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.phone_android_rounded,
+                    size: 16,
+                    color: isDark ? Colors.white70 : const Color(0xFF475569),
+                  ),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      context.tr('auth.savedAccounts'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (_savedAccounts.isNotEmpty) ...[
+                    const SizedBox(width: 5),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${_savedAccounts.length}',
+                        style: const TextStyle(
+                          color: GlassTheme.primaryGreen,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: _autoAddAllAccounts,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.bolt_rounded,
+                      size: 14,
+                      color: Colors.amberAccent,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      context.tr('auth.autoAddAll'),
+                      style: const TextStyle(
+                        color: GlassTheme.primaryGreen,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (_savedAccounts.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.save_outlined,
+                  size: 24,
+                  color: isDark ? Colors.white38 : Colors.black38,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'No accounts saved on this phone yet.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: _autoAddAllAccounts,
+                  icon: const Icon(
+                    Icons.bolt,
+                    size: 16,
+                    color: Colors.amberAccent,
+                  ),
+                  label: const Text(
+                    '⚡ Auto Add All Accounts',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: GlassTheme.primaryGreen,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Column(
+            children: _savedAccounts.map((acc) {
+              final isSelected =
+                  _selectedSavedUsername?.toLowerCase() ==
+                  acc.username.toLowerCase();
+              return _buildSavedAccountCard(acc, isSelected, isDark);
+            }).toList(),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSavedAccountCard(
+    SavedPhoneAccount acc,
+    bool isSelected,
+    bool isDark,
+  ) {
+    Color roleColor;
+    IconData roleIcon;
+    String roleLabel;
+
+    switch (acc.role.toLowerCase()) {
+      case 'admin':
+        roleColor = const Color(0xFFF59E0B);
+        roleIcon = Icons.admin_panel_settings_rounded;
+        roleLabel = 'Admin';
+        break;
+      case 'driver':
+        roleColor = const Color(0xFF0EA5E9);
+        roleIcon = Icons.two_wheeler_rounded;
+        roleLabel = 'Delivery';
+        break;
+      case 'restaurant_owner':
+        roleColor = const Color(0xFFA855F7);
+        roleIcon = Icons.storefront_rounded;
+        roleLabel = 'Owner';
+        break;
+      default:
+        roleColor = GlassTheme.primaryGreen;
+        roleIcon = Icons.person_rounded;
+        roleLabel = 'Customer';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? roleColor.withValues(alpha: isDark ? 0.18 : 0.08)
+            : (isDark ? const Color(0xFF1E293B) : Colors.white),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected
+              ? roleColor
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : const Color(0xFFE2E8F0)),
+          width: isSelected ? 1.5 : 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _selectSavedAccount(acc),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                // Role Icon Badge
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: roleColor.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(roleIcon, size: 18, color: roleColor),
+                ),
+                const SizedBox(width: 10),
+
+                // Name & Username
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              acc.fullName.isNotEmpty
+                                  ? acc.fullName
+                                  : acc.username,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1E293B),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: roleColor.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              roleLabel,
+                              style: TextStyle(
+                                color: roleColor,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '@${acc.username}',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: isDark
+                              ? Colors.white54
+                              : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Actions: Quick Select or Delete
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                  color: isSelected
+                      ? roleColor
+                      : (isDark ? Colors.white38 : Colors.black38),
+                  tooltip: 'Fill credentials',
+                  onPressed: () => _selectSavedAccount(acc),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 16),
+                  color: isDark ? Colors.white30 : Colors.black26,
+                  tooltip: 'Remove from phone',
+                  onPressed: () => _removeSavedAccount(acc.username),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

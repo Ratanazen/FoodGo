@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
@@ -60,45 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _loginErrorMessage;
   List<SavedPhoneAccount> _savedAccounts = [];
 
-  static const List<SavedPhoneAccount> _presetAccounts = [
-    SavedPhoneAccount(
-      username: 'admin',
-      password: 'admin123',
-      fullName: 'FoodGo Admin',
-      role: 'admin',
-    ),
-    SavedPhoneAccount(
-      username: 'driver1',
-      password: 'driver123',
-      fullName: 'Bob Rider (Driver)',
-      role: 'driver',
-    ),
-    SavedPhoneAccount(
-      username: 'driver2',
-      password: 'driver123',
-      fullName: 'Sophea Swift (Driver)',
-      role: 'driver',
-    ),
-    SavedPhoneAccount(
-      username: 'customer1',
-      password: 'customer123',
-      fullName: 'Alice Smith (Customer)',
-      role: 'customer',
-    ),
-    SavedPhoneAccount(
-      username: 'Ratana',
-      password: 'ratana123',
-      fullName: 'Ratana Zen (Customer)',
-      role: 'customer',
-    ),
-    SavedPhoneAccount(
-      username: 'owner',
-      password: 'owner123',
-      fullName: 'Restaurant Owner',
-      role: 'restaurant_owner',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -138,50 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       debugPrint('Error loading saved phone accounts: $e');
     }
-  }
-
-  Future<void> _autoAddAllAccounts() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final merged = <String, SavedPhoneAccount>{};
-      for (final a in _presetAccounts) {
-        merged[a.username.toLowerCase()] = a;
-      }
-      for (final a in _savedAccounts) {
-        if (!merged.containsKey(a.username.toLowerCase())) {
-          merged[a.username.toLowerCase()] = a;
-        }
-      }
-      final updatedList = merged.values.toList();
-      final jsonStr = jsonEncode(updatedList.map((a) => a.toJson()).toList());
-      await prefs.setString('foodgo_saved_phone_accounts', jsonStr);
-
-      if (mounted) {
-        setState(() {
-          _savedAccounts = updatedList;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              '⚡ All 6 accounts saved on phone (Admin, Delivery, Customer, Owner)! Tap any card to auto-fill.',
-            ),
-            backgroundColor: GlassTheme.primaryGreen,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error auto-adding accounts: $e');
-    }
-  }
-
-  void _selectSavedAccount(SavedPhoneAccount acc) {
-    setState(() {
-      _usernameController.text = acc.username;
-      _passwordController.text = acc.password;
-      _rememberMe = true;
-    });
   }
 
   Future<void> _saveAccountToPhoneOnLogin(
@@ -296,190 +212,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showServerDialog() {
-    final controller = TextEditingController(text: AppConfig.apiBaseUrl);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2620),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(AppIcons.dns, color: GlassTheme.primaryGreen, size: 20),
-            SizedBox(width: 8),
-            Text(
-              'API Server URL',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Select or paste your backend server URL:',
-              style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: InputDecoration(
-                labelText: 'Base URL',
-                labelStyle: const TextStyle(color: GlassTheme.primaryGreen),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.05),
-              ),
-            ),
-            const SizedBox(height: 14),
-            const Text(
-              'Presets:',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                ActionChip(
-                  label: const Text(
-                    'Vercel (Production Live)',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                  onPressed: () =>
-                      controller.text = 'https://food-go-app.vercel.app/api/',
-                ),
-                ActionChip(
-                  label: const Text(
-                    'Localhost (Port 8000)',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                  onPressed: () =>
-                      controller.text = 'http://127.0.0.1:8000/api/',
-                ),
-                ActionChip(
-                  label: const Text(
-                    'Android Emulator (10.0.2.2)',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                  onPressed: () =>
-                      controller.text = 'http://10.0.2.2:8000/api/',
-                ),
-                ActionChip(
-                  label: const Text(
-                    'Cloudflare Edge (Fallback)',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                  onPressed: () => controller.text =
-                      'https://foodgo.rtnaeam611.workers.dev/api/',
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Quick Demo Autofill:',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                InkWell(
-                  onTap: () {
-                    _autoAddAllAccounts();
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text(
-                    '⚡ Save All to Phone',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: GlassTheme.primaryGreen,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: _presetAccounts.map((acc) {
-                return ActionChip(
-                  avatar: const Icon(
-                    Icons.person,
-                    size: 13,
-                    color: GlassTheme.primaryGreen,
-                  ),
-                  label: Text(
-                    '${acc.fullName} (@${acc.username})',
-                    style: const TextStyle(fontSize: 10.5),
-                  ),
-                  onPressed: () {
-                    _selectSavedAccount(acc);
-                    Navigator.pop(ctx);
-                  },
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white60),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: GlassTheme.primaryGreen,
-            ),
-            onPressed: () async {
-              final newUrl = controller.text;
-              await AppConfig.setCustomApiUrl(newUrl);
-              if (ctx.mounted) {
-                Navigator.pop(ctx);
-              }
-              if (!mounted) return;
-              setState(() {});
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Server URL updated successfully!'),
-                  backgroundColor: GlassTheme.primaryGreen,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            child: const Text(
-              'Save',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBrandHeroLogo(bool isDark) {
-    return GestureDetector(
-      onLongPress: _showServerDialog,
-      child: Column(
+    return Column(
         children: [
           // 3D Multi-Layer Isometric Brand Badge
           Stack(
@@ -597,8 +331,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   @override

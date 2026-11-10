@@ -32,8 +32,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  group('Normal Login UI & Saved Accounts Tests', () {
-    testWidgets('Login screen is clean: no intrusive accounts list and no Google sign-in', (tester) async {
+  group('Normal Clean Login UI Tests', () {
+    testWidgets('Login screen is clean: no intrusive accounts list, no Google sign-in, and no API URL dialog', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -64,57 +64,14 @@ void main() {
       // 3. Verify Saved Accounts on Phone list is NOT displayed on main screen (clean/normal UI)
       expect(find.text('Saved Accounts on Phone'), findsNothing);
       expect(find.text('Auto Add All'), findsNothing);
-    });
 
-    testWidgets('Developer server config dialog provides Quick Demo Autofill options', (tester) async {
-      tester.view.physicalSize = const Size(1080, 2400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final mockAuth = MockAuthProviderForSavedAccs();
-      final userProvider = UserProvider();
-
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<AuthProvider>.value(value: mockAuth),
-            ChangeNotifierProvider<UserProvider>.value(value: userProvider),
-          ],
-          child: const MaterialApp(home: LoginScreen()),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-
-      // Open developer config dialog via long pressing brand logo
+      // 4. Verify API Server URL dialog is NOT displayed and long press does not open it
       final logo = find.byType(FoodGoLogo);
       expect(logo, findsOneWidget);
       await tester.longPress(logo);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
-
-      // Verify developer autofill chips and sync button exist
-      expect(find.text('Quick Demo Autofill:'), findsOneWidget);
-      expect(find.text('⚡ Save All to Phone'), findsOneWidget);
-      expect(find.textContaining('FoodGo Admin'), findsOneWidget);
-      expect(find.textContaining('Bob Rider'), findsOneWidget);
-
-      // Tap Bob Rider chip to autofill credentials
-      await tester.tap(find.textContaining('Bob Rider'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-
-      // Check form fields filled
-      final usernameField = tester.widget<TextFormField>(
-        find.widgetWithText(TextFormField, 'Username or Email'),
-      );
-      expect(usernameField.controller?.text, 'driver1');
-
-      final passwordField = tester.widget<TextFormField>(
-        find.widgetWithText(TextFormField, 'Password'),
-      );
-      expect(passwordField.controller?.text, 'driver123');
+      expect(find.text('API Server URL'), findsNothing);
     });
   });
 

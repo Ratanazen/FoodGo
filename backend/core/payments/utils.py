@@ -2,6 +2,7 @@ import base64
 import hashlib
 import io
 import logging
+import time
 
 try:
     import qrcode
@@ -46,7 +47,8 @@ def build_emvco_khqr(
     amount,
     currency: str = "USD",
     acquiring_bank_guid: str = "bakong@khqr",
-    merchant_category_code: str = "5812"
+    merchant_category_code: str = "5812",
+    expiration_minutes: int = 30,
 ) -> tuple[str, str]:
     """
     Builds a fully compliant National Bank of Cambodia (NBC) EMVCo Dynamic KHQR string
@@ -54,48 +56,65 @@ def build_emvco_khqr(
 
     Tags implemented according to NBC KHQR standard:
     - Tag 00: Format Indicator ('01')
-    - Tag 01: Point of Initiation Method ('12' for Dynamic)
-    - Tag 29: Merchant Account Information
-        - Sub-tag 00: Globally Unique Identifier (e.g. 'bakong@khqr', 'abaakhppxxx@abaa')
-        - Sub-tag 01: Account Identifier
+    - Tag 01: Point of Initiation Method ('12' for Dynamic, '11' for Static)
+    - Tag 29: Merchant Account Information (Individual KHQR)
+        - Sub-tag 00: Bakong Account Identifier (e.g. 'sonar_seang@bkrt')
     - Tag 52: Merchant Category Code ('5812' for Eating Places / Restaurants)
     - Tag 53: Transaction Currency ('840' for USD, '116' for KHR)
     - Tag 54: Transaction Amount
     - Tag 58: Country Code ('KH')
-    - Tag 59: Merchant Name
-    - Tag 60: Merchant City
+    - Tag 59: Merchant Name (max 25 chars)
+    - Tag 60: Merchant City (max 15 chars)
     - Tag 62: Additional Data Field Template
-        - Sub-tag 01: Bill Number / Reference Number
+        - Sub-tag 01: Bill Number / Reference Number (max 25 chars)
+    - Tag 99: Creation & Expiration Timestamp (required for Dynamic KHQR)
+        - Sub-tag 00: Creation timestamp in epoch milliseconds (13 digits)
+        - Sub-tag 01: Expiration timestamp in epoch milliseconds (13 digits)
     - Tag 63: CRC16 Checksum Placeholder ('6304') + 4-digit CRC16 hex
     """
     curr_upper = currency.upper()
     currency_code = "840" if curr_upper == "USD" else "116"
 
+    amount_float = float(amount)
+    is_static = amount_float <= 0
+
     if curr_upper == "KHR":
-        formatted_amount = f"{int(float(amount))}"
+        formatted_amount = f"{int(amount_float)}"
     else:
-        formatted_amount = f"{float(amount):.2f}"
+        formatted_amount = f"{amount_float:.2f}".rstrip("0").rstrip(".")
 
-    # Tag 29: Merchant Account Information
-    tag_29_val = tlv("00", acquiring_bank_guid) + tlv("01", account_id)
-    tag_29 = tlv("29", tag_29_val)
+    # Tag 29: Individual Bakong Account Information (Sub-tag 00 is Bakong Account ID per NBC KHQR spec)
+    clean_account_id = (account_id or "sonar_seang@bkrt").strip()[:32]
+    tag_29 = tlv("29", tlv("00", clean_account_id))
 
-    # Tag 62: Additional Data Field Template (Sub-tag 01 is Bill / Ref Number)
-    tag_62_val = tlv("01", merchant_ref)
-    tag_62 = tlv("62", tag_62_val)
+    # Tag 62: Additional Data Field Template (Sub-tag 01 is Bill / Ref Number, max 25 chars)
+    clean_ref = str(merchant_ref or "").strip()[:25]
+    tag_62 = tlv("62", tlv("01", clean_ref)) if clean_ref else ""
+
+    # Tag 99: Creation & Expiration Timestamp in milliseconds (required by NBC / ACLEDA / ABA for Dynamic KHQR)
+    now_ms = int(time.time() * 1000)
+    exp_ms = now_ms + (max(1, int(expiration_minutes)) * 60 * 1000)
+    tag_99_val = tlv("00", str(now_ms))
+    if not is_static:
+        tag_99_val += tlv("01", str(exp_ms))
+    tag_99 = tlv("99", tag_99_val)
+
+    point_of_initiation = "11" if is_static else "12"
+    tag_54 = "" if is_static else tlv("54", formatted_amount)
 
     # Assemble raw EMVCo payload up to Tag 63 header
     raw_payload = (
         tlv("00", "01") +
-        tlv("01", "12") +
+        tlv("01", point_of_initiation) +
         tag_29 +
-        tlv("52", merchant_category_code) +
+        tlv("52", str(merchant_category_code)[:4]) +
         tlv("53", currency_code) +
-        tlv("54", formatted_amount) +
+        tag_54 +
         tlv("58", "KH") +
-        tlv("59", merchant_name) +
-        tlv("60", merchant_city) +
+        tlv("59", str(merchant_name or "FoodGo Restaurant").strip()[:25]) +
+        tlv("60", str(merchant_city or "Phnom Penh").strip()[:15]) +
         tag_62 +
+        tag_99 +
         "6304"
     )
 

@@ -22,6 +22,7 @@ import 'widgets/glass/themed_skin_backdrop.dart';
 
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'core/theme/app_typography.dart';
 
 import 'services/firebase_service.dart';
 
@@ -102,7 +103,11 @@ class FoodGoApp extends StatelessWidget {
             final media = MediaQuery.of(context);
             final rawScale =
                 media.textScaler.scale(1.0) * localeProvider.scaleFactor;
-            final clampedScale = rawScale.clamp(0.85, 1.40);
+            // Respect system font scaling but clamp so layouts never break.
+            final clampedScale = rawScale.clamp(
+              AppTypography.minTextScale,
+              AppTypography.maxTextScale,
+            );
             final effectiveMedia = media.copyWith(
               disableAnimations: themeProvider.reducedMotion,
               textScaler: TextScaler.linear(clampedScale),

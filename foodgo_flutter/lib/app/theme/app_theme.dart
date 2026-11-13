@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_typography.dart';
 
 import '../../core/theme/app_palette.dart';
 import '../../core/theme/glass_theme.dart';
@@ -15,12 +15,8 @@ class AppTheme {
   static const String khmerDisplayFont = 'Moul';
   static const String khmerBannerFont = 'Koulen';
 
-  static const List<String> khmerFontFallbacks = [
-    'Kantumruy Pro',
-    'Battambang',
-    'Noto Sans Khmer',
-    'sans-serif',
-  ];
+  static const List<String> khmerFontFallbacks =
+      AppTypography.khmerFontFallbacks;
 
   /// Traditional Khmer display font style (Moul) for festive titles and headers
   static TextStyle khmerMoulStyle({
@@ -75,162 +71,10 @@ class AppTheme {
     );
   }
 
+  /// App-wide text theme. Delegates to the centralized [AppTypography] scale
+  /// (Plus Jakarta Sans headings, Inter body, Khmer fallbacks).
   static TextTheme _buildTextTheme(Brightness brightness, [Locale? locale]) {
-    final isKhmer = locale?.languageCode == 'km';
-    final base = brightness == Brightness.dark
-        ? ThemeData.dark().textTheme
-        : ThemeData.light().textTheme;
-
-    final primaryTextColor = brightness == Brightness.dark
-        ? GlassTheme.textLight
-        : GlassTheme.textDark;
-
-    final secondaryTextColor = brightness == Brightness.dark
-        ? GlassTheme.textMutedLight
-        : GlassTheme.textMuted;
-
-    final baseTextTheme = isKhmer
-        ? ThemeData(fontFamily: khmerPrimaryFont).textTheme
-        : GoogleFonts.interTextTheme(base);
-
-    // Derive every style from base and pair with Kantumruy Pro & Khmer fallbacks
-    return baseTextTheme.copyWith(
-      displayLarge: baseTextTheme.displayLarge?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 32,
-        fontWeight: FontWeight.w800,
-        letterSpacing: isKhmer ? 0.0 : -0.8,
-        height: isKhmer ? 1.4 : 1.25,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      displayMedium: baseTextTheme.displayMedium?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 28,
-        fontWeight: FontWeight.w800,
-        letterSpacing: isKhmer ? 0.0 : -0.6,
-        height: isKhmer ? 1.4 : 1.25,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      displaySmall: baseTextTheme.displaySmall?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 24,
-        fontWeight: FontWeight.w700,
-        letterSpacing: isKhmer ? 0.0 : -0.5,
-        height: isKhmer ? 1.45 : 1.3,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      headlineLarge: baseTextTheme.headlineLarge?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        letterSpacing: isKhmer ? 0.0 : -0.4,
-        height: isKhmer ? 1.45 : 1.3,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      headlineMedium: baseTextTheme.headlineMedium?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        letterSpacing: isKhmer ? 0.0 : -0.3,
-        height: isKhmer ? 1.45 : 1.35,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      headlineSmall: baseTextTheme.headlineSmall?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        letterSpacing: isKhmer ? 0.0 : -0.2,
-        height: isKhmer ? 1.45 : 1.35,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      titleLarge: baseTextTheme.titleLarge?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        letterSpacing: isKhmer ? 0.0 : -0.4,
-        height: isKhmer ? 1.4 : 1.3,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      titleMedium: baseTextTheme.titleMedium?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        letterSpacing: isKhmer ? 0.0 : -0.2,
-        height: isKhmer ? 1.45 : 1.35,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      titleSmall: baseTextTheme.titleSmall?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.0,
-        height: isKhmer ? 1.5 : 1.4,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      bodyLarge: baseTextTheme.bodyLarge?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 15,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.0,
-        height: isKhmer ? 1.6 : 1.5,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      bodyMedium: baseTextTheme.bodyMedium?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 13.5,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.0,
-        height: isKhmer ? 1.6 : 1.5,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      bodySmall: baseTextTheme.bodySmall?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.0,
-        height: isKhmer ? 1.55 : 1.45,
-        color: secondaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      labelLarge: baseTextTheme.labelLarge?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        letterSpacing: isKhmer ? 0.0 : 0.2,
-        height: isKhmer ? 1.4 : 1.25,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      labelMedium: baseTextTheme.labelMedium?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        letterSpacing: isKhmer ? 0.0 : 0.3,
-        height: isKhmer ? 1.4 : 1.25,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      labelSmall: baseTextTheme.labelSmall?.copyWith(
-        fontFamily: isKhmer ? khmerPrimaryFont : null,
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-        letterSpacing: isKhmer ? 0.0 : 0.4,
-        height: isKhmer ? 1.4 : 1.25,
-        color: secondaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-    );
+    return AppTypography.textTheme(brightness, locale: locale);
   }
 
   static ThemeData get lightTheme => getLightTheme();
@@ -259,7 +103,7 @@ class AppTheme {
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: GlassTheme.textDark,
+        foregroundColor: AppTypography.textPrimaryLight,
       ),
       textTheme: textTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -272,11 +116,7 @@ class AppTheme {
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
+          textStyle: textTheme.labelLarge?.copyWith(fontSize: 15),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -308,7 +148,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: active.surfaceDark,
-        contentTextStyle: const TextStyle(
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
@@ -383,11 +223,7 @@ class AppTheme {
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
+          textStyle: textTheme.labelLarge?.copyWith(fontSize: 15),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -422,7 +258,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: active.surfaceDark,
-        contentTextStyle: const TextStyle(
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),

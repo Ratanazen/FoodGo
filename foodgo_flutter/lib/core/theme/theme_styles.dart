@@ -15,65 +15,65 @@ class ThemeStyles {
       case AppColorPalette.khmerNewYear:
         return 'សួស្តីឆ្នាំថ្មី! Happy Khmer New Year!';
       case AppColorPalette.khmerHeritage:
-        return 'មរតកវប្បធម៌ខ្មែរ! Majestic Khmer Heritage 🏛️';
+        return 'មរតកវប្បធម៌ខ្មែរ! Majestic Khmer Heritage';
       case AppColorPalette.songkranNewYear:
-        return 'រីករាយពិធីបុណ្យចូលឆ្នាំថ្មី សង្ក្រាន្តត្រជាក់ចិត្ត! 💦';
+        return 'រីករាយពិធីបុណ្យចូលឆ្នាំថ្មី សង្ក្រាន្តត្រជាក់ចិត្ត!';
       case AppColorPalette.christmas:
       case AppColorPalette.christmasWonderland:
-        return 'Merry Christmas & Happy Holidays! 🎄';
+        return 'Merry Christmas & Happy Holidays!';
       case AppColorPalette.newYearCelebration:
-        return 'Happy New Year & Sparkling Horizons! 🎆';
+        return 'Happy New Year & Sparkling Horizons!';
       case AppColorPalette.halloweenNight:
-        return 'Spooky Halloween & Enchanted Treats! 🎃';
+        return 'Spooky Halloween & Enchanted Treats!';
       case AppColorPalette.valentinesDay:
-        return 'Happy Valentine\'s Day! With Love & Warmth 💖';
+        return 'Happy Valentine\'s Day! With Love & Warmth';
       case AppColorPalette.easterSpring:
-        return 'Joyous Easter & Blooming Spring Renewal! 🌸';
+        return 'Joyous Easter & Blooming Spring Renewal!';
       case AppColorPalette.summerTropical:
-        return 'Sunny Summer Vibes & Tropical Sips! 🌴';
+        return 'Sunny Summer Vibes & Tropical Sips!';
       case AppColorPalette.lunarNewYear:
-        return 'Happy Lunar New Year! 恭喜发财 🏮';
+        return 'Happy Lunar New Year! 恭喜发财';
       case AppColorPalette.blackFridayCyber:
-        return 'Mega Cyber Deals & Electric Savings! ⚡';
+        return 'Mega Cyber Deals & Electric Savings!';
       case AppColorPalette.ramadanEid:
-        return 'Ramadan Kareem & Blessed Eid Mubarak! 🌙';
+        return 'Ramadan Kareem & Blessed Eid Mubarak!';
       case AppColorPalette.waterFestival:
-        return 'រីករាយព្រះរាជពិធីបុណ្យអុំទូក! ⛵';
+        return 'រីករាយព្រះរាជពិធីបុណ្យអុំទូក!';
       case AppColorPalette.pchumBen:
-        return 'ពិធីបុណ្យភ្ជុំបិណ្ឌ! Pchum Ben Blessings! 🪷';
+        return 'ពិធីបុណ្យភ្ជុំបិណ្ឌ! Pchum Ben Blessings!';
       case AppColorPalette.angkorHeritage:
-        return 'មោទនភាពជាតិខ្មែរ! Majestic Angkor Heritage 🏛️';
+        return 'មោទនភាពជាតិខ្មែរ! Majestic Angkor Heritage';
       case AppColorPalette.modernFoodGo:
       case AppColorPalette.emeraldGreen:
-        return 'Fresh & Healthy Organic Food Dining 🌿';
+        return 'Fresh & Healthy Organic Food Dining';
       case AppColorPalette.orangeCoral:
-        return 'Delicious Food Delivered Hot & Fresh 🍔';
+        return 'Delicious Food Delivered Hot & Fresh';
       case AppColorPalette.darkPremium:
-        return 'Prestige Onyx & Champagne Gourmet ✨';
+        return 'Prestige Onyx & Champagne Gourmet';
       case AppColorPalette.softMinimal:
-        return 'Calm, Mindful & Organic Living 🍃';
+        return 'Calm, Mindful & Organic Living';
       case AppColorPalette.smaltBlue:
-        return 'Modern Cyber Dining Experience ⚡';
+        return 'Modern Cyber Dining Experience';
       case AppColorPalette.darkGold:
-        return 'Prestige Gourmet Dining & Luxury ✨';
+        return 'Prestige Gourmet Dining & Luxury';
       case AppColorPalette.natureOrganic:
-        return 'Wholesome Nature & Farm-to-Table Freshness 🥑';
+        return 'Wholesome Nature & Farm-to-Table Freshness';
       case AppColorPalette.glassmorphism:
-        return 'Sleek Aero Glassmorphism & Liquid Depth 💎';
+        return 'Sleek Aero Glassmorphism & Liquid Depth';
       case AppColorPalette.minimalPremium:
-        return 'Quiet Scandinavian Luxury & Pure Restraint 🏛️';
+        return 'Quiet Scandinavian Luxury & Pure Restraint';
       case AppColorPalette.retroPop:
-        return 'Neon 80s Synthwave & Arcade Energy 🕹️';
+        return 'Neon 80s Synthwave & Arcade Energy';
       case AppColorPalette.neonNight:
-        return 'High-Octane Cyberpunk Neon & Matrix Glow ⚡';
+        return 'High-Octane Cyberpunk Neon & Matrix Glow';
       case AppColorPalette.monochrome:
-        return 'Editorial Studio Precision & Clarity 🏁';
+        return 'Editorial Studio Precision & Clarity';
       case AppColorPalette.royalKhmerSilk:
-        return 'ព្រែខ្មែរមាសរាជវាំង! Royal Khmer Silk & Golden Splendor ✨';
+        return 'ព្រែខ្មែរមាសរាជវាំង! Royal Khmer Silk & Golden Splendor';
       case AppColorPalette.mekongSunset:
-        return 'រលកថ្ងៃលិចទន្លេមេគង្គ! Radiant Mekong Sunset Glow 🌅';
+        return 'រលកថ្ងៃលិចទន្លេមេគង្គ! Radiant Mekong Sunset Glow';
       case AppColorPalette.highContrast:
-        return 'Maximum Contrast Accessible Experience 👁️';
+        return 'Maximum Contrast Accessible Experience';
     }
   }
 

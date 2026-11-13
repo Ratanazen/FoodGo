@@ -34,18 +34,32 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final surfaceFill = isDark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.white.withValues(alpha: 0.85);
+    final surfaceBorder = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : GlassTheme.borderLight;
+    final accentIconColor = isDark
+        ? GlassTheme.limeAccent
+        : Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Explore Food & Spots',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 20,
-            color: Colors.white,
+            color: primaryText,
           ),
         ),
         actions: [
@@ -53,14 +67,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
             padding: const EdgeInsets.only(right: 12.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: surfaceFill,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                border: Border.all(color: surfaceBorder),
               ),
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.map_outlined,
-                  color: GlassTheme.limeAccent,
+                  color: accentIconColor,
                   size: 20,
                 ),
                 tooltip: 'View on Google Maps',
@@ -75,7 +89,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ResponsiveWebContainer(
             maxWidth: 1200,
             child: RefreshIndicator(
-              color: GlassTheme.limeAccent,
+              color: accentIconColor,
               onRefresh: () =>
                   context.read<RestaurantProvider>().fetchRestaurants(),
               child: SingleChildScrollView(
@@ -90,11 +104,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     // Modern Rounded Pill Search Input
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.06),
+                        color: surfaceFill,
                         borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
-                        ),
+                        border: Border.all(color: surfaceBorder),
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
@@ -102,23 +114,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.search,
-                            color: GlassTheme.limeAccent,
+                            color: accentIconColor,
                             size: 22,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: TextField(
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: primaryText,
                                 fontSize: 14,
                               ),
                               decoration: InputDecoration(
                                 hintText:
                                     'Search restaurants, cuisines, dishes...',
                                 hintStyle: TextStyle(
-                                  color: GlassTheme.textMuted,
+                                  color: secondaryText,
                                   fontSize: 14,
                                 ),
                                 border: InputBorder.none,
@@ -132,10 +144,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           ),
                           if (_searchQuery.isNotEmpty)
                             IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.clear,
                                 size: 18,
-                                color: Colors.white70,
+                                color: secondaryText,
                               ),
                               onPressed: () =>
                                   setState(() => _searchQuery = ''),
@@ -171,12 +183,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? GlassTheme.limeAccent
-                                      : Colors.white.withValues(alpha: 0.06),
+                                      : surfaceFill,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
                                     color: isSelected
-                                        ? GlassTheme.limeAccent
-                                        : Colors.white.withValues(alpha: 0.12),
+                                        ? (isDark
+                                            ? GlassTheme.limeAccent
+                                            : Colors.black12)
+                                        : surfaceBorder,
                                   ),
                                 ),
                                 child: Row(
@@ -186,7 +200,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       SvgAssetIcon(
                                         assetName: filter['svg'] as String,
                                         size: 14,
-                                        color: isSelected ? Colors.black : null,
+                                        color: isSelected
+                                            ? Colors.black
+                                            : secondaryText,
                                       ),
                                       const SizedBox(width: 6),
                                     ],
@@ -199,7 +215,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             : FontWeight.w600,
                                         color: isSelected
                                             ? Colors.black
-                                            : Colors.white70,
+                                            : primaryText,
                                       ),
                                     ),
                                   ],
@@ -298,7 +314,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         ? Icons.filter_list_off
                                         : Icons.storefront_outlined,
                                     size: 68,
-                                    color: Colors.white30,
+                                    color: secondaryText.withValues(alpha: 0.5),
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
@@ -306,10 +322,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         ? 'No restaurants match this filter'
                                         : 'No restaurants available right now',
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 17,
-                                      color: Colors.white,
+                                      color: primaryText,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -323,7 +339,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           : 'Could not connect to the live restaurant server. Check your connection or load the demo menu.',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                        color: GlassTheme.textMuted,
+                                        color: secondaryText,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -360,10 +376,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             color: GlassTheme.primaryGreen,
                                             size: 18,
                                           ),
-                                          label: const Text(
+                                          label: Text(
                                             'Load demo menu',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: primaryText,
                                             ),
                                           ),
                                           style: OutlinedButton.styleFrom(

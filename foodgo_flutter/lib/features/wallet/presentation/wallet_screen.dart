@@ -11,6 +11,7 @@ import '../../../widgets/svg_icon.dart';
 import '../../../services/api_service.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../core/utils/khmer_currency.dart';
+import '../../payment/models/payment_model.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -88,7 +89,7 @@ class _WalletScreenState extends State<WalletScreen> {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to top up: $e'),
+            content: Text('Failed to top up: ${ApiService.formatError(e)}'),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -123,7 +124,8 @@ class _WalletScreenState extends State<WalletScreen> {
         );
         return;
       }
-      final String effectivePayload = qrPayload;
+      final String effectivePayload =
+          PaymentModel.ensureDynamicKhqrExpiration(qrPayload) ?? qrPayload;
       bool showRawPayload = false;
       bool isVerifyingTopUp = false;
 
@@ -427,7 +429,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                 if (!mounted) return;
                                 messenger.showSnackBar(
                                   SnackBar(
-                                    content: Text('Verification error: $err'),
+                                    content: Text(
+                                      'Verification error: ${ApiService.formatError(err)}',
+                                    ),
                                     backgroundColor: Colors.redAccent,
                                     behavior: SnackBarBehavior.floating,
                                   ),
@@ -456,7 +460,9 @@ class _WalletScreenState extends State<WalletScreen> {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to generate KHQR: $e'),
+            content: Text(
+              'Failed to generate KHQR: ${ApiService.formatError(e)}',
+            ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),

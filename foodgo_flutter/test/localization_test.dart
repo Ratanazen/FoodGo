@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:foodgo_flutter/core/localization/app_locale.dart';
 import 'package:foodgo_flutter/core/localization/app_translations.dart';
@@ -9,6 +10,10 @@ import 'package:foodgo_flutter/app/theme/app_theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});

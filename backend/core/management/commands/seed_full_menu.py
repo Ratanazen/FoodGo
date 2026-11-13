@@ -87,32 +87,17 @@ class Command(BaseCommand):
                 wallet.balance = Decimal('100.00')
                 wallet.save()
 
-            Address.objects.get_or_create(
-                user=target_user,
-                defaults={
-                    'street': 'Street 308, Tonle Bassac',
-                    'city': 'Phnom Penh',
-                    'state': 'Phnom Penh',
-                    'zip_code': '12301',
-                    'is_default': True,
-                    'lat': Decimal('11.5564'),
-                    'lng': Decimal('104.9282'),
-                }
-            )
-
-        # Customer default address
-        Address.objects.get_or_create(
-            user=customer1,
-            defaults={
-                'street': 'Street 308, Tonle Bassac',
-                'city': 'Phnom Penh',
-                'state': 'Phnom Penh',
-                'zip_code': '120101',
-                'lat': Decimal('11.550500'),
-                'lng': Decimal('104.928000'),
-                'is_default': True
-            }
-        )
+            if not Address.objects.filter(user=target_user).exists():
+                Address.objects.create(
+                    user=target_user,
+                    street='Street 308, Tonle Bassac',
+                    city='Phnom Penh',
+                    state='Phnom Penh',
+                    zip_code='12301',
+                    is_default=True,
+                    lat=Decimal('11.5564'),
+                    lng=Decimal('104.9282'),
+                )
 
         # Ensure restaurant categories
         cat_pizza, _ = RestaurantCategory.objects.get_or_create(name='Pizza')

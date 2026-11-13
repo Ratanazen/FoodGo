@@ -17,7 +17,10 @@ class ABAKHQRProvider(PaymentProvider):
     def __init__(self):
         self.enabled = os.environ.get("ABA_ENABLED", "True").lower() in ("true", "1", "yes")
         self.payment_env = os.environ.get("PAYMENT_ENV", "sandbox")
-        self.merchant_id = os.environ.get("ABA_MERCHANT_ID", "foodgo_merchant_01")
+        self.merchant_id = (
+            os.environ.get("ABA_MERCHANT_ID")
+            or os.environ.get("BAKONG_ACCOUNT_ID", "sonar_seang@bkrt")
+        )
         self.merchant_name = os.environ.get("ABA_MERCHANT_NAME", "FoodGo Restaurant")
         self.merchant_city = os.environ.get("ABA_MERCHANT_CITY", "Phnom Penh")
         self.api_key = os.environ.get("ABA_API_KEY", "mock_aba_api_key")

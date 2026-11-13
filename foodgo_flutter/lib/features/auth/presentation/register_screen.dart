@@ -7,7 +7,6 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
-import '../../../services/google_auth_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
 
@@ -104,51 +103,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _registerErrorMessage =
             authProvider.lastAuthError ??
             'Registration failed. Username or email may already be taken.';
-      });
-    }
-  }
-
-  void _loginWithGoogle() async {
-    if (_isLoading) return;
-    final googleResult = await GoogleAuthService.signIn(context);
-    if (googleResult == null) return;
-
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _registerErrorMessage = null;
-    });
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.loginWithGoogle(
-      idToken: googleResult.idToken,
-      email: googleResult.email,
-      displayName: googleResult.displayName,
-      avatarUrl: googleResult.photoUrl,
-    );
-
-    if (!mounted) return;
-
-    if (success) {
-      final userProvider = context.read<UserProvider>();
-      await userProvider.fetchUser();
-      if (!mounted) return;
-      final role = userProvider.user?['role']?.toString().toLowerCase();
-      if (role == 'admin') {
-        context.go('/admin-dashboard');
-      } else if (role == 'driver') {
-        context.go('/driver-dashboard');
-      } else if (role == 'restaurant_owner') {
-        context.go('/restaurant-dashboard');
-      } else {
-        context.go('/home');
-      }
-    } else {
-      setState(() {
-        _isLoading = false;
-        _registerErrorMessage =
-            authProvider.lastAuthError ??
-            'Google Sign-Up failed. Please try again.';
       });
     }
   }
@@ -1234,55 +1188,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                                     const SizedBox(height: 14),
 
-                                    // Frosted 3D Google Sign-Up Button
+                                    // Phone OTP Alternative Button (matches LoginScreen)
                                     SizedBox(
-                                      height: 44,
-                                      child: AnimatedPressable(
-                                        pressedScale: 0.95,
-                                        onTap: _isLoading
+                                      height: 46,
+                                      width: double.infinity,
+                                      child: OutlinedButton.icon(
+                                        onPressed: _isLoading
                                             ? null
-                                            : _loginWithGoogle,
-                                        child: OutlinedButton(
-                                          onPressed: _isLoading
-                                              ? null
-                                              : _loginWithGoogle,
-                                          style: OutlinedButton.styleFrom(
-                                            backgroundColor: isDark
-                                                ? const Color(0xFF1E293B)
-                                                : Colors.white,
-                                            side: BorderSide(
-                                              color: isDark
-                                                  ? Colors.white.withValues(
-                                                      alpha: 0.16,
-                                                    )
-                                                  : const Color(0xFFCBD5E1),
-                                              width: 1.2,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
+                                            : () =>
+                                                  context.push('/phone-login'),
+                                        style: OutlinedButton.styleFrom(
+                                          backgroundColor: isDark
+                                              ? const Color(0xFF1E293B)
+                                              : Colors.white,
+                                          side: BorderSide(
+                                            color: isDark
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.16,
+                                                  )
+                                                : const Color(0xFFCBD5E1),
+                                            width: 1.2,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
                                             ),
                                           ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              const GoogleLogo(size: 20),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                'Sign up with Google',
-                                                style: TextStyle(
-                                                  color: isDark
-                                                      ? Colors.white
-                                                      : const Color(0xFF1E293B),
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                          ),
+                                        ),
+                                        icon: const Icon(
+                                          AppIcons.phone,
+                                          size: 18,
+                                          color: GlassTheme.primaryGreen,
+                                        ),
+                                        label: Text(
+                                          context.tr('auth.phoneOtpLogin'),
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white
+                                                : const Color(0xFF1E293B),
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ),

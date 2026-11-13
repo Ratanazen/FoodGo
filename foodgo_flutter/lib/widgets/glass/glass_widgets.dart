@@ -350,24 +350,48 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GlassContainer(
       borderRadius: BorderRadius.zero,
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 8,
-        bottom: bottom != null ? 0 : 8,
+        top: MediaQuery.of(context).padding.top + 4,
+        bottom: bottom != null ? 0 : 4,
         left: 16,
         right: 16,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              leading ?? const SizedBox(width: 40),
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
-              Row(children: actions ?? [const SizedBox(width: 40)]),
-            ],
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                leading ?? const SizedBox(width: 40),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: isDark
+                            ? Colors.white
+                            : GlassTheme.textInverseDark,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: actions ?? [const SizedBox(width: 40)],
+                ),
+              ],
+            ),
           ),
           ?bottom,
         ],
@@ -377,6 +401,6 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-    kToolbarHeight + 20 + (bottom?.preferredSize.height ?? 0),
+    kToolbarHeight + 28 + (bottom?.preferredSize.height ?? 0),
   );
 }

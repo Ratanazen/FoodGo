@@ -101,12 +101,13 @@ void main() {
         expect(find.text('Customer'), findsOneWidget);
         expect(find.text('Driver'), findsOneWidget);
 
-        // 4. Verify Buttons
+        // 4. Verify Buttons (Phone SMS OTP replaces removed Google mock picker)
         expect(
           find.widgetWithText(ElevatedButton, 'Create Account'),
           findsOneWidget,
         );
-        expect(find.text('Sign up with Google'), findsOneWidget);
+        expect(find.text('Sign up with Google'), findsNothing);
+        expect(find.text('Sign in with Phone (SMS OTP)'), findsOneWidget);
         expect(find.text('Already have an account? '), findsOneWidget);
       },
     );

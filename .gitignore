@@ -56,4 +56,6 @@ frontend/.eslintcache
 # Local Video / Studio Render Artifacts & Large Media
 artifacts/
 whatif-2d-studio/
+output/final/*.mp4
+
 

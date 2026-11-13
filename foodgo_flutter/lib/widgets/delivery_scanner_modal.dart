@@ -289,7 +289,12 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
               ],
             );
           },
-        ).whenComplete(pasteCtrl.dispose);
+        ).whenComplete(
+          () => Future.delayed(
+            const Duration(milliseconds: 500),
+            pasteCtrl.dispose,
+          ),
+        );
       }
     });
   }

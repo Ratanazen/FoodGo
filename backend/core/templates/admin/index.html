@@ -498,6 +498,7 @@
     <a href="{% url 'admin:core_foodcategory_add' %}" class="qa-btn qa-blue">＋ Food Category</a>
     <a href="{% url 'admin:core_restaurant_add' %}" class="qa-btn qa-orange">＋ Restaurant</a>
     <a href="{% url 'admin:core_user_add' %}" class="qa-btn qa-teal" style="background:var(--teal);color:#fff !important;">＋ User / Driver</a>
+    <a href="{% url 'admin:core_delivery_changelist' %}" class="qa-btn qa-teal" style="background:#00897B;color:#fff !important;">🚚 Fleet Dispatch</a>
     <a href="{% url 'admin:core_coupon_add' %}" class="qa-btn qa-purple">＋ Coupon</a>
     <a href="{% url 'admin:core_notification_add' %}" class="qa-btn qa-red" style="background:var(--red);color:#fff !important;">＋ Notification</a>
   </div>
@@ -525,6 +526,10 @@
     <a class="shortcut" href="{% url 'admin:core_driver_changelist' %}?is_online__exact=1">
       <span class="shortcut-count">{{ online_drivers }}</span>
       <span class="shortcut-label">Drivers online</span>
+    </a>
+    <a class="shortcut" href="{% url 'admin:core_delivery_changelist' %}">
+      <span class="shortcut-count">🚚</span>
+      <span class="shortcut-label">Live Deliveries</span>
     </a>
     <a class="shortcut" href="{% url 'admin:core_fooditem_changelist' %}?is_available__exact=0">
       <span class="shortcut-count">{{ unavailable_items }}</span>

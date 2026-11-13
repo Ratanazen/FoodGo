@@ -775,7 +775,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Failed to update password: $e',
+                                    'Failed to update password: ${ApiService.formatError(e)}',
                                   ),
                                   backgroundColor: Colors.redAccent,
                                 ),
@@ -911,7 +911,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Failed to delete account: $e'),
+                            content: Text(
+                              'Failed to delete account: ${ApiService.formatError(e)}',
+                            ),
                             backgroundColor: Colors.redAccent,
                           ),
                         );

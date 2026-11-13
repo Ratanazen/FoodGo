@@ -86,8 +86,9 @@ class GoogleLoginView(APIView):
 
         # 1. Verify with Google TokenInfo API if id_token provided
         if id_token.startswith('mock-') or id_token.startswith('google-token-') or id_token == 'test-google-token':
-            if settings.DEBUG or 'test' in sys.argv or True:
-                # Sandbox & unit test mode
+            is_test_runtime = getattr(settings, 'IS_TESTING', False) or ('test' in sys.argv and getattr(settings, 'IS_TESTING', True))
+            if settings.DEBUG or is_test_runtime:
+                # Sandbox & unit test mode only
                 user_email = email or 'customer.google@gmail.com'
                 user_name = name or 'Google User'
             else:

@@ -9,81 +9,76 @@ import 'package:foodgo_flutter/providers/theme_provider.dart';
 import 'package:foodgo_flutter/providers/user_provider.dart';
 
 void main() {
-  testWidgets(
-    'CheckoutScreen renders Bank options and Live KHQR Active banner',
-    (tester) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+  testWidgets('CheckoutScreen renders Bank options and Live KHQR Active banner', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
-      final cartProvider = CartProvider();
-      cartProvider.addItem(
-        1,
-        'Beef Burger',
-        12.99,
-        '',
-        restaurantId: 1,
-        restaurantName: 'Burger Joint',
-      );
+    final cartProvider = CartProvider();
+    cartProvider.addItem(
+      1,
+      'Beef Burger',
+      12.99,
+      '',
+      restaurantId: 1,
+      restaurantName: 'Burger Joint',
+    );
 
-      final addressProvider = AddressProvider();
+    final addressProvider = AddressProvider();
 
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<CartProvider>.value(value: cartProvider),
-            ChangeNotifierProvider<AddressProvider>.value(
-              value: addressProvider,
-            ),
-            ChangeNotifierProvider<CurrencyProvider>(
-              create: (_) => CurrencyProvider(),
-            ),
-            ChangeNotifierProvider<ThemeProvider>(
-              create: (_) => ThemeProvider(),
-            ),
-            ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
-          ],
-          child: const MaterialApp(home: CheckoutScreen()),
-        ),
-      );
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<CartProvider>.value(value: cartProvider),
+          ChangeNotifierProvider<AddressProvider>.value(value: addressProvider),
+          ChangeNotifierProvider<CurrencyProvider>(
+            create: (_) => CurrencyProvider(),
+          ),
+          ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+        ],
+        child: const MaterialApp(home: CheckoutScreen()),
+      ),
+    );
 
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
-      // Verify Title & Sections
-      expect(find.text('Checkout'), findsOneWidget);
-      expect(find.text('Delivery Address'), findsOneWidget);
-      expect(find.text('Select Payment Method'), findsOneWidget);
+    // Verify Title & Sections
+    expect(find.text('Checkout'), findsOneWidget);
+    expect(find.text('Delivery Address'), findsOneWidget);
+    expect(find.text('Select Payment Method'), findsOneWidget);
 
-      // Verify Bank Options: Only 1 Bank (Bakong KHQR), plus Card, COD, and Balance
-      expect(find.text('Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)'), findsOneWidget);
-      expect(find.text('Credit / Debit Card (ទូទាត់តាមកាត)'), findsOneWidget);
-      expect(
-        find.text('Cash on Delivery / COD (ទូទាត់ពេលដឹកដល់)'),
-        findsOneWidget,
-      );
-      expect(find.text('FoodGo Balance (សមតុល្យគណនី)'), findsOneWidget);
+    // Verify Bank Options: Only 1 Bank (Bakong KHQR), plus Card, COD, and Balance
+    expect(find.text('Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)'), findsOneWidget);
+    expect(find.text('Credit / Debit Card (ទូទាត់តាមកាត)'), findsOneWidget);
+    expect(
+      find.text('Cash on Delivery / COD (ទូទាត់ពេលដឹកដល់)'),
+      findsOneWidget,
+    );
+    expect(find.text('FoodGo Balance (សមតុល្យគណនី)'), findsOneWidget);
 
-      // Verify separate bank tiles are not shown (only 1 bank is Bakong)
-      expect(find.text('ABA KHQR (ABA Mobile / PayWay)'), findsNothing);
-      expect(find.text('ACLEDA KHQR (ACLEDA Mobile)'), findsNothing);
+    // Verify separate bank tiles are not shown (only 1 bank is Bakong)
+    expect(find.text('ABA KHQR (ABA Mobile / PayWay)'), findsNothing);
+    expect(find.text('ACLEDA KHQR (ACLEDA Mobile)'), findsNothing);
 
-      // Verify Live KHQR Active banner & Bank Chips
-      expect(find.text('Live Real-Time KHQR Active'), findsOneWidget);
-      expect(find.text('15m Session'), findsOneWidget);
-      expect(find.text('Bakong'), findsOneWidget);
-      expect(find.text('ABA Bank'), findsOneWidget);
-      expect(find.text('ACLEDA'), findsOneWidget);
-      expect(find.text('Wing'), findsOneWidget);
-      expect(find.text('Canadia'), findsOneWidget);
+    // Verify Live KHQR Active banner & Bank Chips
+    expect(find.text('Live Real-Time KHQR Active'), findsOneWidget);
+    expect(find.text('15m Session'), findsOneWidget);
+    expect(find.text('Bakong'), findsOneWidget);
+    expect(find.text('ABA Bank'), findsOneWidget);
+    expect(find.text('ACLEDA'), findsOneWidget);
+    expect(find.text('Wing'), findsOneWidget);
+    expect(find.text('Canadia'), findsOneWidget);
 
-      // Verify Button Text
-      expect(find.text('Proceed to Pay with Bakong KHQR'), findsOneWidget);
-    },
-  );
+    // Verify Button Text
+    expect(find.text('Proceed to Pay with Bakong KHQR'), findsOneWidget);
+  });
 
   testWidgets(
     'CheckoutScreen supports 10 zero-dollar items with Bakong KHQR checkout',
@@ -148,6 +143,131 @@ void main() {
       expect(find.text('Checkout'), findsOneWidget);
       expect(find.text('Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)'), findsOneWidget);
       expect(find.text('Proceed to Pay with Bakong KHQR'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'CheckoutScreen selecting Card displays card inputs and autofill button',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final cartProvider = CartProvider();
+      cartProvider.addItem(
+        1,
+        'Beef Burger',
+        12.99,
+        '',
+        restaurantId: 1,
+        restaurantName: 'Burger Joint',
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<CartProvider>.value(value: cartProvider),
+            ChangeNotifierProvider<AddressProvider>(
+              create: (_) => AddressProvider(),
+            ),
+            ChangeNotifierProvider<CurrencyProvider>(
+              create: (_) => CurrencyProvider(),
+            ),
+            ChangeNotifierProvider<ThemeProvider>(
+              create: (_) => ThemeProvider(),
+            ),
+            ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+          ],
+          child: const MaterialApp(home: CheckoutScreen()),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Scroll until Credit / Debit Card is visible, then tap
+      final cardOption = find.text('Credit / Debit Card (ទូទាត់តាមកាត)');
+      expect(cardOption, findsOneWidget);
+      await tester.ensureVisible(cardOption);
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.tap(cardOption);
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Scroll to verify Card Form elements
+      final autofillBtn = find.text('Autofill Test Card');
+      await tester.ensureVisible(autofillBtn);
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.text('Card Details'), findsOneWidget);
+      expect(find.text('Card Number'), findsOneWidget);
+      expect(find.text('Cardholder Name'), findsOneWidget);
+      expect(find.text('Expiry Date'), findsOneWidget);
+      expect(find.text('CVV / CVC'), findsOneWidget);
+      expect(autofillBtn, findsOneWidget);
+      expect(find.textContaining('Pay with Card'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'CheckoutScreen selecting COD displays doorstep instructions and COD button',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final cartProvider = CartProvider();
+      cartProvider.addItem(
+        1,
+        'Beef Burger',
+        12.99,
+        '',
+        restaurantId: 1,
+        restaurantName: 'Burger Joint',
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<CartProvider>.value(value: cartProvider),
+            ChangeNotifierProvider<AddressProvider>(
+              create: (_) => AddressProvider(),
+            ),
+            ChangeNotifierProvider<CurrencyProvider>(
+              create: (_) => CurrencyProvider(),
+            ),
+            ChangeNotifierProvider<ThemeProvider>(
+              create: (_) => ThemeProvider(),
+            ),
+            ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+          ],
+          child: const MaterialApp(home: CheckoutScreen()),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Scroll until COD option is visible, then tap
+      final codOption = find.text('Cash on Delivery / COD (ទូទាត់ពេលដឹកដល់)');
+      expect(codOption, findsOneWidget);
+      await tester.ensureVisible(codOption);
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.tap(codOption);
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Scroll to verify COD Section appears
+      final codSelected = find.text('Cash on Delivery Selected');
+      await tester.ensureVisible(codSelected);
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(codSelected, findsOneWidget);
+      expect(find.textContaining('Place Order (COD)'), findsOneWidget);
     },
   );
 }

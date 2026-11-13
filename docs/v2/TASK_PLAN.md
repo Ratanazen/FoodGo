@@ -85,12 +85,21 @@
 - [ ] **TASK-7.3:** Verify Bakong KHQR dynamic payload generation and server-side verification.
 
 ### Phase 8 — Comprehensive Testing, Regression & Responsive Layouts
-- [ ] **TASK-8.1:** Run Django backend test suite (`python manage.py test core`).
-- [ ] **TASK-8.2:** Run Flutter test suite (`flutter test`).
-- [ ] **TASK-8.3:** Run Flutter static analysis (`flutter analyze --no-fatal-infos`).
+- [x] **TASK-8.1:** Run Django backend test suite (`python manage.py test core`).
+- [x] **TASK-8.2:** Run Flutter test suite (`flutter test`).
+- [x] **TASK-8.3:** Run Flutter static analysis (`flutter analyze --no-fatal-infos`).
 - [ ] **TASK-8.4:** Verify responsive layout across 320px phone, tablet landscape, and desktop viewports.
 
 ### Phase 9 — Production Readiness & Final Master Report
 - [ ] **TASK-9.1:** Verify release APK compilation (`flutter build apk --release`).
 - [ ] **TASK-9.2:** Verify release Web bundle compilation (`flutter build web --release`).
 - [ ] **TASK-9.3:** Deliver final 15-section report fulfilling the Definition of Done.
+
+### Phase 10 — Security Hardening, Portal Polish & Next Feature Updates
+- [x] **TASK-10.1:** Remove auto-fallback mock Google account chooser modal (`GoogleAuthService`) and align `RegisterScreen` with Phone SMS OTP flow.
+- [x] **TASK-10.2:** Close production mock-token bypass (`GoogleLoginView` in `backend/core/auth_views.py`) and remove legacy plaintext password caching in `LoginScreen`.
+- [x] **TASK-10.3:** Fix Restaurant Portal wide-grid overflow (`mainAxisExtent`), modal controller leaks, status color coverage, and pull-to-refresh; fix Admin driver assignment async toast & zero-emoji compliance.
+- [ ] **TASK-10.4:** Add Restaurant Portal menu item edit/delete bottom sheet and order status filter chips (`Pending`, `Preparing`, `Ready`).
+- [ ] **TASK-10.5:** Wire `AdminProvider.approveDriver` / `suspendDriver` action controls into Admin Console Drivers filter view.
+- [ ] **TASK-10.6:** Integrate or consolidate Phase 2 scaffolded modules (`FloatingOrderMiniTracker`, `core/network/dio_client.dart`, `l10n/*.arb`, `core/router/app_router.dart`) into active app entrypoint.
+- [ ] **TASK-10.7:** Build and re-verify updated APK on physical Android device (`Samsung Galaxy S22 Ultra`) across Restaurant Portal, Register, and Admin screens.

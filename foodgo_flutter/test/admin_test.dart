@@ -22,6 +22,7 @@ class MockPaymentService extends FlutterPaymentService {
   Future<PaymentModel> getPaymentStatus(
     int paymentId, {
     bool simulate = false,
+    String? qrPayload,
   }) async {
     if (shouldThrow) {
       throw Exception('Network connection timed out');
@@ -70,6 +71,9 @@ class MockAdminProvider extends AdminProvider {
 
   @override
   Future<void> fetchAuditLogs({int page = 1}) async {}
+
+  @override
+  Future<void> fetchDrivers({String? filter, String? search}) async {}
 }
 
 void main() {

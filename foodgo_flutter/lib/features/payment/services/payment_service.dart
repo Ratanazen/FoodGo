@@ -112,10 +112,15 @@ class FlutterPaymentService {
   ///
   /// There is deliberately no client-side "mark as paid" path: payment
   /// confirmation can only come from the provider callback/webhook or official bank API.
-  Future<PaymentModel> getPaymentStatus(int paymentId) async {
+  Future<PaymentModel> getPaymentStatus(
+    int paymentId, {
+    String? qrPayload,
+  }) async {
     final response = await _api.post(
       'payments/$paymentId/status/',
-      <String, dynamic>{},
+      <String, dynamic>{
+        if (qrPayload != null && qrPayload.isNotEmpty) 'qr_payload': qrPayload,
+      },
     );
     return PaymentModel.fromJson(response);
   }

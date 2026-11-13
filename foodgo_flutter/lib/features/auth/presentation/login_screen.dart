@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -12,34 +10,6 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
-
-class SavedPhoneAccount {
-  final String username;
-  final String password;
-  final String fullName;
-  final String role; // 'admin', 'driver', 'customer', 'restaurant_owner'
-
-  const SavedPhoneAccount({
-    required this.username,
-    required this.password,
-    required this.fullName,
-    required this.role,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'username': username,
-    'password': password,
-    'fullName': fullName,
-    'role': role,
-  };
-
-  factory SavedPhoneAccount.fromJson(Map<String, dynamic> json) => SavedPhoneAccount(
-    username: json['username']?.toString() ?? '',
-    password: json['password']?.toString() ?? '',
-    fullName: json['fullName']?.toString() ?? '',
-    role: json['role']?.toString() ?? 'customer',
-  );
-}
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -55,83 +25,26 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _rememberMe = true;
-  bool _saveAccountOnPhone = true;
   String? _loginErrorMessage;
-  List<SavedPhoneAccount> _savedAccounts = [];
 
   @override
   void initState() {
     super.initState();
     _loadSavedCredentials();
-    _loadSavedPhoneAccounts();
   }
 
   Future<void> _loadSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
+    // Clear any legacy plaintext credential cache stored by older builds.
+    if (prefs.containsKey('foodgo_saved_phone_accounts')) {
+      await prefs.remove('foodgo_saved_phone_accounts');
+    }
     final savedUser = prefs.getString('saved_login_identifier');
     if (savedUser != null && savedUser.isNotEmpty && mounted) {
       setState(() {
         _usernameController.text = savedUser;
         _rememberMe = true;
       });
-    }
-  }
-
-  Future<void> _loadSavedPhoneAccounts() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonStr = prefs.getString('foodgo_saved_phone_accounts');
-      if (jsonStr != null && jsonStr.isNotEmpty) {
-        final decoded = jsonDecode(jsonStr);
-        if (decoded is List) {
-          final list = decoded
-              .map((e) => SavedPhoneAccount.fromJson(Map<String, dynamic>.from(e)))
-              .where((a) => a.username.isNotEmpty)
-              .toList();
-          if (mounted) {
-            setState(() {
-              _savedAccounts = list;
-            });
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Error loading saved phone accounts: $e');
-    }
-  }
-
-  Future<void> _saveAccountToPhoneOnLogin(
-    String username,
-    String password, {
-    String? fullName,
-    String? role,
-  }) async {
-    if (!_saveAccountOnPhone) return;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final map = <String, SavedPhoneAccount>{};
-      for (final a in _savedAccounts) {
-        map[a.username.toLowerCase()] = a;
-      }
-      final existing = map[username.toLowerCase()];
-      map[username.toLowerCase()] = SavedPhoneAccount(
-        username: username,
-        password: password,
-        fullName: fullName != null && fullName.isNotEmpty
-            ? fullName
-            : existing?.fullName ?? username,
-        role: role ?? existing?.role ?? 'customer',
-      );
-      final updatedList = map.values.toList();
-      final jsonStr = jsonEncode(updatedList.map((a) => a.toJson()).toList());
-      await prefs.setString('foodgo_saved_phone_accounts', jsonStr);
-      if (mounted) {
-        setState(() {
-          _savedAccounts = updatedList;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error saving account to phone: $e');
     }
   }
 
@@ -172,21 +85,10 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       await _persistRememberMe(identifier);
 
-      if (_saveAccountOnPhone) {
-        final lastUser = authProvider.lastLoginUser;
-        final fName = lastUser != null
-            ? (lastUser['first_name'] != null && lastUser['last_name'] != null && '${lastUser['first_name']} ${lastUser['last_name']}'.trim().isNotEmpty
-                ? '${lastUser['first_name']} ${lastUser['last_name']}'.trim()
-                : lastUser['full_name'] ?? lastUser['name'] ?? identifier)
-            : identifier;
-        final r = lastUser?['role']?.toString().toLowerCase() ?? 'customer';
-        await _saveAccountToPhoneOnLogin(identifier, password, fullName: fName.toString(), role: r);
-      }
-
       if (!mounted) return;
       if (authProvider.lastLoginUser != null) {
         userProvider.setUser(authProvider.lastLoginUser!);
-        userProvider.fetchUser();
+        await userProvider.fetchUser();
       } else {
         await userProvider.fetchUser();
       }
@@ -214,124 +116,120 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildBrandHeroLogo(bool isDark) {
     return Column(
-        children: [
-          // 3D Multi-Layer Isometric Brand Badge
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              // Ambient 3D Neon Back-Halo
-              Container(
-                width: 86,
-                height: 86,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      GlassTheme.primaryGreen.withValues(
-                        alpha: isDark ? 0.38 : 0.22,
-                      ),
-                      Colors.transparent,
-                    ],
-                  ),
+      children: [
+        // 3D Multi-Layer Isometric Brand Badge
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            // Ambient 3D Neon Back-Halo
+            Container(
+              width: 86,
+              height: 86,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    GlassTheme.primaryGreen.withValues(
+                      alpha: isDark ? 0.38 : 0.22,
+                    ),
+                    Colors.transparent,
+                  ],
                 ),
               ),
-              // Layer 2: 3D Outer Beveled Shadow Ring
-              Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withValues(alpha: isDark ? 0.40 : 0.85),
-                          Colors.white.withValues(alpha: isDark ? 0.08 : 0.25),
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: isDark ? 0.50 : 0.16,
-                          ),
-                          blurRadius: 18,
-                          offset: const Offset(0, 8),
-                        ),
-                        BoxShadow(
-                          color: GlassTheme.primaryGreen.withValues(
-                            alpha: 0.38,
-                          ),
-                          blurRadius: 22,
-                          offset: const Offset(0, 4),
-                        ),
+            ),
+            // Layer 2: 3D Outer Beveled Shadow Ring
+            Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withValues(alpha: isDark ? 0.40 : 0.85),
+                        Colors.white.withValues(alpha: isDark ? 0.08 : 0.25),
                       ],
                     ),
-                    padding: const EdgeInsets.all(2.5),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isDark
-                            ? const Color(0xFF13231B)
-                            : const Color(0xFFE8F7EE),
-                        border: Border.all(
-                          color: GlassTheme.primaryGreen.withValues(
-                            alpha: 0.55,
-                          ),
-                          width: 1.5,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.50 : 0.16,
                         ),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
                       ),
-                      padding: const EdgeInsets.all(6),
-                      child: const FoodGoLogo(size: 50),
+                      BoxShadow(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.38),
+                        blurRadius: 22,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(2.5),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDark
+                          ? const Color(0xFF13231B)
+                          : const Color(0xFFE8F7EE),
+                      border: Border.all(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.55),
+                        width: 1.5,
+                      ),
                     ),
-                  )
-                  .animate(
-                    onPlay: (controller) => controller.repeat(reverse: true),
-                  )
-                  .scale(
-                    begin: const Offset(1, 1),
-                    end: const Offset(1.05, 1.05),
-                    duration: 2200.ms,
-                    curve: Curves.easeInOut,
+                    padding: const EdgeInsets.all(6),
+                    child: const FoodGoLogo(size: 50),
                   ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : GlassTheme.authTitleDark,
-                letterSpacing: -0.5,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
-                    offset: const Offset(0, 2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              children: const [
-                TextSpan(text: 'Food'),
-                TextSpan(
-                  text: 'Go',
-                  style: TextStyle(color: GlassTheme.primaryGreen),
+                )
+                .animate(
+                  onPlay: (controller) => controller.repeat(reverse: true),
+                )
+                .scale(
+                  begin: const Offset(1, 1),
+                  end: const Offset(1.05, 1.05),
+                  duration: 2200.ms,
+                  curve: Curves.easeInOut,
+                ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontSize: 25,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : GlassTheme.authTitleDark,
+              letterSpacing: -0.5,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
+                  offset: const Offset(0, 2),
+                  blurRadius: 4,
                 ),
               ],
             ),
+            children: const [
+              TextSpan(text: 'Food'),
+              TextSpan(
+                text: 'Go',
+                style: TextStyle(color: GlassTheme.primaryGreen),
+              ),
+            ],
           ),
-          const SizedBox(height: 2),
-          Text(
-            'Fast Delivery • Fresh Meals',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white60 : GlassTheme.authSubtitle,
-              letterSpacing: 0.4,
-            ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Fast Delivery • Fresh Meals',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white60 : GlassTheme.authSubtitle,
+            letterSpacing: 0.4,
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 
   @override
@@ -791,7 +689,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                             onTap: () {
                                               setState(() {
                                                 _rememberMe = !_rememberMe;
-                                                _saveAccountOnPhone = _rememberMe;
                                               });
                                             },
                                             child: Row(
@@ -819,8 +716,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                                       setState(() {
                                                         _rememberMe =
                                                             val ?? false;
-                                                        _saveAccountOnPhone =
-                                                            _rememberMe;
                                                       });
                                                     },
                                                   ),
@@ -1030,62 +925,45 @@ class _LoginScreenState extends State<LoginScreen> {
                                     SizedBox(
                                       height: 46,
                                       width: double.infinity,
-                                      child: AnimatedPressable(
-                                        pressedScale: 0.96,
-                                        onTap: _isLoading
+                                      child: OutlinedButton.icon(
+                                        onPressed: _isLoading
                                             ? null
-                                            : () => context.push(
-                                                '/phone-login',
-                                              ),
-                                        child: OutlinedButton.icon(
-                                          onPressed: _isLoading
-                                              ? null
-                                              : () => context.push(
-                                                  '/phone-login',
-                                                ),
-                                          style: OutlinedButton.styleFrom(
-                                            backgroundColor: isDark
-                                                ? const Color(0xFF1E293B)
-                                                : Colors.white,
-                                            side: BorderSide(
-                                              color: isDark
-                                                  ? Colors.white
-                                                        .withValues(
-                                                          alpha: 0.16,
-                                                        )
-                                                  : const Color(
-                                                      0xFFCBD5E1,
-                                                    ),
-                                              width: 1.2,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    12,
-                                                  ),
-                                            ),
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 14,
-                                                ),
+                                            : () =>
+                                                  context.push('/phone-login'),
+                                        style: OutlinedButton.styleFrom(
+                                          backgroundColor: isDark
+                                              ? const Color(0xFF1E293B)
+                                              : Colors.white,
+                                          side: BorderSide(
+                                            color: isDark
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.16,
+                                                  )
+                                                : const Color(0xFFCBD5E1),
+                                            width: 1.2,
                                           ),
-                                          icon: const Icon(
-                                            AppIcons.phone,
-                                            size: 18,
-                                            color:
-                                                GlassTheme.primaryGreen,
-                                          ),
-                                          label: Text(
-                                            context.tr('auth.phoneOtpLogin'),
-                                            style: TextStyle(
-                                              color: isDark
-                                                  ? Colors.white
-                                                  : const Color(
-                                                      0xFF1E293B,
-                                                    ),
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
                                             ),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                          ),
+                                        ),
+                                        icon: const Icon(
+                                          AppIcons.phone,
+                                          size: 18,
+                                          color: GlassTheme.primaryGreen,
+                                        ),
+                                        label: Text(
+                                          context.tr('auth.phoneOtpLogin'),
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white
+                                                : const Color(0xFF1E293B),
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ),

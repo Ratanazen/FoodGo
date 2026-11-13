@@ -6,6 +6,7 @@ import '../core/theme/app_icons.dart';
 import '../core/theme/glass_theme.dart';
 import '../core/utils/khmer_currency.dart';
 import '../providers/favorites_provider.dart';
+import 'shimmer_widgets.dart';
 
 class FoodDeliveryCard extends StatefulWidget {
   final Map<String, dynamic> restaurant;
@@ -62,7 +63,9 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
               : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withValues(alpha: 0.08)
+                : GlassTheme.borderLight,
             width: 1,
           ),
           boxShadow: [
@@ -93,32 +96,19 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       child: CachedNetworkImage(
                         imageUrl: effectiveBanner,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          child: const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: GlassTheme.primaryGreen,
-                              ),
-                            ),
+                        placeholder: (context, url) => ShimmerBox(
+                          width: double.infinity,
+                          height: imageHeight,
+                          borderRadius: 0,
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey.withValues(alpha: 0.15),
+                          child: const Icon(
+                            AppIcons.restaurants,
+                            color: GlassTheme.textMuted,
+                            size: 40,
                           ),
                         ),
-                        errorWidget: (context, url, error) =>
-                            CachedNetworkImage(
-                              imageUrl: fallbackBanner,
-                              fit: BoxFit.cover,
-                              errorWidget: (c, u, e) => Container(
-                                color: Colors.grey.withValues(alpha: 0.15),
-                                child: const Icon(
-                                  AppIcons.restaurants,
-                                  color: GlassTheme.textMuted,
-                                  size: 40,
-                                ),
-                              ),
-                            ),
                       ),
                     ),
                   ),

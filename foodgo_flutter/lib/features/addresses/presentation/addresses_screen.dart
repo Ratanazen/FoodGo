@@ -9,6 +9,7 @@ import '../../../widgets/responsive_layout.dart';
 import '../../../providers/address_provider.dart';
 import '../../../../screens/map_screen_location.dart';
 import '../../../core/utils/location_helper.dart';
+import '../../../services/api_service.dart';
 import '../../../widgets/location_picker_modal.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -476,35 +477,60 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                   if (!formKey.currentState!.validate()) return;
                                   setSheetState(() => isSaving = true);
 
-                                  await context
-                                      .read<AddressProvider>()
-                                      .addAddress(
-                                        street: streetController.text,
-                                        city: cityController.text,
-                                        zipCode: zipController.text,
-                                        isDefault: isDefault,
-                                        lat: detectedLat,
-                                        lng: detectedLng,
-                                      );
+                                  try {
+                                    await context
+                                        .read<AddressProvider>()
+                                        .addAddress(
+                                          street: streetController.text.trim(),
+                                          city: cityController.text.trim(),
+                                          zipCode: zipController.text.trim(),
+                                          isDefault: isDefault,
+                                          lat: detectedLat,
+                                          lng: detectedLng,
+                                        );
 
-                                  if (sheetCtx.mounted) {
-                                    Navigator.pop(sheetCtx);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Address added successfully!',
+                                    if (sheetCtx.mounted) {
+                                      Navigator.pop(sheetCtx);
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Address added successfully!',
+                                          ),
+                                          backgroundColor:
+                                              GlassTheme.primaryGreen,
+                                          behavior: SnackBarBehavior.floating,
                                         ),
-                                        backgroundColor:
-                                            GlassTheme.primaryGreen,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (ctx.mounted) {
+                                      setSheetState(() => isSaving = false);
+                                    }
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Failed to save address: ${ApiService.formatError(e)}',
+                                          ),
+                                          backgroundColor: Colors.redAccent,
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    }
                                   }
                                 },
                           child: isSaving
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Text(
                                   'Save Address',
@@ -524,6 +550,12 @@ class _AddressesScreenState extends State<AddressesScreen> {
           ),
         ),
       ),
+    ).whenComplete(
+      () => Future.delayed(const Duration(milliseconds: 350), () {
+        streetController.dispose();
+        cityController.dispose();
+        zipController.dispose();
+      }),
     );
   }
 

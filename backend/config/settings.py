@@ -18,12 +18,13 @@ for _env_candidate in [BASE_DIR / '.env', BASE_DIR.parent / '.env']:
         except Exception:
             pass
 
-SECRET_KEY = os.environ.get('SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY', 'foodgo-django-insecure-secret-key-prod-ready-minimum-50-characters-xyz'))
+_DEV_INSECURE_SECRET_KEY = 'foodgo-django-insecure-secret-key-prod-ready-minimum-50-characters-xyz'
+SECRET_KEY = os.environ.get('SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY', _DEV_INSECURE_SECRET_KEY))
 _is_cloud_prod = 'VERCEL' in os.environ or 'RENDER' in os.environ or os.environ.get('ENVIRONMENT') == 'production'
 _default_debug = 'False' if _is_cloud_prod else 'True'
 DEBUG = os.environ.get('DJANGO_DEBUG', os.environ.get('DEBUG', _default_debug)).lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0,*')).split(',') if host.strip()]
-GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', 'AIzaSyC3asDbdqC77DpPZt8DSttWJ2r9hLGT2PA')
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 
 # Security hardening for production environments
 if not DEBUG:
@@ -297,6 +298,9 @@ if 'VERCEL' in os.environ:
 IS_TESTING = 'test' in sys.argv
 
 if not DEBUG and not IS_TESTING:
+    if SECRET_KEY == _DEV_INSECURE_SECRET_KEY or len(SECRET_KEY) < 32:
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured('SECRET_KEY environment variable must be explicitly configured with >=32 chars when DEBUG=False.')
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True').lower() in ('true', '1')
     CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'True').lower() in ('true', '1')
     # Render, Vercel, and Cloudflare handle SSL termination & redirection at the edge.

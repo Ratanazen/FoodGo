@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
-import '../../../widgets/glass_container.dart';
-import '../../../widgets/responsive_layout.dart';
+import '../../../shared/widgets/structured_summary_viewer.dart';
+import '../../../widgets/glass/glass_widgets.dart';
 
 class LegalScreen extends StatefulWidget {
-  final int initialTabIndex;
-
-  const LegalScreen({super.key, this.initialTabIndex = 0});
+  final int initialTab;
+  const LegalScreen({super.key, int initialTab = 0, int? initialTabIndex})
+    : initialTab = initialTabIndex ?? initialTab;
 
   @override
   State<LegalScreen> createState() => _LegalScreenState();
@@ -25,7 +24,7 @@ class _LegalScreenState extends State<LegalScreen>
     _tabController = TabController(
       length: 2,
       vsync: this,
-      initialIndex: widget.initialTabIndex.clamp(0, 1),
+      initialIndex: widget.initialTab.clamp(0, 1),
     );
   }
 
@@ -38,241 +37,165 @@ class _LegalScreenState extends State<LegalScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
+    return LiquidGlassBackground(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Legal & Compliance',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : GlassTheme.textDark,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: isDark ? Colors.white : GlassTheme.textInverseDark,
+            ),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
           ),
-        ),
-        leading: IconButton(
-          icon: Icon(
-            AppIcons.back,
-            color: isDark ? Colors.white : GlassTheme.textDark,
+          title: Text(
+            'Legal & Compliance',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : GlassTheme.textInverseDark,
+            ),
           ),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: GlassTheme.primaryGreen,
-          labelColor: GlassTheme.primaryGreen,
-          unselectedLabelColor: isDark
-              ? Colors.white60
-              : const Color(0xFF64748B),
-          tabs: const [
-            Tab(text: 'Terms of Service'),
-            Tab(text: 'Privacy Policy'),
-          ],
-        ),
-      ),
-      body: SafeArea(
-        child: ResponsiveWebContainer(
-          maxWidth: 900,
-          child: TabBarView(
+          bottom: TabBar(
             controller: _tabController,
-            children: [
-              _buildTermsContent(isDark),
-              _buildPrivacyContent(isDark),
+            indicatorColor: GlassTheme.primaryGreen,
+            labelColor: GlassTheme.primaryGreen,
+            unselectedLabelColor: GlassTheme.textMuted,
+            tabs: const [
+              Tab(text: 'Terms of Service'),
+              Tab(text: 'Privacy Policy'),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTermsContent(bool isDark) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: GlassContainer(
-        borderRadius: BorderRadius.circular(16),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'FoodGo Terms of Service',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : GlassTheme.textDark,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Last updated: October 2026 • Kingdom of Cambodia',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.5)
-                    : GlassTheme.textMuted,
-              ),
-            ),
-            Divider(
-              height: 32,
-              color: isDark ? Colors.white24 : Colors.black12,
-            ),
-            _buildSection(
-              title: '1. Introduction and Scope',
-              body:
-                  'Welcome to FoodGo. These Terms of Service govern your access to and use of the FoodGo platform, website, mobile application, and delivery ordering ecosystem within the Kingdom of Cambodia. By registering an account, placing an order, or acting as a delivery partner, you agree to comply with these terms.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '2. User Accounts and Phone Verification',
-              body:
-                  'To use FoodGo ordering or delivery services, you must provide a valid Cambodian phone number (+855 Smart, Cellcard, or Metfone). Each mobile number undergoes real-time SMS OTP verification. You are responsible for maintaining the confidentiality of your credentials and all activities occurring under your account.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '3. Ordering, Pricing, and Currency Exchange',
-              body:
-                  'Food items, restaurant menus, and delivery fees are displayed in both United States Dollars (USD) and Cambodian Riel (KHR) converted per official National Bank of Cambodia (NBC) market exchange rates. Prices include applicable local taxes. Minimum order fees and peak delivery surcharges may apply during extreme weather or high traffic conditions.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '4. Payments and Bakong KHQR',
-              body:
-                  'FoodGo supports Cash on Delivery (COD) and real-time cashless settlement via Bakong KHQR standards. Payments processed through ABA Pay, ACLEDA, and partner banks are authenticated instantaneously via digital signature verification. Orders paid via KHQR are held in escrow until the order is accepted or confirmed.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '5. Delivery Workflow and Handover Protocol',
-              body:
-                  'Delivery partners must maintain active Cambodian driver verification, valid vehicle registration, and mobile device GPS tracking. Upon delivery arrival, the handover is authenticated either through customer presentation of a unique 6-digit delivery PIN or scanning of the dynamic handover QR code.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '6. Cancellations and Refunds',
-              body:
-                  'Orders can be canceled free of charge before restaurant food preparation starts. Once preparation has commenced, food costs cannot be refunded. In cases of damaged, spilled, or incorrect food items, claims submitted within 2 hours of delivery will be investigated for immediate credit or refund.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '7. Governing Law and Dispute Resolution',
-              body:
-                  'These Terms are governed by the laws of the Kingdom of Cambodia, including the E-Commerce Law and Consumer Protection Law. Any disputes arising shall be subject to the exclusive jurisdiction of the competent courts in Phnom Penh, Cambodia.',
-              isDark: isDark,
-            ),
-          ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [_buildTermsTab(), _buildPrivacyTab()],
         ),
       ),
     );
   }
 
-  Widget _buildPrivacyContent(bool isDark) {
+  Widget _buildTermsTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: GlassContainer(
-        borderRadius: BorderRadius.circular(16),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'FoodGo Privacy Policy',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : GlassTheme.textDark,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Last updated: October 2026 • Data Protection Standard',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.5)
-                    : GlassTheme.textMuted,
-              ),
-            ),
-            Divider(
-              height: 32,
-              color: isDark ? Colors.white24 : Colors.black12,
-            ),
-            _buildSection(
-              title: '1. Information We Collect',
-              body:
-                  'We collect necessary information to provide food delivery services: contact details (name, email, verified Cambodian phone number), delivery addresses with GPS coordinates, order history, and device telemetry required for reliable routing.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '2. SMS OTP and Cryptographic Security',
-              body:
-                  'Your phone number is normalized to E.164 standards (+855...). SMS verification codes are transmitted over TLS to licensed Cambodian telecommunication gateways. FoodGo hashes all verification tokens using salted HMAC-SHA256 algorithms and never stores plaintext OTPs in databases or logs.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '3. Real-Time Geolocation Tracking',
-              body:
-                  'When an order is in transit, driver and customer coordinates are transmitted securely over WebSockets strictly for live map ETA estimation and delivery completion verification. Location tracking terminates automatically upon order delivery confirmation.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '4. Payment Data Confidentiality',
-              body:
-                  'FoodGo does not store raw credit card numbers or bank PINs. All electronic payments are processed through National Bank of Cambodia Bakong KHQR rails and authorized banking gateways using cryptographic transaction signatures.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '5. Data Retention and Account Deletion',
-              body:
-                  'Users have the right to request deletion of their account and associated personal data at any time via Profile > Settings > Delete Account. Financial and tax records are retained in compliance with Cambodian statutory requirements.',
-              isDark: isDark,
-            ),
-            _buildSection(
-              title: '6. Contact Privacy Officer',
-              body:
-                  'For inquiries regarding data privacy or to exercise your rights, contact our Data Protection Officer at privacy@foodgo.kh or write to FoodGo Cambodia, #240 St 63, BKK1, Phnom Penh.',
-              isDark: isDark,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSection({
-    required String title,
-    required String body,
-    required bool isDark,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: GlassTheme.primaryGreen,
-            ),
+      padding: const EdgeInsets.all(20),
+      child: StructuredSummaryViewer(
+        title: 'FoodGo Terms of Service',
+        subtitle:
+            'Effective Date: January 1, 2026 • Phnom Penh, Kingdom of Cambodia (គោលការណ៍ប្រើប្រាស់សេវាកម្ម)',
+        badgeText: 'VERIFIED POLICY',
+        keyPoints: const [
+          'Marketplace connecting customers, partner restaurants, and independent couriers across Cambodia.',
+          'Supports NBC Bakong KHQR (USD & KHR at 4,100 rate), Visa/Mastercard, FoodGo Wallet, and Cash on Delivery.',
+          'Orders can be cancelled before kitchen preparation begins; prepaid cancellations are automatically refunded.',
+          'Governed by the Law on Electronic Commerce of the Kingdom of Cambodia.',
+        ],
+        sections: const [
+          SummarySection(
+            title: '1. Platform Overview & Scope',
+            icon: Icons.storefront_outlined,
+            metadata: {
+              'Jurisdiction': 'Kingdom of Cambodia',
+              'Service Area':
+                  'Phnom Penh, Siem Reap, Battambang, Sihanoukville',
+              'Exchange Rate':
+                  '1.00 USD = 4,100 KHR (អត្រាប្តូរប្រាក់ផ្លូវការ)',
+            },
+            body:
+                'FoodGo operates an online food ordering, restaurant partner management, and real-time courier dispatch platform in the Kingdom of Cambodia. By accessing or placing orders through FoodGo, you agree to be bound by these Terms of Service.',
           ),
-          const SizedBox(height: 6),
-          Text(
-            body,
-            style: TextStyle(
-              fontSize: 13,
-              height: 1.6,
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.8)
-                  : const Color(0xFF334155),
-            ),
+          SummarySection(
+            title: '2. Account Registration & Phone Verification',
+            icon: Icons.verified_user_outlined,
+            body:
+                'Users must provide accurate contact information, including a valid Cambodia mobile number (+855) or verified email address. You are responsible for safeguarding your account credentials and OTP verification codes.',
+            bulletPoints: [
+              'One primary account per customer mobile number (+855).',
+              'Role-based access for Customer, Restaurant Partner, Driver Courier, and Platform Admin.',
+              'Immediate suspension for fraudulent orders or unauthorized API usage.',
+            ],
+          ),
+          SummarySection(
+            title: '3. Orders, Pricing & Bakong KHQR Payments',
+            icon: Icons.qr_code_scanner_rounded,
+            body:
+                'Menu prices are displayed in United States Dollars (USD) with automatic Khmer Riel (KHR) equivalents calculated at the standard platform rate of 1 USD = 4,100 KHR. Supported payment methods include Bakong KHQR (ABA PAY, ACLEDA Mobile, Wing, Sathapana, Canadia, and all NBC Bakong member banks), Credit/Debit Cards, FoodGo Wallet, and Cash on Delivery (COD).',
+            bulletPoints: [
+              'Dynamic KHQR codes include EMVCo Tag 99 creation/expiration timestamps for bank compliance.',
+              'Orders cannot be cancelled without charge once the partner restaurant has begun preparing the food.',
+              'Missing or damaged items reported within 2 hours qualify for a full FoodGo Wallet credit or bank refund.',
+            ],
+          ),
+          SummarySection(
+            title: '4. Delivery & Courier Hand-Off Verification',
+            icon: Icons.delivery_dining_outlined,
+            body:
+                'Estimated delivery times are calculated dynamically based on kitchen preparation load, traffic conditions, and distance. Customers may verify hand-off using the encrypted Delivery Confirmation QR modal.',
+          ),
+          SummarySection(
+            title: '5. Governing Law & Dispute Resolution',
+            icon: Icons.gavel_rounded,
+            body:
+                'These Terms are governed by the laws of the Kingdom of Cambodia, including the Law on Electronic Commerce and the Law on Consumer Protection. Any disputes shall be resolved amicably through FoodGo Support (+855 23 999 888) or the competent courts of Phnom Penh.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrivacyTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: StructuredSummaryViewer(
+        title: 'FoodGo Privacy Policy',
+        subtitle:
+            'Effective Date: January 1, 2026 • NBC & E-Commerce Compliance (គោលការណ៍ឯកជនភាព)',
+        badgeText: 'PRIVACY PROTECTED',
+        keyPoints: const [
+          'We never sell your personal data, phone number, or location history to third-party advertisers.',
+          'Payment card numbers and Bakong KHQR credentials are never stored in plain text on FoodGo servers.',
+          'GPS coordinates are used strictly for active delivery routing and restaurant distance calculation.',
+          'You can request data export or permanent account deletion at any time from Settings.',
+        ],
+        sections: const [
+          SummarySection(
+            title: '1. Information We Collect',
+            icon: Icons.folder_shared_outlined,
+            metadata: {
+              'Identity Data': 'Name, Username, +855 Phone, Email',
+              'Delivery Data': 'Saved Street Address, GPS Lat/Lng',
+              'Transaction Data': 'Order IDs, KHQR MD5 Hashes, Payment Status',
+            },
+            body:
+                'We collect only the information required to process your food orders, verify Bakong KHQR settlements, and coordinate courier delivery to your doorstep.',
+          ),
+          SummarySection(
+            title: '2. How We Use Your Information',
+            icon: Icons.analytics_outlined,
+            body:
+                'Your data is used to transmit order tickets to the selected restaurant, share drop-off instructions with your assigned delivery driver, verify payment status via the National Bank of Cambodia (NBC) Bakong Open API, and send real-time order status notifications.',
+            bulletPoints: [
+              'Driver couriers can view your phone number and delivery coordinates only during an active delivery.',
+              'Order history is retained so you can download TXT/receipt summaries and reorder favorite meals.',
+            ],
+          ),
+          SummarySection(
+            title: '3. Payment & Financial Security',
+            icon: Icons.security_rounded,
+            body:
+                'All KHQR transactions are cryptographically signed with EMVCo CRC-16/CCITT-FALSE checksums and verified server-to-server using MD5 transaction tracking. JWT authentication tokens are stored in encrypted platform storage.',
+          ),
+          SummarySection(
+            title: '4. Your Rights, Export & Account Deletion',
+            icon: Icons.manage_accounts_outlined,
+            body:
+                'You may inspect, update, or permanently delete your account and associated addresses directly inside the FoodGo Settings screen or by contacting privacy@foodgo.kh.',
           ),
         ],
       ),

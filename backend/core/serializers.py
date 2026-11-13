@@ -25,6 +25,13 @@ class AddressSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class FoodItemSerializer(serializers.ModelSerializer):
+    image_url = serializers.CharField(
+        max_length=500,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
+
     class Meta:
         model = FoodItem
         fields = [
@@ -33,6 +40,21 @@ class FoodItemSerializer(serializers.ModelSerializer):
             'is_vegetarian', 'is_halal', 'is_spicy', 'preparation_time_mins',
         ]
         read_only_fields = ['id']
+
+    def validate_image_url(self, value):
+        if not value:
+            return ''
+        cleaned = str(value).strip()
+        if cleaned.lower() in ('no', 'none', 'null', 'n/a', 'na', '-', 'skip', 'nil'):
+            return ''
+        if cleaned.lower().startswith(('javascript:', 'data:', 'vbscript:')):
+            return ''
+        if not cleaned.startswith(('http://', 'https://')):
+            if '.' in cleaned and ' ' not in cleaned:
+                cleaned = f'https://{cleaned}'
+            else:
+                return ''
+        return cleaned
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -610,6 +632,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
 class AdminUserSerializer(serializers.ModelSerializer):
     order_count = serializers.SerializerMethodField()
     wallet_balance = serializers.SerializerMethodField()
+    driver_info = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
@@ -617,9 +640,22 @@ class AdminUserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'password', 'role', 'phone', 'first_name', 'last_name',
             'is_active', 'is_staff', 'is_superuser', 'date_joined', 'last_login',
-            'avatar', 'avatar_url', 'order_count', 'wallet_balance'
+            'avatar', 'avatar_url', 'order_count', 'wallet_balance', 'driver_info'
         ]
-        read_only_fields = ['id', 'date_joined', 'last_login', 'order_count', 'wallet_balance']
+        read_only_fields = ['id', 'date_joined', 'last_login', 'order_count', 'wallet_balance', 'driver_info']
+
+    def get_driver_info(self, obj):
+        if hasattr(obj, 'driver_profile') and obj.driver_profile:
+            d = obj.driver_profile
+            return {
+                'driver_id': d.id,
+                'vehicle_type': d.vehicle_type,
+                'license_plate': d.license_plate,
+                'is_online': d.is_online,
+                'is_approved': d.is_approved,
+                'total_deliveries': d.total_deliveries,
+            }
+        return None
 
     def get_order_count(self, obj):
         return getattr(obj, 'orders', None).count() if hasattr(obj, 'orders') else 0

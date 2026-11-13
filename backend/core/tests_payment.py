@@ -344,17 +344,21 @@ class PaymentIntegrationTests(TestCase):
         # Known test vector: "123456789" with CCITT (poly 0x1021, init 0xFFFF) -> 0x29B1
         self.assertEqual(crc16_ccitt("123456789"), "29B1")
 
-        # 2. Test generated KHQR string format and checksum validity
+        # 2. Test generated KHQR string format, Tag 99 timestamp/expiration, and checksum validity
         qr_str, md5_val = build_emvco_khqr(
-            account_id="test_merchant_id",
+            account_id="sonar_seang@bkrt",
             merchant_name="FoodGo Restaurant",
             merchant_city="Phnom Penh",
             merchant_ref="FG-TEST-REF-001",
             amount=Decimal("12.50"),
             currency="USD",
-            acquiring_bank_guid="abaakhppxxx@abaa",
+            acquiring_bank_guid="bakong@khqr",
         )
         self.assertTrue(qr_str.startswith("000201010212"))
+        # Tag 29 Sub-tag 00 must be the Bakong Account ID per NBC KHQR specification
+        self.assertIn("29200016sonar_seang@bkrt", qr_str)
+        # Tag 99 must include Sub-tag 00 (13-digit creation ms) and Sub-tag 01 (13-digit expiration ms)
+        self.assertRegex(qr_str, r"99340013\d{13}0113\d{13}6304[0-9A-F]{4}$")
         self.assertTrue(qr_str.endswith(crc16_ccitt(qr_str[:-4])))
         self.assertEqual(len(md5_val), 32)
 
@@ -674,6 +678,25 @@ class PaymentWebSocketConsumerTests(TransactionTestCase):
             self.assertEqual(res_credit.status_code, status.HTTP_200_OK)
             self.assertEqual(res_credit.data['status'], 'CREDITED')
             self.assertEqual(res_credit.data['new_balance'], '15.00')
+
+    def test_add_food_item_with_non_url_placeholder_succeeds(self):
+        """Adding a food item with image_url='no' or blank normalizes cleanly and returns 201 Created."""
+        from .models import FoodCategory
+        cat = FoodCategory.objects.create(restaurant=self.restaurant, name='Signature Burgers')
+        self.client.force_authenticate(user=self.owner)
+        res = self.client.post('/api/food-items/', {
+            'category': cat.id,
+            'name': 'nnn',
+            'price': '0.01',
+            'image_url': 'no',
+            'description': 'nn',
+            'ingredients': 'nn',
+            'is_available': True,
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['name'], 'nnn')
+        self.assertEqual(res.data['image_url'], '')
+
 
 
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_motion.dart';
+import '../../../core/utils/khmer_currency.dart';
 import '../../../providers/admin_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
@@ -43,6 +45,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     admin.fetchUsers();
     admin.fetchRestaurants();
     admin.fetchAuditLogs();
+    admin.fetchDrivers();
   }
 
   @override
@@ -211,9 +214,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             analytics?['order_status_distribution'] as Map<String, dynamic>? ??
             {};
 
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final blueAccent = isDark
+            ? Colors.lightBlueAccent
+            : const Color(0xFF0369A1);
+        final amberAccent = isDark
+            ? Colors.amberAccent
+            : const Color(0xFFB45309);
+        final purpleAccent = isDark
+            ? Colors.purpleAccent
+            : const Color(0xFF7E22CE);
+
         return RefreshIndicator(
           color: GlassTheme.dynamicPrimaryColor,
-          backgroundColor: GlassTheme.heroDarkCard,
+          backgroundColor: isDark ? GlassTheme.heroDarkCard : Colors.white,
           onRefresh: () => admin.fetchAnalytics(),
           child: ListView(
             padding: const EdgeInsets.all(16),
@@ -236,6 +250,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       subtitle: metrics['total_revenue_khr'] ?? '0 KHR',
                       icon: AppIcons.payment,
                       accentColor: GlassTheme.dynamicPrimaryColor,
+                      onTap: () => _tabController.animateTo(2),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -245,7 +260,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       value: '${metrics['total_orders'] ?? 0}',
                       subtitle: '${metrics['completed_orders'] ?? 0} Completed',
                       icon: AppIcons.cart,
-                      accentColor: Colors.lightBlueAccent,
+                      accentColor: blueAccent,
+                      onTap: () => _tabController.animateTo(1),
                     ),
                   ),
                 ],
@@ -259,7 +275,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       value: '${metrics['active_drivers'] ?? 0}',
                       subtitle: '${metrics['total_drivers'] ?? 0} Registered',
                       icon: AppIcons.delivery,
-                      accentColor: Colors.amberAccent,
+                      accentColor: amberAccent,
+                      onTap: () {
+                        _tabController.animateTo(3);
+                        admin.fetchUsers(role: 'driver');
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -269,7 +289,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       value: '${metrics['active_customers'] ?? 0}',
                       subtitle: '${metrics['total_customers'] ?? 0} Registered',
                       icon: AppIcons.users,
-                      accentColor: Colors.purpleAccent,
+                      accentColor: purpleAccent,
+                      onTap: () {
+                        _tabController.animateTo(3);
+                        admin.fetchUsers(role: 'customer');
+                      },
                     ),
                   ),
                 ],
@@ -282,10 +306,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               ).motionEntrance(staggerIndex: 4),
               const SizedBox(height: 20),
 
+              // Live Delivery Operations & Courier Fleet
+              _buildDeliveryFleetCard(
+                metrics,
+                distribution,
+              ).motionEntrance(staggerIndex: 5),
+              const SizedBox(height: 20),
+
               // Recent Activity Feed
               _buildRecentOrdersSection(
                 analytics?['recent_orders'] as List<dynamic>? ?? [],
-              ).motionEntrance(staggerIndex: 5),
+              ).motionEntrance(staggerIndex: 6),
             ],
           ),
         );
@@ -294,6 +325,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Widget _buildPeriodSelector(AdminProvider admin) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final periods = [
       {'key': 'today', 'label': 'Today'},
       {'key': 'week', 'label': '7 Days'},
@@ -313,16 +348,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               selected: isSelected,
               onSelected: (_) => admin.fetchAnalytics(period: p['key']),
               selectedColor: GlassTheme.dynamicPrimaryColor,
-              backgroundColor: Colors.white.withValues(alpha: 0.05),
+              backgroundColor: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.white.withValues(alpha: 0.85),
               labelStyle: TextStyle(
-                color: isSelected ? Colors.black87 : Colors.white70,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : primaryText,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 fontSize: 13,
               ),
               side: BorderSide(
                 color: isSelected
                     ? GlassTheme.dynamicPrimaryColor
-                    : Colors.white12,
+                    : (isDark
+                        ? Colors.white12
+                        : secondaryText.withValues(alpha: 0.25)),
               ),
             ),
           );
@@ -332,7 +373,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Widget _buildSystemHealthCard(Map<String, dynamic> health) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final isHealthy = health['database'] == 'healthy';
+    final statusColor = isHealthy
+        ? (isDark ? Colors.greenAccent : const Color(0xFF15803D))
+        : (isDark ? Colors.redAccent : const Color(0xFFB91C1C));
+    final dbEngine = health['database_engine']?.toString() ?? 'Database';
+
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: GlassTheme.borderRadiusMedium,
@@ -341,14 +391,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isHealthy
-                  ? Colors.greenAccent.withValues(alpha: 0.15)
-                  : Colors.redAccent.withValues(alpha: 0.15),
+              color: statusColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isHealthy ? Icons.check_circle_rounded : Icons.warning_rounded,
-              color: isHealthy ? Colors.greenAccent : Colors.redAccent,
+              color: statusColor,
               size: 22,
             ),
           ),
@@ -359,10 +407,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               children: [
                 Row(
                   children: [
-                    const Text(
+                    Text(
                       'System & Core Health',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: primaryText,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -374,17 +422,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: isHealthy
-                            ? Colors.greenAccent.withValues(alpha: 0.2)
-                            : Colors.redAccent.withValues(alpha: 0.2),
+                        color: statusColor.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         isHealthy ? 'OPERATIONAL' : 'DEGRADED',
                         style: TextStyle(
-                          color: isHealthy
-                              ? Colors.greenAccent
-                              : Colors.redAccent,
+                          color: statusColor,
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
                         ),
@@ -394,9 +438,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'PostgreSQL 15 Database: ${health['database'] ?? 'OK'} · ASGI Daphne: ${health['daphne_asgi'] ?? 'Running'}',
-                  style: const TextStyle(
-                    color: GlassTheme.textMuted,
+                  '$dbEngine: ${health['database'] ?? 'OK'} · ASGI Daphne: ${health['daphne_asgi'] ?? 'Running'}',
+                  style: TextStyle(
+                    color: secondaryText,
                     fontSize: 12,
                   ),
                 ),
@@ -414,8 +458,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     required String subtitle,
     required IconData icon,
     required Color accentColor,
+    VoidCallback? onTap,
   }) {
-    return GlassContainer(
+    final brightness = Theme.of(context).brightness;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final card = GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: GlassTheme.borderRadiusMedium,
       child: Column(
@@ -426,8 +474,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: GlassTheme.textMuted,
+                style: TextStyle(
+                  color: secondaryText,
                   fontSize: 12,
                 ),
               ),
@@ -437,8 +485,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           const SizedBox(height: 10),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: primaryText,
               fontSize: 22,
               fontWeight: FontWeight.w900,
             ),
@@ -449,29 +497,52 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             style: TextStyle(
               color: accentColor,
               fontSize: 11,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
       ),
     );
+
+    if (onTap == null) return card;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: GlassTheme.borderRadiusMedium,
+      child: card,
+    );
   }
 
   Widget _buildStatusPipelineCard(Map<String, dynamic> distribution) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final statuses = [
-      {'key': 'pending', 'label': 'Pending', 'color': Colors.amberAccent},
+      {
+        'key': 'pending',
+        'label': 'Pending',
+        'color': isDark ? Colors.amberAccent : const Color(0xFFB45309),
+      },
       {
         'key': 'preparing',
         'label': 'Preparing',
-        'color': Colors.lightBlueAccent,
+        'color': isDark ? Colors.lightBlueAccent : const Color(0xFF0369A1),
       },
       {
         'key': 'on_the_way',
         'label': 'In Transit',
-        'color': Colors.purpleAccent,
+        'color': isDark ? Colors.purpleAccent : const Color(0xFF7E22CE),
       },
-      {'key': 'delivered', 'label': 'Delivered', 'color': Colors.greenAccent},
-      {'key': 'cancelled', 'label': 'Cancelled', 'color': Colors.redAccent},
+      {
+        'key': 'delivered',
+        'label': 'Delivered',
+        'color': isDark ? Colors.greenAccent : const Color(0xFF15803D),
+      },
+      {
+        'key': 'cancelled',
+        'label': 'Cancelled',
+        'color': isDark ? Colors.redAccent : const Color(0xFFB91C1C),
+      },
     ];
 
     return GlassContainer(
@@ -480,13 +551,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Order Status Breakdown',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Order Status Breakdown',
+                style: TextStyle(
+                  color: primaryText,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              Text(
+                'Tap status to filter',
+                style: TextStyle(
+                  color: GlassTheme.dynamicPrimaryColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
           Row(
@@ -494,26 +578,38 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               final count = distribution[s['key']] ?? 0;
               final color = s['color'] as Color;
               return Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      '$count',
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                child: InkWell(
+                  onTap: () {
+                    _tabController.animateTo(1);
+                    context.read<AdminProvider>().fetchOrders(
+                      status: s['key'] as String,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(
+                      children: [
+                        Text(
+                          '$count',
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          s['label'] as String,
+                          style: TextStyle(
+                            color: secondaryText,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      s['label'] as String,
-                      style: const TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 10,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                  ),
                 ),
               );
             }).toList(),
@@ -523,38 +619,348 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
+  Widget _buildDeliveryFleetCard(
+    Map<String, dynamic> metrics,
+    Map<String, dynamic> distribution,
+  ) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final tileBg = isDark
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.black.withValues(alpha: 0.03);
+    final tileBorder = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : GlassTheme.borderLight;
+    final greenColor = isDark ? Colors.greenAccent : const Color(0xFF15803D);
+    final amberColor = isDark ? Colors.amberAccent : const Color(0xFFB45309);
+    final purpleColor = isDark ? Colors.purpleAccent : const Color(0xFF7E22CE);
+
+    final activeDrivers = metrics['active_drivers'] ?? 0;
+    final totalDrivers = metrics['total_drivers'] ?? 0;
+    final inTransit = distribution['on_the_way'] ?? 0;
+    final pending = distribution['pending'] ?? 0;
+
+    return GlassContainer(
+      padding: const EdgeInsets.all(16),
+      borderRadius: GlassTheme.borderRadiusMedium,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: amberColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.delivery_dining_rounded,
+                  color: amberColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Live Delivery & Courier Fleet',
+                      style: TextStyle(
+                        color: primaryText,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      'Real-time dispatch overview & courier readiness',
+                      style: TextStyle(
+                        color: secondaryText,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: (activeDrivers as num) > 0
+                      ? greenColor.withValues(alpha: 0.15)
+                      : amberColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: activeDrivers > 0 ? greenColor : amberColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      '$activeDrivers Online',
+                      style: TextStyle(
+                        color: activeDrivers > 0 ? greenColor : amberColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: tileBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: tileBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'COURIERS',
+                        style: TextStyle(
+                          color: secondaryText,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$activeDrivers / $totalDrivers',
+                        style: TextStyle(
+                          color: primaryText,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Ready to ride',
+                        style: TextStyle(
+                          color: greenColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: tileBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: tileBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ON ROAD',
+                        style: TextStyle(
+                          color: secondaryText,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$inTransit',
+                        style: TextStyle(
+                          color: purpleColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'In transit',
+                        style: TextStyle(
+                          color: purpleColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: (pending as num) > 0
+                        ? amberColor.withValues(alpha: 0.08)
+                        : tileBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: pending > 0
+                          ? amberColor.withValues(alpha: 0.3)
+                          : tileBorder,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'DISPATCH',
+                        style: TextStyle(
+                          color: secondaryText,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$pending',
+                        style: TextStyle(
+                          color: pending > 0 ? amberColor : primaryText,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        pending > 0 ? 'Needs courier' : 'All dispatched',
+                        style: TextStyle(
+                          color: pending > 0 ? amberColor : secondaryText,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: GlassTheme.dynamicPrimaryColor,
+                    side: BorderSide(
+                      color: GlassTheme.dynamicPrimaryColor.withValues(
+                        alpha: 0.5,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.people_outline, size: 16),
+                  label: const Text(
+                    'Manage Couriers',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () {
+                    _tabController.animateTo(3);
+                    context.read<AdminProvider>().fetchUsers(role: 'driver');
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: GlassTheme.dynamicPrimaryColor,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(Icons.flash_on_rounded, size: 16),
+                  label: const Text(
+                    'Dispatch Orders',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                  ),
+                  onPressed: () {
+                    _tabController.animateTo(1);
+                    context.read<AdminProvider>().fetchOrders(
+                      status: 'unassigned',
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRecentOrdersSection(List<dynamic> recentOrders) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Live Recent Orders',
           style: TextStyle(
-            color: Colors.white,
+            color: primaryText,
             fontWeight: FontWeight.bold,
             fontSize: 15,
           ),
         ),
         const SizedBox(height: 10),
         if (recentOrders.isEmpty)
-          const Text(
+          Text(
             'No recent orders logged.',
-            style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+            style: TextStyle(color: secondaryText, fontSize: 13),
           )
         else
           ...recentOrders.map((o) {
             final statusStr = o['status'] ?? 'pending';
-            Color badgeColor = Colors.amber;
-            if (statusStr == 'delivered') badgeColor = Colors.green;
-            if (statusStr == 'cancelled') badgeColor = Colors.red;
+            Color badgeColor = isDark ? Colors.amber : const Color(0xFFB45309);
+            if (statusStr == 'delivered') {
+              badgeColor = isDark ? Colors.green : const Color(0xFF15803D);
+            }
+            if (statusStr == 'cancelled') {
+              badgeColor = isDark ? Colors.red : const Color(0xFFB91C1C);
+            }
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : Colors.white.withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : GlassTheme.borderLight,
+                ),
               ),
               child: Row(
                 children: [
@@ -577,16 +983,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       children: [
                         Text(
                           '${o['reference']} · ${o['restaurant']}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: primaryText,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
                         ),
                         Text(
                           'Customer: ${o['customer']}',
-                          style: const TextStyle(
-                            color: GlassTheme.textMuted,
+                          style: TextStyle(
+                            color: secondaryText,
                             fontSize: 11,
                           ),
                         ),
@@ -751,6 +1157,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildOrderStatusFilters(AdminProvider admin) {
     final filters = [
       {'key': 'all', 'label': 'All'},
+      {'key': 'unassigned', 'label': 'Needs Driver'},
       {'key': 'pending', 'label': 'Pending'},
       {'key': 'preparing', 'label': 'Preparing'},
       {'key': 'on_the_way', 'label': 'On Way'},
@@ -793,11 +1200,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     final paymentStatus = order['payment_status'] ?? 'UNPAID';
     final driver = order['assigned_driver'] as Map<String, dynamic>?;
     final customer = order['customer_info'] as Map<String, dynamic>?;
+    final address =
+        order['delivery_address_snapshot'] ??
+        (order['address'] is Map ? order['address']['street'] : null) ??
+        'Phnom Penh';
+    final deliveryFee =
+        order['delivery_fee_charged'] ?? order['delivery_fee'] ?? '2.00';
+    final totalVal =
+        double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0;
 
     Color statusColor = Colors.amber;
     if (statusStr == 'delivered') statusColor = Colors.greenAccent;
     if (statusStr == 'cancelled') statusColor = Colors.redAccent;
     if (statusStr == 'on_the_way') statusColor = Colors.purpleAccent;
+    if (statusStr == 'preparing') statusColor = Colors.lightBlueAccent;
+
+    final isPaid = paymentStatus == 'PAID';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -805,7 +1223,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(
+          color:
+              driver == null &&
+                  statusStr != 'delivered' &&
+                  statusStr != 'cancelled'
+              ? Colors.amber.withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.08),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -826,6 +1251,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.4)),
                 ),
                 child: Text(
                   statusStr.toUpperCase(),
@@ -839,16 +1265,69 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            'Restaurant: ${order['restaurant_name'] ?? 'N/A'}',
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          Row(
+            children: [
+              const Icon(
+                Icons.storefront_outlined,
+                color: Colors.white70,
+                size: 15,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Restaurant: ${order['restaurant_name'] ?? 'N/A'}',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          if (customer != null)
-            Text(
-              'Customer: ${customer['name']} (${customer['phone']})',
-              style: const TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+          if (customer != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(
+                  Icons.person_outline,
+                  color: GlassTheme.textMuted,
+                  size: 15,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Customer: ${customer['name']} (${customer['phone'] ?? ''})',
+                    style: const TextStyle(
+                      color: GlassTheme.textMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          const SizedBox(height: 6),
+          ],
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.location_on_outlined,
+                color: Colors.redAccent,
+                size: 15,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Deliver to: $address',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Text(
@@ -859,21 +1338,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   fontSize: 14,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 6),
+              Text(
+                '≈ ${KhmerCurrency.formatKhr(totalVal)}',
+                style: const TextStyle(
+                  color: GlassTheme.textMuted,
+                  fontSize: 11,
+                ),
+              ),
+              const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: paymentStatus == 'PAID'
+                  color: isPaid
                       ? Colors.green.withValues(alpha: 0.2)
                       : Colors.orange.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'PAYMENT: $paymentStatus',
+                  isPaid ? 'PAYMENT: PAID' : 'PAYMENT: DUE',
                   style: TextStyle(
-                    color: paymentStatus == 'PAID'
-                        ? Colors.greenAccent
-                        : Colors.orangeAccent,
+                    color: isPaid ? Colors.greenAccent : Colors.orangeAccent,
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),
@@ -882,116 +1367,364 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(
-                driver != null
-                    ? Icons.sports_motorsports_rounded
-                    : Icons.person_search_rounded,
-                size: 16,
+          // Courier Section
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: driver != null
+                  ? Colors.white.withValues(alpha: 0.03)
+                  : Colors.amber.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
                 color: driver != null
-                    ? GlassTheme.dynamicPrimaryColor
-                    : Colors.white38,
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.amber.withValues(alpha: 0.25),
               ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
+            ),
+            child: Row(
+              children: [
+                Icon(
                   driver != null
-                      ? 'Driver: ${driver['name']} (${driver['license_plate']})'
-                      : 'No driver assigned',
-                  style: TextStyle(
-                    color: driver != null ? Colors.white : Colors.white38,
-                    fontSize: 12,
-                    fontWeight: driver != null
-                        ? FontWeight.w500
-                        : FontWeight.normal,
+                      ? Icons.two_wheeler_rounded
+                      : Icons.warning_amber_rounded,
+                  size: 18,
+                  color: driver != null ? Colors.greenAccent : Colors.amber,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        driver != null
+                            ? 'Courier: ${driver['name']} (${driver['license_plate'] ?? 'Plate PP'})'
+                            : 'No courier assigned yet',
+                        style: TextStyle(
+                          color: driver != null ? Colors.white : Colors.amber,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Delivery Fee: \$$deliveryFee · ${driver != null ? (driver['phone'] ?? 'Active') : 'Waiting for dispatch'}',
+                        style: const TextStyle(
+                          color: GlassTheme.textMuted,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              if (statusStr != 'delivered' && statusStr != 'cancelled') ...[
-                TextButton(
-                  onPressed: () => _showAssignDriverDialog(order['id'], admin),
-                  style: TextButton.styleFrom(
-                    foregroundColor: GlassTheme.dynamicPrimaryColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                if (statusStr != 'delivered' && statusStr != 'cancelled') ...[
+                  ElevatedButton(
+                    onPressed: () =>
+                        _showAssignDriverDialog(order['id'], admin),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: driver != null
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : GlassTheme.dynamicPrimaryColor,
+                      foregroundColor: driver != null
+                          ? Colors.white
+                          : Colors.black,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      minimumSize: Size.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      driver != null ? 'Reassign' : 'Assign Driver',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  child: const Text(
-                    'Assign Driver',
-                    style: TextStyle(fontSize: 12),
+                ],
+              ],
+            ),
+          ),
+          if (statusStr != 'delivered' && statusStr != 'cancelled') ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blueAccent,
+                    side: const BorderSide(color: Colors.blueAccent),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    minimumSize: Size.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  icon: const Icon(Icons.map_outlined, size: 13),
+                  label: const Text(
+                    'Live Route',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () =>
+                      context.push('/map/${order['id']}?isDriver=false'),
                 ),
+                const SizedBox(width: 8),
                 TextButton(
                   onPressed: () => _showCancelOrderDialog(order['id'], admin),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.redAccent,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    minimumSize: Size.zero,
                   ),
-                  child: const Text('Cancel', style: TextStyle(fontSize: 12)),
+                  child: const Text('Cancel', style: TextStyle(fontSize: 11)),
                 ),
               ],
-            ],
-          ),
+            ),
+          ],
         ],
       ),
     );
   }
 
   void _showAssignDriverDialog(int orderId, AdminProvider admin) {
+    final drivers = <Map<String, dynamic>>[];
+
+    // 1. From admin.drivers
+    for (final d in admin.drivers) {
+      if (d is Map<String, dynamic>) {
+        final u = d['user'] is Map ? d['user'] : {};
+        drivers.add({
+          'id': d['id'],
+          'name': u['full_name'] ?? u['username'] ?? 'Courier #${d['id']}',
+          'username': u['username'] ?? '',
+          'vehicle': d['vehicle_type'] ?? 'Motorcycle',
+          'plate': d['license_plate'] ?? 'PP-2026',
+          'is_online': d['is_online'] == true,
+          'phone': u['phone'] ?? d['phone'] ?? '+855 23 999 888',
+        });
+      }
+    }
+
+    // 2. From admin.users
+    if (drivers.isEmpty) {
+      for (final u in admin.users) {
+        if (u is Map<String, dynamic> && u['role'] == 'driver') {
+          final info = u['driver_info'] as Map<String, dynamic>?;
+          final driverId = info?['driver_id'] ?? u['id'];
+          drivers.add({
+            'id': driverId,
+            'name':
+                u['first_name'] != null && u['first_name'].toString().isNotEmpty
+                ? '${u['first_name']} ${u['last_name'] ?? ''}'.trim()
+                : u['username'] ?? 'Courier',
+            'username': u['username'] ?? '',
+            'vehicle': info?['vehicle_type'] ?? 'Motorcycle',
+            'plate': info?['license_plate'] ?? 'PP-2026',
+            'is_online': info?['is_online'] == true,
+            'phone': u['phone'] ?? '+855 23 999 888',
+          });
+        }
+      }
+    }
+
+    // 3. Fallback registered couriers if none populated yet
+    if (drivers.isEmpty) {
+      drivers.addAll([
+        {
+          'id': 1,
+          'name': 'Bob Rider',
+          'username': 'driver1',
+          'vehicle': 'Honda Click 125i',
+          'plate': 'PP-1AB-2026',
+          'is_online': true,
+          'phone': '+855 77 333 444',
+        },
+        {
+          'id': 2,
+          'name': 'Sophea Swift',
+          'username': 'driver2',
+          'vehicle': 'Yamaha Scoopy',
+          'plate': 'PP-2CD-2026',
+          'is_online': true,
+          'phone': '+855 12 888 999',
+        },
+      ]);
+    }
+
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: GlassTheme.heroDarkCard,
-          title: const Text(
-            'Assign Courier Driver',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+          title: Row(
             children: [
+              Icon(
+                Icons.two_wheeler_rounded,
+                color: GlassTheme.dynamicPrimaryColor,
+              ),
+              const SizedBox(width: 8),
               const Text(
-                'Select an available registered driver for this delivery dispatch:',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                leading: Icon(
-                  Icons.two_wheeler_rounded,
-                  color: GlassTheme.dynamicPrimaryColor,
+                'Assign Courier Driver',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                title: const Text(
-                  'Bob Rider (driver1)',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-                subtitle: const Text(
-                  'Plate: PP-1AB-2026 · Online',
-                  style: TextStyle(color: Colors.greenAccent, fontSize: 11),
-                ),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  admin.assignDriver(orderId, 1);
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.electric_scooter_rounded,
-                  color: GlassTheme.dynamicPrimaryColor,
-                ),
-                title: const Text(
-                  'Sophea Swift (driver2)',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-                subtitle: const Text(
-                  'Plate: PP-2CD-2026 · Online',
-                  style: TextStyle(color: Colors.greenAccent, fontSize: 11),
-                ),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  admin.assignDriver(orderId, 2);
-                },
               ),
             ],
           ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Select an available registered courier to dispatch this delivery:',
+                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                ),
+                const SizedBox(height: 12),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: drivers.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 6),
+                    itemBuilder: (context, i) {
+                      final d = drivers[i];
+                      final isOnline = d['is_online'] == true;
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isOnline
+                                ? Colors.greenAccent.withValues(alpha: 0.3)
+                                : Colors.white10,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 2,
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: isOnline
+                                ? Colors.greenAccent.withValues(alpha: 0.15)
+                                : Colors.white10,
+                            child: Icon(
+                              Icons.delivery_dining_rounded,
+                              color: isOnline
+                                  ? Colors.greenAccent
+                                  : Colors.white54,
+                              size: 20,
+                            ),
+                          ),
+                          title: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  d['name'],
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isOnline
+                                      ? Colors.greenAccent.withValues(
+                                          alpha: 0.2,
+                                        )
+                                      : Colors.white10,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  isOnline ? 'ONLINE' : 'OFFLINE',
+                                  style: TextStyle(
+                                    color: isOnline
+                                        ? Colors.greenAccent
+                                        : Colors.white54,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          subtitle: Text(
+                            '${d['vehicle']} · ${d['plate']} · ${d['phone']}',
+                            style: const TextStyle(
+                              color: GlassTheme.textMuted,
+                              fontSize: 11,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.check_circle_outline_rounded,
+                            color: GlassTheme.dynamicPrimaryColor,
+                            size: 20,
+                          ),
+                          onTap: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            Navigator.of(ctx).pop();
+                            final ok = await admin.assignDriver(
+                              orderId,
+                              d['id'] as int,
+                            );
+                            if (!mounted) return;
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  ok
+                                      ? 'Courier ${d['name']} assigned to Order #$orderId.'
+                                      : (admin.errorMessage ??
+                                            'Failed to assign courier.'),
+                                ),
+                                backgroundColor: ok
+                                    ? GlassTheme.primaryGreen
+                                    : Colors.redAccent,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -1043,8 +1776,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             ),
             ElevatedButton(
               onPressed: () {
+                final reason = reasonCtrl.text;
                 Navigator.of(ctx).pop();
-                admin.cancelOrder(orderId, reasonCtrl.text);
+                admin.cancelOrder(orderId, reason);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
@@ -1057,6 +1791,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ],
         );
       },
+    ).whenComplete(
+      () =>
+          Future.delayed(const Duration(milliseconds: 500), reasonCtrl.dispose),
     );
   }
 
@@ -1467,10 +2204,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               ),
             ),
             onPressed: () async {
+              final reason = reasonCtrl.text.trim();
               Navigator.pop(ctx);
               final success = await admin.refundPayment(
                 payment['id'] as int,
-                reason: reasonCtrl.text.trim(),
+                reason: reason,
               );
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1491,6 +2229,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ),
         ],
       ),
+    ).whenComplete(
+      () =>
+          Future.delayed(const Duration(milliseconds: 500), reasonCtrl.dispose),
     );
   }
 

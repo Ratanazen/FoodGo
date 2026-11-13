@@ -549,7 +549,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               displayName != 'Foodie' && displayName != 'Guest'
-                                  ? 'Hi, $displayName 👋'
+                                  ? 'Hi, $displayName'
                                   : 'Your Location',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

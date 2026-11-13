@@ -13,9 +13,11 @@ import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_motion.dart';
 import '../../../../core/utils/khmer_currency.dart';
 import '../../../../providers/cart_provider.dart';
+import '../../../../services/api_service.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/svg_icon.dart';
+import '../../../shared/widgets/structured_summary_viewer.dart';
 import '../models/payment_model.dart';
 import '../services/payment_service.dart';
 
@@ -85,7 +87,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       if (!mounted) return;
       setState(() {
         _isLoadingInitial = false;
-        _initialError = 'Unable to load payment details: $e';
+        _initialError =
+            'Unable to load payment details: ${ApiService.formatError(e)}';
       });
     }
   }
@@ -234,21 +237,24 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     try {
       final updated = await _paymentService.getPaymentStatus(
         _currentPayment!.id,
+        qrPayload: _currentPayment!.qrPayload,
       );
       if (!mounted) return;
 
       _handleStatusUpdate(updated);
 
       if (!isBackground && !updated.isPaid) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Payment not completed yet. Please scan and pay with your banking app.',
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Payment not completed yet. Please scan and pay with your banking app.',
+              ),
+              backgroundColor: Colors.orangeAccent,
+              behavior: SnackBarBehavior.floating,
             ),
-            backgroundColor: Colors.orangeAccent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
       }
     } catch (e) {
       if (!mounted) return;
@@ -256,15 +262,17 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       setState(() => _isVerifying = false);
 
       if (!isBackground) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Unable to check payment status due to network error. You can retry safely.',
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Unable to check payment status due to network error. You can retry safely.',
+              ),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
             ),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
       }
     }
   }
@@ -307,7 +315,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       setState(() => _isVerifying = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to regenerate QR code: $e'),
+          content: Text(
+            'Failed to regenerate QR code: ${ApiService.formatError(e)}',
+          ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -377,17 +387,22 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 13,
+        Flexible(
+          child: Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 13,
+            ),
           ),
         ),
+        const SizedBox(width: 8),
         Flexible(
           child: Text(
             value,
             textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: isHighlight ? GlassTheme.primaryGreen : Colors.white,
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w600,
@@ -407,10 +422,14 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     String badgeText;
     String subtext;
 
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     switch (status) {
       case 'CREATING':
-        badgeColor = Colors.lightBlueAccent;
-        badgeBg = Colors.lightBlueAccent.withValues(alpha: 0.15);
+        badgeColor = isDark ? Colors.lightBlueAccent : const Color(0xFF0369A1);
+        badgeBg = badgeColor.withValues(alpha: 0.15);
         badgeIcon = AppIcons.loading;
         badgeText = 'CREATING PAYMENT';
         subtext = 'Generating secure KHQR code...';
@@ -423,22 +442,22 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         subtext = 'Payment confirmed! Server verified.';
         break;
       case 'PROCESSING':
-        badgeColor = Colors.cyanAccent;
-        badgeBg = Colors.cyanAccent.withValues(alpha: 0.15);
+        badgeColor = isDark ? Colors.cyanAccent : const Color(0xFF0E7490);
+        badgeBg = badgeColor.withValues(alpha: 0.15);
         badgeIcon = AppIcons.loading;
         badgeText = 'VERIFYING';
         subtext = 'Payment received! Verifying transaction...';
         break;
       case 'FAILED':
-        badgeColor = Colors.redAccent;
-        badgeBg = Colors.redAccent.withValues(alpha: 0.15);
+        badgeColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
+        badgeBg = badgeColor.withValues(alpha: 0.15);
         badgeIcon = AppIcons.error;
         badgeText = 'PAYMENT FAILED';
         subtext = 'Transaction could not be completed.';
         break;
       case 'EXPIRED':
-        badgeColor = Colors.deepOrangeAccent;
-        badgeBg = Colors.deepOrangeAccent.withValues(alpha: 0.15);
+        badgeColor = isDark ? Colors.deepOrangeAccent : const Color(0xFFC2410C);
+        badgeBg = badgeColor.withValues(alpha: 0.15);
         badgeIcon = AppIcons.loading;
         badgeText = 'QR EXPIRED';
         subtext = 'Payment session has expired.';
@@ -452,8 +471,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         break;
       case 'PENDING':
       default:
-        badgeColor = Colors.amberAccent;
-        badgeBg = Colors.amberAccent.withValues(alpha: 0.15);
+        badgeColor = isDark ? Colors.amberAccent : const Color(0xFFB45309);
+        badgeBg = badgeColor.withValues(alpha: 0.15);
         badgeIcon = AppIcons.refresh;
         badgeText = 'WAITING FOR PAYMENT';
         subtext = 'Scan QR code with your mobile banking app';
@@ -494,9 +513,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           subtext,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.75),
+            color: secondaryText,
             fontSize: 12,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -509,6 +528,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     String providerTitle,
     Color brandColor,
   ) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final orderSummary = payment.orderSummary;
     final restaurant =
         payment.restaurantName ??
@@ -535,9 +558,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                       ? 'Order #${payment.orderReference}'
                       : 'Order #${payment.orderId}',
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
-                    color: Colors.white70,
+                    color: primaryText,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -547,9 +570,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           const SizedBox(height: 4),
           Text(
             restaurant,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: Colors.white54,
+              color: secondaryText,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -568,14 +591,14 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.85),
+              color: primaryText,
             ),
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: brandColor.withValues(alpha: 0.25),
+              color: brandColor.withValues(alpha: isDark ? 0.25 : 0.12),
               border: Border.all(color: brandColor),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -586,17 +609,17 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   AppIcons.qrCode,
                   size: 16,
                   color: brandColor == GlassTheme.bakongRed
-                      ? Colors.redAccent
-                      : Colors.white,
+                      ? (isDark ? Colors.redAccent : GlassTheme.bakongRed)
+                      : primaryText,
                 ),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
                     providerTitle,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : brandColor,
                       fontSize: 13,
                     ),
                   ),
@@ -691,6 +714,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
   }
 
   Widget _buildLiveTimeCard() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final isLowTime = _secondsRemaining < 120;
     final progress = (_secondsRemaining / 900.0).clamp(0.0, 1.0);
 
@@ -759,22 +786,24 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.sensors,
                       size: 13,
                       color: GlassTheme.primaryGreen,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
                       'Live WebSocket',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: secondaryText,
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                       ),
@@ -790,7 +819,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             children: [
               Icon(
                 Icons.timer_outlined,
-                color: isLowTime ? Colors.redAccent : Colors.white,
+                color: isLowTime ? Colors.redAccent : primaryText,
                 size: 26,
               ),
               const SizedBox(width: 8),
@@ -800,7 +829,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.5,
-                  color: isLowTime ? Colors.redAccent : Colors.white,
+                  color: isLowTime ? Colors.redAccent : primaryText,
                 ),
               ),
             ],
@@ -811,7 +840,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 5,
-              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              backgroundColor: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.08),
               valueColor: AlwaysStoppedAnimation<Color>(
                 isLowTime ? Colors.redAccent : GlassTheme.primaryGreen,
               ),
@@ -824,7 +855,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                 : 'Scanned payment is verified automatically in real time.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isLowTime ? Colors.redAccent : Colors.white70,
+              color: isLowTime ? Colors.redAccent : secondaryText,
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -1079,6 +1110,48 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             width: double.infinity,
             height: 44,
             child: OutlinedButton.icon(
+              icon: const Icon(
+                Icons.copy_rounded,
+                size: 17,
+                color: GlassTheme.primaryGreen,
+              ),
+              label: const Text('Copy Payment Receipt TXT'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: () {
+                final receiptTxt = [
+                  '========================================',
+                  'FOODGO KHQR PAYMENT RECEIPT (PAID)',
+                  '========================================',
+                  'Order Number   : ${payment.orderReference != null ? "#${payment.orderReference}" : "#${payment.orderId}"}',
+                  'Transaction ID : ${payment.transactionId ?? payment.merchantReference ?? "CONFIRMED"}',
+                  'Amount Paid    : ${payment.currency} ${payment.amount.toStringAsFixed(2)} (~${KhmerCurrency.formatKhr(payment.amount)} KHR)',
+                  'Payment Rail   : ${payment.provider.toUpperCase()} KHQR',
+                  if (payment.paidAt != null)
+                    'Paid Timestamp : ${_formatTimestamp(payment.paidAt!)}',
+                  '========================================',
+                ].join('\n');
+                Clipboard.setData(ClipboardData(text: receiptTxt));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Payment receipt TXT copied to clipboard!'),
+                    backgroundColor: GlassTheme.primaryGreen,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton.icon(
               icon: const Icon(AppIcons.receipt, size: 18),
               label: const Text('View All Orders'),
               style: OutlinedButton.styleFrom(
@@ -1182,7 +1255,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         : (isAba ? GlassTheme.abaBlue : GlassTheme.acledaNavy);
     final String qrString =
         (payment.qrPayload != null && payment.qrPayload!.trim().isNotEmpty)
-        ? payment.qrPayload!.trim()
+        ? (PaymentModel.ensureDynamicKhqrExpiration(
+                payment.qrPayload!.trim(),
+                expiresAt: payment.expiresAt,
+              ) ??
+              payment.qrPayload!.trim())
         : '';
     final String? qrImageData =
         (payment.qrImage != null && payment.qrImage!.trim().isNotEmpty)
@@ -1572,17 +1649,19 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                     Clipboard.setData(
                                       ClipboardData(text: qrString),
                                     );
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'KHQR code payload copied to clipboard!',
+                                    ScaffoldMessenger.of(context)
+                                      ..hideCurrentSnackBar()
+                                      ..showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'KHQR code payload copied to clipboard!',
+                                          ),
+                                          backgroundColor:
+                                              GlassTheme.primaryGreen,
+                                          duration: Duration(seconds: 2),
+                                          behavior: SnackBarBehavior.floating,
                                         ),
-                                        backgroundColor:
-                                            GlassTheme.primaryGreen,
-                                        duration: Duration(seconds: 2),
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
+                                      );
                                   },
                                 ),
                                 const SizedBox(height: 8),
@@ -1627,65 +1706,138 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                   ),
                                 ),
 
-                                // Monospace Payload Box
+                                // Monospace Payload & Structured TLV Summary Box
                                 if (_showRawPayload) ...[
                                   const SizedBox(height: 10),
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black45,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.white12),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                  Builder(
+                                    builder: (context) {
+                                      final parsedTlv =
+                                          StructuredSummaryViewer.parseEmvcoKhqrSummary(
+                                            qrString,
+                                          );
+                                      return Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black45,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white12,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             const Text(
-                                              'EMVCo KHQR Payload:',
+                                              'Structured EMVCo KHQR Summary:',
                                               style: TextStyle(
-                                                color: Colors.white70,
+                                                color: GlassTheme.primaryGreen,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            Text(
-                                              '${qrString.length} chars',
-                                              style: TextStyle(
-                                                color: GlassTheme.textMuted,
-                                                fontSize: 11,
+                                            const SizedBox(height: 6),
+                                            ...parsedTlv.entries.map(
+                                              (entry) => Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 2,
+                                                    ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Flexible(
+                                                      flex: 2,
+                                                      child: Text(
+                                                        entry.key,
+                                                        style: TextStyle(
+                                                          color: GlassTheme
+                                                              .textMuted,
+                                                          fontSize: 11,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Flexible(
+                                                      flex: 3,
+                                                      child: SelectableText(
+                                                        entry.value,
+                                                        textAlign:
+                                                            TextAlign.right,
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
+                                            const Divider(
+                                              color: Colors.white12,
+                                              height: 16,
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                const Flexible(
+                                                  child: Text(
+                                                    'EMVCo KHQR Payload:',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  '${qrString.length} chars',
+                                                  style: TextStyle(
+                                                    color: GlassTheme.textMuted,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 6),
+                                            SelectableText(
+                                              qrString,
+                                              style: const TextStyle(
+                                                fontFamily: 'monospace',
+                                                fontSize: 11,
+                                                color: GlassTheme
+                                                    .primaryGreenAccent,
+                                              ),
+                                            ),
+                                            if (payment.merchantReference !=
+                                                null) ...[
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                'Merchant Ref: ${payment.merchantReference}',
+                                                style: TextStyle(
+                                                  color: GlassTheme.textMuted,
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
                                           ],
                                         ),
-                                        const SizedBox(height: 6),
-                                        SelectableText(
-                                          qrString,
-                                          style: const TextStyle(
-                                            fontFamily: 'monospace',
-                                            fontSize: 11,
-                                            color:
-                                                GlassTheme.primaryGreenAccent,
-                                          ),
-                                        ),
-                                        if (payment.merchantReference !=
-                                            null) ...[
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            'Merchant Ref: ${payment.merchantReference}',
-                                            style: TextStyle(
-                                              color: GlassTheme.textMuted,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ],

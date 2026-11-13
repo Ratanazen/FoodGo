@@ -179,6 +179,25 @@ class PaymentStatusView(APIView):
         if not request.user.is_staff and payment.order.customer != request.user:
             return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
 
+        # Sync upgraded Tag 99 dynamic KHQR payload if bound to the same merchant_reference
+        client_qr = request.data.get('qr_payload') if isinstance(request.data, dict) else None
+        if (
+            client_qr
+            and isinstance(client_qr, str)
+            and client_qr.startswith('000201010212')
+            and '99340013' in client_qr
+            and payment.merchant_reference
+            and payment.merchant_reference[:25] in client_qr
+            and payment.qr_payload != client_qr
+        ):
+            import hashlib
+            payment.qr_payload = client_qr
+            prov = dict(payment.provider_response or {})
+            prov['qr_string'] = client_qr
+            prov['md5'] = hashlib.md5(client_qr.encode('utf-8')).hexdigest()
+            payment.provider_response = prov
+            payment.save(update_fields=['qr_payload', 'provider_response'])
+
         # Authoritative status check: query provider implementation directly
         # Client request simulation flags are strictly rejected
         try:

@@ -149,9 +149,11 @@ class GlassTheme {
 
   // Text Colors
   static const Color textDark = Color(0xFF17201B);
+  static const Color textInverseDark = Color(0xFF111827);
   static const Color textMuted = Color(0xFF7B857F);
   static const Color textLight = Color(0xFFF3F6F4);
   static const Color textMutedLight = Color(0xFFA5ACA7);
+  static const Color errorRed = Color(0xFFEF4444);
 
   // Liquid Glass Design System
   static const double radius = 24.0;
@@ -222,6 +224,8 @@ class GlassTheme {
   );
 
   static BorderRadius get borderRadius => BorderRadius.circular(radius);
+  static BorderRadius get borderRadiusLarge =>
+      BorderRadius.circular(AppRadius.large);
   static BorderRadius get borderRadiusMedium =>
       BorderRadius.circular(AppRadius.medium);
   static BorderRadius get borderRadiusSmall => BorderRadius.circular(16.0);

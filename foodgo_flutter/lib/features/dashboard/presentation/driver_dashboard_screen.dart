@@ -548,7 +548,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               ),
                             ),
                             Text(
-                              'Collect \$${order['total_amount']} cash from customer',
+                              'Collect \$${order['total_amount']} (≈ ${KhmerCurrency.formatKhr(double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0)}) cash from customer',
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 12,
@@ -1025,6 +1025,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   Widget _buildHeaderCard() {
+    final rating = (_driverProfile?['rating'] as num?)?.toDouble() ?? 4.9;
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: GlassTheme.borderRadiusSmall,
@@ -1032,9 +1033,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                      GlassTheme.primaryGreen.withValues(alpha: 0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
+                ),
                 child: const Icon(
                   Icons.two_wheeler,
                   color: GlassTheme.primaryGreen,
@@ -1048,18 +1064,57 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          _driverProfile?['full_name'] ??
-                              _driverProfile?['username'] ??
-                              'FoodGo Driver',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        Flexible(
+                          child: Text(
+                            _driverProfile?['full_name'] ??
+                                _driverProfile?['username'] ??
+                                'FoodGo Driver',
+                            style: TextStyle(
+                              color: AppTypography.primaryTextColor(
+                                Theme.of(context).brightness,
+                              ),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: Colors.amber.withValues(alpha: 0.4),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 11,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         if (!_isApproved) ...[
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -1084,8 +1139,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     const SizedBox(height: 2),
                     Text(
                       '${_driverProfile?['vehicle_type'] ?? 'Motorcycle'} · ${_driverProfile?['license_plate'] ?? 'PP-2026'}',
-                      style: const TextStyle(
-                        color: Colors.white60,
+                      style: TextStyle(
+                        color: AppTypography.secondaryTextColor(
+                          Theme.of(context).brightness,
+                        ),
                         fontSize: 12,
                       ),
                     ),
@@ -1109,15 +1166,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: GlassTheme.primaryGreen,
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.6,
+                            ),
+                            blurRadius: 6,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Text(
                       context.tr('driver.onlineAvailable'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: GlassTheme.primaryGreen,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1128,15 +1194,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 TextButton.icon(
                   style: TextButton.styleFrom(
                     foregroundColor: GlassTheme.primaryGreen,
+                    backgroundColor: GlassTheme.primaryGreen.withValues(
+                      alpha: 0.1,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                      ),
+                    ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
+                      horizontal: 10,
+                      vertical: 4,
                     ),
                   ),
                   icon: const Icon(Icons.my_location, size: 14),
                   label: const Text(
                     'Broadcast Location',
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                   onPressed: _broadcastLocation,
                 ),
@@ -1149,6 +1224,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   Widget _buildTabSelector() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final tabs = [
       {
         'title':
@@ -1167,9 +1246,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
+        color: isDark
+            ? Colors.black.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(
+          color: isDark ? Colors.white10 : GlassTheme.borderLight,
+        ),
       ),
       child: Row(
         children: List.generate(tabs.length, (index) {
@@ -1184,7 +1267,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   color: isSelected
                       ? Theme.of(
                           context,
-                        ).colorScheme.primary.withValues(alpha: 0.25)
+                        ).colorScheme.primary.withValues(alpha: isDark ? 0.25 : 0.12)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                   border: isSelected
@@ -1203,7 +1286,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       size: 16,
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
-                          : Colors.white60,
+                          : secondaryText,
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -1212,8 +1295,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         fontSize: 11,
                         fontWeight: isSelected
                             ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isSelected ? Colors.white : Colors.white60,
+                            : FontWeight.w500,
+                        color: isSelected ? primaryText : secondaryText,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1260,10 +1343,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 color: GlassTheme.textMuted.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'No Active Deliveries',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppTypography.primaryTextColor(
+                    Theme.of(context).brightness,
+                  ),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1662,12 +1747,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '+\$$deliveryFee (Total: \$$totalAmount)',
+                    '+\$$deliveryFee ≈ ${KhmerCurrency.formatKhr(double.tryParse(deliveryFee) ?? 2.0)}',
                     style: const TextStyle(
                       color: GlassTheme.primaryGreen,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
+                  ),
+                  Text(
+                    'Order Total: \$$totalAmount',
+                    style: const TextStyle(color: Colors.white54, fontSize: 11),
                   ),
                 ],
               ),
@@ -1708,80 +1797,115 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     if (status == 'arrived' || status == 'driver_arrived') currentStepIndex = 3;
     if (status == 'delivered') currentStepIndex = 4;
 
-    return Row(
-      children: List.generate(steps.length, (i) {
-        final isCompleted = i <= currentStepIndex;
-        final isCurrent = i == currentStepIndex;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Row(
+        children: List.generate(steps.length, (i) {
+          final isCompleted = i <= currentStepIndex;
+          final isCurrent = i == currentStepIndex;
 
-        return Expanded(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  if (i > 0)
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        color: i <= currentStepIndex
-                            ? GlassTheme.primaryGreen
-                            : Colors.white12,
+          return Expanded(
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    if (i > 0)
+                      Expanded(
+                        child: Container(
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: i <= currentStepIndex
+                                ? GlassTheme.primaryGreen
+                                : Colors.white12,
+                            borderRadius: BorderRadius.circular(1.5),
+                          ),
+                        ),
                       ),
-                    ),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: isCompleted
-                          ? GlassTheme.primaryGreen
-                          : Colors.white12,
-                      shape: BoxShape.circle,
-                      border: isCurrent
-                          ? Border.all(color: Colors.white, width: 2)
-                          : null,
-                    ),
-                    child: Center(
-                      child: isCompleted
-                          ? const Icon(
-                              Icons.check,
-                              size: 12,
-                              color: Colors.black,
-                            )
-                          : Text(
-                              '${i + 1}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.white60,
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? GlassTheme.primaryGreen
+                            : Colors.white.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                        border: isCurrent
+                            ? Border.all(color: Colors.white, width: 2)
+                            : Border.all(
+                                color: isCompleted
+                                    ? GlassTheme.primaryGreen
+                                    : Colors.white24,
+                                width: 1,
                               ),
-                            ),
-                    ),
-                  ),
-                  if (i < steps.length - 1)
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        color: i < currentStepIndex
-                            ? GlassTheme.primaryGreen
-                            : Colors.white12,
+                        boxShadow: isCurrent
+                            ? [
+                                BoxShadow(
+                                  color: GlassTheme.primaryGreen.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check,
+                                size: 14,
+                                color: Colors.black,
+                              )
+                            : Text(
+                                '${i + 1}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white60,
+                                ),
+                              ),
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                steps[i]['label']!,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                  color: isCurrent ? Colors.white : Colors.white54,
+                    if (i < steps.length - 1)
+                      Expanded(
+                        child: Container(
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: i < currentStepIndex
+                                ? GlassTheme.primaryGreen
+                                : Colors.white12,
+                            borderRadius: BorderRadius.circular(1.5),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        );
-      }),
+                const SizedBox(height: 6),
+                Text(
+                  steps[i]['label']!,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                    color: isCurrent
+                        ? Colors.white
+                        : (isCompleted
+                              ? GlassTheme.primaryGreen
+                              : Colors.white54),
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 
@@ -2180,12 +2304,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       style: TextStyle(color: Colors.white60, fontSize: 11),
                     ),
                     Text(
-                      '+\$$deliveryFee (Order: \$$totalAmount)',
+                      '+\$$deliveryFee ≈ ${KhmerCurrency.formatKhr(double.tryParse(deliveryFee) ?? 2.0)}',
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: GlassTheme.primaryGreen,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      'Order: \$$totalAmount',
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 11,
                       ),
                     ),
                   ],
@@ -2357,6 +2488,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      Text(
+                        '≈ ${KhmerCurrency.formatKhr(_totalEarningsUsd)}',
+                        style: TextStyle(
+                          color: GlassTheme.primaryGreen.withValues(alpha: 0.8),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
                       const Text(
                         'Lifetime Earned',
                         style: TextStyle(color: Colors.white60, fontSize: 11),

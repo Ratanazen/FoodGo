@@ -4,7 +4,7 @@ import '../services/api_service.dart';
 class AdminProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  bool _isLoading = false;
+  int _activeRequests = 0;
   String? _errorMessage;
 
   Map<String, dynamic>? _analytics;
@@ -24,8 +24,27 @@ class AdminProvider with ChangeNotifier {
   String _paymentStatusFilter = 'all';
   String _paymentSearchQuery = '';
 
-  bool get isLoading => _isLoading;
+  List<dynamic> _drivers = [];
+  String _driverFilter = 'all';
+  String _driverSearchQuery = '';
+
+  bool get isLoading => _activeRequests > 0;
   String? get errorMessage => _errorMessage;
+
+  Future<void> _trackRequest(
+    Future<void> Function() action, {
+    bool clearError = true,
+  }) async {
+    _activeRequests++;
+    if (clearError) _errorMessage = null;
+    notifyListeners();
+    try {
+      await action();
+    } finally {
+      _activeRequests = (_activeRequests - 1).clamp(0, 999);
+      notifyListeners();
+    }
+  }
 
   Map<String, dynamic>? get analytics => _analytics;
   String get selectedPeriod => _selectedPeriod;
@@ -45,122 +64,107 @@ class AdminProvider with ChangeNotifier {
   String get paymentStatusFilter => _paymentStatusFilter;
   String get paymentSearchQuery => _paymentSearchQuery;
 
+  List<dynamic> get drivers => _drivers;
+  String get driverFilter => _driverFilter;
+  String get driverSearchQuery => _driverSearchQuery;
+
   Future<void> fetchAnalytics({String? period}) async {
     if (period != null) _selectedPeriod = period;
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final res = await _apiService.get(
-        'admin/analytics/?period=$_selectedPeriod',
-      );
-      if (res is Map<String, dynamic>) {
-        _analytics = res;
+    await _trackRequest(() async {
+      try {
+        final res = await _apiService.get(
+          'admin/analytics/?period=$_selectedPeriod',
+        );
+        if (res is Map<String, dynamic>) {
+          _analytics = res;
+        }
+      } catch (e) {
+        debugPrint('Admin analytics error: $e');
+        _errorMessage = 'Failed to load analytics: ${ApiService.formatError(e)}';
       }
-    } catch (e) {
-      debugPrint('Admin analytics error: $e');
-      _errorMessage = 'Failed to load analytics: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    });
   }
 
   Future<void> fetchOrders({String? status, String? search}) async {
     if (status != null) _orderStatusFilter = status;
     if (search != null) _orderSearchQuery = search;
 
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      String endpoint = 'admin/orders/?status=$_orderStatusFilter';
-      if (_orderSearchQuery.isNotEmpty) {
-        endpoint += '&search=${Uri.encodeComponent(_orderSearchQuery)}';
+    await _trackRequest(() async {
+      try {
+        String endpoint = 'admin/orders/?status=$_orderStatusFilter';
+        if (_orderSearchQuery.isNotEmpty) {
+          endpoint += '&search=${Uri.encodeComponent(_orderSearchQuery)}';
+        }
+        final res = await _apiService.get(endpoint);
+        if (res is List) {
+          _orders = res;
+        } else if (res is Map && res['results'] is List) {
+          _orders = res['results'];
+        }
+      } catch (e) {
+        debugPrint('Admin fetch orders error: $e');
+        _errorMessage = 'Failed to load orders: ${ApiService.formatError(e)}';
       }
-      final res = await _apiService.get(endpoint);
-      if (res is List) {
-        _orders = res;
-      } else if (res is Map && res['results'] is List) {
-        _orders = res['results'];
-      }
-    } catch (e) {
-      debugPrint('Admin fetch orders error: $e');
-      _errorMessage = 'Failed to load orders: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    });
   }
 
   Future<bool> assignDriver(int orderId, int driverId) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _apiService.post('admin/orders/$orderId/assign_driver/', {
-        'driver_id': driverId,
-      });
-      await fetchOrders();
-      await fetchAnalytics();
-      return true;
-    } catch (e) {
-      debugPrint('Admin assign driver error: $e');
-      _errorMessage = 'Failed to assign driver: $e';
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    bool ok = false;
+    await _trackRequest(() async {
+      try {
+        await _apiService.post('admin/orders/$orderId/assign_driver/', {
+          'driver_id': driverId,
+        });
+        await fetchOrders();
+        await fetchAnalytics();
+        ok = true;
+      } catch (e) {
+        debugPrint('Admin assign driver error: $e');
+        _errorMessage = 'Failed to assign driver: ${ApiService.formatError(e)}';
+      }
+    }, clearError: false);
+    return ok;
   }
 
   Future<bool> cancelOrder(int orderId, String reason) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _apiService.post('admin/orders/$orderId/cancel_order/', {
-        'cancellation_reason': reason,
-      });
-      await fetchOrders();
-      await fetchAnalytics();
-      return true;
-    } catch (e) {
-      debugPrint('Admin cancel order error: $e');
-      _errorMessage = 'Failed to cancel order: $e';
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    bool ok = false;
+    await _trackRequest(() async {
+      try {
+        await _apiService.post('admin/orders/$orderId/cancel_order/', {
+          'cancellation_reason': reason,
+        });
+        await fetchOrders();
+        await fetchAnalytics();
+        ok = true;
+      } catch (e) {
+        debugPrint('Admin cancel order error: $e');
+        _errorMessage = 'Failed to cancel order: ${ApiService.formatError(e)}';
+      }
+    }, clearError: false);
+    return ok;
   }
 
   Future<void> fetchUsers({String? role, String? search}) async {
     if (role != null) _userRoleFilter = role;
     if (search != null) _userSearchQuery = search;
 
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      String endpoint = 'admin/users/?role=$_userRoleFilter';
-      if (_userSearchQuery.isNotEmpty) {
-        endpoint += '&search=${Uri.encodeComponent(_userSearchQuery)}';
+    await _trackRequest(() async {
+      try {
+        String endpoint = 'admin/users/?role=$_userRoleFilter';
+        if (_userSearchQuery.isNotEmpty) {
+          endpoint += '&search=${Uri.encodeComponent(_userSearchQuery)}';
+        }
+        final res = await _apiService.get(endpoint);
+        if (res is List) {
+          _users = res;
+        } else if (res is Map && res['results'] is List) {
+          _users = res['results'];
+        }
+      } catch (e) {
+        debugPrint('Admin fetch users error: $e');
+        _errorMessage = 'Failed to load users: ${ApiService.formatError(e)}';
       }
-      final res = await _apiService.get(endpoint);
-      if (res is List) {
-        _users = res;
-      } else if (res is Map && res['results'] is List) {
-        _users = res['results'];
-      }
-    } catch (e) {
-      debugPrint('Admin fetch users error: $e');
-      _errorMessage = 'Failed to load users: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    });
   }
 
   Future<bool> toggleUserStatus(int userId) async {
@@ -171,34 +175,31 @@ class AdminProvider with ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Admin toggle user error: $e');
-      _errorMessage = 'Failed to update user status: $e';
+      _errorMessage =
+          'Failed to update user status: ${ApiService.formatError(e)}';
       return false;
     }
   }
 
   Future<void> fetchRestaurants({String? search}) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      String endpoint = 'admin/restaurants/';
-      if (search != null && search.isNotEmpty) {
-        endpoint += '?search=${Uri.encodeComponent(search)}';
+    await _trackRequest(() async {
+      try {
+        String endpoint = 'admin/restaurants/';
+        if (search != null && search.isNotEmpty) {
+          endpoint += '?search=${Uri.encodeComponent(search)}';
+        }
+        final res = await _apiService.get(endpoint);
+        if (res is List) {
+          _restaurants = res;
+        } else if (res is Map && res['results'] is List) {
+          _restaurants = res['results'];
+        }
+      } catch (e) {
+        debugPrint('Admin fetch restaurants error: $e');
+        _errorMessage =
+            'Failed to load restaurants: ${ApiService.formatError(e)}';
       }
-      final res = await _apiService.get(endpoint);
-      if (res is List) {
-        _restaurants = res;
-      } else if (res is Map && res['results'] is List) {
-        _restaurants = res['results'];
-      }
-    } catch (e) {
-      debugPrint('Admin fetch restaurants error: $e');
-      _errorMessage = 'Failed to load restaurants: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    });
   }
 
   Future<bool> toggleRestaurantStatus(int restaurantId) async {
@@ -212,79 +213,127 @@ class AdminProvider with ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Admin toggle restaurant error: $e');
-      _errorMessage = 'Failed to update restaurant status: $e';
+      _errorMessage =
+          'Failed to update restaurant status: ${ApiService.formatError(e)}';
       return false;
     }
   }
 
   Future<void> fetchAuditLogs() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final res = await _apiService.get('admin/audit-logs/');
-      if (res is List) {
-        _auditLogs = res;
-      } else if (res is Map && res['results'] is List) {
-        _auditLogs = res['results'];
+    await _trackRequest(() async {
+      try {
+        final res = await _apiService.get('admin/audit-logs/');
+        if (res is List) {
+          _auditLogs = res;
+        } else if (res is Map && res['results'] is List) {
+          _auditLogs = res['results'];
+        }
+      } catch (e) {
+        debugPrint('Admin fetch audit logs error: $e');
+        _errorMessage = 'Failed to load audit logs: ${ApiService.formatError(e)}';
       }
-    } catch (e) {
-      debugPrint('Admin fetch audit logs error: $e');
-      _errorMessage = 'Failed to load audit logs: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    });
   }
 
   Future<void> fetchPayments({String? status, String? search}) async {
     if (status != null) _paymentStatusFilter = status;
     if (search != null) _paymentSearchQuery = search;
 
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      String endpoint = 'admin/payments/?status=$_paymentStatusFilter';
-      if (_paymentSearchQuery.isNotEmpty) {
-        endpoint += '&search=${Uri.encodeComponent(_paymentSearchQuery)}';
+    await _trackRequest(() async {
+      try {
+        String endpoint = 'admin/payments/?status=$_paymentStatusFilter';
+        if (_paymentSearchQuery.isNotEmpty) {
+          endpoint += '&search=${Uri.encodeComponent(_paymentSearchQuery)}';
+        }
+        final res = await _apiService.get(endpoint);
+        if (res is List) {
+          _payments = res;
+        } else if (res is Map && res['results'] is List) {
+          _payments = res['results'];
+        }
+      } catch (e) {
+        debugPrint('Admin fetch payments error: $e');
+        _errorMessage = 'Failed to load payments: ${ApiService.formatError(e)}';
       }
-      final res = await _apiService.get(endpoint);
-      if (res is List) {
-        _payments = res;
-      } else if (res is Map && res['results'] is List) {
-        _payments = res['results'];
-      }
-    } catch (e) {
-      debugPrint('Admin fetch payments error: $e');
-      _errorMessage = 'Failed to load payments: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    });
   }
 
   Future<bool> refundPayment(int paymentId, {String? reason}) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+    bool ok = false;
+    await _trackRequest(() async {
+      try {
+        await _apiService.post('admin/payments/$paymentId/refund/', {
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+        });
+        await fetchPayments();
+        await fetchAnalytics();
+        ok = true;
+      } catch (e) {
+        debugPrint('Admin refund payment error: $e');
+        _errorMessage = 'Failed to process refund: ${ApiService.formatError(e)}';
+      }
+    });
+    return ok;
+  }
 
+  Future<void> fetchDrivers({String? filter, String? search}) async {
+    if (filter != null) _driverFilter = filter;
+    if (search != null) _driverSearchQuery = search;
+
+    await _trackRequest(() async {
+      try {
+        String endpoint = 'admin/drivers/';
+        final params = <String>[];
+        if (_driverFilter == 'online') {
+          params.add('online=true');
+        } else if (_driverFilter == 'offline') {
+          params.add('online=false');
+        } else if (_driverFilter == 'pending') {
+          params.add('approved=false');
+        }
+        if (_driverSearchQuery.isNotEmpty) {
+          params.add('search=${Uri.encodeComponent(_driverSearchQuery)}');
+        }
+        if (params.isNotEmpty) {
+          endpoint += '?${params.join('&')}';
+        }
+
+        final res = await _apiService.get(endpoint);
+        if (res is List) {
+          _drivers = res;
+        } else if (res is Map && res['results'] is List) {
+          _drivers = res['results'];
+        }
+      } catch (e) {
+        debugPrint('Admin fetch drivers error: $e');
+        _errorMessage = 'Failed to load drivers: ${ApiService.formatError(e)}';
+      }
+    });
+  }
+
+  Future<bool> approveDriver(int driverId) async {
     try {
-      await _apiService.post('admin/payments/$paymentId/refund/', {
-        if (reason != null && reason.isNotEmpty) 'reason': reason,
-      });
-      await fetchPayments();
+      await _apiService.post('admin/drivers/$driverId/approve/', {});
+      await fetchDrivers();
       await fetchAnalytics();
       return true;
     } catch (e) {
-      debugPrint('Admin refund payment error: $e');
-      _errorMessage = 'Failed to process refund: $e';
+      debugPrint('Admin approve driver error: $e');
+      _errorMessage = 'Failed to approve driver: ${ApiService.formatError(e)}';
       return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+    }
+  }
+
+  Future<bool> suspendDriver(int driverId) async {
+    try {
+      await _apiService.post('admin/drivers/$driverId/suspend/', {});
+      await fetchDrivers();
+      await fetchAnalytics();
+      return true;
+    } catch (e) {
+      debugPrint('Admin suspend driver error: $e');
+      _errorMessage = 'Failed to suspend driver: ${ApiService.formatError(e)}';
+      return false;
     }
   }
 }

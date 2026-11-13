@@ -1704,11 +1704,26 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
           // Nutrition / Tags row
           Row(
             children: [
-              _buildTagChip('★ 4.9 (320)', isDark: isDark, staged: staged),
+              _buildTagChip(
+                '4.9 (320)',
+                icon: Icons.star_rounded,
+                isDark: isDark,
+                staged: staged,
+              ),
               const SizedBox(width: 6),
-              _buildTagChip('⏱️ 15-20 min', isDark: isDark, staged: staged),
+              _buildTagChip(
+                '15-20 min',
+                icon: Icons.schedule_rounded,
+                isDark: isDark,
+                staged: staged,
+              ),
               const SizedBox(width: 6),
-              _buildTagChip('🔥 450 kcal', isDark: isDark, staged: staged),
+              _buildTagChip(
+                '450 kcal',
+                icon: Icons.local_fire_department_rounded,
+                isDark: isDark,
+                staged: staged,
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1817,22 +1832,33 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
 
   Widget _buildTagChip(
     String label, {
+    IconData? icon,
     required bool isDark,
     required PaletteData staged,
   }) {
+    final textColor = isDark ? Colors.white70 : Colors.black87;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
         color: staged.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w600,
-          color: isDark ? Colors.white70 : Colors.black87,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 11, color: staged.primary),
+            const SizedBox(width: 3),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
       ),
     );
   }

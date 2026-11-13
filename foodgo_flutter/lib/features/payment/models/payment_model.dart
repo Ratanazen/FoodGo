@@ -35,7 +35,121 @@ class PaymentModel {
     this.paidAt,
   });
 
+  static String crc16Ccitt(String data) {
+    int crc = 0xFFFF;
+    for (int i = 0; i < data.length; i++) {
+      crc ^= (data.codeUnitAt(i) & 0xFF) << 8;
+      for (int b = 0; b < 8; b++) {
+        if ((crc & 0x8000) != 0) {
+          crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+        } else {
+          crc = (crc << 1) & 0xFFFF;
+        }
+      }
+    }
+    return crc.toRadixString(16).toUpperCase().padLeft(4, '0');
+  }
+
+  /// Ensures any dynamic EMVCo KHQR string ('000201010212...6304XXXX') includes
+  /// NBC Bakong Tag 99 (Creation & Expiration Timestamp in milliseconds) and
+  /// compliant Individual Account Tag 29 ('29200016sonar_seang@bkrt').
+  /// If the server already included Tag 99, returns [rawPayload] unchanged.
+  static String? ensureDynamicKhqrExpiration(
+    String? rawPayload, {
+    DateTime? expiresAt,
+  }) {
+    if (rawPayload == null || rawPayload.isEmpty) return rawPayload;
+    final trimmed = rawPayload.trim();
+    if (!trimmed.startsWith('000201010212') || trimmed.length < 30) {
+      return rawPayload;
+    }
+    final crcSuffixPattern = RegExp(r'6304[0-9A-Fa-f]{4}$');
+    if (!crcSuffixPattern.hasMatch(trimmed)) {
+      return rawPayload;
+    }
+    final validTag99Pattern = RegExp(
+      r'99340013\d{13}0113\d{13}6304[0-9A-Fa-f]{4}$',
+    );
+    if (validTag99Pattern.hasMatch(trimmed) &&
+        !trimmed.contains('0011bakong@khqr')) {
+      return trimmed;
+    }
+
+    // Strip trailing '6304XXXX'
+    String body = trimmed.substring(0, trimmed.length - 8);
+    // Remove any existing Tag 99 right before 6304 if present
+    body = body.replaceFirst(RegExp(r'99340013\d{13}0113\d{13}$'), '');
+
+    // Upgrade legacy Tag 29 (at offset 12 right after '000201010212') using its exact TLV length
+    if (body.length > 16 && body.substring(12, 14) == '29') {
+      final int? tag29Len = int.tryParse(body.substring(14, 16));
+      if (tag29Len != null && body.length >= 16 + tag29Len) {
+        final String tag29Val = body.substring(16, 16 + tag29Len);
+        if (tag29Val.startsWith('0011bakong@khqr') ||
+            tag29Val.startsWith('0016abaakhppxxx@abaa') ||
+            tag29Val.startsWith('0020acledakhppxxx@acleda')) {
+          String targetAcct = 'sonar_seang@bkrt';
+          // Extract sub-tag 01 if it has an @-qualified Bakong account ID
+          final int sub00Len = int.tryParse(tag29Val.substring(2, 4)) ?? 0;
+          final int sub01Start = 4 + sub00Len;
+          if (tag29Val.length >= sub01Start + 4 &&
+              tag29Val.substring(sub01Start, sub01Start + 2) == '01') {
+            final int sub01Len =
+                int.tryParse(
+                  tag29Val.substring(sub01Start + 2, sub01Start + 4),
+                ) ??
+                0;
+            if (tag29Val.length >= sub01Start + 4 + sub01Len) {
+              final String candidate = tag29Val.substring(
+                sub01Start + 4,
+                sub01Start + 4 + sub01Len,
+              );
+              if (candidate.contains('@')) {
+                targetAcct = candidate;
+              }
+            }
+          }
+          final String sub00 =
+              '00${targetAcct.length.toString().padLeft(2, '0')}$targetAcct';
+          final String newTag29 =
+              '29${sub00.length.toString().padLeft(2, '0')}$sub00';
+          body =
+              body.substring(0, 12) + newTag29 + body.substring(16 + tag29Len);
+        }
+      }
+    }
+
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+    final int expMs =
+        (expiresAt != null &&
+            expiresAt.millisecondsSinceEpoch > nowMs + 60 * 1000)
+        ? expiresAt.millisecondsSinceEpoch
+        : nowMs + 30 * 60 * 1000;
+    final String nowStr = nowMs.toString();
+    final String expStr = expMs.toString();
+    final String tag99Val =
+        '00${nowStr.length.toString().padLeft(2, '0')}$nowStr'
+        '01${expStr.length.toString().padLeft(2, '0')}$expStr';
+    final String tag99 =
+        '99${tag99Val.length.toString().padLeft(2, '0')}$tag99Val';
+
+    final String withoutCrc = '$body${tag99}6304';
+    final String crc = crc16Ccitt(withoutCrc);
+    return '$withoutCrc$crc';
+  }
+
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
+    final parsedExpiresAt = json['expires_at'] != null
+        ? DateTime.tryParse(json['expires_at'])
+        : null;
+    final rawQrPayload =
+        (json['qr_payload'] ??
+                json['qr_string'] ??
+                (json['provider_response'] is Map
+                    ? json['provider_response']['qr_string'] ??
+                          json['provider_response']['qr_payload']
+                    : null))
+            ?.toString();
     return PaymentModel(
       id: json['id'] is int
           ? json['id']
@@ -61,22 +175,17 @@ class PaymentModel {
           : null,
       amount: double.tryParse(json['amount']?.toString() ?? '') ?? 0.0,
       currency: json['currency'] ?? 'USD',
-      qrPayload:
-          json['qr_payload'] ??
-          json['qr_string'] ??
-          (json['provider_response'] is Map
-              ? json['provider_response']['qr_string'] ??
-                    json['provider_response']['qr_payload']
-              : null),
+      qrPayload: ensureDynamicKhqrExpiration(
+        rawQrPayload,
+        expiresAt: parsedExpiresAt,
+      ),
       qrImage:
           json['qr_image'] ??
           (json['provider_response'] is Map
               ? json['provider_response']['qr_image']
               : null),
       status: json['status'] ?? 'PENDING',
-      expiresAt: json['expires_at'] != null
-          ? DateTime.tryParse(json['expires_at'])
-          : null,
+      expiresAt: parsedExpiresAt,
       paidAt: json['paid_at'] != null
           ? DateTime.tryParse(json['paid_at'])
           : null,

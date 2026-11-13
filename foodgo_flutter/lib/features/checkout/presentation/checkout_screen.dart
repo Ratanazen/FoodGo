@@ -27,8 +27,7 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String _selectedProvider =
-      'BAKONG'; // 'BAKONG', 'CARD', 'COD', 'WALLET'
+  String _selectedProvider = 'BAKONG'; // 'BAKONG', 'CARD', 'COD', 'WALLET'
   bool _isProcessing = false;
   int? _selectedDriverId; // null = Auto-assign fastest driver
   List<Map<String, dynamic>> _availableDrivers = [];
@@ -43,14 +42,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       TextEditingController();
 
   // Card Payment Controllers
-  final TextEditingController _cardNumberController =
-      TextEditingController(text: '4242 4242 4242 4242');
-  final TextEditingController _cardHolderController =
-      TextEditingController(text: 'FoodGo Customer');
-  final TextEditingController _cardExpiryController =
-      TextEditingController(text: '12/28');
-  final TextEditingController _cardCvvController =
-      TextEditingController(text: '888');
+  final TextEditingController _cardNumberController = TextEditingController(
+    text: '4242 4242 4242 4242',
+  );
+  final TextEditingController _cardHolderController = TextEditingController(
+    text: 'FoodGo Customer',
+  );
+  final TextEditingController _cardExpiryController = TextEditingController(
+    text: '12/28',
+  );
+  final TextEditingController _cardCvvController = TextEditingController(
+    text: '888',
+  );
   String _cardBrand = 'Visa';
 
   final ApiService _api = ApiService();
@@ -541,7 +544,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     if (_selectedProvider == 'CARD') {
-      final cleanNum = _cardNumberController.text.replaceAll(RegExp(r'\s+'), '');
+      final cleanNum = _cardNumberController.text.replaceAll(
+        RegExp(r'\s+'),
+        '',
+      );
       if (cleanNum.length < 12) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -593,7 +599,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           value is int ? value : int.tryParse(value?.toString() ?? '');
 
       // 2. Resilient restaurant lookup
-      int? candidateRestId = cart.restaurantId ??
+      int? candidateRestId =
+          cart.restaurantId ??
           (cart.items.isNotEmpty ? cart.items.values.first.restaurantId : null);
 
       Map<String, dynamic>? liveRestaurant;
@@ -672,21 +679,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
 
-      final List<Map<String, dynamic>> itemsPayload = cart.items.values
-          .map((entry) {
-            int finalId = entry.id;
-            if (!menuFoodIds.contains(finalId)) {
-              final mapped = menuNameToId[entry.name.toLowerCase().trim()];
-              if (mapped != null) {
-                finalId = mapped;
-              }
-            }
-            return <String, dynamic>{
-              'food_item': finalId,
-              'quantity': entry.quantity,
-            };
-          })
-          .toList();
+      final List<Map<String, dynamic>> itemsPayload = cart.items.values.map((
+        entry,
+      ) {
+        int finalId = entry.id;
+        if (!menuFoodIds.contains(finalId)) {
+          final mapped = menuNameToId[entry.name.toLowerCase().trim()];
+          if (mapped != null) {
+            finalId = mapped;
+          }
+        }
+        return <String, dynamic>{
+          'food_item': finalId,
+          'quantity': entry.quantity,
+        };
+      }).toList();
 
       final selectedAddr = addressProvider.selectedAddress;
 
@@ -727,9 +734,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 .length >=
                             4
                         ? _cardNumberController.text
-                                .replaceAll(RegExp(r'\s+'), '')
-                                .length -
-                            4
+                                  .replaceAll(RegExp(r'\s+'), '')
+                                  .length -
+                              4
                         : 0,
                   ),
               'card_brand': _cardBrand,
@@ -769,8 +776,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     _selectedProvider == 'CARD'
                         ? 'Payment authorized successfully! Order #$orderId confirmed.'
                         : (_selectedProvider == 'COD'
-                            ? 'Order #$orderId placed with Cash on Delivery!'
-                            : 'Paid from FoodGo balance! Order #$orderId confirmed.'),
+                              ? 'Order #$orderId placed with Cash on Delivery!'
+                              : 'Paid from FoodGo balance! Order #$orderId confirmed.'),
                   ),
                 ),
               ],
@@ -788,32 +795,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);
-        String errorMsg = e.toString();
+        String errorMsg = ApiService.formatError(e);
         bool isAuthError = false;
-        if (e is DioException) {
-          if (e.response?.statusCode == 401 ||
-              e.message?.contains('refresh token') == true ||
-              e.message?.contains('Unauthorized') == true) {
-            isAuthError = true;
-            errorMsg = 'Session expired. Please sign in to place your order.';
-          } else {
-            final resData = e.response?.data;
-            if (resData is Map) {
-              final parts = <String>[];
-              resData.forEach((key, val) {
-                if (val is List) {
-                  parts.add('$key: ${val.join(", ")}');
-                } else {
-                  parts.add('$key: $val');
-                }
-              });
-              if (parts.isNotEmpty) {
-                errorMsg = parts.join(' | ');
-              }
-            } else if (resData is String && resData.isNotEmpty) {
-              errorMsg = resData;
-            }
-          }
+        if (e is DioException &&
+            (e.response?.statusCode == 401 ||
+                e.message?.contains('refresh token') == true ||
+                e.message?.contains('Unauthorized') == true)) {
+          isAuthError = true;
+          errorMsg = 'Session expired. Please sign in to place your order.';
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1451,8 +1440,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // 1. Bakong KHQR Option (NBC Universal Bank Rail - ONLY Bank Option)
               _PaymentOptionTile(
                 title: 'Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)',
-                subtitle:
-                    'Scan with Bakong or any Cambodian bank in USD / KHR',
+                subtitle: 'Scan with Bakong or any Cambodian bank in USD / KHR',
                 svgAsset: 'bakong_logo',
                 iconColor: GlassTheme.bakongRed,
                 badge: 'NBC KHQR',
@@ -1651,7 +1639,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     '${context.tr('payment.payWithWallet')} (\$${total.toStringAsFixed(2)})';
                 buttonIcon = AppIcons.fastDelivery;
               } else if (_selectedProvider == 'COD') {
-                buttonText = 'Place Order (COD) • \$${total.toStringAsFixed(2)}';
+                buttonText =
+                    'Place Order (COD) • \$${total.toStringAsFixed(2)}';
                 buttonIcon = AppIcons.delivery;
               } else if (_selectedProvider == 'CARD') {
                 buttonText =
@@ -1807,10 +1796,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF131D24) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: primary.withValues(alpha: 0.3),
-          width: 1.2,
-        ),
+        border: Border.all(color: primary.withValues(alpha: 0.3), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1822,7 +1808,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+                colors: [
+                  Color(0xFF0F2027),
+                  Color(0xFF203A43),
+                  Color(0xFF2C5364),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -1981,13 +1971,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Card Details',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              const Expanded(
+                child: Text(
+                  'Card Details',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: _autofillTestCard,
@@ -2002,6 +1993,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     border: Border.all(color: primary.withValues(alpha: 0.3)),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.bolt_rounded, size: 14, color: primary),
                       const SizedBox(width: 4),
@@ -2095,10 +2087,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Flexible(
                 child: Text(
                   'Encrypted and processed via 256-bit TLS secure gateway.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: GlassTheme.textMuted,
-                  ),
+                  style: TextStyle(fontSize: 11, color: GlassTheme.textMuted),
                 ),
               ),
             ],
@@ -2190,10 +2179,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               children: [
                 const Text(
                   'Cash on Delivery Selected',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13.5,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                 ),
                 const SizedBox(height: 3),
                 Text(

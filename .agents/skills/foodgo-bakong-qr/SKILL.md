@@ -35,12 +35,13 @@ When a customer reports that a KHQR code is missing, unreadable, or failing:
 1. **Backend Payload Generation**:
    - Verify that `BakongKHQRProvider.generate_khqr()` returned a valid EMVCo dynamic KHQR string.
    - Tag 00 (Payload Format Indicator): `"01"`
-   - Tag 01 (Point of Initiation Method): `"12"` (Dynamic)
-   - Tag 29 (Merchant Account Information): Must contain Sub-tag 00 (`"bakong@khqr"`) and Sub-tag 01 (`account_id`, e.g. `sonar_seang@bkrt`).
+   - Tag 01 (Point of Initiation Method): `"12"` (Dynamic) or `"11"` (Static)
+   - Tag 29 (Individual Account Information): Must contain Sub-tag 00 (`account_id`, e.g. `sonar_seang@bkrt`).
    - Tag 53 (Transaction Currency): `"840"` (USD) or `"116"` (KHR).
-   - Tag 54 (Transaction Amount): Decimal formatted string (e.g. `"12.50"`).
+   - Tag 54 (Transaction Amount): Decimal formatted string (e.g. `"1.5"` or `"12.55"`).
    - Tag 58 (Country Code): `"KH"`.
-   - Tag 62 (Additional Data Field): Contains Sub-tag 01 (Merchant Reference).
+   - Tag 62 (Additional Data Field): Contains Sub-tag 01 (Merchant Reference, max 25 chars).
+   - Tag 99 (Creation & Expiration Timestamp): Required for Dynamic KHQR (`010212`); must contain Sub-tag 00 (13-digit creation epoch ms) and Sub-tag 01 (13-digit expiration epoch ms).
    - Tag 63 (CRC16 Checksum): Exactly 4 hexadecimal characters calculated via CCITT-FALSE (`poly=0x1021, init=0xFFFF`).
 2. **Schema & Serialization**:
    - Ensure `POST /api/payments/create/` returns `qr_payload` at the root of the JSON response.

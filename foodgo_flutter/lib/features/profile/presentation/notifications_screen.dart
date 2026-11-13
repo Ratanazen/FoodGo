@@ -411,92 +411,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
       );
     } else if (type == 'rate') {
-      int rating = 5;
-      final feedbackController = TextEditingController();
-      showDialog(
+      showDialog<int>(
         context: context,
-        builder: (ctx) => StatefulBuilder(
-          builder: (ctx, setDialogState) => AlertDialog(
-            backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              'Rate Your Experience',
-              style: TextStyle(
-                color: isDark ? Colors.white : GlassTheme.textDark,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
+        builder: (_) => const _RateExperienceDialog(),
+      ).then((rating) {
+        if (!mounted || rating == null) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
               children: [
-                Text(
-                  'How was your recent meal?',
-                  style: TextStyle(
-                    color: isDark ? Colors.white70 : const Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    return IconButton(
-                      icon: Icon(
-                        index < rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
-                        size: 32,
-                      ),
-                      onPressed: () {
-                        setDialogState(() => rating = index + 1);
-                      },
-                    );
-                  }),
-                ),
-                const SizedBox(height: 12),
-                GlassTextField(
-                  controller: feedbackController,
-                  maxLines: 2,
-                  hintText: 'Share your feedback (optional)...',
-                ),
+                const Icon(Icons.star, color: Colors.amber, size: 18),
+                const SizedBox(width: 8),
+                Text('Thank you! $rating-star review submitted.'),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                  ),
-                ),
-              ),
-              GlassButton(
-                text: 'Submit',
-                variant: GlassButtonVariant.primary,
-                height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 18),
-                          const SizedBox(width: 8),
-                          Text('Thank you! $rating-star review submitted.'),
-                        ],
-                      ),
-                      backgroundColor: GlassTheme.royalSmalt,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
-              ),
-            ],
+            backgroundColor: GlassTheme.royalSmalt,
+            behavior: SnackBarBehavior.floating,
           ),
-        ),
-      );
+        );
+      });
     } else {
       context.go('/explore');
     }
@@ -1024,6 +957,91 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RateExperienceDialog extends StatefulWidget {
+  const _RateExperienceDialog();
+
+  @override
+  State<_RateExperienceDialog> createState() => _RateExperienceDialogState();
+}
+
+class _RateExperienceDialogState extends State<_RateExperienceDialog> {
+  final _feedbackController = TextEditingController();
+  int _rating = 5;
+
+  @override
+  void dispose() {
+    _feedbackController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AlertDialog(
+      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(
+        'Rate Your Experience',
+        style: TextStyle(
+          color: isDark ? Colors.white : GlassTheme.textDark,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'How was your recent meal?',
+            style: TextStyle(
+              color: isDark ? Colors.white70 : const Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) {
+              return IconButton(
+                icon: Icon(
+                  index < _rating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 32,
+                ),
+                onPressed: () {
+                  setState(() => _rating = index + 1);
+                },
+              );
+            }),
+          ),
+          const SizedBox(height: 12),
+          GlassTextField(
+            controller: _feedbackController,
+            maxLines: 2,
+            hintText: 'Share your feedback (optional)...',
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              color: isDark ? Colors.white60 : const Color(0xFF64748B),
+            ),
+          ),
+        ),
+        GlassButton(
+          text: 'Submit',
+          variant: GlassButtonVariant.primary,
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          onPressed: () => Navigator.pop(context, _rating),
+        ),
+      ],
     );
   }
 }

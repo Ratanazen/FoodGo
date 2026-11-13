@@ -219,9 +219,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     final themeProvider = context.watch<ThemeProvider?>();
     final palette = themeProvider?.paletteData;
 
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
     final primaryColor = palette?.primary ?? GlassTheme.primaryGreen;
-    final textColor = isDark ? Colors.white : const Color(0xFF1E2620);
-    final textMuted = isDark ? GlassTheme.textMuted : const Color(0xFF718096);
+    final textColor = AppTypography.primaryTextColor(brightness);
+    final textMuted = AppTypography.secondaryTextColor(brightness);
     final inputBg = isDark
         ? Colors.white.withValues(alpha: 0.05)
         : Colors.black.withValues(alpha: 0.03);
@@ -295,11 +297,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       const SizedBox(height: 16),
                       Text(
                         _otpSent ? 'Enter OTP' : 'Enter Mobile Number',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
+                        style: textTheme.headlineMedium?.copyWith(
+                          color: textColor,
+                        ),
                         textAlign: TextAlign.center,
                       ).animate().fade().slideY(),
                       const SizedBox(height: 8),
@@ -307,26 +307,27 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         _otpSent
                             ? 'Enter the 6-digit verification code sent to your phone'
                             : 'Sign in quickly using your Cambodian mobile number',
-                        style: TextStyle(color: textMuted, fontSize: 13),
+                        style: textTheme.bodySmall?.copyWith(color: textMuted),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 28),
                       if (!_otpSent) ...[
-                        // Phone input with country flag prefix & carrier badge
+                        // Phone input with country code prefix & carrier badge
                         TextFormField(
                           controller: _phoneController,
-                          style: TextStyle(
+                          style: textTheme.bodyLarge?.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w600,
                           ),
                           decoration: InputDecoration(
                             labelText: 'Cambodian Phone Number',
                             hintText: '012 345 678 (or +855)',
-                            hintStyle: TextStyle(
-                              color: textMuted.withValues(alpha: 0.6),
-                              fontSize: 13,
+                            hintStyle: textTheme.bodySmall?.copyWith(
+                              color: textMuted.withValues(alpha: 0.75),
                             ),
-                            labelStyle: TextStyle(color: textMuted),
+                            labelStyle: textTheme.bodyMedium?.copyWith(
+                              color: textMuted,
+                            ),
                             prefixIcon: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
@@ -353,18 +354,21 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Text(
-                                          '🇰🇭',
-                                          style: TextStyle(fontSize: 14),
+                                        Text(
+                                          'KH',
+                                          style: textTheme.labelSmall?.copyWith(
+                                            color: primaryColor,
+                                            fontWeight: FontWeight.w800,
+                                          ),
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           '+855',
-                                          style: TextStyle(
-                                            color: textColor,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
+                                          style: textTheme.labelMedium
+                                              ?.copyWith(
+                                                color: textColor,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -406,12 +410,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                         const SizedBox(width: 4),
                                         Text(
                                           detectedCarrier,
-                                          style: TextStyle(
+                                          style: textTheme.labelSmall?.copyWith(
                                             color: _carrierColor(
                                               detectedCarrier,
                                             ),
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ],
@@ -440,12 +443,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           spacing: 6,
                           runSpacing: 4,
                           children: [
-                            const Text(
+                            Text(
                               'Supported:',
-                              style: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
+                              style: textTheme.labelSmall?.copyWith(
+                                color: textMuted,
                               ),
                             ),
                             for (final c in [
@@ -477,11 +478,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                 ),
                                 child: Text(
                                   c,
-                                  style: TextStyle(
-                                    fontSize: 10,
+                                  style: textTheme.labelSmall?.copyWith(
                                     fontWeight: detectedCarrier == c
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
                                     color: detectedCarrier == c
                                         ? _carrierColor(c)
                                         : textMuted,
@@ -527,16 +527,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                   children: [
                                     Text(
                                       'Code sent to:',
-                                      style: TextStyle(
+                                      style: textTheme.labelSmall?.copyWith(
                                         color: textMuted,
-                                        fontSize: 11,
                                       ),
                                     ),
                                     Text(
                                       _phoneController.text,
-                                      style: TextStyle(
+                                      style: textTheme.bodyMedium?.copyWith(
                                         color: textColor,
-                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -571,10 +569,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                       const SizedBox(width: 4),
                                       Text(
                                         'Change',
-                                        style: TextStyle(
+                                        style: textTheme.labelSmall?.copyWith(
                                           color: primaryColor,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                     ],
@@ -619,12 +616,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                       _cooldownRemaining > 0
                                           ? 'Resend SMS in ${_cooldownRemaining}s'
                                           : 'Resend SMS',
-                                      style: TextStyle(
+                                      style: textTheme.labelSmall?.copyWith(
                                         color: _cooldownRemaining > 0
                                             ? textMuted
                                             : primaryColor,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ],

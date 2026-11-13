@@ -23,7 +23,9 @@ import '../../payment/models/payment_model.dart';
 import '../../payment/services/payment_service.dart';
 
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({super.key});
+  final List<dynamic>? initialOrders;
+
+  const OrdersScreen({super.key, this.initialOrders});
 
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
@@ -39,6 +41,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialOrders != null) {
+      _orders = List<dynamic>.from(widget.initialOrders!);
+      _isLoading = false;
+      return;
+    }
     _fetchOrders();
     _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) _fetchOrdersSilently();
@@ -733,9 +740,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         size: 16,
                         color: GlassTheme.primaryGreen,
                       ),
-                      label: const Text(
+                      label: Text(
                         'View Bill',
                         style: TextStyle(
+                          color: primaryText,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -862,10 +870,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     child: IgnorePointer(
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.12),
-                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          backgroundColor: isDark
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : Colors.black.withValues(alpha: 0.05),
+                          foregroundColor: primaryText,
                           side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.25)
+                                : secondaryText.withValues(alpha: 0.35),
                             width: 1.2,
                           ),
                           shape: RoundedRectangleBorder(
@@ -876,14 +889,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             vertical: 10,
                           ),
                         ),
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.map_outlined,
                           size: 16,
-                          color: GlassTheme.limeAccent,
+                          color: isDark
+                              ? GlassTheme.limeAccent
+                              : GlassTheme.primaryGreenDark,
                         ),
-                        label: const Text(
+                        label: Text(
                           'Track Order',
                           style: TextStyle(
+                            color: primaryText,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -900,9 +916,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       child: IgnorePointer(
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.amber,
+                            foregroundColor: isDark
+                                ? Colors.amber
+                                : const Color(0xFFB45309),
                             side: BorderSide(
-                              color: Colors.amber.withValues(alpha: 0.6),
+                              color:
+                                  (isDark
+                                          ? Colors.amber
+                                          : const Color(0xFFB45309))
+                                      .withValues(alpha: 0.6),
                               width: 1.2,
                             ),
                             shape: RoundedRectangleBorder(
@@ -913,14 +935,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               vertical: 10,
                             ),
                           ),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.star,
                             size: 16,
-                            color: Colors.amber,
+                            color: isDark
+                                ? Colors.amber
+                                : const Color(0xFFB45309),
                           ),
-                          label: const Text(
+                          label: Text(
                             'Rate',
                             style: TextStyle(
+                              color: isDark
+                                  ? Colors.amber
+                                  : const Color(0xFFB45309),
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -979,23 +1006,32 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   void _confirmCancelOrder(Map<String, dynamic> order) {
     final orderId = order['id'];
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text('Cancel Order #$orderId?'),
-        content: const Text(
+        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+          ),
+        ),
+        title: Text(
+          'Cancel Order #$orderId?',
+          style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
           'Are you sure you want to cancel this order? This action cannot be undone.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: secondaryText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Keep Order',
-              style: TextStyle(color: Colors.white60),
-            ),
+            child: Text('Keep Order', style: TextStyle(color: secondaryText)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -1223,139 +1259,46 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   void _showReportIssueDialog(dynamic orderId) {
-    String selectedReason = 'Missing items';
-    final reasons = [
-      'Missing items',
-      'Food arrived cold / damaged',
-      'Incorrect order items',
-      'Extreme delivery delay',
-      'Other issue',
-    ];
-    final notesCtrl = TextEditingController();
-
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: GlassTheme.dialogDark,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: Text(
-            orderId != null
-                ? 'Report Issue: Order #$orderId'
-                : 'Report Delivery Issue',
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Please select the problem with this order:',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                const SizedBox(height: 12),
-                ...reasons.map((r) {
-                  final isSelected = selectedReason == r;
-                  return InkWell(
-                    onTap: () => setDialogState(() => selectedReason = r),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 6,
-                        horizontal: 4,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isSelected
-                                ? Icons.radio_button_checked
-                                : Icons.radio_button_off,
-                            color: isSelected
-                                ? GlassTheme.primaryGreen
-                                : Colors.white38,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              r,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: notesCtrl,
-                  maxLines: 2,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: InputDecoration(
-                    hintText: 'Additional details (optional)...',
-                    hintStyle: const TextStyle(
-                      color: Colors.white38,
-                      fontSize: 12,
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.white12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white60),
+      builder: (ctx) => _OrderReportIssueDialog(
+        orderId: orderId,
+        onSubmitted: () {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Report submitted for Order #${orderId ?? ''}. Our support team will investigate within 15 minutes.',
               ),
+              backgroundColor: GlassTheme.primaryGreenDark,
+              behavior: SnackBarBehavior.floating,
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: GlassTheme.primaryGreen,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Report submitted for Order #${orderId ?? ''}. Our support team will investigate within 15 minutes.',
-                    ),
-                    backgroundColor: GlassTheme.primaryGreenDark,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-              child: const Text('Submit Report'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
   void _showFaqDialog() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('FoodGo Support FAQ'),
-        content: const SingleChildScrollView(
+        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+          ),
+        ),
+        title: Text(
+          'FoodGo Support FAQ',
+          style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+        ),
+        content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -1364,42 +1307,42 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 'How do refunds work?',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: primaryText,
                   fontSize: 14,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 'Cancelled orders or reported missing items are refunded back to your original payment method within 2-4 business hours.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextStyle(color: secondaryText, fontSize: 12),
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               Text(
                 'What if my food is late?',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: primaryText,
                   fontSize: 14,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 'If your order is delayed more than 20 minutes past the estimated arrival time, you receive an automated 20% discount coupon for your next order.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextStyle(color: secondaryText, fontSize: 12),
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               Text(
                 'Need immediate help?',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: primaryText,
                   fontSize: 14,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 'Contact our Phnom Penh support center 24/7 at +855 23 999 888.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextStyle(color: secondaryText, fontSize: 12),
               ),
             ],
           ),
@@ -1418,101 +1361,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   void _showRatingDialog(Map<String, dynamic> order) {
-    int selectedRating = 5;
-    final commentController = TextEditingController();
-
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: GlassTheme.dialogDark,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text('Rate Order #${order['id']}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'How was your meal from ${order['restaurant_name'] ?? 'the restaurant'}?',
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
+      builder: (ctx) => _OrderRatingDialog(
+        order: order,
+        onSubmitted: () {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.star, color: Colors.amber, size: 18),
+                  SizedBox(width: 8),
+                  Text('Thank you for your rating!'),
+                ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  final starIndex = index + 1;
-                  return IconButton(
-                    icon: Icon(
-                      starIndex <= selectedRating
-                          ? Icons.star
-                          : Icons.star_border,
-                      color: Colors.amber,
-                      size: 32,
-                    ),
-                    onPressed: () =>
-                        setDialogState(() => selectedRating = starIndex),
-                  );
-                }),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: commentController,
-                maxLines: 2,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-                decoration: InputDecoration(
-                  hintText: 'Share your feedback (optional)...',
-                  hintStyle: TextStyle(
-                    color: GlassTheme.textMuted,
-                    fontSize: 12,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.1),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(
-                'Later',
-                style: TextStyle(color: Colors.white60),
-              ),
+              backgroundColor: GlassTheme.primaryGreen,
+              behavior: SnackBarBehavior.floating,
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: GlassTheme.primaryGreen,
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Row(
-                      children: [
-                        Icon(Icons.star, color: Colors.amber, size: 18),
-                        SizedBox(width: 8),
-                        Text('Thank you for your rating!'),
-                      ],
-                    ),
-                    backgroundColor: GlassTheme.primaryGreen,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-              child: const Text(
-                'Submit Rating',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -1525,6 +1393,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
         order['restaurant_name'] ?? 'Restaurant #${order['restaurant']}';
     final totalAmount =
         double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     showModalBottomSheet(
       context: context,
@@ -1533,9 +1405,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
       builder: (ctx) => ResponsiveBottomSheet(
         child: Container(
           padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: GlassTheme.surfaceDark,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(
+              color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+            ),
           ),
           child: SafeArea(
             child: Column(
@@ -1547,7 +1422,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: isDark ? Colors.white24 : Colors.black12,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1556,27 +1431,30 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Order Bill Receipt',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Order Bill Receipt',
+                            style: TextStyle(
+                              color: primaryText,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '#FG-${order['id']} · ${_formatDate(order['created_at'] as String?)}',
-                          style: TextStyle(
-                            color: GlassTheme.textMuted,
-                            fontSize: 13,
+                          const SizedBox(height: 4),
+                          Text(
+                            '#FG-${order['id']} · ${_formatDate(order['created_at'] as String?)}',
+                            style: TextStyle(
+                              color: secondaryText,
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -1601,7 +1479,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Row(
@@ -1615,8 +1495,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       Expanded(
                         child: Text(
                           restaurantName,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: primaryText,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -1626,10 +1506,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'ITEMS',
                   style: TextStyle(
-                    color: Colors.white54,
+                    color: secondaryText,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.8,
@@ -1642,7 +1522,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     shrinkWrap: true,
                     itemCount: items.length,
                     separatorBuilder: (context, sepIdx) => Divider(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.08),
                       height: 12,
                     ),
                     itemBuilder: (context, i) {
@@ -1661,16 +1543,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           Expanded(
                             child: Text(
                               '$qty x $name',
-                              style: const TextStyle(
-                                color: Colors.white70,
+                              style: TextStyle(
+                                color: secondaryText,
                                 fontSize: 14,
                               ),
                             ),
                           ),
                           Text(
                             '\$$lineTotal',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: primaryText,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -1681,15 +1563,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                 ),
                 Divider(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: 0.12),
                   height: 24,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Payment Status',
-                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                      style: TextStyle(color: secondaryText, fontSize: 13),
                     ),
                     Text(
                       paymentStatus,
@@ -1707,10 +1591,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Total Amount',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: primaryText,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -1728,10 +1612,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                         Text(
                           '≈ ${KhmerCurrency.formatKhr(totalAmount)} KHR (អត្រា ៤,១០០)',
-                          style: const TextStyle(
-                            color: Colors.white54,
-                            fontSize: 11,
-                          ),
+                          style: TextStyle(color: secondaryText, fontSize: 11),
                         ),
                       ],
                     ),
@@ -1755,9 +1636,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
+                          foregroundColor: primaryText,
                           side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.2)
+                                : Colors.black.withValues(alpha: 0.16),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -1878,17 +1761,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   color: isSelected
                       ? GlassTheme.limeAccent
                       : (isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.white.withValues(alpha: 0.85)),
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.white.withValues(alpha: 0.85)),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
                         ? (isDark
-                            ? Colors.white.withValues(alpha: 0.4)
-                            : Colors.black12)
+                              ? Colors.white.withValues(alpha: 0.4)
+                              : Colors.black12)
                         : (isDark
-                            ? Colors.white.withValues(alpha: 0.12)
-                            : GlassTheme.borderLight),
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : GlassTheme.borderLight),
                     width: isSelected ? 1.5 : 1.0,
                   ),
                   boxShadow: isSelected
@@ -1949,10 +1832,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               Text(
                 'Orders will appear here once updated to this status.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: secondaryText,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: secondaryText, fontSize: 13),
               ),
             ],
           ),
@@ -2030,6 +1910,272 @@ class _OrdersScreenState extends State<OrdersScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _OrderReportIssueDialog extends StatefulWidget {
+  final dynamic orderId;
+  final VoidCallback onSubmitted;
+
+  const _OrderReportIssueDialog({
+    required this.orderId,
+    required this.onSubmitted,
+  });
+
+  @override
+  State<_OrderReportIssueDialog> createState() =>
+      _OrderReportIssueDialogState();
+}
+
+class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
+  static const List<String> _reasons = [
+    'Missing items',
+    'Food arrived cold / damaged',
+    'Incorrect order items',
+    'Extreme delivery delay',
+    'Other issue',
+  ];
+
+  String _selectedReason = 'Missing items';
+  final TextEditingController _notesCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
+    return AlertDialog(
+      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+        ),
+      ),
+      title: Text(
+        widget.orderId != null
+            ? 'Report Issue: Order #${widget.orderId}'
+            : 'Report Delivery Issue',
+        style: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
+          color: primaryText,
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Please select the problem with this order:',
+              style: TextStyle(color: secondaryText, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            ..._reasons.map((r) {
+              final isSelected = _selectedReason == r;
+              return InkWell(
+                onTap: () => setState(() => _selectedReason = r),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 6,
+                    horizontal: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSelected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isSelected
+                            ? GlassTheme.primaryGreen
+                            : secondaryText,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          r,
+                          style: TextStyle(fontSize: 13, color: primaryText),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _notesCtrl,
+              maxLines: 2,
+              style: TextStyle(color: primaryText, fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'Additional details (optional)...',
+                hintStyle: TextStyle(color: secondaryText, fontSize: 12),
+                filled: true,
+                fillColor: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.04),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.white12 : const Color(0xFFD1D5DB),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.white12 : const Color(0xFFD1D5DB),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel', style: TextStyle(color: secondaryText)),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: GlassTheme.primaryGreen,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onSubmitted();
+          },
+          child: const Text('Submit Report'),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderRatingDialog extends StatefulWidget {
+  final Map<String, dynamic> order;
+  final VoidCallback onSubmitted;
+
+  const _OrderRatingDialog({required this.order, required this.onSubmitted});
+
+  @override
+  State<_OrderRatingDialog> createState() => _OrderRatingDialogState();
+}
+
+class _OrderRatingDialogState extends State<_OrderRatingDialog> {
+  int _selectedRating = 5;
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
+    return AlertDialog(
+      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+        ),
+      ),
+      title: Text(
+        'Rate Order #${widget.order['id']}',
+        style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'How was your meal from ${widget.order['restaurant_name'] ?? 'the restaurant'}?',
+            style: TextStyle(color: secondaryText, fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) {
+              final starIndex = index + 1;
+              return IconButton(
+                icon: Icon(
+                  starIndex <= _selectedRating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 32,
+                ),
+                onPressed: () => setState(() => _selectedRating = starIndex),
+              );
+            }),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _commentController,
+            maxLines: 2,
+            style: TextStyle(color: primaryText, fontSize: 13),
+            decoration: InputDecoration(
+              hintText: 'Share your feedback (optional)...',
+              hintStyle: TextStyle(color: secondaryText, fontSize: 12),
+              filled: true,
+              fillColor: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.04),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : const Color(0xFFD1D5DB),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : const Color(0xFFD1D5DB),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Later', style: TextStyle(color: secondaryText)),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: GlassTheme.primaryGreen,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onSubmitted();
+          },
+          child: const Text(
+            'Submit Rating',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 }

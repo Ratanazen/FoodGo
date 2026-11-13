@@ -10,6 +10,7 @@ export 'themed_skin_backdrop.dart';
 export '../../core/theme/context_theme_extensions.dart';
 export '../../core/theme/app_typography.dart';
 export '../../core/localization/localization.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 import 'animated_pressable.dart';
@@ -259,13 +260,12 @@ class GlassButton extends StatelessWidget {
                     Flexible(
                       child: Text(
                         text,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: TextStyle(
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: effectiveTextColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: fontSize ?? 15,
-                          letterSpacing: 0.2,
+                          fontWeight: FontWeight.w700,
+                          fontSize: fontSize,
                         ),
                       ),
                     ),
@@ -306,20 +306,27 @@ class GlassSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final secondaryColor = AppTypography.secondaryTextColor(brightness);
     return GlassContainer(
       borderRadius: GlassTheme.borderRadiusSmall,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
-          Icon(Icons.search, color: GlassTheme.textMuted),
+          Icon(Icons.search, color: secondaryColor),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTypography.primaryTextColor(brightness),
+              ),
               decoration: InputDecoration(
                 hintText: 'Search food...',
-                hintStyle: TextStyle(color: GlassTheme.textMuted),
+                hintStyle: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: secondaryColor),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -350,7 +357,8 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final fgColor = AppTypography.primaryTextColor(brightness);
     return GlassContainer(
       borderRadius: BorderRadius.zero,
       padding: EdgeInsets.only(
@@ -359,42 +367,48 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         left: 16,
         right: 16,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                leading ?? const SizedBox(width: 40),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: isDark
-                            ? Colors.white
-                            : GlassTheme.textInverseDark,
-                        fontWeight: FontWeight.bold,
+      child: IconTheme.merge(
+        data: IconThemeData(color: fgColor),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  leading ?? const SizedBox(width: 40),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.center,
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: fgColor,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: actions ?? [const SizedBox(width: 40)],
-                ),
-              ],
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: actions ?? [const SizedBox(width: 40)],
+                  ),
+                ],
+              ),
             ),
-          ),
-          ?bottom,
-        ],
+            ?bottom,
+          ],
+        ),
       ),
     );
   }

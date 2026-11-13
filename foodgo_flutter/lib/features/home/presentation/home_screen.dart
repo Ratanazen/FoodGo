@@ -16,6 +16,7 @@ import '../../../core/theme/theme_styles.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/shimmer_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/svg_icon.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -547,19 +548,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              displayName != 'Foodie' && displayName != 'Guest'
-                                  ? 'Hi, $displayName'
-                                  : 'Your Location',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white70
-                                    : const Color(0xFF6B7280),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const FoodGoLogo(size: 16),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    displayName != 'Foodie' &&
+                                            displayName != 'Guest'
+                                        ? 'Hi, $displayName'
+                                        : 'Your Location',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: AppTypography.secondaryTextColor(
+                                            isDark
+                                                ? Brightness.dark
+                                                : Brightness.light,
+                                          ),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 2),
                             Row(
@@ -567,23 +580,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Flexible(
                                   child: Text(
                                     locationName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF111827),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    maxLines: 2,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(
+                                          color: AppTypography.primaryTextColor(
+                                            isDark
+                                                ? Brightness.dark
+                                                : Brightness.light,
+                                          ),
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.25,
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(width: 4),
                                 Icon(
                                   AppIcons.chevronDown,
-                                  color: isDark
-                                      ? Colors.white70
-                                      : const Color(0xFF374151),
+                                  color: AppTypography.secondaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
                                   size: 18,
                                 ),
                               ],
@@ -685,13 +702,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                   alignment: Alignment.center,
                                   child: Text(
                                     initials,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                   ),
                                 ),
                               )
@@ -702,13 +721,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 alignment: Alignment.center,
                                 child: Text(
                                   initials,
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                               ),
                       ),
@@ -744,25 +765,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Icon(
                     AppIcons.search,
-                    color: isDark ? Colors.white60 : const Color(0xFF9CA3AF),
+                    color: AppTypography.secondaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
                     size: 20,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       context.tr('home.search'),
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.white60
-                            : const Color(0xFF9CA3AF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppTypography.secondaryTextColor(
+                              isDark ? Brightness.dark : Brightness.light,
+                            ),
+                          ),
                     ),
                   ),
                   Icon(
                     AppIcons.filter,
-                    color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+                    color: AppTypography.secondaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
                     size: 18,
                   ),
                 ],
@@ -823,25 +846,21 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   '50% OFF',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 22,
-                    letterSpacing: -0.5,
-                  ),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
+                Text(
                   'Your First Healthy Meal!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 12),
                 AnimatedPressable(
@@ -863,21 +882,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'Buy Now',
-                          style: TextStyle(
-                            color: Color(0xFF16A34A),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: const Color(0xFF15803D),
+                                fontWeight: FontWeight.w800,
+                              ),
                         ),
-                        SizedBox(width: 4),
-                        Icon(
+                        const SizedBox(width: 4),
+                        const Icon(
                           AppIcons.forward,
-                          color: Color(0xFF16A34A),
+                          color: Color(0xFF15803D),
                           size: 14,
                         ),
                       ],
@@ -1039,13 +1058,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Item Name
                   Text(
                     item['name'] as String,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: isDark ? Colors.white : const Color(0xFF111827),
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
+                        ),
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
 
@@ -1060,22 +1079,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 3),
                       Text(
                         '4.8',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF6B7280),
-                        ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppTypography.secondaryTextColor(
+                                isDark ? Brightness.dark : Brightness.light,
+                              ),
+                            ),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        '• 15 min',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark
-                              ? Colors.white38
-                              : const Color(0xFF9CA3AF),
+                      Flexible(
+                        child: Text(
+                          '• 15 min',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                                color: AppTypography.secondaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                              ),
                         ),
                       ),
                     ],
@@ -1092,21 +1114,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Text(
                             KhmerCurrency.formatUsd(item['price'] as double),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 14.5,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark
+                                      ? const Color(0xFF4ADE80)
+                                      : const Color(0xFF15803D),
+                                ),
                           ),
                           Text(
                             KhmerCurrency.formatKhr(item['price'] as double),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: isDark
-                                  ? Colors.white54
-                                  : const Color(0xFF6B7280),
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTypography.secondaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
+                                ),
                           ),
                         ],
                       ),
@@ -1231,17 +1259,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 6),
                   Text(
                     cat['name'] as String,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.w800
-                          : FontWeight.w600,
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.white70 : const Color(0xFF616161)),
-                    ),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: isSelected
+                              ? FontWeight.w800
+                              : FontWeight.w600,
+                          color: isSelected
+                              ? Colors.white
+                              : AppTypography.secondaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                        ),
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

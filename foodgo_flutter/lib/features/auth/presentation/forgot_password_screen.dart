@@ -187,11 +187,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   Text(
                     'Forgot Password',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : GlassTheme.authTitleDark,
-                      letterSpacing: -0.5,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: AppTypography.primaryTextColor(
+                        Theme.of(context).brightness,
+                      ),
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fade(delay: 150.ms),
@@ -200,13 +199,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   Text(
                     'Enter your registered email address or phone number and we will send you a verification code to recover your account.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark
-                          ? Colors.grey[400]
-                          : GlassTheme.authSubtitle,
-                      fontWeight: FontWeight.w400,
-                      height: 1.45,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTypography.secondaryTextColor(
+                        Theme.of(context).brightness,
+                      ),
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fade(delay: 200.ms),
@@ -230,18 +226,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _sendOTP(),
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        fontSize: 14,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTypography.primaryTextColor(
+                          Theme.of(context).brightness,
+                        ),
                       ),
                       decoration: InputDecoration(
                         hintText: 'Email address or phone number',
-                        hintStyle: TextStyle(
-                          color: isDark
-                              ? Colors.white38
-                              : const Color(0xFF94A3B8),
-                          fontSize: 14,
-                        ),
+                        hintStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(
+                              color: AppTypography.secondaryTextColor(
+                                Theme.of(context).brightness,
+                              ),
+                            ),
                         prefixIcon: Icon(
                           _isPhone ? AppIcons.phone : AppIcons.email,
                           color: GlassTheme.primaryGreen,
@@ -289,13 +286,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   strokeWidth: 2.2,
                                 ),
                               )
-                            : const Text(
+                            : Text(
                                 'Send Reset Code / Link',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.3,
-                                ),
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(color: Colors.white),
                               ),
                       ),
                     ),
@@ -308,11 +302,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     children: [
                       Text(
                         'Remember your password? ',
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.grey[400]
-                              : GlassTheme.authSubtitle,
-                          fontSize: 13,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTypography.secondaryTextColor(
+                            Theme.of(context).brightness,
+                          ),
                         ),
                       ),
                       AnimatedPressable(
@@ -324,18 +317,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             context.go('/login');
                           }
                         },
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 4,
                             vertical: 2,
                           ),
                           child: Text(
                             'Sign in',
-                            style: TextStyle(
-                              color: GlassTheme.primaryGreen,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: isDark
+                                      ? GlassTheme.primaryGreen
+                                      : GlassTheme.primaryGreenDark,
+                                  fontWeight: FontWeight.w700,
+                                ),
                           ),
                         ),
                       ),

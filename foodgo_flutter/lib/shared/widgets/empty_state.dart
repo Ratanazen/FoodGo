@@ -58,9 +58,7 @@ class EmptyState extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Kantumruy Pro',
-                fontSize: 18.0,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: isDark
                     ? AppColors.textPrimaryDark
@@ -71,13 +69,10 @@ class EmptyState extends StatelessWidget {
             Text(
               description,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Kantumruy Pro',
-                fontSize: 14.0,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: isDark
                     ? AppColors.textMutedDark
                     : AppColors.textMutedLight,
-                height: 1.4,
               ),
             ),
             if (actionText != null && onAction != null) ...[

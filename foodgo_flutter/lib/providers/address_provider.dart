@@ -63,6 +63,7 @@ class AddressProvider with ChangeNotifier {
   List<AddressItem> _addresses = [];
   AddressItem? _selectedAddress;
   bool _isLoading = false;
+  int _fetchEpoch = 0;
 
   List<AddressItem> get addresses => _addresses;
   bool get isLoading => _isLoading;
@@ -87,11 +88,13 @@ class AddressProvider with ChangeNotifier {
   }
 
   Future<void> fetchAddresses() async {
+    final fetchId = ++_fetchEpoch;
     _isLoading = true;
     notifyListeners();
 
     try {
       final res = await _api.get('addresses/');
+      if (fetchId != _fetchEpoch) return;
       final List<dynamic> list = res is List
           ? res
           : (res['results'] as List<dynamic>? ?? []);
@@ -103,12 +106,14 @@ class AddressProvider with ChangeNotifier {
         _loadDefaultFallbackAddresses();
       }
     } catch (_) {
-      if (_addresses.isEmpty) {
+      if (fetchId == _fetchEpoch && _addresses.isEmpty) {
         _loadDefaultFallbackAddresses();
       }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (fetchId == _fetchEpoch) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -146,6 +151,7 @@ class AddressProvider with ChangeNotifier {
     double? lat,
     double? lng,
   }) async {
+    _fetchEpoch++;
     final payload = <String, dynamic>{
       'street': street.trim(),
       'city': city.trim(),
@@ -223,6 +229,7 @@ class AddressProvider with ChangeNotifier {
   }
 
   Future<bool> setDefaultAddress(int id) async {
+    _fetchEpoch++;
     try {
       await _api.post('addresses/$id/set_default/', {});
     } catch (_) {}
@@ -248,6 +255,7 @@ class AddressProvider with ChangeNotifier {
   }
 
   Future<bool> deleteAddress(int id) async {
+    _fetchEpoch++;
     try {
       await _api.delete('addresses/$id/');
     } catch (_) {}

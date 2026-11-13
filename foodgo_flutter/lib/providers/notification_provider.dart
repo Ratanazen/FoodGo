@@ -108,6 +108,7 @@ class NotificationProvider with ChangeNotifier {
   List<NotificationModel> _notifications = [];
   bool _isLoading = false;
   bool _isInitialized = false;
+  int _fetchEpoch = 0;
 
   List<NotificationModel> get notifications =>
       List.unmodifiable(_notifications);
@@ -133,11 +134,13 @@ class NotificationProvider with ChangeNotifier {
   }
 
   Future<void> fetchNotifications() async {
+    final fetchId = ++_fetchEpoch;
     _isLoading = true;
     notifyListeners();
 
     try {
       final res = await _api.get('notifications/');
+      if (fetchId != _fetchEpoch) return;
       final List<dynamic> list = res is List
           ? res
           : (res['results'] as List<dynamic>? ?? []);
@@ -153,8 +156,10 @@ class NotificationProvider with ChangeNotifier {
     } catch (_) {
       // Retain existing notifications if network error occurs
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (fetchId == _fetchEpoch) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -187,6 +192,8 @@ class NotificationProvider with ChangeNotifier {
   }
 
   void clearAll() {
+    _fetchEpoch++;
+    _isLoading = false;
     _notifications.clear();
     notifyListeners();
   }

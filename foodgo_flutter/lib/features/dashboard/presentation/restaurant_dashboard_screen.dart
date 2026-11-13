@@ -110,105 +110,38 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
   }
 
   Future<void> _restaurantRejectOrder(String orderId) async {
-    final reasonController = TextEditingController();
-    final shouldReject = await showDialog<bool>(
+    final reasonText = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-        ),
-        title: const Text(
-          'Reject Order',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Please provide a rejection reason (prepaid orders are automatically refunded):',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: reasonController,
-              decoration: InputDecoration(
-                hintText: 'e.g., Kitchen at full capacity',
-                hintStyle: TextStyle(color: GlassTheme.textMuted),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.06),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.12),
-                  ),
-                ),
-              ),
-              style: const TextStyle(color: Colors.white),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              minimumSize: const Size(130, 48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Reject & Refund',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
+      builder: (_) => const _RestaurantRejectOrderDialog(),
     );
 
-    final reasonText = reasonController.text.trim();
-    Future.delayed(const Duration(milliseconds: 500), reasonController.dispose);
+    if (reasonText == null || !mounted) return;
 
-    if (shouldReject == true) {
-      try {
-        final reason = reasonText.isEmpty
-            ? 'Kitchen unable to fulfill order'
-            : reasonText;
-        await _api.post('orders/$orderId/restaurant-reject/', {
-          'reason': reason,
-        });
-        _fetchDashboardData();
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Order rejected and refunded if prepaid.'),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
+    try {
+      final reason = reasonText.isEmpty
+          ? 'Kitchen unable to fulfill order'
+          : reasonText;
+      await _api.post('orders/$orderId/restaurant-reject/', {'reason': reason});
+      _fetchDashboardData();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order rejected and refunded if prepaid.'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ApiService.formatError(e, fallback: 'Failed to reject order.'),
           ),
-        );
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to reject order.'),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -366,25 +299,31 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
   }
 
   void _confirmLogout(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
+    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
+        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text(
+        title: Text(
           'Restaurant Log Out',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to log out of the Restaurant Portal?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: secondaryText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: TextStyle(
+                color: isDark ? Colors.white60 : const Color(0xFF64748B),
+              ),
             ),
           ),
           ElevatedButton(
@@ -1494,258 +1433,294 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: GlassTheme.surfaceDark,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
+        final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+        final mutedText = isDark ? Colors.white54 : const Color(0xFF6B7280);
+        final accentGreen = isDark
+            ? GlassTheme.primaryGreen
+            : GlassTheme.primaryGreenDark;
+        final noteColor = isDark ? Colors.amber : const Color(0xFF92400E);
+        final unpaidColor = isDark
+            ? Colors.orangeAccent
+            : const Color(0xFFC2410C);
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black26,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Order Bill #FG-${order['id']}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      status.toUpperCase(),
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
+                const SizedBox(height: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Order Bill #FG-${order['id']}',
+                        style: TextStyle(
+                          color: primaryText,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              if (instructions.isNotEmpty) ...[
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.amber.withValues(alpha: 0.3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        status.toUpperCase(),
+                        style: TextStyle(
+                          color: accentGreen,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    'Note: $instructions',
-                    style: const TextStyle(color: Colors.amber, fontSize: 12),
-                  ),
+                  ],
                 ),
                 const SizedBox(height: 14),
-              ],
-              const Text(
-                'ITEMS ORDERED',
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 220),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: items.length,
-                  separatorBuilder: (context, sepIdx) => Divider(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    height: 12,
+                if (instructions.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.amber.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      'Note: $instructions',
+                      style: TextStyle(color: noteColor, fontSize: 12),
+                    ),
                   ),
-                  itemBuilder: (context, i) {
-                    final it = items[i];
-                    final name = it['food_name'] ?? 'Item #${it['food_item']}';
-                    final qty = it['quantity'] ?? 1;
-                    final price = it['price'] ?? '0.00';
-                    final lineTotal =
-                        ((double.tryParse(price.toString()) ?? 0.0) *
-                                (int.tryParse(qty.toString()) ?? 1))
-                            .toStringAsFixed(2);
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '$qty x $name',
-                            style: const TextStyle(
-                              color: Colors.white,
+                  const SizedBox(height: 14),
+                ],
+                Text(
+                  'ITEMS ORDERED',
+                  style: TextStyle(
+                    color: mutedText,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 220),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: items.length,
+                    separatorBuilder: (context, sepIdx) => Divider(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.08),
+                      height: 12,
+                    ),
+                    itemBuilder: (context, i) {
+                      final it = items[i];
+                      final name =
+                          it['food_name'] ?? 'Item #${it['food_item']}';
+                      final qty = it['quantity'] ?? 1;
+                      final price = it['price'] ?? '0.00';
+                      final lineTotal =
+                          ((double.tryParse(price.toString()) ?? 0.0) *
+                                  (int.tryParse(qty.toString()) ?? 1))
+                              .toStringAsFixed(2);
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '$qty x $name',
+                              style: TextStyle(
+                                color: primaryText,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '\$$lineTotal',
+                            style: TextStyle(
+                              color: accentGreen,
+                              fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                        Text(
-                          '\$$lineTotal',
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                        ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-              Divider(color: Colors.white.withValues(alpha: 0.15), height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Payment Status:',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  Text(
-                    paymentStatus,
-                    style: TextStyle(
-                      color: paymentStatus == 'PAID'
-                          ? GlassTheme.primaryGreen
-                          : Colors.orangeAccent,
-                      fontWeight: FontWeight.bold,
+                Divider(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: 0.12),
+                  height: 24,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Payment Status:',
+                      style: TextStyle(color: secondaryText),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total Bill:',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                    Text(
+                      paymentStatus,
+                      style: TextStyle(
+                        color: paymentStatus == 'PAID'
+                            ? accentGreen
+                            : unpaidColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '\$$total',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total Bill:',
+                      style: TextStyle(
+                        color: primaryText,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.2),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                    Text(
+                      '\$$total',
+                      style: TextStyle(
+                        color: accentGreen,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
-                      icon: const Icon(
-                        Icons.copy_rounded,
-                        size: 16,
-                        color: GlassTheme.primaryGreen,
-                      ),
-                      label: const Text(
-                        'Copy Ticket TXT',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                      onPressed: () {
-                        final buffer = StringBuffer()
-                          ..writeln('========================================')
-                          ..writeln(
-                            'FOODGO KITCHEN ORDER TICKET #FG-${order['id']}',
-                          )
-                          ..writeln('========================================')
-                          ..writeln('Status         : ${status.toUpperCase()}')
-                          ..writeln('Payment Status : $paymentStatus');
-                        if (instructions.isNotEmpty) {
-                          buffer.writeln('Special Note   : $instructions');
-                        }
-                        buffer.writeln(
-                          '----------------------------------------',
-                        );
-                        buffer.writeln('ITEMS:');
-                        for (final it in items) {
-                          final name =
-                              it['food_name'] ?? 'Item #${it['food_item']}';
-                          final qty = it['quantity'] ?? 1;
-                          final price = it['price'] ?? '0.00';
-                          final lineTotal =
-                              ((double.tryParse(price.toString()) ?? 0.0) *
-                                      (int.tryParse(qty.toString()) ?? 1))
-                                  .toStringAsFixed(2);
-                          buffer.writeln(' - ${qty}x $name : \$$lineTotal');
-                        }
-                        buffer
-                          ..writeln('----------------------------------------')
-                          ..writeln('TOTAL BILL     : \$$total')
-                          ..writeln('========================================');
-                        Clipboard.setData(
-                          ClipboardData(text: buffer.toString()),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Kitchen Ticket TXT copied to clipboard!',
-                            ),
-                            backgroundColor: GlassTheme.primaryGreen,
-                            behavior: SnackBarBehavior.floating,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: primaryText,
+                          side: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.2)
+                                : Colors.black.withValues(alpha: 0.18),
                           ),
-                        );
-                      },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        icon: Icon(
+                          Icons.copy_rounded,
+                          size: 16,
+                          color: accentGreen,
+                        ),
+                        label: const Text(
+                          'Copy Ticket TXT',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        onPressed: () {
+                          final buffer = StringBuffer()
+                            ..writeln(
+                              '========================================',
+                            )
+                            ..writeln(
+                              'FOODGO KITCHEN ORDER TICKET #FG-${order['id']}',
+                            )
+                            ..writeln(
+                              '========================================',
+                            )
+                            ..writeln(
+                              'Status         : ${status.toUpperCase()}',
+                            )
+                            ..writeln('Payment Status : $paymentStatus');
+                          if (instructions.isNotEmpty) {
+                            buffer.writeln('Special Note   : $instructions');
+                          }
+                          buffer.writeln(
+                            '----------------------------------------',
+                          );
+                          buffer.writeln('ITEMS:');
+                          for (final it in items) {
+                            final name =
+                                it['food_name'] ?? 'Item #${it['food_item']}';
+                            final qty = it['quantity'] ?? 1;
+                            final price = it['price'] ?? '0.00';
+                            final lineTotal =
+                                ((double.tryParse(price.toString()) ?? 0.0) *
+                                        (int.tryParse(qty.toString()) ?? 1))
+                                    .toStringAsFixed(2);
+                            buffer.writeln(' - ${qty}x $name : \$$lineTotal');
+                          }
+                          buffer
+                            ..writeln(
+                              '----------------------------------------',
+                            )
+                            ..writeln('TOTAL BILL     : \$$total')
+                            ..writeln(
+                              '========================================',
+                            );
+                          Clipboard.setData(
+                            ClipboardData(text: buffer.toString()),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Kitchen Ticket TXT copied to clipboard!',
+                              ),
+                              backgroundColor: GlassTheme.primaryGreen,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: GlassButton(
-                      text: 'Close',
-                      onPressed: () => Navigator.pop(ctx),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GlassButton(
+                        text: 'Close',
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -2157,14 +2132,27 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
+    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreen
+        : GlassTheme.primaryGreenDark;
+    final fieldFill = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.black.withValues(alpha: 0.04);
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
       child: Container(
         decoration: BoxDecoration(
-          color: GlassTheme.surfaceCardDark,
+          color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.08),
+          ),
         ),
         padding: const EdgeInsets.all(24.0),
         child: SingleChildScrollView(
@@ -2183,16 +2171,16 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                           color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.add_circle_outline,
-                          color: GlassTheme.primaryGreen,
+                          color: accentGreen,
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Add Food Item',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: primaryText,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -2200,7 +2188,10 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white54),
+                    icon: Icon(
+                      Icons.close,
+                      color: isDark ? Colors.white54 : Colors.black54,
+                    ),
                     onPressed: () {
                       FocusScope.of(context).unfocus();
                       Navigator.of(context).pop();
@@ -2220,17 +2211,16 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
               if (!_isCreatingNewCat && widget.categories.isNotEmpty) ...[
                 DropdownButtonFormField<int>(
                   initialValue: _selectedCatId,
-                  dropdownColor: GlassTheme.dropdownDark,
-                  style: const TextStyle(color: Colors.white),
+                  dropdownColor: isDark
+                      ? GlassTheme.dropdownDark
+                      : Colors.white,
+                  style: TextStyle(color: primaryText),
                   decoration: InputDecoration(
                     labelText: 'Category',
-                    labelStyle: TextStyle(color: GlassTheme.textMuted),
-                    prefixIcon: const Icon(
-                      Icons.category,
-                      color: GlassTheme.primaryGreen,
-                    ),
+                    labelStyle: TextStyle(color: secondaryText),
+                    prefixIcon: Icon(Icons.category, color: accentGreen),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
+                    fillColor: fieldFill,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide.none,
@@ -2241,7 +2231,7 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                       value: cat['id'] as int?,
                       child: Text(
                         cat['name']?.toString() ?? 'Category',
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: primaryText),
                       ),
                     );
                   }).toList(),
@@ -2249,16 +2239,13 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                 ),
                 const SizedBox(height: 8),
                 TextButton.icon(
-                  icon: const Icon(
-                    Icons.add,
-                    size: 16,
-                    color: GlassTheme.primaryGreen,
-                  ),
-                  label: const Text(
-                    '+ Create New Category',
+                  icon: Icon(Icons.add, size: 16, color: accentGreen),
+                  label: Text(
+                    'Create New Category',
                     style: TextStyle(
-                      color: GlassTheme.primaryGreen,
+                      color: accentGreen,
                       fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   onPressed: () => setState(() => _isCreatingNewCat = true),
@@ -2271,11 +2258,12 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                 ),
                 if (widget.categories.isNotEmpty)
                   TextButton(
-                    child: const Text(
+                    child: Text(
                       'Choose from existing categories',
                       style: TextStyle(
-                        color: GlassTheme.primaryGreen,
+                        color: accentGreen,
                         fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     onPressed: () => setState(() => _isCreatingNewCat = false),
@@ -2393,7 +2381,11 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
   }
 
   Widget _buildImagePresetChip({required String label, required String url}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _imageController.text.trim() == url;
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreen
+        : GlassTheme.primaryGreenDark;
     return InkWell(
       onTap: () => setState(() => _imageController.text = url),
       borderRadius: BorderRadius.circular(10),
@@ -2402,18 +2394,24 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
         decoration: BoxDecoration(
           color: isSelected
               ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.04)),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
-                ? GlassTheme.primaryGreen
-                : Colors.white.withValues(alpha: 0.12),
+                ? accentGreen
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.12)),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? GlassTheme.primaryGreen : Colors.white70,
+            color: isSelected
+                ? accentGreen
+                : (isDark ? Colors.white70 : const Color(0xFF374151)),
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
           ),
@@ -2429,22 +2427,128 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
     TextInputType? keyboardType,
     int maxLines = 1,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(
+        color: isDark ? Colors.white : GlassTheme.textInverseDark,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: GlassTheme.textMuted),
-        prefixIcon: Icon(icon, color: GlassTheme.primaryGreen),
+        labelStyle: TextStyle(
+          color: isDark ? GlassTheme.textMuted : const Color(0xFF4B5563),
+        ),
+        prefixIcon: Icon(
+          icon,
+          color: isDark ? GlassTheme.primaryGreen : GlassTheme.primaryGreenDark,
+        ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.04),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
       ),
+    );
+  }
+}
+
+class _RestaurantRejectOrderDialog extends StatefulWidget {
+  const _RestaurantRejectOrderDialog();
+
+  @override
+  State<_RestaurantRejectOrderDialog> createState() =>
+      _RestaurantRejectOrderDialogState();
+}
+
+class _RestaurantRejectOrderDialogState
+    extends State<_RestaurantRejectOrderDialog> {
+  final _reasonController = TextEditingController();
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
+    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+
+    return AlertDialog(
+      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.12)
+              : Colors.black.withValues(alpha: 0.08),
+        ),
+      ),
+      title: Text(
+        'Reject Order',
+        style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Please provide a rejection reason (prepaid orders are automatically refunded):',
+            style: TextStyle(color: secondaryText, fontSize: 13),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _reasonController,
+            decoration: InputDecoration(
+              hintText: 'e.g., Kitchen at full capacity',
+              hintStyle: TextStyle(
+                color: isDark ? GlassTheme.textMuted : const Color(0xFF6B7280),
+              ),
+              filled: true,
+              fillColor: isDark
+                  ? Colors.white.withValues(alpha: 0.06)
+                  : Colors.black.withValues(alpha: 0.04),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.12),
+                ),
+              ),
+            ),
+            style: TextStyle(color: primaryText),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel', style: TextStyle(color: secondaryText)),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            minimumSize: const Size(130, 48),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onPressed: () =>
+              Navigator.pop(context, _reasonController.text.trim()),
+          child: const Text(
+            'Reject & Refund',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
     );
   }
 }

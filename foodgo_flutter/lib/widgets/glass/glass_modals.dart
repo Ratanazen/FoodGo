@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 import 'glass_widgets.dart';
 
@@ -56,16 +55,23 @@ class GlassModals {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTypography.primaryTextColor(
+                      Theme.of(context).brightness,
+                    ),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: GlassTheme.textMuted),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTypography.secondaryTextColor(
+                      Theme.of(context).brightness,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -75,7 +81,12 @@ class GlassModals {
                         onPressed: () => Navigator.pop(context),
                         child: Text(
                           cancelText,
-                          style: TextStyle(color: GlassTheme.textMuted),
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: AppTypography.secondaryTextColor(
+                                  Theme.of(context).brightness,
+                                ),
+                              ),
                         ),
                       ),
                     ),

@@ -62,15 +62,11 @@ class _AppTextFieldState extends State<AppTextField> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final baseTextStyle = TextStyle(
-      fontFamily: 'Kantumruy Pro',
-      fontSize: 15.0,
+    final baseTextStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
       color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
     );
 
-    final hintTextStyle = TextStyle(
-      fontFamily: 'Kantumruy Pro',
-      fontSize: 14.0,
+    final hintTextStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
       color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
     );
 
@@ -104,9 +100,7 @@ class _AppTextFieldState extends State<AppTextField> {
         if (widget.labelText != null) ...[
           Text(
             widget.labelText!,
-            style: TextStyle(
-              fontFamily: 'Kantumruy Pro',
-              fontSize: 13.0,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w500,
               color: isDark
                   ? AppColors.textMutedDark

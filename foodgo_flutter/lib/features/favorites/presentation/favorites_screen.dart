@@ -16,7 +16,14 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final textTheme = Theme.of(context).textTheme;
+    final accentColor = isDark
+        ? GlassTheme.limeAccent
+        : GlassTheme.primaryGreenDark;
     final favorites = context.watch<FavoritesProvider>();
     final restaurants = favorites.favoriteRestaurants;
     final foods = favorites.favoriteFoodItems;
@@ -25,61 +32,46 @@ class FavoritesScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+        appBar: GlassAppBar(
+          title: 'Favorites (${favorites.totalFavoritesCount})',
           leading: Navigator.of(context).canPop()
-              ? Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: AnimatedPressable(
-                    pressedScale: 0.9,
-                    onTap: () => context.pop(),
-                    child: Container(
-                      decoration: BoxDecoration(
+              ? AnimatedPressable(
+                  pressedScale: 0.9,
+                  onTap: () => context.pop(),
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.05),
+                      shape: BoxShape.circle,
+                      border: Border.all(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : Colors.black.withValues(alpha: 0.05),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.15)
-                              : Colors.black.withValues(alpha: 0.1),
-                        ),
+                            ? Colors.white.withValues(alpha: 0.15)
+                            : Colors.black.withValues(alpha: 0.1),
                       ),
-                      child: Center(
-                        child: Icon(
-                          Icons.arrow_back_ios_new,
-                          size: 16,
-                          color: isDark ? Colors.white : GlassTheme.textDark,
-                        ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 16,
+                        color: primaryText,
                       ),
                     ),
                   ),
                 )
               : null,
-          centerTitle: true,
-          title: Text(
-            'Favorites (${favorites.totalFavoritesCount})',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 19,
-              color: isDark ? Colors.white : GlassTheme.textDark,
-            ),
-          ),
           bottom: TabBar(
-            indicatorColor: isDark
-                ? GlassTheme.limeAccent
-                : GlassTheme.primaryGreen,
+            indicatorColor: accentColor,
             indicatorWeight: 3,
-            labelColor: isDark
-                ? GlassTheme.limeAccent
-                : GlassTheme.primaryGreen,
-            unselectedLabelColor: isDark
-                ? Colors.white60
-                : const Color(0xFF64748B),
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 14,
+            labelColor: accentColor,
+            unselectedLabelColor: secondaryText,
+            labelStyle: textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            unselectedLabelStyle: textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w500,
             ),
             tabs: [
               Tab(text: 'Restaurants (${restaurants.length})'),
@@ -212,34 +204,30 @@ class FavoritesScreen extends StatelessWidget {
                                   children: [
                                     Text(
                                       name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
+                                      style: textTheme.titleMedium?.copyWith(
+                                        color: primaryText,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
                                     ),
                                     if (desc.isNotEmpty) ...[
                                       const SizedBox(height: 3),
                                       Text(
                                         desc,
-                                        style: TextStyle(
-                                          color: GlassTheme.textMuted,
-                                          fontSize: 12,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: secondaryText,
                                         ),
-                                        maxLines: 1,
+                                        maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                     const SizedBox(height: 6),
                                     Text(
                                       '\$${price.toStringAsFixed(2)}',
-                                      style: TextStyle(
+                                      style: textTheme.titleMedium?.copyWith(
                                         color: isDark
                                             ? GlassTheme.limeAccentBright
-                                            : GlassTheme.primaryGreen,
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 15,
+                                            : GlassTheme.primaryGreenDark,
+                                        fontWeight: FontWeight.w800,
                                       ),
                                     ),
                                   ],
@@ -354,6 +342,8 @@ class FavoritesScreen extends StatelessWidget {
     required String buttonText,
     required VoidCallback onAction,
   }) {
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -379,16 +369,17 @@ class FavoritesScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: textTheme.titleLarge?.copyWith(
+                color: AppTypography.primaryTextColor(brightness),
+                fontWeight: FontWeight.w700,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: TextStyle(
-                color: GlassTheme.textMuted,
-                fontSize: 13,
-                height: 1.4,
+              style: textTheme.bodyMedium?.copyWith(
+                color: AppTypography.secondaryTextColor(brightness),
               ),
               textAlign: TextAlign.center,
             ),

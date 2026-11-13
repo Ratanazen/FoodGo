@@ -68,71 +68,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ResponsiveBottomSheet(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: GlassTheme.dialogDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                context.tr('settings.selectLanguage'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final primaryText = AppTypography.primaryTextColor(
+          isDark ? Brightness.dark : Brightness.light,
+        );
+        return ResponsiveBottomSheet(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? GlassTheme.dialogDark : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
               ),
-              const SizedBox(height: 16),
-              ...[
-                {'lang': AppLanguage.english, 'label': 'English (US)'},
-                {'lang': AppLanguage.khmer, 'label': 'ភាសាខ្មែរ (Khmer)'},
-              ].map((item) {
-                final lang = item['lang'] as AppLanguage;
-                final isSel = localeProvider.language == lang;
-                return Material(
-                  color: Colors.transparent,
-                  child: ListTile(
-                    title: Text(
-                      item['label'] as String,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                    trailing: isSel
-                        ? const Icon(
-                            Icons.check,
-                            color: GlassTheme.primaryGreen,
-                          )
-                        : null,
-                    onTap: () async {
-                      await localeProvider.setLanguage(lang);
-                      if (ctx.mounted) Navigator.pop(ctx);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Language switched to ${item['label']}',
-                            ),
-                            duration: const Duration(seconds: 1),
-                            backgroundColor: GlassTheme.primaryGreen,
-                          ),
-                        );
-                      }
-                    },
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.08),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  context.tr('settings.selectLanguage'),
+                  style: TextStyle(
+                    color: primaryText,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              }),
-            ],
+                ),
+                const SizedBox(height: 16),
+                ...[
+                  {'lang': AppLanguage.english, 'label': 'English (US)'},
+                  {'lang': AppLanguage.khmer, 'label': 'ភាសាខ្មែរ (Khmer)'},
+                ].map((item) {
+                  final lang = item['lang'] as AppLanguage;
+                  final isSel = localeProvider.language == lang;
+                  return Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      title: Text(
+                        item['label'] as String,
+                        style: TextStyle(
+                          color: primaryText,
+                          fontWeight: isSel
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      trailing: isSel
+                          ? Icon(
+                              Icons.check,
+                              color: isDark
+                                  ? GlassTheme.primaryGreen
+                                  : GlassTheme.primaryGreenDark,
+                            )
+                          : null,
+                      onTap: () async {
+                        await localeProvider.setLanguage(lang);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Language switched to ${item['label']}',
+                              ),
+                              duration: const Duration(seconds: 1),
+                              backgroundColor: GlassTheme.primaryGreen,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  );
+                }),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -141,114 +157,128 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ResponsiveBottomSheet(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: GlassTheme.dialogDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Display Currency',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '1 USD = ${currencyProvider.khrPerUsd.toInt()} KHR',
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontSize: 11,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final primaryText = AppTypography.primaryTextColor(
+          isDark ? Brightness.dark : Brightness.light,
+        );
+        final secondaryText = AppTypography.secondaryTextColor(
+          isDark ? Brightness.dark : Brightness.light,
+        );
+        final accentGreen = isDark
+            ? GlassTheme.primaryGreen
+            : GlassTheme.primaryGreenDark;
+        return ResponsiveBottomSheet(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? GlassTheme.dialogDark : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.08),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Display Currency',
+                      style: TextStyle(
+                        color: primaryText,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ...[
-                {
-                  'mode': DisplayCurrency.usd,
-                  'title': r'USD ($)',
-                  'subtitle': 'US Dollar (Default international standard)',
-                },
-                {
-                  'mode': DisplayCurrency.khr,
-                  'title': 'KHR (៛)',
-                  'subtitle': 'Cambodian Riel (NBC customary retail rate)',
-                },
-                {
-                  'mode': DisplayCurrency.dual,
-                  'title': r'Dual Currency ($ / ៛)',
-                  'subtitle':
-                      'Shows both USD and estimated Riel simultaneously',
-                },
-              ].map((opt) {
-                final mode = opt['mode'] as DisplayCurrency;
-                final isSel = currencyProvider.currency == mode;
-                return Material(
-                  color: Colors.transparent,
-                  child: ListTile(
-                    title: Text(
-                      opt['title'] as String,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
-                    ),
-                    subtitle: Text(
-                      opt['subtitle'] as String,
-                      style: const TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 12,
+                      decoration: BoxDecoration(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                    trailing: isSel
-                        ? const Icon(
-                            Icons.check_circle,
-                            color: GlassTheme.primaryGreen,
-                          )
-                        : null,
-                    onTap: () {
-                      currencyProvider.setCurrency(mode);
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Display currency set to ${opt['title']}',
-                          ),
-                          duration: const Duration(seconds: 1),
-                          backgroundColor: GlassTheme.primaryGreen,
-                          behavior: SnackBarBehavior.floating,
+                      child: Text(
+                        '1 USD = ${currencyProvider.khrPerUsd.toInt()} KHR',
+                        style: TextStyle(
+                          color: accentGreen,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                    },
-                  ),
-                );
-              }),
-            ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ...[
+                  {
+                    'mode': DisplayCurrency.usd,
+                    'title': r'USD ($)',
+                    'subtitle': 'US Dollar (Default international standard)',
+                  },
+                  {
+                    'mode': DisplayCurrency.khr,
+                    'title': 'KHR (៛)',
+                    'subtitle': 'Cambodian Riel (NBC customary retail rate)',
+                  },
+                  {
+                    'mode': DisplayCurrency.dual,
+                    'title': r'Dual Currency ($ / ៛)',
+                    'subtitle':
+                        'Shows both USD and estimated Riel simultaneously',
+                  },
+                ].map((opt) {
+                  final mode = opt['mode'] as DisplayCurrency;
+                  final isSel = currencyProvider.currency == mode;
+                  return Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      title: Text(
+                        opt['title'] as String,
+                        style: TextStyle(
+                          color: primaryText,
+                          fontWeight: isSel
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      subtitle: Text(
+                        opt['subtitle'] as String,
+                        style: TextStyle(color: secondaryText, fontSize: 12),
+                      ),
+                      trailing: isSel
+                          ? Icon(Icons.check_circle, color: accentGreen)
+                          : null,
+                      onTap: () {
+                        currencyProvider.setCurrency(mode);
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Display currency set to ${opt['title']}',
+                            ),
+                            duration: const Duration(seconds: 1),
+                            backgroundColor: GlassTheme.primaryGreen,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -258,146 +288,165 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: themeProvider.paletteData.primary.withValues(
-                  alpha: 0.15,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final primaryText = AppTypography.primaryTextColor(
+          isDark ? Brightness.dark : Brightness.light,
+        );
+        final secondaryText = AppTypography.secondaryTextColor(
+          isDark ? Brightness.dark : Brightness.light,
+        );
+        return AlertDialog(
+          backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: themeProvider.paletteData.primary.withValues(
+                    alpha: 0.15,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                borderRadius: BorderRadius.circular(12),
+                child: Icon(
+                  Icons.palette,
+                  color: themeProvider.paletteData.primary,
+                  size: 22,
+                ),
               ),
-              child: Icon(
-                Icons.palette,
-                color: themeProvider.paletteData.primary,
-                size: 22,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Theme & Festivals',
+                      style: TextStyle(
+                        color: primaryText,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'រចនាបថ និងពិធីបុណ្យជាតិ',
+                      style: TextStyle(color: secondaryText, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: 380,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height * 0.72,
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Section 1: Khmer & Seasonal Festivals
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 4,
+                        bottom: 8,
+                        top: 4,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.celebration,
+                            color: isDark
+                                ? const Color(0xFFFBBF24)
+                                : const Color(0xFFB45309),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Khmer & Seasonal Festivals / ពិធីបុណ្យជាតិ',
+                            style: TextStyle(
+                              color: primaryText,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...PaletteData.allPalettes
+                        .where((p) => p.isFestive)
+                        .map(
+                          (palette) => _buildPaletteCard(
+                            ctx,
+                            palette,
+                            current,
+                            themeProvider,
+                          ),
+                        ),
+
+                    const SizedBox(height: 12),
+
+                    // Section 2: Classic Signature Themes
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.auto_awesome,
+                            color: isDark
+                                ? const Color(0xFF86EFAC)
+                                : GlassTheme.primaryGreenDark,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Classic Signature Themes / រចនាបថដើម',
+                            style: TextStyle(
+                              color: primaryText,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...PaletteData.allPalettes
+                        .where((p) => !p.isFestive)
+                        .map(
+                          (palette) => _buildPaletteCard(
+                            ctx,
+                            palette,
+                            current,
+                            themeProvider,
+                          ),
+                        ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Theme & Festivals',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'រចនាបថ និងពិធីបុណ្យជាតិ',
-                    style: TextStyle(color: Colors.white60, fontSize: 12),
-                  ),
-                ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Close / បិទ',
+                style: TextStyle(color: secondaryText),
               ),
             ),
           ],
-        ),
-        content: SizedBox(
-          width: 380,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(ctx).size.height * 0.72,
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Section 1: Khmer & Seasonal Festivals
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.celebration,
-                          color: Color(0xFFFBBF24),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Khmer & Seasonal Festivals / ពិធីបុណ្យជាតិ',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.85),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ...PaletteData.allPalettes
-                      .where((p) => p.isFestive)
-                      .map(
-                        (palette) => _buildPaletteCard(
-                          ctx,
-                          palette,
-                          current,
-                          themeProvider,
-                        ),
-                      ),
-
-                  const SizedBox(height: 12),
-
-                  // Section 2: Classic Signature Themes
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 8),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.auto_awesome,
-                          color: Color(0xFF86EFAC),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Classic Signature Themes / រចនាបថដើម',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.85),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ...PaletteData.allPalettes
-                      .where((p) => !p.isFestive)
-                      .map(
-                        (palette) => _buildPaletteCard(
-                          ctx,
-                          palette,
-                          current,
-                          themeProvider,
-                        ),
-                      ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Close / បិទ',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -407,18 +456,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     AppColorPalette current,
     ThemeProvider themeProvider,
   ) {
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final secondaryText = AppTypography.secondaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
     final isSelected = palette.id == current;
+    final badgeFg = palette.primary.computeLuminance() > 0.45
+        ? Colors.black87
+        : palette.primaryAccent;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: isSelected
             ? palette.primary.withValues(alpha: 0.18)
-            : Colors.white.withValues(alpha: 0.04),
+            : (isDark
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : Colors.black.withValues(alpha: 0.03)),
         border: Border.all(
           color: isSelected
               ? palette.primary
-              : Colors.white.withValues(alpha: 0.08),
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.08)),
           width: isSelected ? 1.5 : 1.0,
         ),
       ),
@@ -450,7 +513,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(
                 palette.nameEn,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: primaryText,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   fontSize: 13.5,
                 ),
@@ -473,7 +536,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text(
                   palette.badgeText,
                   style: TextStyle(
-                    color: palette.primaryAccent,
+                    color: isDark ? palette.primaryAccent : badgeFg,
                     fontSize: 9.5,
                     fontWeight: FontWeight.bold,
                   ),
@@ -490,7 +553,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 palette.nameKh,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: secondaryText,
                   fontSize: 11.5,
                   fontWeight: FontWeight.w500,
                 ),
@@ -498,7 +561,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 palette.descriptionEn,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.5)
+                      : Colors.black54,
                   fontSize: 10.5,
                 ),
                 maxLines: 1,
@@ -514,26 +579,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: palette.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: Colors.white, size: 16),
+                child: Icon(
+                  Icons.check,
+                  color: palette.primary.computeLuminance() > 0.45
+                      ? Colors.black87
+                      : Colors.white,
+                  size: 16,
+                ),
               )
             : Icon(
                 Icons.circle_outlined,
-                color: Colors.white.withValues(alpha: 0.3),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.3)
+                    : Colors.black26,
                 size: 20,
               ),
         onTap: () {
           themeProvider.setPalette(palette.id);
           Navigator.pop(ctx);
+          final snackFg = palette.primary.computeLuminance() > 0.45
+              ? Colors.black87
+              : Colors.white;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                  Icon(palette.icon, color: Colors.white, size: 20),
+                  Icon(palette.icon, color: snackFg, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Theme updated to ${palette.nameEn} (${palette.nameKh})',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: snackFg,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -560,386 +639,125 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              context.tr('settings.textSize'),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                localeProvider.setTextScale(AppTextScale.standard);
-                Navigator.pop(ctx);
-              },
-              child: Text(
-                context.tr('common.reset'),
-                style: const TextStyle(
-                  color: GlassTheme.primaryGreenAccent,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: AppTextScale.values.map((scale) {
-            final isSelected = localeProvider.textScale == scale;
-            return ListTile(
-              title: Text(
-                scale.label(localeProvider.isKhmer),
-                style: TextStyle(
-                  color: isSelected ? GlassTheme.primaryGreen : Colors.white,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              subtitle: Text(
-                'Sample text • អក្សរគំរូ',
-                style: TextStyle(
-                  fontSize: 12 * scale.factor,
-                  color: Colors.white60,
-                ),
-              ),
-              trailing: isSelected
-                  ? const Icon(
-                      Icons.check_circle,
-                      color: GlassTheme.primaryGreen,
-                    )
-                  : const Icon(Icons.circle_outlined, color: Colors.white38),
-              onTap: () {
-                localeProvider.setTextScale(scale);
-                Navigator.pop(ctx);
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  void _showChangePasswordDialog() {
-    final currentPw = TextEditingController();
-    final newPw = TextEditingController();
-    final confirmPw = TextEditingController();
-    bool isSubmitting = false;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetCtx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
-          ),
-          child: ResponsiveBottomSheet(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: GlassTheme.dialogDark,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Change Account Password',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: currentPw,
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Current Password',
-                      labelStyle: TextStyle(color: GlassTheme.textMuted),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: newPw,
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'New Password',
-                      labelStyle: TextStyle(color: GlassTheme.textMuted),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: confirmPw,
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Confirm New Password',
-                      labelStyle: TextStyle(color: GlassTheme.textMuted),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlassTheme.primaryGreen,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: isSubmitting
-                        ? null
-                        : () async {
-                            if (currentPw.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Please enter your current password',
-                                  ),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                              return;
-                            }
-                            if (newPw.text.isEmpty ||
-                                newPw.text != confirmPw.text) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Passwords do not match or are empty',
-                                  ),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                              return;
-                            }
-                            if (newPw.text.length < 6) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'New password must be at least 6 characters',
-                                  ),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                              return;
-                            }
-                            setSheetState(() => isSubmitting = true);
-                            try {
-                              final api = ApiService();
-                              await api.post('auth/change-password/', {
-                                'current_password': currentPw.text,
-                                'new_password': newPw.text,
-                              });
-                              if (sheetCtx.mounted) Navigator.pop(sheetCtx);
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Password updated successfully!',
-                                  ),
-                                  backgroundColor: GlassTheme.primaryGreen,
-                                ),
-                              );
-                            } catch (e) {
-                              setSheetState(() => isSubmitting = false);
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Failed to update password: ${ApiService.formatError(e)}',
-                                  ),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                            }
-                          },
-                    child: isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Save New Password',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteAccountDialog() {
-    final confirmController = TextEditingController();
-    bool isDeleting = false;
-
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: GlassTheme.dialogDark,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final primaryText = AppTypography.primaryTextColor(
+          isDark ? Brightness.dark : Brightness.light,
+        );
+        final secondaryText = AppTypography.secondaryTextColor(
+          isDark ? Brightness.dark : Brightness.light,
+        );
+        final accentGreen = isDark
+            ? GlassTheme.primaryGreen
+            : GlassTheme.primaryGreenDark;
+        return AlertDialog(
+          backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Row(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
-              SizedBox(width: 8),
-              Text(
-                'Delete Account',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  context.tr('settings.textSize'),
+                  style: TextStyle(
+                    color: primaryText,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  localeProvider.setTextScale(AppTextScale.standard);
+                  Navigator.pop(ctx);
+                },
+                child: Text(
+                  context.tr('common.reset'),
+                  style: TextStyle(
+                    color: isDark
+                        ? GlassTheme.primaryGreenAccent
+                        : GlassTheme.primaryGreenDark,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'This action is irreversible. All your order history, saved addresses, and profile data will be permanently deleted.',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Type "DELETE" to confirm:',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: confirmController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'DELETE',
-                  hintStyle: const TextStyle(color: Colors.white38),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+            children: AppTextScale.values.map((scale) {
+              final isSelected = localeProvider.textScale == scale;
+              return ListTile(
+                title: Text(
+                  scale.label(localeProvider.isKhmer),
+                  style: TextStyle(
+                    color: isSelected ? accentGreen : primaryText,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
-                onChanged: (_) => setDialogState(() {}),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white60),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                subtitle: Text(
+                  'Sample text • អក្សរគំរូ',
+                  style: TextStyle(
+                    fontSize: 12 * scale.factor,
+                    color: secondaryText,
+                  ),
                 ),
-              ),
-              onPressed:
-                  (confirmController.text.trim() != 'DELETE' || isDeleting)
-                  ? null
-                  : () async {
-                      setDialogState(() => isDeleting = true);
-                      try {
-                        final authProvider = context.read<AuthProvider>();
-                        final api = ApiService();
-                        await api.delete('auth/delete-account/');
-                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-                        if (!mounted) return;
-                        await authProvider.logout();
-                        if (!mounted) return;
-                        context.go('/login');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Account permanently deleted.'),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      } catch (e) {
-                        setDialogState(() => isDeleting = false);
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Failed to delete account: ${ApiService.formatError(e)}',
-                            ),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      }
-                    },
-              child: isDeleting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+                trailing: isSelected
+                    ? Icon(Icons.check_circle, color: accentGreen)
+                    : Icon(
+                        Icons.circle_outlined,
+                        color: isDark ? Colors.white38 : Colors.black38,
                       ),
-                    )
-                  : const Text(
-                      'Delete Permanently',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
+                onTap: () {
+                  localeProvider.setTextScale(scale);
+                  Navigator.pop(ctx);
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
+  }
+
+  void _showChangePasswordDialog() {
+    showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _ChangePasswordSheet(),
+    ).then((changed) {
+      if (changed == true && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password updated successfully!'),
+            backgroundColor: GlassTheme.primaryGreen,
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> _showDeleteAccountDialog() async {
+    final deleted = await showDialog<bool>(
+      context: context,
+      builder: (_) => const _DeleteAccountDialog(),
+    );
+    if (deleted == true && mounted) {
+      await context.read<AuthProvider>().logout();
+      if (!mounted) return;
+      context.go('/login');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account permanently deleted.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   void _showRateUsDialog() {
@@ -947,90 +765,103 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (dialogCtx, setDialogState) => AlertDialog(
-          backgroundColor: GlassTheme.dialogDark,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          title: const Text(
-            'Rate FoodGo Experience',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'How would you rate your delivery experience?',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
-                textAlign: TextAlign.center,
+        builder: (dialogCtx, setDialogState) {
+          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+          final primaryText = AppTypography.primaryTextColor(
+            isDark ? Brightness.dark : Brightness.light,
+          );
+          final secondaryText = AppTypography.secondaryTextColor(
+            isDark ? Brightness.dark : Brightness.light,
+          );
+          final accentGreen = isDark
+              ? GlassTheme.primaryGreen
+              : GlassTheme.primaryGreenDark;
+          return AlertDialog(
+            backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Text(
+              'Rate FoodGo Experience',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'How would you rate your delivery experience?',
+                  style: TextStyle(color: secondaryText, fontSize: 13),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    return IconButton(
+                      icon: Icon(
+                        index < rating ? Icons.star : Icons.star_border,
+                        color: Colors.amber,
+                        size: 32,
+                      ),
+                      onPressed: () => setDialogState(() => rating = index + 1),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  rating == 5
+                      ? 'Outstanding! Highly Recommended'
+                      : rating >= 4
+                      ? 'Great food & fast delivery'
+                      : 'Thanks for your feedback!',
+                  style: TextStyle(
+                    color: accentGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text('Cancel', style: TextStyle(color: secondaryText)),
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  return IconButton(
-                    icon: Icon(
-                      index < rating ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
-                      size: 32,
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GlassTheme.primaryGreen,
+                ),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(
+                            Icons.favorite,
+                            color: Colors.redAccent,
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Text('Thank you for rating FoodGo!'),
+                        ],
+                      ),
+                      backgroundColor: GlassTheme.primaryGreen,
                     ),
-                    onPressed: () => setDialogState(() => rating = index + 1),
                   );
-                }),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                rating == 5
-                    ? 'Outstanding! Highly Recommended'
-                    : rating >= 4
-                    ? 'Great food & fast delivery'
-                    : 'Thanks for your feedback!',
-                style: const TextStyle(
-                  color: GlassTheme.primaryGreen,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                },
+                child: const Text(
+                  'Submit Rating',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white60),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: GlassTheme.primaryGreen,
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Row(
-                      children: [
-                        Icon(Icons.favorite, color: Colors.redAccent, size: 18),
-                        SizedBox(width: 8),
-                        Text('Thank you for rating FoodGo!'),
-                      ],
-                    ),
-                    backgroundColor: GlassTheme.primaryGreen,
-                  ),
-                );
-              },
-              child: const Text(
-                'Submit Rating',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -1444,6 +1275,320 @@ class _SettingsTile extends StatelessWidget {
             : null,
         onTap: onTap,
       ),
+    );
+  }
+}
+
+class _ChangePasswordSheet extends StatefulWidget {
+  const _ChangePasswordSheet();
+
+  @override
+  State<_ChangePasswordSheet> createState() => _ChangePasswordSheetState();
+}
+
+class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
+  final _currentPw = TextEditingController();
+  final _newPw = TextEditingController();
+  final _confirmPw = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _currentPw.dispose();
+    _newPw.dispose();
+    _confirmPw.dispose();
+    super.dispose();
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+    );
+  }
+
+  Future<void> _submit() async {
+    if (_currentPw.text.isEmpty) {
+      _showError('Please enter your current password');
+      return;
+    }
+    if (_newPw.text.isEmpty || _newPw.text != _confirmPw.text) {
+      _showError('Passwords do not match or are empty');
+      return;
+    }
+    if (_newPw.text.length < 6) {
+      _showError('New password must be at least 6 characters');
+      return;
+    }
+    setState(() => _isSubmitting = true);
+    try {
+      final api = ApiService();
+      await api.post('auth/change-password/', {
+        'current_password': _currentPw.text,
+        'new_password': _newPw.text,
+      });
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showError('Failed to update password: ${ApiService.formatError(e)}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final secondaryText = AppTypography.secondaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final fieldFill = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.black.withValues(alpha: 0.04);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: ResponsiveBottomSheet(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? GlassTheme.dialogDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Change Account Password',
+                style: TextStyle(
+                  color: primaryText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _currentPw,
+                obscureText: true,
+                style: TextStyle(color: primaryText),
+                decoration: InputDecoration(
+                  labelText: 'Current Password',
+                  labelStyle: TextStyle(color: secondaryText),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _newPw,
+                obscureText: true,
+                style: TextStyle(color: primaryText),
+                decoration: InputDecoration(
+                  labelText: 'New Password',
+                  labelStyle: TextStyle(color: secondaryText),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _confirmPw,
+                obscureText: true,
+                style: TextStyle(color: primaryText),
+                decoration: InputDecoration(
+                  labelText: 'Confirm New Password',
+                  labelStyle: TextStyle(color: secondaryText),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GlassTheme.primaryGreen,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _isSubmitting ? null : _submit,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Save New Password',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeleteAccountDialog extends StatefulWidget {
+  const _DeleteAccountDialog();
+
+  @override
+  State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
+}
+
+class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
+  final _confirmController = TextEditingController();
+  bool _isDeleting = false;
+
+  @override
+  void dispose() {
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _deleteAccount() async {
+    setState(() => _isDeleting = true);
+    try {
+      final api = ApiService();
+      await api.delete('auth/delete-account/');
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isDeleting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to delete account: ${ApiService.formatError(e)}',
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final secondaryText = AppTypography.secondaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+
+    return AlertDialog(
+      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+          const SizedBox(width: 8),
+          Text(
+            'Delete Account',
+            style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'This action is irreversible. All your order history, saved addresses, and profile data will be permanently deleted.',
+            style: TextStyle(color: secondaryText, fontSize: 13, height: 1.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Type "DELETE" to confirm:',
+            style: TextStyle(
+              color: primaryText,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _confirmController,
+            style: TextStyle(color: primaryText),
+            decoration: InputDecoration(
+              hintText: 'DELETE',
+              hintStyle: TextStyle(
+                color: isDark ? Colors.white38 : Colors.black38,
+              ),
+              filled: true,
+              fillColor: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.04),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text('Cancel', style: TextStyle(color: secondaryText)),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          onPressed: (_confirmController.text.trim() != 'DELETE' || _isDeleting)
+              ? null
+              : _deleteAccount,
+          child: _isDeleting
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text(
+                  'Delete Permanently',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }

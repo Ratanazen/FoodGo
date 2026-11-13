@@ -11,6 +11,8 @@ class UserProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
   bool _isLoading = false;
   String? _lastError;
+  int _authEpoch = 0;
+  int _fetchEpoch = 0;
 
   UserProvider() {
     _loadCachedUser();
@@ -68,12 +70,15 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> _loadCachedUser() async {
+    final epoch = _authEpoch;
     try {
       final preferences = await SharedPreferences.getInstance();
       final cachedJson = preferences.getString('cached_user_profile');
       if (cachedJson == null || cachedJson.isEmpty) return;
       final decoded = jsonDecode(cachedJson);
-      if (decoded is Map<String, dynamic> && _user == null) {
+      if (epoch == _authEpoch &&
+          decoded is Map<String, dynamic> &&
+          _user == null) {
         _user = decoded;
         notifyListeners();
       }
@@ -85,6 +90,8 @@ class UserProvider with ChangeNotifier {
   }
 
   void setUser(Map<String, dynamic> userData) {
+    _authEpoch++;
+    _fetchEpoch++;
     _user = Map<String, dynamic>.from(userData);
     _isLoading = false;
     _lastError = null;
@@ -105,7 +112,10 @@ class UserProvider with ChangeNotifier {
   }
 
   void clearUser() {
+    _authEpoch++;
+    _fetchEpoch++;
     _user = null;
+    _isLoading = false;
     _lastError = null;
     notifyListeners();
     SharedPreferences.getInstance().then((preferences) {
@@ -114,25 +124,35 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> fetchUser() async {
+    final epoch = _authEpoch;
+    final fetchId = ++_fetchEpoch;
     _isLoading = true;
     notifyListeners();
 
     try {
       final data = await _apiService.get('me/');
+      if (epoch != _authEpoch || fetchId != _fetchEpoch) return;
       if (data is Map<String, dynamic>) {
         _user = data;
         _persistCachedUser();
       }
     } catch (e) {
       debugPrint('Error fetching user profile: $e');
-      if (e is DioException && e.response?.statusCode == 401) {
+      if (epoch == _authEpoch &&
+          fetchId == _fetchEpoch &&
+          e is DioException &&
+          e.response?.statusCode == 401) {
         _user = null;
         final preferences = await SharedPreferences.getInstance();
-        await preferences.remove('cached_user_profile');
+        if (epoch == _authEpoch && fetchId == _fetchEpoch) {
+          await preferences.remove('cached_user_profile');
+        }
       }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (fetchId == _fetchEpoch) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -145,6 +165,8 @@ class UserProvider with ChangeNotifier {
     String? avatarUrl,
     String? avatarFilePath,
   }) async {
+    final epoch = _authEpoch;
+    _fetchEpoch++;
     _isLoading = true;
     _lastError = null;
     notifyListeners();
@@ -191,6 +213,8 @@ class UserProvider with ChangeNotifier {
       }
 
       final updated = await _apiService.patch('me/', payload);
+      if (epoch != _authEpoch) return false;
+      _fetchEpoch++;
       if (updated is Map<String, dynamic>) {
         _user = updated;
       } else {
@@ -240,11 +264,15 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<bool> updateRole(String newRole) async {
+    final epoch = _authEpoch;
+    _fetchEpoch++;
     _isLoading = true;
     _lastError = null;
     notifyListeners();
     try {
       final updated = await _apiService.patch('me/', {'role': newRole});
+      if (epoch != _authEpoch) return false;
+      _fetchEpoch++;
       if (updated is Map<String, dynamic>) {
         _user = updated;
       } else if (_user != null) {

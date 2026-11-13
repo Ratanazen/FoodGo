@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../core/theme/app_icons.dart';
+import '../core/theme/app_typography.dart';
 import '../core/theme/glass_theme.dart';
 import '../core/utils/khmer_currency.dart';
 import '../providers/favorites_provider.dart';
@@ -143,11 +144,11 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                         const SizedBox(width: 4),
                         Text(
                           isFreeDelivery ? 'Free Delivery' : '20% OFF Deals',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
                         ),
                       ],
                     ),
@@ -222,11 +223,11 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                         const SizedBox(width: 4),
                         Text(
                           '$minTime-$maxTime min',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),
@@ -251,12 +252,13 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                             color: Colors.transparent,
                             child: Text(
                               name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: AppTypography.primaryTextColor(
+                                      Theme.of(context).brightness,
+                                    ),
+                                  ),
+                              maxLines: 2,
                             ),
                           ),
                         ),
@@ -282,11 +284,15 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                             const SizedBox(width: 3),
                             Text(
                               rating,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: GlassTheme.ratingAmber,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? GlassTheme.ratingAmber
+                                        : const Color(0xFFB45309),
+                                  ),
                             ),
                           ],
                         ),
@@ -298,9 +304,12 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                   // Cuisine & Distance Subtitle
                   Text(
                     '\$\$ • Burgers • Fast Food • 1.2 km',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTypography.secondaryTextColor(
+                        Theme.of(context).brightness,
+                      ),
+                    ),
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 6),
 
@@ -311,28 +320,38 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                         AppIcons.delivery,
                         size: 14,
                         color: isFreeDelivery
-                            ? GlassTheme.primaryGreen
-                            : GlassTheme.textMuted,
+                            ? (Theme.of(context).brightness == Brightness.dark
+                                  ? GlassTheme.primaryGreen
+                                  : GlassTheme.primaryGreenDark)
+                            : AppTypography.secondaryTextColor(
+                                Theme.of(context).brightness,
+                              ),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        isFreeDelivery
-                            ? 'Free Delivery'
-                            : '${KhmerCurrency.formatDual(deliveryFee)} delivery',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: isFreeDelivery
-                              ? GlassTheme.primaryGreen
-                              : GlassTheme.textMuted,
+                      Expanded(
+                        child: Text(
+                          isFreeDelivery
+                              ? 'Free Delivery'
+                              : '${KhmerCurrency.formatDual(deliveryFee)} delivery',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isFreeDelivery
+                                    ? (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? GlassTheme.primaryGreen
+                                          : GlassTheme.primaryGreenDark)
+                                    : AppTypography.secondaryTextColor(
+                                        Theme.of(context).brightness,
+                                      ),
+                              ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 6),
                       Text(
                         '15% OFF \$10+',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
                           color: GlassTheme.foodpandaPink,
                         ),
                       ),

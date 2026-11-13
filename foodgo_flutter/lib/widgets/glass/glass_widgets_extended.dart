@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/glass_theme.dart';
 import 'animated_pressable.dart';
 
@@ -47,14 +48,15 @@ class GlassTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     final effectiveRadius =
         borderRadius ?? BorderRadius.circular(AppRadius.medium);
     final effectiveFill =
         fillColor ??
         (isDark ? GlassTheme.dialogDark.withValues(alpha: 0.85) : Colors.white);
-    final textColor = isDark ? Colors.white : GlassTheme.textDark;
-    final hintColor = isDark ? Colors.white38 : const Color(0xFF94A3B8);
+    final textColor = AppTypography.primaryTextColor(brightness);
+    final hintColor = AppTypography.secondaryTextColor(brightness);
     final borderColor = errorText != null
         ? const Color(0xFFE53935)
         : (isDark
@@ -89,14 +91,15 @@ class GlassTextField extends StatelessWidget {
             focusNode: focusNode,
             autofocus: autofocus,
             readOnly: readOnly,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: textColor,
-              fontSize: 14.5,
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
               hintText: hintText,
-              hintStyle: TextStyle(color: hintColor, fontSize: 14),
+              hintStyle: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: hintColor),
               prefixIcon:
                   prefix ??
                   (prefixIcon != null
@@ -124,9 +127,8 @@ class GlassTextField extends StatelessWidget {
             padding: const EdgeInsets.only(left: 8),
             child: Text(
               errorText!,
-              style: const TextStyle(
-                color: Color(0xFFE53935),
-                fontSize: 12,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: const Color(0xFFE53935),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -212,10 +214,9 @@ class GlassChip extends StatelessWidget {
             ],
             Text(
               label,
-              style: TextStyle(
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: isSelected ? selectedTextColor : unselectedTextColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
             if (count != null && count! > 0) ...[
@@ -232,10 +233,9 @@ class GlassChip extends StatelessWidget {
                 ),
                 child: Text(
                   '$count',
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF64748B),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: isSelected ? Colors.white : const Color(0xFF475569),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

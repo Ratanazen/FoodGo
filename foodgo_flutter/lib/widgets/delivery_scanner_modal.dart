@@ -243,60 +243,23 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
         'Please retry.';
   }
 
-  void _pasteQrPayload() {
-    Clipboard.getData('text/plain').then((clip) {
-      if (!mounted) return;
-      final text = clip?.text?.trim() ?? '';
-      if (text.contains('FOODGO:DELIVERY:CONFIRM')) {
-        _tokenController.text = text;
-        _submitConfirmation(directToken: text);
-      } else {
-        final pasteCtrl = TextEditingController(text: text);
-        showDialog(
-          context: context,
-          builder: (ctx) {
-            final scheme = Theme.of(ctx).colorScheme;
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.medium),
-              ),
-              title: const Text('Enter scanned QR data'),
-              content: TextField(
-                controller: pasteCtrl,
-                style: TextStyle(color: scheme.onSurface),
-                decoration: InputDecoration(
-                  hintText: 'FOODGO:DELIVERY:CONFIRM:v1?... or token',
-                  hintStyle: TextStyle(color: scheme.onSurfaceVariant),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: scheme.primary,
-                    foregroundColor: scheme.onPrimary,
-                  ),
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _tokenController.text = pasteCtrl.text.trim();
-                    _submitConfirmation(directToken: pasteCtrl.text.trim());
-                  },
-                  child: const Text('Verify'),
-                ),
-              ],
-            );
-          },
-        ).whenComplete(
-          () => Future.delayed(
-            const Duration(milliseconds: 500),
-            pasteCtrl.dispose,
-          ),
-        );
-      }
-    });
+  Future<void> _pasteQrPayload() async {
+    final clip = await Clipboard.getData('text/plain');
+    if (!mounted) return;
+    final text = clip?.text?.trim() ?? '';
+    if (text.contains('FOODGO:DELIVERY:CONFIRM')) {
+      _tokenController.text = text;
+      _submitConfirmation(directToken: text);
+      return;
+    }
+
+    final entered = await showDialog<String>(
+      context: context,
+      builder: (_) => _QrPasteDialog(initialText: text),
+    );
+    if (!mounted || entered == null) return;
+    _tokenController.text = entered;
+    _submitConfirmation(directToken: entered);
   }
 
   @override
@@ -1040,6 +1003,64 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           right: !isLeft ? BorderSide(color: color, width: 3) : BorderSide.none,
         ),
       ),
+    );
+  }
+}
+
+class _QrPasteDialog extends StatefulWidget {
+  final String initialText;
+
+  const _QrPasteDialog({required this.initialText});
+
+  @override
+  State<_QrPasteDialog> createState() => _QrPasteDialogState();
+}
+
+class _QrPasteDialogState extends State<_QrPasteDialog> {
+  late final TextEditingController _pasteCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _pasteCtrl = TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void dispose() {
+    _pasteCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      title: const Text('Enter scanned QR data'),
+      content: TextField(
+        controller: _pasteCtrl,
+        style: TextStyle(color: scheme.onSurface),
+        decoration: InputDecoration(
+          hintText: 'FOODGO:DELIVERY:CONFIRM:v1?... or token',
+          hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: scheme.primary,
+            foregroundColor: scheme.onPrimary,
+          ),
+          onPressed: () => Navigator.pop(context, _pasteCtrl.text.trim()),
+          child: const Text('Verify'),
+        ),
+      ],
     );
   }
 }

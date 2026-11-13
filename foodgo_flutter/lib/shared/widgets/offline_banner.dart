@@ -40,30 +40,25 @@ class OfflineBanner extends StatelessWidget {
               Flexible(
                 child: Text(
                   message ?? 'Offline Mode. Serving cached data.',
-                  style: const TextStyle(
-                    fontFamily: 'Kantumruy Pro',
-                    fontSize: 12.5,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimaryDark,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ),
               if (onRetry != null) ...[
                 const SizedBox(width: AppSpacing.xs),
                 InkWell(
                   onTap: onRetry,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 6.0,
                       vertical: 2.0,
                     ),
                     child: Text(
                       'Retry',
-                      style: TextStyle(
-                        fontFamily: 'Kantumruy Pro',
-                        fontSize: 12.0,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryGreen,
                         decoration: TextDecoration.underline,

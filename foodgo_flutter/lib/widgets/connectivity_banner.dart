@@ -65,10 +65,9 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
                     const SizedBox(width: 8),
                     Text(
                       context.tr('connectivity.offline'),
-                      style: const TextStyle(
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],

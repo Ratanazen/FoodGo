@@ -65,13 +65,23 @@ class AppErrorView extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               effectiveTitle,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppTypography.primaryTextColor(
+                  Theme.of(context).brightness,
+                ),
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               effectiveMessage,
               textAlign: TextAlign.center,
-              style: TextStyle(color: GlassTheme.textMuted),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTypography.secondaryTextColor(
+                  Theme.of(context).brightness,
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             GlassButton(text: effectiveRetry, onPressed: onRetry),
@@ -123,13 +133,23 @@ class EmptyStateView extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppTypography.primaryTextColor(
+                  Theme.of(context).brightness,
+                ),
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: GlassTheme.textMuted),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTypography.secondaryTextColor(
+                  Theme.of(context).brightness,
+                ),
+              ),
             ),
             if (buttonText != null && onAction != null) ...[
               const SizedBox(height: 24),

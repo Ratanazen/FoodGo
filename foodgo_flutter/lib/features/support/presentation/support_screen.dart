@@ -152,9 +152,8 @@ class _SupportScreenState extends State<SupportScreen> {
     return LiquidGlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+        appBar: GlassAppBar(
+          title: 'Help & Support',
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back_ios_new_rounded,
@@ -167,10 +166,6 @@ class _SupportScreenState extends State<SupportScreen> {
                 context.go('/home');
               }
             },
-          ),
-          title: Text(
-            'Help & Support',
-            style: AppTypography.titleLarge(color: primaryTextColor),
           ),
         ),
         body: SingleChildScrollView(

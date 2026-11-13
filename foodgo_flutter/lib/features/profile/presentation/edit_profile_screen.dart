@@ -419,114 +419,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _showUrlInputDialog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final controller = TextEditingController(text: _selectedAvatarUrl ?? '');
-    showDialog(
+  Future<void> _showUrlInputDialog() async {
+    final text = await showDialog<String>(
       context: context,
-      builder: (ctx) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: GlassContainer(
-            borderRadius: BorderRadius.circular(24),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Paste Image Link',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : GlassTheme.textDark,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Paste a direct URL to an image file (JPG, PNG, WebP).',
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  style: TextStyle(
-                    color: isDark ? Colors.white : GlassTheme.textDark,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'https://images.unsplash.com/...',
-                    hintStyle: TextStyle(
-                      color: isDark ? Colors.white24 : Colors.black26,
-                      fontSize: 13,
-                    ),
-                    prefixIcon: const Icon(
-                      AppIcons.link,
-                      color: GlassTheme.primaryGreen,
-                    ),
-                    filled: true,
-                    fillColor: isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.03),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.black.withValues(alpha: 0.1),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF64748B),
-                        ),
-                      ),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.primaryGreen,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Set Photo',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: () {
-                        final text = controller.text.trim();
-                        if (text.isNotEmpty) {
-                          setState(() {
-                            _selectedAvatarUrl = text;
-                            _pickedImagePath = null;
-                            _avatarUrlController.text = text;
-                          });
-                        }
-                        Navigator.of(ctx).pop();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (_) => _UrlInputDialog(initialUrl: _selectedAvatarUrl ?? ''),
     );
+    if (!mounted || text == null || text.isEmpty) return;
+    setState(() {
+      _selectedAvatarUrl = text;
+      _pickedImagePath = null;
+      _avatarUrlController.text = text;
+    });
   }
 
   Future<void> _handleSave() async {
@@ -853,6 +756,130 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: GlassTheme.primaryGreen),
+        ),
+      ),
+    );
+  }
+}
+
+class _UrlInputDialog extends StatefulWidget {
+  final String initialUrl;
+
+  const _UrlInputDialog({required this.initialUrl});
+
+  @override
+  State<_UrlInputDialog> createState() => _UrlInputDialogState();
+}
+
+class _UrlInputDialogState extends State<_UrlInputDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialUrl);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(24),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Paste Image Link',
+              style: TextStyle(
+                color: isDark ? Colors.white : GlassTheme.textDark,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Paste a direct URL to an image file (JPG, PNG, WebP).',
+              style: TextStyle(
+                color: isDark ? GlassTheme.textMuted : const Color(0xFF64748B),
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _controller,
+              style: TextStyle(
+                color: isDark ? Colors.white : GlassTheme.textDark,
+              ),
+              decoration: InputDecoration(
+                hintText: 'https://images.unsplash.com/...',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                  fontSize: 13,
+                ),
+                prefixIcon: Icon(
+                  AppIcons.link,
+                  color: isDark
+                      ? GlassTheme.primaryGreen
+                      : GlassTheme.primaryGreenDark,
+                ),
+                filled: true,
+                fillColor: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.03),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: GlassTheme.primaryGreen,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () =>
+                      Navigator.of(context).pop(_controller.text.trim()),
+                  child: const Text(
+                    'Set Photo',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

@@ -59,15 +59,11 @@ class AppButton extends StatelessWidget {
           Flexible(
             child: Text(
               text,
-              style: TextStyle(
-                fontFamily: 'Kantumruy Pro',
-                fontSize: 15.0,
-                fontWeight: FontWeight.w600,
-                color: _getTextColor(isDark),
-                letterSpacing: 0.2,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: _getTextColor(isDark)),
+              maxLines: 2,
             ),
           ),
           if (trailingIcon != null) ...[

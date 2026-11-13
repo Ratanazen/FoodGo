@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../core/theme/app_typography.dart';
 import '../core/theme/glass_theme.dart';
 import 'svg_icon.dart';
 
@@ -113,10 +114,14 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.05),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.white.withValues(alpha: 0.88),
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.12),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.12)
+                                : GlassTheme.borderLight,
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -135,13 +140,17 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
 
                   const SizedBox(height: 28),
 
-                  Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: -0.3,
+                  Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          widget.title,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                color: AppTypography.primaryTextColor(
+                                  Theme.of(context).brightness,
+                                ),
+                              ),
                         ),
                       )
                       .animate()
@@ -155,11 +164,10 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                     child: Text(
                       widget.message,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.white60,
-                        fontWeight: FontWeight.w400,
-                        height: 1.4,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTypography.secondaryTextColor(
+                          Theme.of(context).brightness,
+                        ),
                       ),
                     ),
                   ).animate().fade(delay: 150.ms, duration: 400.ms),
@@ -175,7 +183,9 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                       valueColor: AlwaysStoppedAnimation<Color>(
                         GlassTheme.dynamicPrimaryColor,
                       ),
-                      backgroundColor: Colors.white.withValues(alpha: 0.08),
+                      backgroundColor: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.08),
                     ),
                   ).animate().fade(delay: 300.ms, duration: 400.ms),
                 ],
@@ -269,11 +279,8 @@ class FoodGoLoadingOverlay extends StatelessWidget {
                           Text(
                             message!,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(color: Colors.white),
                           ),
                         ],
                       ],

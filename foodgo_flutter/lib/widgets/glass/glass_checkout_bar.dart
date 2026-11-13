@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/glass_theme.dart';
 import 'glass_widgets.dart';
 import '../glass_container.dart';
 
@@ -18,6 +17,8 @@ class GlassCheckoutBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
     return GlassContainer(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       padding: EdgeInsets.only(
@@ -29,24 +30,28 @@ class GlassCheckoutBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Total',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 14),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                totalText,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Total',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: AppTypography.secondaryTextColor(brightness),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  totalText,
+                  style: textTheme.headlineMedium?.copyWith(
+                    color: AppTypography.primaryTextColor(brightness),
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 12),
           GlassButton(text: buttonText, onPressed: onPressed),
         ],
       ),

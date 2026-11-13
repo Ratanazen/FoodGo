@@ -247,14 +247,31 @@ class _SearchScreenState extends State<SearchScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (modalCtx, setModalState) {
+          final isDark = Theme.of(modalCtx).brightness == Brightness.dark;
+          final primaryText = AppTypography.primaryTextColor(
+            isDark ? Brightness.dark : Brightness.light,
+          );
+          final secondaryText = AppTypography.secondaryTextColor(
+            isDark ? Brightness.dark : Brightness.light,
+          );
+          final accentGreen = isDark
+              ? GlassTheme.primaryGreen
+              : GlassTheme.primaryGreenDark;
+          final sectionBorder = isDark
+              ? Colors.white.withValues(alpha: 0.12)
+              : Colors.black.withValues(alpha: 0.08);
+          final surfaceFill = isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.04);
+
           return ResponsiveBottomSheet(
             child: Container(
               decoration: BoxDecoration(
-                color: GlassTheme.dialogDark,
+                color: isDark ? GlassTheme.dialogDark : Colors.white,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(28),
                 ),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                border: Border.all(color: sectionBorder),
               ),
               padding: EdgeInsets.only(
                 top: 20,
@@ -272,7 +289,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white24,
+                          color: isDark ? Colors.white24 : Colors.black26,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -286,22 +303,20 @@ class _SearchScreenState extends State<SearchScreen> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: GlassTheme.limeAccent.withValues(
-                                  alpha: 0.15,
-                                ),
+                                color: accentGreen.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.tune,
                                 size: 18,
-                                color: GlassTheme.limeAccent,
+                                color: accentGreen,
                               ),
                             ),
                             const SizedBox(width: 10),
-                            const Text(
+                            Text(
                               'Filters & Sorting',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: primaryText,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -317,10 +332,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               tempSortBy = 'recommended';
                             });
                           },
-                          child: const Text(
+                          child: Text(
                             'Reset All',
                             style: TextStyle(
-                              color: GlassTheme.primaryGreen,
+                              color: accentGreen,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
@@ -331,10 +346,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 16),
 
                     // Sort By Section
-                    const Text(
+                    Text(
                       'SORT BY',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: secondaryText,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.8,
@@ -374,10 +389,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 20),
 
                     // Price Tier Section
-                    const Text(
+                    Text(
                       'PRICE TIER',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: secondaryText,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.8,
@@ -419,10 +434,12 @@ class _SearchScreenState extends State<SearchScreen> {
                     // Dietary Preference Section
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
+                        color: surfaceFill,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.08),
                         ),
                       ),
                       padding: const EdgeInsets.symmetric(
@@ -432,18 +449,14 @@ class _SearchScreenState extends State<SearchScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Row(
+                          Row(
                             children: [
-                              Icon(
-                                Icons.eco,
-                                size: 20,
-                                color: GlassTheme.primaryGreen,
-                              ),
-                              SizedBox(width: 10),
+                              Icon(Icons.eco, size: 20, color: accentGreen),
+                              const SizedBox(width: 10),
                               Text(
                                 'Vegetarian Friendly',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: primaryText,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -462,10 +475,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 20),
 
                     // Rating Filter Section
-                    const Text(
+                    Text(
                       'MINIMUM RATING',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: secondaryText,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.8,
@@ -547,6 +560,7 @@ class _SearchScreenState extends State<SearchScreen> {
     required VoidCallback onTap,
     IconData? icon,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -556,12 +570,16 @@ class _SearchScreenState extends State<SearchScreen> {
         decoration: BoxDecoration(
           color: selected
               ? GlassTheme.primaryGreen
-              : Colors.white.withValues(alpha: 0.06),
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.04)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected
                 ? GlassTheme.primaryGreen
-                : Colors.white.withValues(alpha: 0.12),
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.12)),
           ),
         ),
         child: Row(
@@ -571,14 +589,20 @@ class _SearchScreenState extends State<SearchScreen> {
               Icon(
                 icon,
                 size: 14,
-                color: selected ? Colors.white : Colors.amber,
+                color: selected
+                    ? Colors.white
+                    : (isDark ? Colors.amber : const Color(0xFFB45309)),
               ),
               const SizedBox(width: 4),
             ],
             Text(
               label,
               style: TextStyle(
-                color: selected ? Colors.white : Colors.white70,
+                color: selected
+                    ? Colors.white
+                    : AppTypography.primaryTextColor(
+                        isDark ? Brightness.dark : Brightness.light,
+                      ),
                 fontSize: 12,
                 fontWeight: selected ? FontWeight.bold : FontWeight.normal,
               ),
@@ -611,235 +635,255 @@ class _SearchScreenState extends State<SearchScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => ResponsiveBottomSheet(
-          child: Container(
-            decoration: BoxDecoration(
-              color: GlassTheme.dialogDark,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
-              ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+        builder: (ctx, setSheetState) {
+          final isDark = Theme.of(ctx).brightness == Brightness.dark;
+          final primaryText = AppTypography.primaryTextColor(
+            isDark ? Brightness.dark : Brightness.light,
+          );
+          final secondaryText = AppTypography.secondaryTextColor(
+            isDark ? Brightness.dark : Brightness.light,
+          );
+          final accentGreen = isDark
+              ? GlassTheme.primaryGreen
+              : GlassTheme.primaryGreenDark;
+
+          return ResponsiveBottomSheet(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? GlassTheme.dialogDark : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
                 ),
-                const SizedBox(height: 16),
-                if (image != null && image.isNotEmpty) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: CachedNetworkImage(
-                      imageUrl: image,
-                      height: 160,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, _, _) => Container(
-                        height: 160,
-                        color: Colors.white10,
-                        child: const Icon(
-                          Icons.fastfood,
-                          size: 48,
-                          color: GlassTheme.primaryGreen,
-                        ),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black26,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                ],
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                  if (image != null && image.isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: CachedNetworkImage(
+                        imageUrl: image,
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, _, _) => Container(
+                          height: 160,
+                          color: isDark ? Colors.white10 : Colors.black12,
+                          child: Icon(
+                            Icons.fastfood,
+                            size: 48,
+                            color: accentGreen,
+                          ),
                         ),
                       ),
                     ),
-                    Consumer<FavoritesProvider>(
-                      builder: (context, favs, child) {
-                        final isFav = favs.isFoodFavorite(itemId);
-                        return IconButton(
-                          icon: Icon(
-                            isFav ? Icons.favorite : Icons.favorite_border,
-                            color: isFav
-                                ? GlassTheme.foodpandaPink
-                                : Colors.white70,
-                          ),
-                          onPressed: () => favs.toggleFoodItem(item),
-                        );
-                      },
-                    ),
+                    const SizedBox(height: 16),
                   ],
-                ),
-                if (restName != null && restName.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  InkWell(
-                    onTap: restId != null
-                        ? () {
-                            Navigator.pop(sheetCtx);
-                            context.push('/restaurant/$restId');
-                          }
-                        : null,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.storefront,
-                          size: 14,
-                          color: GlassTheme.primaryGreen,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          restName,
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: TextStyle(
+                            color: primaryText,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 10),
-                Text(
-                  desc,
-                  style: const TextStyle(
-                    color: GlassTheme.textMuted,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '\$${(price * qty).toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        Text(
-                          '~${(khrPrice * qty)} KHR',
-                          style: const TextStyle(
-                            color: Colors.white38,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(20),
                       ),
+                      Consumer<FavoritesProvider>(
+                        builder: (context, favs, child) {
+                          final isFav = favs.isFoodFavorite(itemId);
+                          return IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav
+                                  ? GlassTheme.foodpandaPink
+                                  : secondaryText,
+                            ),
+                            onPressed: () => favs.toggleFoodItem(item),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  if (restName != null && restName.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    InkWell(
+                      onTap: restId != null
+                          ? () {
+                              Navigator.pop(sheetCtx);
+                              context.push('/restaurant/$restId');
+                            }
+                          : null,
                       child: Row(
                         children: [
-                          IconButton(
-                            onPressed: qty > 1
-                                ? () => setSheetState(() => qty--)
-                                : null,
-                            icon: const Icon(Icons.remove, size: 18),
-                          ),
+                          Icon(Icons.storefront, size: 14, color: accentGreen),
+                          const SizedBox(width: 6),
                           Text(
-                            '$qty',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => setSheetState(() => qty++),
-                            icon: const Icon(
-                              Icons.add,
-                              size: 18,
-                              color: GlassTheme.primaryGreen,
+                            restName,
+                            style: TextStyle(
+                              color: accentGreen,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: 52,
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlassTheme.limeAccent,
-                      foregroundColor: Colors.black,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(26),
-                      ),
-                    ),
-                    icon: const Icon(
-                      Icons.add_shopping_cart,
-                      color: Colors.black,
-                      size: 20,
-                    ),
-                    label: Text(
-                      'Add $qty to Cart • \$${(price * qty).toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15,
-                        color: Colors.black,
-                      ),
-                    ),
-                    onPressed: () {
-                      final cart = context.read<CartProvider>();
-                      for (int i = 0; i < qty; i++) {
-                        cart.addItem(
-                          itemId,
-                          name,
-                          price,
-                          image,
-                          restaurantId: restId,
-                          restaurantName: restName,
-                        );
-                      }
-                      Navigator.pop(sheetCtx);
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Added $qty "$name" to your cart!'),
-                          duration: const Duration(seconds: 2),
-                          backgroundColor: GlassTheme.surfaceDark,
-                          behavior: SnackBarBehavior.floating,
-                          action: SnackBarAction(
-                            label: 'View Cart',
-                            textColor: GlassTheme.limeAccent,
-                            onPressed: () => context.push('/cart'),
-                          ),
-                        ),
-                      );
-                    },
+                  const SizedBox(height: 10),
+                  Text(
+                    desc,
+                    style: TextStyle(color: secondaryText, fontSize: 14),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 18),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\$${(price * qty).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: accentGreen,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            '~${(khrPrice * qty)} KHR',
+                            style: TextStyle(
+                              color: secondaryText,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: qty > 1
+                                  ? () => setSheetState(() => qty--)
+                                  : null,
+                              icon: Icon(
+                                Icons.remove,
+                                size: 18,
+                                color: qty > 1 ? primaryText : secondaryText,
+                              ),
+                            ),
+                            Text(
+                              '$qty',
+                              style: TextStyle(
+                                color: primaryText,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => setSheetState(() => qty++),
+                              icon: Icon(
+                                Icons.add,
+                                size: 18,
+                                color: accentGreen,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 52,
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlassTheme.limeAccent,
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.add_shopping_cart,
+                        color: Colors.black,
+                        size: 20,
+                      ),
+                      label: Text(
+                        'Add $qty to Cart • \$${(price * qty).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: Colors.black,
+                        ),
+                      ),
+                      onPressed: () {
+                        final cart = context.read<CartProvider>();
+                        for (int i = 0; i < qty; i++) {
+                          cart.addItem(
+                            itemId,
+                            name,
+                            price,
+                            image,
+                            restaurantId: restId,
+                            restaurantName: restName,
+                          );
+                        }
+                        Navigator.pop(sheetCtx);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Added $qty "$name" to your cart!',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            duration: const Duration(seconds: 2),
+                            backgroundColor: GlassTheme.surfaceDark,
+                            behavior: SnackBarBehavior.floating,
+                            action: SnackBarAction(
+                              label: 'View Cart',
+                              textColor: GlassTheme.limeAccent,
+                              onPressed: () => context.push('/cart'),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

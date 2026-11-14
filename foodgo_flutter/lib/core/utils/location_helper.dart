@@ -92,7 +92,143 @@ class LocationHelper {
       'lat': 11.5460,
       'lng': 104.8440,
     },
+    {
+      'name': 'Royal Palace & Silver Pagoda',
+      'district': 'Daun Penh',
+      'lat': 11.5637,
+      'lng': 104.9313,
+    },
+    {
+      'name': 'Central Market (Phsar Thmei)',
+      'district': 'Daun Penh',
+      'lat': 11.5696,
+      'lng': 104.9210,
+    },
+    {
+      'name': 'Independence Monument',
+      'district': 'Boeung Keng Kang',
+      'lat': 11.5564,
+      'lng': 104.9282,
+    },
+    {
+      'name': 'Diamond Island (Koh Pich)',
+      'district': 'Chamkarmon',
+      'lat': 11.5508,
+      'lng': 104.9422,
+    },
+    {
+      'name': 'Chip Mong 271 Mega Mall',
+      'district': 'Mean Chey',
+      'lat': 11.5245,
+      'lng': 104.9185,
+    },
   ];
+
+  /// Quick-access landmarks for Find & Pick address chips.
+  static List<LocationDetails> get popularLandmarks {
+    return _ppLandmarks.map((lm) {
+      final name = lm['name'] as String;
+      final district = lm['district'] as String;
+      return LocationDetails(
+        title: name,
+        fullAddress: '$name, Phnom Penh',
+        district: district,
+        city: 'Phnom Penh',
+        latitude: (lm['lat'] as num).toDouble(),
+        longitude: (lm['lng'] as num).toDouble(),
+      );
+    }).toList();
+  }
+
+  /// Searches locations by query string using instant offline landmark matching
+  /// combined with OpenStreetMap Nominatim forward geocoding in Cambodia.
+  static Future<List<LocationDetails>> searchLocations(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return popularLandmarks.take(6).toList();
+    }
+
+    final lower = trimmed.toLowerCase();
+    final localMatches = popularLandmarks.where((loc) {
+      return loc.title.toLowerCase().contains(lower) ||
+          loc.district.toLowerCase().contains(lower) ||
+          loc.fullAddress.toLowerCase().contains(lower);
+    }).toList();
+
+    if (trimmed.length < 2) {
+      return localMatches;
+    }
+
+    try {
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(milliseconds: 1500),
+          receiveTimeout: const Duration(milliseconds: 1500),
+          headers: {'User-Agent': 'FoodGo-Cambodia-App/1.0'},
+        ),
+      );
+      final response = await dio.get(
+        'https://nominatim.openstreetmap.org/search',
+        queryParameters: {
+          'format': 'json',
+          'q': trimmed,
+          'countrycodes': 'kh',
+          'addressdetails': 1,
+          'limit': 5,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data is List) {
+        final list = response.data as List;
+        for (final item in list) {
+          if (item is! Map) continue;
+          final lat = double.tryParse(item['lat']?.toString() ?? '');
+          final lng = double.tryParse(item['lon']?.toString() ?? '');
+          if (lat == null || lng == null) continue;
+
+          final addr = item['address'] is Map
+              ? Map<String, dynamic>.from(item['address'] as Map)
+              : <String, dynamic>{};
+          final name = item['name']?.toString().isNotEmpty == true
+              ? item['name'].toString()
+              : (addr['road'] ??
+                    addr['suburb'] ??
+                    addr['neighbourhood'] ??
+                    trimmed);
+          final district =
+              (addr['suburb'] ??
+                      addr['city_district'] ??
+                      addr['county'] ??
+                      'Daun Penh')
+                  .toString();
+          final city = (addr['city'] ?? addr['state'] ?? 'Phnom Penh')
+              .toString();
+          final title = '$name, $district';
+          final exists = localMatches.any(
+            (m) =>
+                m.title.toLowerCase() == title.toLowerCase() ||
+                _calculateDistance(m.latitude, m.longitude, lat, lng) < 0.08,
+          );
+          if (!exists) {
+            localMatches.add(
+              LocationDetails(
+                title: title,
+                fullAddress: '$title, $city',
+                district: district,
+                city: city,
+                latitude: lat,
+                longitude: lng,
+              ),
+            );
+          }
+        }
+      }
+    } catch (_) {
+      // Offline fallback uses localMatches
+    }
+
+    return localMatches;
+  }
 
   /// Resolves latitude/longitude into human-readable Cambodian location name.
   /// Tries fast online reverse geocoding (1.5s timeout) with offline spatial fallback.

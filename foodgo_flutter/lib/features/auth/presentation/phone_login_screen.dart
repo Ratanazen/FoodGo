@@ -236,9 +236,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      appBar: GlassAppBar(
+        title: 'Phone Sign In',
         leading: IconButton(
           icon: Icon(AppIcons.back, color: textColor),
           onPressed: () => Navigator.of(context).maybePop(),

@@ -296,16 +296,21 @@ class _PillNavItemState extends State<_PillNavItem>
                                   ],
                                 ),
                                 constraints: const BoxConstraints(
-                                  minWidth: 14,
-                                  minHeight: 14,
+                                  minWidth: 16,
+                                  minHeight: 16,
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    '${widget.badgeCount}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '${widget.badgeCount}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                   ),
                                 ),
@@ -318,19 +323,22 @@ class _PillNavItemState extends State<_PillNavItem>
                         duration: reduceMotion
                             ? Duration.zero
                             : const Duration(milliseconds: 180),
-                        style: TextStyle(
-                          color: isSelected ? onPrimary : inactiveTextColor,
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          fontSize: 10.5,
-                          letterSpacing: context.isKhmer ? 0.0 : -0.2,
-                        ),
-
-                        child: Text(
-                          widget.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        style:
+                            (Theme.of(context).textTheme.labelSmall ??
+                                    const TextStyle())
+                                .copyWith(
+                                  color: isSelected
+                                      ? onPrimary
+                                      : inactiveTextColor,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  height: context.isKhmer ? 1.5 : 1.3,
+                                  letterSpacing: context.isKhmer ? 0.0 : -0.2,
+                                ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(widget.label, maxLines: 1),
                         ),
                       ),
                     ],

@@ -41,7 +41,7 @@ class _SearchScreenState extends State<SearchScreen> {
   List<dynamic> _restaurantResults = [];
 
   // Filter & Sorting state
-  String? _selectedPriceTier; // null (All), '$', '419884', '419884$'
+  String? _selectedPriceTier; // null (All), '$', '$$', '$$$'
   bool _isVegetarianOnly = false;
   double? _minRating; // null, 4.0, 4.5
   String _sortBy =
@@ -298,31 +298,36 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: accentGreen.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: accentGreen.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  Icons.tune,
+                                  size: 18,
+                                  color: accentGreen,
+                                ),
                               ),
-                              child: Icon(
-                                Icons.tune,
-                                size: 18,
-                                color: accentGreen,
+                              const SizedBox(width: 10),
+                              Flexible(
+                                child: Text(
+                                  'Filters & Sorting',
+                                  style: Theme.of(modalCtx).textTheme.titleLarge
+                                      ?.copyWith(
+                                        color: primaryText,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Filters & Sorting',
-                              style: TextStyle(
-                                color: primaryText,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         TextButton(
                           onPressed: () {
                             setModalState(() {
@@ -334,11 +339,11 @@ class _SearchScreenState extends State<SearchScreen> {
                           },
                           child: Text(
                             'Reset All',
-                            style: TextStyle(
-                              color: accentGreen,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(modalCtx).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: accentGreen,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ),
                       ],
@@ -348,9 +353,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     // Sort By Section
                     Text(
                       'SORT BY',
-                      style: TextStyle(
+                      style: Theme.of(modalCtx).textTheme.bodySmall?.copyWith(
                         color: secondaryText,
-                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.8,
                       ),
@@ -391,9 +395,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     // Price Tier Section
                     Text(
                       'PRICE TIER',
-                      style: TextStyle(
+                      style: Theme.of(modalCtx).textTheme.bodySmall?.copyWith(
                         color: secondaryText,
-                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.8,
                       ),
@@ -455,11 +458,11 @@ class _SearchScreenState extends State<SearchScreen> {
                               const SizedBox(width: 10),
                               Text(
                                 'Vegetarian Friendly',
-                                style: TextStyle(
-                                  color: primaryText,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: Theme.of(modalCtx).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: primaryText,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                               ),
                             ],
                           ),
@@ -477,9 +480,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     // Rating Filter Section
                     Text(
                       'MINIMUM RATING',
-                      style: TextStyle(
+                      style: Theme.of(modalCtx).textTheme.bodySmall?.copyWith(
                         color: secondaryText,
-                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.8,
                       ),
@@ -534,13 +536,13 @@ class _SearchScreenState extends State<SearchScreen> {
                           Navigator.pop(ctx);
                           _performSearch(_searchController.text.trim());
                         },
-                        child: const Text(
+                        child: Text(
                           'Apply Filters',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 15,
-                          ),
+                          style: Theme.of(modalCtx).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w900,
+                              ),
                         ),
                       ),
                     ),
@@ -597,13 +599,12 @@ class _SearchScreenState extends State<SearchScreen> {
             ],
             Text(
               label,
-              style: TextStyle(
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: selected
                     ? Colors.white
                     : AppTypography.primaryTextColor(
                         isDark ? Brightness.dark : Brightness.light,
                       ),
-                fontSize: 12,
                 fontWeight: selected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -703,9 +704,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       Expanded(
                         child: Text(
                           name,
-                          style: TextStyle(
+                          style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                             color: primaryText,
-                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -739,12 +739,14 @@ class _SearchScreenState extends State<SearchScreen> {
                         children: [
                           Icon(Icons.storefront, size: 14, color: accentGreen),
                           const SizedBox(width: 6),
-                          Text(
-                            restName,
-                            style: TextStyle(
-                              color: accentGreen,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                          Flexible(
+                            child: Text(
+                              restName,
+                              style: Theme.of(ctx).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: accentGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                             ),
                           ),
                         ],
@@ -754,7 +756,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(height: 10),
                   Text(
                     desc,
-                    style: TextStyle(color: secondaryText, fontSize: 14),
+                    style: Theme.of(
+                      ctx,
+                    ).textTheme.bodyMedium?.copyWith(color: secondaryText),
                   ),
                   const SizedBox(height: 18),
                   Row(
@@ -765,17 +769,16 @@ class _SearchScreenState extends State<SearchScreen> {
                         children: [
                           Text(
                             '\$${(price * qty).toStringAsFixed(2)}',
-                            style: TextStyle(
-                              color: accentGreen,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                            ),
+                            style: Theme.of(ctx).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: accentGreen,
+                                  fontWeight: FontWeight.w900,
+                                ),
                           ),
                           Text(
                             '~${(khrPrice * qty)} KHR',
-                            style: TextStyle(
+                            style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
                               color: secondaryText,
-                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -801,11 +804,11 @@ class _SearchScreenState extends State<SearchScreen> {
                             ),
                             Text(
                               '$qty',
-                              style: TextStyle(
-                                color: primaryText,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(ctx).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: primaryText,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             IconButton(
                               onPressed: () => setSheetState(() => qty++),
@@ -840,9 +843,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       label: Text(
                         'Add $qty to Cart • \$${(price * qty).toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: Theme.of(ctx).textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w900,
-                          fontSize: 15,
                           color: Colors.black,
                         ),
                       ),
@@ -889,6 +891,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildScopePill(String title, SearchScope scope, int count) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     final isSelected = _selectedScope == scope;
     return InkWell(
       onTap: () => setState(() => _selectedScope = scope),
@@ -899,12 +903,16 @@ class _SearchScreenState extends State<SearchScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? GlassTheme.primaryGreen
-              : Colors.white.withValues(alpha: 0.06),
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.04)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? GlassTheme.primaryGreen
-                : Colors.white.withValues(alpha: 0.12),
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.08)),
           ),
         ),
         child: Row(
@@ -912,9 +920,10 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             Text(
               title,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
-                fontSize: 12,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: isSelected
+                    ? Colors.white
+                    : AppTypography.primaryTextColor(brightness),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -924,14 +933,17 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? Colors.white.withValues(alpha: 0.25)
-                    : Colors.white10,
+                    : (isDark
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.06)),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 '$count',
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white60,
-                  fontSize: 10,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: isSelected
+                      ? Colors.white
+                      : AppTypography.secondaryTextColor(brightness),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -943,6 +955,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildRestaurantCard(Map<String, dynamic> r) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     final rating = double.tryParse(r['rating']?.toString() ?? '0') ?? 0.0;
     final deliveryFee =
         double.tryParse(r['delivery_fee']?.toString() ?? '0') ?? 0.0;
@@ -964,21 +978,27 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Container(
                 width: 72,
                 height: 72,
-                color: Colors.white.withValues(alpha: 0.05),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.04),
                 child: (imgUrl != null && imgUrl.isNotEmpty)
                     ? CachedNetworkImage(
                         imageUrl: imgUrl,
                         fit: BoxFit.cover,
-                        errorWidget: (_, _, _) => const Icon(
+                        errorWidget: (_, _, _) => Icon(
                           Icons.storefront,
                           size: 36,
-                          color: GlassTheme.primaryGreen,
+                          color: isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
                         ),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.storefront,
                         size: 36,
-                        color: GlassTheme.primaryGreen,
+                        color: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
                       ),
               ),
             ),
@@ -989,16 +1009,17 @@ class _SearchScreenState extends State<SearchScreen> {
                 children: [
                   Text(
                     r['name']?.toString() ?? 'Restaurant',
-                    style: const TextStyle(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Colors.white,
+                      color: AppTypography.primaryTextColor(brightness),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 4),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -1010,42 +1031,45 @@ class _SearchScreenState extends State<SearchScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.star,
                               size: 12,
-                              color: Colors.amber,
+                              color: isDark
+                                  ? Colors.amber
+                                  : const Color(0xFFB45309),
                             ),
                             const SizedBox(width: 3),
                             Text(
                               rating.toStringAsFixed(1),
-                              style: const TextStyle(
-                                color: Colors.amber,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? Colors.amber
+                                        : const Color(0xFFB45309),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
                       Text(
                         '$minTime-$maxTime min',
-                        style: const TextStyle(
-                          color: GlassTheme.textMuted,
-                          fontSize: 12,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTypography.secondaryTextColor(brightness),
                         ),
                       ),
-                      const SizedBox(width: 8),
                       Text(
                         deliveryFee == 0
                             ? 'Free Delivery'
                             : '\$${deliveryFee.toStringAsFixed(2)} del.',
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: deliveryFee == 0
-                              ? GlassTheme.primaryGreen
-                              : GlassTheme.textMuted,
-                          fontSize: 12,
+                              ? (isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF15803D))
+                              : AppTypography.secondaryTextColor(brightness),
                           fontWeight: deliveryFee == 0
                               ? FontWeight.bold
                               : FontWeight.normal,
@@ -1058,21 +1082,19 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 4),
                     Text(
                       r['address'].toString(),
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 11,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppTypography.secondaryTextColor(brightness),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                   ],
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
               size: 14,
-              color: Colors.white38,
+              color: AppTypography.secondaryTextColor(brightness),
             ),
           ],
         ),
@@ -1129,21 +1151,24 @@ class _SearchScreenState extends State<SearchScreen> {
                       Expanded(
                         child: Text(
                           item['name']?.toString() ?? '',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppTypography.primaryTextColor(
+                                  Theme.of(context).brightness,
+                                ),
+                              ),
+                          maxLines: 2,
                         ),
                       ),
                       if (isVeg) ...[
                         const SizedBox(width: 4),
-                        const Icon(
+                        Icon(
                           Icons.eco,
                           size: 14,
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
                         ),
                       ],
                     ],
@@ -1153,18 +1178,20 @@ class _SearchScreenState extends State<SearchScreen> {
                     children: [
                       Text(
                         '\$${price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: GlassTheme.primaryGreen,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
                           fontWeight: FontWeight.bold,
-                          fontSize: 15,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         '~${(price * 4100).toInt()} KHR',
-                        style: const TextStyle(
-                          color: Colors.white38,
-                          fontSize: 11,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppTypography.secondaryTextColor(
+                            Theme.of(context).brightness,
+                          ),
                         ),
                       ),
                     ],
@@ -1173,50 +1200,146 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 3),
                     Text(
                       restName,
-                      style: const TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 12,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTypography.secondaryTextColor(
+                          Theme.of(context).brightness,
+                        ),
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ],
               ),
             ),
-            InkWell(
-              onTap: () {
-                final cart = context.read<CartProvider>();
-                cart.addItem(
-                  item['id'] is int
-                      ? item['id'] as int
-                      : int.parse(item['id'].toString()),
-                  item['name']?.toString() ?? 'Food Item',
-                  price,
-                  item['image']?.toString(),
-                  restaurantId: restId,
-                  restaurantName: restName,
-                );
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${item['name']} added to cart!'),
-                    duration: const Duration(seconds: 1),
-                    backgroundColor: GlassTheme.primaryGreen,
-                    behavior: SnackBarBehavior.floating,
-                    action: SnackBarAction(
-                      label: 'View Cart',
-                      textColor: Colors.white,
-                      onPressed: () => context.push('/cart'),
+            Builder(
+              builder: (context) {
+                final cart = context.watch<CartProvider>();
+                final itemId = item['id'] is int
+                    ? item['id'] as int
+                    : int.parse(item['id'].toString());
+                final inCartQty = cart.items[itemId]?.quantity ?? 0;
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+
+                void addOne() {
+                  cart.addItem(
+                    itemId,
+                    item['name']?.toString() ?? 'Food Item',
+                    price,
+                    item['image']?.toString(),
+                    restaurantId: restId,
+                    restaurantName: restName,
+                  );
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${item['name']} added to cart!'),
+                      duration: const Duration(seconds: 1),
+                      backgroundColor: GlassTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                      action: SnackBarAction(
+                        label: 'View Cart',
+                        textColor: Colors.white,
+                        onPressed: () => context.push('/cart'),
+                      ),
+                    ),
+                  );
+                }
+
+                if (inCartQty > 0) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.primaryGreen.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.45),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkWell(
+                          onTap: () => cart.decrementItem(itemId),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Icon(
+                              Icons.remove,
+                              size: 16,
+                              color: isDark
+                                  ? GlassTheme.primaryGreenAccent
+                                  : const Color(0xFF15803D),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                          child: Text(
+                            '$inCartQty',
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? Colors.white
+                                      : GlassTheme.textDark,
+                                ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: addOne,
+                          borderRadius: BorderRadius.circular(14),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Icon(
+                              Icons.add,
+                              size: 16,
+                              color: isDark
+                                  ? GlassTheme.primaryGreenAccent
+                                  : const Color(0xFF15803D),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return InkWell(
+                  onTap: addOne,
+                  borderRadius: BorderRadius.circular(20),
+                  child: GlassContainer(
+                    borderRadius: BorderRadius.circular(20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.add,
+                          size: 18,
+                          color: GlassTheme.primaryGreen,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          'Add',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? GlassTheme.primaryGreenAccent
+                                    : const Color(0xFF15803D),
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ],
                     ),
                   ),
                 );
               },
-              child: GlassContainer(
-                borderRadius: BorderRadius.circular(20),
-                padding: const EdgeInsets.all(8),
-                child: Icon(Icons.add, color: GlassTheme.primaryGreen),
-              ),
             ),
           ],
         ),
@@ -1225,9 +1348,16 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
     final query = _searchController.text.trim();
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1241,46 +1371,46 @@ class _SearchScreenState extends State<SearchScreen> {
               query.isNotEmpty
                   ? 'No results found for "$query"'
                   : 'No matches found with current filters',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: primaryText,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Try checking for spelling errors, adjusting price tiers, or clearing active filters.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: secondaryText),
             ),
             const SizedBox(height: 18),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 if (_activeFilterCount > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: GlassTheme.primaryGreen,
-                        side: BorderSide(color: GlassTheme.primaryGreen),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: accentGreen,
+                      side: BorderSide(color: accentGreen),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: const Text('Reset Filters'),
-                      onPressed: () {
-                        setState(() {
-                          _selectedPriceTier = null;
-                          _isVegetarianOnly = false;
-                          _minRating = null;
-                          _sortBy = 'recommended';
-                        });
-                        _performSearch(_searchController.text.trim());
-                      },
                     ),
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Reset Filters'),
+                    onPressed: () {
+                      setState(() {
+                        _selectedPriceTier = null;
+                        _isVegetarianOnly = false;
+                        _minRating = null;
+                        _sortBy = 'recommended';
+                      });
+                      _performSearch(_searchController.text.trim());
+                    },
                   ),
                 if (query.isNotEmpty)
                   ElevatedButton(
@@ -1295,9 +1425,12 @@ class _SearchScreenState extends State<SearchScreen> {
                       _searchController.clear();
                       _onSearchChanged('');
                     },
-                    child: const Text(
+                    child: Text(
                       'Clear Query',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
               ],
@@ -1310,6 +1443,19 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
+    final chipFill = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.04);
+    final chipBorder = isDark
+        ? Colors.white.withValues(alpha: 0.14)
+        : Colors.black.withValues(alpha: 0.1);
     final query = _searchController.text.trim();
     final hasSearched = query.isNotEmpty || _activeFilterCount > 0;
     final totalDishes = _foodResults.length;
@@ -1319,40 +1465,28 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: false,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      appBar: GlassAppBar(
+        title: 'Search FoodGo',
         leading: Navigator.of(context).canPop()
             ? Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(6.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: chipFill,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
+                    border: Border.all(color: chipBorder),
                   ),
                   child: IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_back_ios_new,
                       size: 16,
-                      color: Colors.white,
+                      color: primaryText,
                     ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
               )
             : null,
-        centerTitle: true,
-        title: const Text(
-          'Search FoodGo',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 19,
-            color: Colors.white,
-          ),
-        ),
       ),
       body: SafeArea(
         child: ResponsiveWebContainer(
@@ -1369,11 +1503,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : Colors.black.withValues(alpha: 0.04),
                           borderRadius: BorderRadius.circular(28),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.12),
-                          ),
+                          border: Border.all(color: chipBorder),
                         ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -1382,26 +1516,23 @@ class _SearchScreenState extends State<SearchScreen> {
                         child: TextField(
                           controller: _searchController,
                           onChanged: _onSearchChanged,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: primaryText),
                           decoration: InputDecoration(
                             hintText: 'Search dishes, restaurants, cravings...',
-                            hintStyle: const TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 14,
-                            ),
-                            prefixIcon: const Icon(
+                            hintStyle: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: secondaryText),
+                            prefixIcon: Icon(
                               Icons.search,
-                              color: GlassTheme.limeAccent,
+                              color: accentGreen,
                               size: 22,
                             ),
                             suffixIcon: _searchController.text.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.clear,
-                                      color: Colors.white70,
+                                      color: secondaryText,
                                       size: 18,
                                     ),
                                     onPressed: () {
@@ -1431,20 +1562,20 @@ class _SearchScreenState extends State<SearchScreen> {
                                   ? GlassTheme.primaryGreen.withValues(
                                       alpha: 0.25,
                                     )
-                                  : Colors.white.withValues(alpha: 0.08),
+                                  : chipFill,
                               borderRadius: BorderRadius.circular(22),
                               border: Border.all(
                                 color: _activeFilterCount > 0
                                     ? GlassTheme.primaryGreen
-                                    : Colors.white.withValues(alpha: 0.15),
+                                    : chipBorder,
                               ),
                             ),
                             child: Icon(
                               Icons.tune,
                               size: 20,
                               color: _activeFilterCount > 0
-                                  ? GlassTheme.limeAccent
-                                  : Colors.white70,
+                                  ? accentGreen
+                                  : secondaryText,
                             ),
                           ),
                           if (_activeFilterCount > 0)
@@ -1459,11 +1590,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                 ),
                                 child: Text(
                                   '$_activeFilterCount',
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w900,
+                                      ),
                                 ),
                               ),
                             ),
@@ -1505,23 +1636,23 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Recent Searches',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: secondaryText,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         InkWell(
                           onTap: _clearAllRecentSearches,
-                          child: const Text(
+                          child: Text(
                             'Clear All',
-                            style: TextStyle(
-                              color: GlassTheme.primaryGreen,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: accentGreen,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ),
                       ],
@@ -1534,16 +1665,12 @@ class _SearchScreenState extends State<SearchScreen> {
                           return Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: Chip(
-                              backgroundColor: Colors.white.withValues(
-                                alpha: 0.08,
-                              ),
-                              side: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.15),
-                              ),
-                              avatar: const Icon(
+                              backgroundColor: chipFill,
+                              side: BorderSide(color: chipBorder),
+                              avatar: Icon(
                                 Icons.history,
                                 size: 14,
-                                color: GlassTheme.primaryGreen,
+                                color: accentGreen,
                               ),
                               label: InkWell(
                                 onTap: () {
@@ -1552,16 +1679,14 @@ class _SearchScreenState extends State<SearchScreen> {
                                 },
                                 child: Text(
                                   tag,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: primaryText),
                                 ),
                               ),
-                              deleteIcon: const Icon(
+                              deleteIcon: Icon(
                                 Icons.close,
                                 size: 14,
-                                color: Colors.white60,
+                                color: secondaryText,
                               ),
                               onDeleted: () => _removeRecentSearch(tag),
                             ),
@@ -1572,11 +1697,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 14),
                   ],
 
-                  const Text(
+                  Text(
                     'Quick Cravings',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: secondaryText,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1590,23 +1714,13 @@ class _SearchScreenState extends State<SearchScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ActionChip(
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.06,
-                            ),
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.12),
-                            ),
-                            avatar: Icon(
-                              icon,
-                              size: 15,
-                              color: GlassTheme.limeAccent,
-                            ),
+                            backgroundColor: chipFill,
+                            side: BorderSide(color: chipBorder),
+                            avatar: Icon(icon, size: 15, color: accentGreen),
                             label: Text(
                               name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: primaryText),
                             ),
                             onPressed: () {
                               _searchController.text = name;
@@ -1632,35 +1746,39 @@ class _SearchScreenState extends State<SearchScreen> {
                         )
                       : !hasSearched
                       ? Center(
-                          child: GlassCard(
-                            padding: const EdgeInsets.all(28),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.restaurant_menu,
-                                  size: 56,
-                                  color: GlassTheme.primaryGreen,
-                                ),
-                                const SizedBox(height: 14),
-                                const Text(
-                                  'Explore Food & Restaurants',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(28),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.restaurant_menu,
+                                    size: 56,
+                                    color: accentGreen,
                                   ),
-                                ),
-                                const SizedBox(height: 6),
-                                const Text(
-                                  'Search for favorite dishes, restaurants, or select a craving chip above!',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: GlassTheme.textMuted,
-                                    fontSize: 13,
+                                  const SizedBox(height: 14),
+                                  Text(
+                                    'Explore Food & Restaurants',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: primaryText,
+                                        ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Search for favorite dishes, restaurants, or select a craving chip above!',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: secondaryText),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         )
@@ -1679,19 +1797,21 @@ class _SearchScreenState extends State<SearchScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.storefront,
                                         size: 16,
-                                        color: GlassTheme.limeAccent,
+                                        color: accentGreen,
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
                                         'Restaurants (${_restaurantResults.length})',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: primaryText,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -1702,13 +1822,15 @@ class _SearchScreenState extends State<SearchScreen> {
                                         () => _selectedScope =
                                             SearchScope.restaurants,
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'View All',
-                                        style: TextStyle(
-                                          color: GlassTheme.primaryGreen,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: accentGreen,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                       ),
                                     ),
                                 ],
@@ -1728,19 +1850,21 @@ class _SearchScreenState extends State<SearchScreen> {
                                 _foodResults.isNotEmpty) ...[
                               Row(
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.fastfood,
                                     size: 16,
-                                    color: GlassTheme.primaryGreen,
+                                    color: accentGreen,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
                                     'Dishes (${_foodResults.length})',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: primaryText,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                   ),
                                 ],
                               ),

@@ -187,53 +187,68 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        RichText(
-          text: TextSpan(
-            style: TextStyle(
-              fontSize: 25,
-              fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white : GlassTheme.authTitleDark,
-              letterSpacing: -0.5,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
-                  offset: const Offset(0, 2),
-                  blurRadius: 4,
+        Builder(
+          builder: (context) {
+            final brightness = Theme.of(context).brightness;
+            final textTheme = Theme.of(context).textTheme;
+            final primaryText = AppTypography.primaryTextColor(brightness);
+            final secondaryText = AppTypography.secondaryTextColor(brightness);
+            final accentGreen = isDark
+                ? GlassTheme.primaryGreenAccent
+                : const Color(0xFF15803D);
+            return Column(
+              children: [
+                RichText(
+                  text: TextSpan(
+                    style: textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: primaryText,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.4 : 0.08,
+                          ),
+                          offset: const Offset(0, 2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    children: [
+                      const TextSpan(text: 'Food'),
+                      TextSpan(
+                        text: 'Go',
+                        style: TextStyle(color: accentGreen),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Join FoodGo • Fresh Meals Delivered',
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: secondaryText,
+                  ),
                 ),
               ],
-            ),
-            children: const [
-              TextSpan(text: 'Food'),
-              TextSpan(
-                text: 'Go',
-                style: TextStyle(color: GlassTheme.primaryGreen),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'Join FoodGo • Fresh Meals Delivered',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white60 : GlassTheme.authSubtitle,
-            letterSpacing: 0.4,
-          ),
+            );
+          },
         ),
       ],
     );
   }
 
   Widget _buildRoleSelector(bool isDark) {
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Account Type',
-          style: TextStyle(
-            color: isDark ? Colors.white70 : const Color(0xFF64748B),
-            fontSize: 12.5,
+          style: textTheme.labelSmall?.copyWith(
+            color: secondaryText,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -270,6 +285,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required bool isDark,
   }) {
     final isSelected = _selectedRole == role;
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     return AnimatedPressable(
       pressedScale: 0.96,
       onTap: () {
@@ -310,19 +329,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Icon(
               icon,
               size: 18,
-              color: isSelected
-                  ? Colors.white
-                  : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+              color: isSelected ? Colors.white : secondaryText,
             ),
             const SizedBox(width: 6),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 13,
+              style: textTheme.bodySmall?.copyWith(
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.white : const Color(0xFF1E293B)),
+                color: isSelected ? Colors.white : primaryText,
               ),
             ),
           ],
@@ -333,19 +347,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
 
     return ThemedSkinBackdrop(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          toolbarHeight: 44,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+        extendBodyBehindAppBar: true,
+        appBar: GlassAppBar(
+          title: '',
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: isDark ? Colors.white : Colors.black87,
+              color: AppTypography.primaryTextColor(brightness),
               size: 20,
             ),
             onPressed: () {
@@ -482,761 +496,655 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                 ],
                               ),
-                              child: Form(
-                                key: _formKey,
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    // Screen Heading
-                                    Text(
-                                          context.tr('auth.createAccount'),
-                                          style: TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.w800,
-                                            color: isDark
-                                                ? Colors.white
-                                                : GlassTheme.authTitleDark,
+                              child: Builder(
+                                builder: (context) {
+                                  final brightness = Theme.of(
+                                    context,
+                                  ).brightness;
+                                  final textTheme = Theme.of(context).textTheme;
+                                  final primaryText =
+                                      AppTypography.primaryTextColor(
+                                        brightness,
+                                      );
+                                  final secondaryText =
+                                      AppTypography.secondaryTextColor(
+                                        brightness,
+                                      );
+                                  final accentGreen = isDark
+                                      ? GlassTheme.primaryGreenAccent
+                                      : const Color(0xFF15803D);
+                                  final dangerRed = isDark
+                                      ? Colors.redAccent
+                                      : const Color(0xFFB91C1C);
+                                  final isKhmer =
+                                      Localizations.localeOf(
+                                        context,
+                                      ).languageCode ==
+                                      'km';
+
+                                  InputDecoration buildFieldDecoration({
+                                    required String labelText,
+                                    required String hintText,
+                                    required IconData prefixIcon,
+                                    String? helperText,
+                                    Widget? suffixIcon,
+                                  }) {
+                                    return InputDecoration(
+                                      labelText: labelText,
+                                      hintText: hintText,
+                                      helperText: helperText,
+                                      helperStyle: textTheme.labelSmall
+                                          ?.copyWith(color: secondaryText),
+                                      labelStyle: textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: secondaryText,
+                                            height: isKhmer ? 1.5 : null,
+                                            letterSpacing: isKhmer ? 0 : null,
                                           ),
-                                          textAlign: TextAlign.center,
-                                        )
-                                        .animate()
-                                        .fade(delay: 150.ms, duration: 400.ms)
-                                        .slideY(
-                                          begin: 0.15,
-                                          end: 0,
-                                          curve: Curves.easeOutCubic,
-                                        ),
-
-                                    const SizedBox(height: 4),
-
-                                    // Supporting Subtitle
-                                    Text(
-                                          context.tr('auth.registerSubtitle'),
-                                          style: TextStyle(
-                                            fontSize: 12.5,
-                                            color: isDark
-                                                ? Colors.grey[400]
-                                                : GlassTheme.authSubtitle,
-                                            fontWeight: FontWeight.w400,
+                                      hintStyle: textTheme.bodyMedium?.copyWith(
+                                        color: secondaryText,
+                                      ),
+                                      prefixIcon: Icon(
+                                        prefixIcon,
+                                        color: secondaryText,
+                                        size: 20,
+                                      ),
+                                      suffixIcon: suffixIcon,
+                                      filled: true,
+                                      fillColor: isDark
+                                          ? const Color(0xFF1E293B)
+                                          : GlassTheme.authInputFill,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 14,
                                           ),
-                                          textAlign: TextAlign.center,
-                                        )
-                                        .animate()
-                                        .fade(delay: 200.ms, duration: 400.ms)
-                                        .slideY(
-                                          begin: 0.15,
-                                          end: 0,
-                                          curve: Curves.easeOutCubic,
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: BorderSide(
+                                          color: isDark
+                                              ? Colors.white12
+                                              : GlassTheme.authInputBorder,
                                         ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(
+                                          color: GlassTheme.primaryGreen,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      errorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: BorderSide(
+                                          color: dangerRed,
+                                        ),
+                                      ),
+                                      focusedErrorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: BorderSide(
+                                          color: dangerRed,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                    );
+                                  }
 
-                                    const SizedBox(height: 14),
-
-                                    // Error Notification Banner with shake animation
-                                    if (_registerErrorMessage != null) ...[
-                                      Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 14,
-                                              vertical: 10,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.redAccent
-                                                  .withValues(alpha: 0.12),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              border: Border.all(
-                                                color: Colors.redAccent
-                                                    .withValues(alpha: 0.35),
-                                              ),
-                                            ),
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                const Padding(
-                                                  padding: EdgeInsets.only(
-                                                    top: 2,
+                                  return Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        // Screen Heading
+                                        Text(
+                                              context.tr('auth.createAccount'),
+                                              style: textTheme.headlineMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w800,
+                                                    color: primaryText,
+                                                    height: isKhmer
+                                                        ? 1.5
+                                                        : null,
+                                                    letterSpacing: isKhmer
+                                                        ? 0
+                                                        : null,
                                                   ),
-                                                  child: Icon(
-                                                    AppIcons.error,
-                                                    color: Colors.redAccent,
-                                                    size: 18,
+                                              textAlign: TextAlign.center,
+                                            )
+                                            .animate()
+                                            .fade(
+                                              delay: 150.ms,
+                                              duration: 400.ms,
+                                            )
+                                            .slideY(
+                                              begin: 0.15,
+                                              end: 0,
+                                              curve: Curves.easeOutCubic,
+                                            ),
+
+                                        const SizedBox(height: 4),
+
+                                        // Supporting Subtitle
+                                        Text(
+                                              context.tr(
+                                                'auth.registerSubtitle',
+                                              ),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: secondaryText,
+                                                    height: isKhmer
+                                                        ? 1.5
+                                                        : null,
+                                                    letterSpacing: isKhmer
+                                                        ? 0
+                                                        : null,
+                                                  ),
+                                              textAlign: TextAlign.center,
+                                            )
+                                            .animate()
+                                            .fade(
+                                              delay: 200.ms,
+                                              duration: 400.ms,
+                                            )
+                                            .slideY(
+                                              begin: 0.15,
+                                              end: 0,
+                                              curve: Curves.easeOutCubic,
+                                            ),
+
+                                        const SizedBox(height: 14),
+
+                                        // Error Notification Banner with shake animation
+                                        if (_registerErrorMessage != null) ...[
+                                          Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 14,
+                                                      vertical: 10,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: dangerRed.withValues(
+                                                    alpha: 0.12,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: dangerRed.withValues(
+                                                      alpha: 0.35,
+                                                    ),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Text(
-                                                    _registerErrorMessage!,
-                                                    style: const TextStyle(
-                                                      color: Colors.redAccent,
-                                                      fontSize: 13,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      height: 1.3,
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            top: 2,
+                                                          ),
+                                                      child: Icon(
+                                                        AppIcons.error,
+                                                        color: dangerRed,
+                                                        size: 18,
+                                                      ),
                                                     ),
+                                                    const SizedBox(width: 10),
+                                                    Expanded(
+                                                      child: Text(
+                                                        _registerErrorMessage!,
+                                                        style: textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                              color: dangerRed,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                              .animate()
+                                              .shake(
+                                                duration: 450.ms,
+                                                hz: 4,
+                                                curve: Curves.easeInOut,
+                                              )
+                                              .fade(duration: 250.ms),
+                                          const SizedBox(height: 14),
+                                        ],
+
+                                        // Input 1: Full name
+                                        TextFormField(
+                                          controller: _fullNameController,
+                                          textInputAction: TextInputAction.next,
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: primaryText,
+                                          ),
+                                          decoration: buildFieldDecoration(
+                                            labelText: context.tr(
+                                              'auth.fullName',
+                                            ),
+                                            hintText: 'e.g. David Kim',
+                                            prefixIcon: AppIcons.profile,
+                                          ),
+                                          validator: (val) =>
+                                              val == null || val.trim().isEmpty
+                                              ? 'Please enter your full name'
+                                              : null,
+                                        ).animate().fade(delay: 200.ms),
+
+                                        const SizedBox(height: 12),
+
+                                        // Input 2: Username
+                                        TextFormField(
+                                          controller: _usernameController,
+                                          textInputAction: TextInputAction.next,
+                                          onChanged: (_) {
+                                            _usernameManuallyEdited = true;
+                                          },
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: primaryText,
+                                          ),
+                                          decoration: buildFieldDecoration(
+                                            labelText: context.tr(
+                                              'auth.username',
+                                            ),
+                                            hintText: 'e.g. david_kim',
+                                            helperText:
+                                                'Letters, numbers, underscores (min 3)',
+                                            prefixIcon:
+                                                Icons.alternate_email_rounded,
+                                          ),
+                                          validator: (val) {
+                                            if (val == null ||
+                                                val.trim().isEmpty) {
+                                              return 'Please enter a username';
+                                            }
+                                            if (val.trim().length < 3) {
+                                              return 'Username must be at least 3 characters';
+                                            }
+                                            if (!RegExp(
+                                              r'^[a-zA-Z0-9_]+$',
+                                            ).hasMatch(val.trim())) {
+                                              return 'Only letters, numbers, and underscores allowed';
+                                            }
+                                            return null;
+                                          },
+                                        ).animate().fade(delay: 240.ms),
+
+                                        const SizedBox(height: 12),
+
+                                        // Input 3: Email address
+                                        TextFormField(
+                                          controller: _emailController,
+                                          textInputAction: TextInputAction.next,
+                                          keyboardType:
+                                              TextInputType.emailAddress,
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: primaryText,
+                                          ),
+                                          decoration: buildFieldDecoration(
+                                            labelText: context.tr('auth.email'),
+                                            hintText: 'e.g. david@foodgo.com',
+                                            prefixIcon: AppIcons.mail,
+                                          ),
+                                          validator: (val) {
+                                            if (val == null ||
+                                                val.trim().isEmpty) {
+                                              return 'Please enter your email';
+                                            }
+                                            if (!val.contains('@') ||
+                                                !val.contains('.')) {
+                                              return 'Please enter a valid email address';
+                                            }
+                                            return null;
+                                          },
+                                        ).animate().fade(delay: 280.ms),
+
+                                        const SizedBox(height: 12),
+
+                                        // Input 4: Password
+                                        TextFormField(
+                                          controller: _passwordController,
+                                          obscureText: _obscurePassword,
+                                          textInputAction: TextInputAction.done,
+                                          onFieldSubmitted: (_) => _register(),
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: primaryText,
+                                          ),
+                                          decoration: buildFieldDecoration(
+                                            labelText: context.tr(
+                                              'auth.password',
+                                            ),
+                                            hintText:
+                                                'Enter at least 6 characters',
+                                            prefixIcon: AppIcons.lock,
+                                            suffixIcon: IconButton(
+                                              tooltip: _obscurePassword
+                                                  ? 'Show password'
+                                                  : 'Hide password',
+                                              icon: Icon(
+                                                _obscurePassword
+                                                    ? AppIcons.passwordHidden
+                                                    : AppIcons.passwordVisible,
+                                                color: secondaryText,
+                                                size: 20,
+                                              ),
+                                              onPressed: () => setState(
+                                                () => _obscurePassword =
+                                                    !_obscurePassword,
+                                              ),
+                                            ),
+                                          ),
+                                          validator: (val) {
+                                            if (val == null || val.length < 6) {
+                                              return 'Password must be at least 6 characters';
+                                            }
+                                            return null;
+                                          },
+                                        ).animate().fade(delay: 320.ms),
+
+                                        const SizedBox(height: 14),
+
+                                        // Role selector (Customer / Driver)
+                                        _buildRoleSelector(
+                                          isDark,
+                                        ).animate().fade(delay: 360.ms),
+
+                                        const SizedBox(height: 14),
+
+                                        // Terms & Conditions Disclaimer
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4.0,
+                                          ),
+                                          child: RichText(
+                                            textAlign: TextAlign.center,
+                                            text: TextSpan(
+                                              style: textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    color: secondaryText,
+                                                  ),
+                                              children: [
+                                                const TextSpan(
+                                                  text:
+                                                      'By signing up you agree to our ',
+                                                ),
+                                                TextSpan(
+                                                  text: 'Terms & Conditions',
+                                                  style: TextStyle(
+                                                    color: accentGreen,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const TextSpan(text: ' and '),
+                                                TextSpan(
+                                                  text: 'Privacy Policy',
+                                                  style: TextStyle(
+                                                    color: accentGreen,
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                          )
-                                          .animate()
-                                          .shake(
-                                            duration: 450.ms,
-                                            hz: 4,
-                                            curve: Curves.easeInOut,
-                                          )
-                                          .fade(duration: 250.ms),
-                                      const SizedBox(height: 14),
-                                    ],
+                                          ),
+                                        ).animate().fade(delay: 400.ms),
 
-                                    // Input 1: Full name
-                                    TextFormField(
-                                      controller: _fullNameController,
-                                      textInputAction: TextInputAction.next,
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                        fontSize: 14,
-                                      ),
-                                      decoration: InputDecoration(
-                                        labelText: context.tr('auth.fullName'),
-                                        hintText: 'e.g. David Kim',
-                                        labelStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white70
-                                              : const Color(0xFF64748B),
-                                          fontSize: 13,
-                                        ),
-                                        hintStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white38
-                                              : const Color(0xFF94A3B8),
-                                          fontSize: 13,
-                                        ),
-                                        prefixIcon: Icon(
-                                          AppIcons.profile,
-                                          color: isDark
-                                              ? Colors.white54
-                                              : GlassTheme.authSubtitle,
-                                          size: 20,
-                                        ),
-                                        filled: true,
-                                        fillColor: isDark
-                                            ? const Color(0xFF1E293B)
-                                            : GlassTheme.authInputFill,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 14,
-                                            ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : GlassTheme.authInputBorder,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: GlassTheme.primaryGreen,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                          ),
-                                        ),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                      ),
-                                      validator: (val) =>
-                                          val == null || val.trim().isEmpty
-                                          ? 'Please enter your full name'
-                                          : null,
-                                    ).animate().fade(delay: 200.ms),
+                                        const SizedBox(height: 18),
 
-                                    const SizedBox(height: 12),
-
-                                    // Input 2: Username
-                                    TextFormField(
-                                      controller: _usernameController,
-                                      textInputAction: TextInputAction.next,
-                                      onChanged: (_) {
-                                        _usernameManuallyEdited = true;
-                                      },
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                        fontSize: 14,
-                                      ),
-                                      decoration: InputDecoration(
-                                        labelText: context.tr('auth.username'),
-                                        hintText: 'e.g. david_kim',
-                                        helperText:
-                                            'Letters, numbers, underscores (min 3)',
-                                        helperStyle: TextStyle(
-                                          fontSize: 11,
-                                          color: isDark
-                                              ? Colors.white54
-                                              : const Color(0xFF64748B),
-                                        ),
-                                        labelStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white70
-                                              : const Color(0xFF64748B),
-                                          fontSize: 13,
-                                        ),
-                                        hintStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white38
-                                              : const Color(0xFF94A3B8),
-                                          fontSize: 13,
-                                        ),
-                                        prefixIcon: Icon(
-                                          Icons.alternate_email_rounded,
-                                          color: isDark
-                                              ? Colors.white54
-                                              : GlassTheme.authSubtitle,
-                                          size: 20,
-                                        ),
-                                        filled: true,
-                                        fillColor: isDark
-                                            ? const Color(0xFF1E293B)
-                                            : GlassTheme.authInputFill,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 14,
-                                            ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : GlassTheme.authInputBorder,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: GlassTheme.primaryGreen,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                          ),
-                                        ),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                      ),
-                                      validator: (val) {
-                                        if (val == null || val.trim().isEmpty) {
-                                          return 'Please enter a username';
-                                        }
-                                        if (val.trim().length < 3) {
-                                          return 'Username must be at least 3 characters';
-                                        }
-                                        if (!RegExp(
-                                          r'^[a-zA-Z0-9_]+$',
-                                        ).hasMatch(val.trim())) {
-                                          return 'Only letters, numbers, and underscores allowed';
-                                        }
-                                        return null;
-                                      },
-                                    ).animate().fade(delay: 240.ms),
-
-                                    const SizedBox(height: 12),
-
-                                    // Input 3: Email address
-                                    TextFormField(
-                                      controller: _emailController,
-                                      textInputAction: TextInputAction.next,
-                                      keyboardType: TextInputType.emailAddress,
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                        fontSize: 14,
-                                      ),
-                                      decoration: InputDecoration(
-                                        labelText: context.tr('auth.email'),
-                                        hintText: 'e.g. david@foodgo.com',
-                                        labelStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white70
-                                              : const Color(0xFF64748B),
-                                          fontSize: 13,
-                                        ),
-                                        hintStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white38
-                                              : const Color(0xFF94A3B8),
-                                          fontSize: 13,
-                                        ),
-                                        prefixIcon: Icon(
-                                          AppIcons.mail,
-                                          color: isDark
-                                              ? Colors.white54
-                                              : GlassTheme.authSubtitle,
-                                          size: 20,
-                                        ),
-                                        filled: true,
-                                        fillColor: isDark
-                                            ? const Color(0xFF1E293B)
-                                            : GlassTheme.authInputFill,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 14,
-                                            ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : GlassTheme.authInputBorder,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: GlassTheme.primaryGreen,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                          ),
-                                        ),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                      ),
-                                      validator: (val) {
-                                        if (val == null || val.trim().isEmpty) {
-                                          return 'Please enter your email';
-                                        }
-                                        if (!val.contains('@') ||
-                                            !val.contains('.')) {
-                                          return 'Please enter a valid email address';
-                                        }
-                                        return null;
-                                      },
-                                    ).animate().fade(delay: 280.ms),
-
-                                    const SizedBox(height: 12),
-
-                                    // Input 4: Password
-                                    TextFormField(
-                                      controller: _passwordController,
-                                      obscureText: _obscurePassword,
-                                      textInputAction: TextInputAction.done,
-                                      onFieldSubmitted: (_) => _register(),
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                        fontSize: 14,
-                                      ),
-                                      decoration: InputDecoration(
-                                        labelText: context.tr('auth.password'),
-                                        hintText: 'Enter at least 6 characters',
-                                        labelStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white70
-                                              : const Color(0xFF64748B),
-                                          fontSize: 13,
-                                        ),
-                                        hintStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white38
-                                              : const Color(0xFF94A3B8),
-                                          fontSize: 13,
-                                        ),
-                                        prefixIcon: Icon(
-                                          AppIcons.lock,
-                                          color: isDark
-                                              ? Colors.white54
-                                              : GlassTheme.authSubtitle,
-                                          size: 20,
-                                        ),
-                                        suffixIcon: IconButton(
-                                          tooltip: _obscurePassword
-                                              ? 'Show password'
-                                              : 'Hide password',
-                                          icon: Icon(
-                                            _obscurePassword
-                                                ? AppIcons.passwordHidden
-                                                : AppIcons.passwordVisible,
-                                            color: isDark
-                                                ? Colors.white54
-                                                : GlassTheme.authSubtitle,
-                                            size: 20,
-                                          ),
-                                          onPressed: () => setState(
-                                            () => _obscurePassword =
-                                                !_obscurePassword,
-                                          ),
-                                        ),
-                                        filled: true,
-                                        fillColor: isDark
-                                            ? const Color(0xFF1E293B)
-                                            : GlassTheme.authInputFill,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 14,
-                                            ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : GlassTheme.authInputBorder,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: GlassTheme.primaryGreen,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                          ),
-                                        ),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                      ),
-                                      validator: (val) {
-                                        if (val == null || val.length < 6) {
-                                          return 'Password must be at least 6 characters';
-                                        }
-                                        return null;
-                                      },
-                                    ).animate().fade(delay: 320.ms),
-
-                                    const SizedBox(height: 14),
-
-                                    // Role selector (Customer / Driver)
-                                    _buildRoleSelector(
-                                      isDark,
-                                    ).animate().fade(delay: 360.ms),
-
-                                    const SizedBox(height: 14),
-
-                                    // Terms & Conditions Disclaimer
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4.0,
-                                      ),
-                                      child: RichText(
-                                        textAlign: TextAlign.center,
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: isDark
-                                                ? Colors.grey[400]
-                                                : GlassTheme.authSubtitle,
-                                            height: 1.4,
-                                          ),
-                                          children: const [
-                                            TextSpan(
-                                              text:
-                                                  'By signing up you agree to our ',
-                                            ),
-                                            TextSpan(
-                                              text: 'Terms & Conditions',
-                                              style: TextStyle(
-                                                color: GlassTheme.primaryGreen,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            TextSpan(text: ' and '),
-                                            TextSpan(
-                                              text: 'Privacy Policy',
-                                              style: TextStyle(
-                                                color: GlassTheme.primaryGreen,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ).animate().fade(delay: 400.ms),
-
-                                    const SizedBox(height: 18),
-
-                                    // Primary 3D Tactile Extruded Button: Create Account
-                                    SizedBox(
-                                          height: 52,
-                                          child: AnimatedPressable(
-                                            pressedScale: 0.96,
-                                            onTap: _isLoading
-                                                ? null
-                                                : _register,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(14),
-                                                gradient: const LinearGradient(
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                  colors: [
-                                                    Color(0xFF2FD66F),
-                                                    GlassTheme.primaryGreen,
-                                                    Color(0xFF0F9B48),
-                                                  ],
-                                                ),
-                                                border: Border.all(
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.4),
-                                                  width: 1.2,
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: const Color(
-                                                      0xFF0B642F,
-                                                    ).withValues(alpha: 0.8),
-                                                    offset: const Offset(0, 4),
-                                                    blurRadius: 0,
-                                                  ),
-                                                  BoxShadow(
-                                                    color: GlassTheme
-                                                        .primaryGreen
-                                                        .withValues(
-                                                          alpha: 0.35,
-                                                        ),
-                                                    blurRadius: 18,
-                                                    offset: const Offset(0, 6),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: ElevatedButton(
-                                                onPressed: _isLoading
+                                        // Primary 3D Tactile Extruded Button: Create Account
+                                        SizedBox(
+                                              height: 52,
+                                              child: AnimatedPressable(
+                                                pressedScale: 0.96,
+                                                onTap: _isLoading
                                                     ? null
                                                     : _register,
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                  shadowColor:
-                                                      Colors.transparent,
-                                                  foregroundColor: Colors.white,
-                                                  disabledBackgroundColor:
-                                                      Colors.transparent,
-                                                  disabledForegroundColor:
-                                                      Colors.white70,
-                                                  shape: RoundedRectangleBorder(
+                                                child: Container(
+                                                  decoration: BoxDecoration(
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                           14,
                                                         ),
+                                                    gradient:
+                                                        const LinearGradient(
+                                                          begin:
+                                                              Alignment.topLeft,
+                                                          end: Alignment
+                                                              .bottomRight,
+                                                          colors: [
+                                                            Color(0xFF2FD66F),
+                                                            GlassTheme
+                                                                .primaryGreen,
+                                                            Color(0xFF0F9B48),
+                                                          ],
+                                                        ),
+                                                    border: Border.all(
+                                                      color: Colors.white
+                                                          .withValues(
+                                                            alpha: 0.4,
+                                                          ),
+                                                      width: 1.2,
+                                                    ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color:
+                                                            const Color(
+                                                              0xFF0B642F,
+                                                            ).withValues(
+                                                              alpha: 0.8,
+                                                            ),
+                                                        offset: const Offset(
+                                                          0,
+                                                          4,
+                                                        ),
+                                                        blurRadius: 0,
+                                                      ),
+                                                      BoxShadow(
+                                                        color: GlassTheme
+                                                            .primaryGreen
+                                                            .withValues(
+                                                              alpha: 0.35,
+                                                            ),
+                                                        blurRadius: 18,
+                                                        offset: const Offset(
+                                                          0,
+                                                          6,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: ElevatedButton(
+                                                    onPressed: _isLoading
+                                                        ? null
+                                                        : _register,
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      shadowColor:
+                                                          Colors.transparent,
+                                                      foregroundColor:
+                                                          Colors.white,
+                                                      disabledBackgroundColor:
+                                                          Colors.transparent,
+                                                      disabledForegroundColor:
+                                                          Colors.white70,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              14,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                    child: _isLoading
+                                                        ? const SizedBox(
+                                                            width: 22,
+                                                            height: 22,
+                                                            child:
+                                                                CircularProgressIndicator(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  strokeWidth:
+                                                                      2.2,
+                                                                ),
+                                                          )
+                                                        : Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              const Icon(
+                                                                Icons
+                                                                    .person_add_rounded,
+                                                                size: 18,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 8,
+                                                              ),
+                                                              Flexible(
+                                                                child: Text(
+                                                                  context.tr(
+                                                                    'auth.createAccount',
+                                                                  ),
+                                                                  style: textTheme.bodyLarge?.copyWith(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w700,
+                                                                    height:
+                                                                        isKhmer
+                                                                        ? 1.5
+                                                                        : null,
+                                                                    letterSpacing:
+                                                                        isKhmer
+                                                                        ? 0
+                                                                        : null,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
                                                   ),
                                                 ),
-                                                child: _isLoading
-                                                    ? const SizedBox(
-                                                        width: 22,
-                                                        height: 22,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                              color:
-                                                                  Colors.white,
-                                                              strokeWidth: 2.2,
-                                                            ),
-                                                      )
-                                                    : Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Icon(
-                                                            Icons
-                                                                .person_add_rounded,
-                                                            size: 18,
-                                                            color: Colors.white,
-                                                          ),
-                                                          SizedBox(width: 8),
-                                                          Text(
-                                                            context.tr(
-                                                              'auth.createAccount',
-                                                            ),
-                                                            style: TextStyle(
-                                                              fontSize: 15,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              letterSpacing:
-                                                                  0.3,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
+                                              ),
+                                            )
+                                            .animate()
+                                            .fade(delay: 440.ms)
+                                            .scale()
+                                            .shimmer(
+                                              delay: 550.ms,
+                                              duration: 1200.ms,
+                                              color: Colors.white24,
+                                            ),
+
+                                        const SizedBox(height: 20),
+
+                                        // "Or Continue with" Divider
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Divider(
+                                                color: isDark
+                                                    ? Colors.white12
+                                                    : const Color(0xFFE2E8F0),
                                               ),
                                             ),
-                                          ),
-                                        )
-                                        .animate()
-                                        .fade(delay: 440.ms)
-                                        .scale()
-                                        .shimmer(
-                                          delay: 550.ms,
-                                          duration: 1200.ms,
-                                          color: Colors.white24,
-                                        ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                  ),
+                                              child: Text(
+                                                context.tr(
+                                                  'auth.orContinueWith',
+                                                ),
+                                                style: textTheme.labelSmall
+                                                    ?.copyWith(
+                                                      color: secondaryText,
+                                                      height: isKhmer
+                                                          ? 1.5
+                                                          : null,
+                                                      letterSpacing: isKhmer
+                                                          ? 0
+                                                          : null,
+                                                    ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Divider(
+                                                color: isDark
+                                                    ? Colors.white12
+                                                    : const Color(0xFFE2E8F0),
+                                              ),
+                                            ),
+                                          ],
+                                        ).animate().fade(delay: 480.ms),
 
-                                    const SizedBox(height: 20),
+                                        const SizedBox(height: 14),
 
-                                    // "Or Continue with" Divider
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Divider(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : const Color(0xFFE2E8F0),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                          ),
-                                          child: Text(
-                                            context.tr('auth.orContinueWith'),
-                                            style: TextStyle(
-                                              color: isDark
-                                                  ? Colors.grey[400]
-                                                  : const Color(0xFF94A3B8),
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w500,
+                                        // Phone OTP Alternative Button (matches LoginScreen)
+                                        SizedBox(
+                                          height: 46,
+                                          width: double.infinity,
+                                          child: OutlinedButton.icon(
+                                            onPressed: _isLoading
+                                                ? null
+                                                : () => context.push(
+                                                    '/phone-login',
+                                                  ),
+                                            style: OutlinedButton.styleFrom(
+                                              backgroundColor: isDark
+                                                  ? const Color(0xFF1E293B)
+                                                  : Colors.white,
+                                              side: BorderSide(
+                                                color: isDark
+                                                    ? Colors.white.withValues(
+                                                        alpha: 0.16,
+                                                      )
+                                                    : const Color(0xFFCBD5E1),
+                                                width: 1.2,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 14,
+                                                  ),
+                                            ),
+                                            icon: Icon(
+                                              AppIcons.phone,
+                                              size: 18,
+                                              color: accentGreen,
+                                            ),
+                                            label: Text(
+                                              context.tr('auth.phoneOtpLogin'),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: primaryText,
+                                                    fontWeight: FontWeight.w600,
+                                                    height: isKhmer
+                                                        ? 1.5
+                                                        : null,
+                                                    letterSpacing: isKhmer
+                                                        ? 0
+                                                        : null,
+                                                  ),
                                             ),
                                           ),
-                                        ),
-                                        Expanded(
-                                          child: Divider(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : const Color(0xFFE2E8F0),
-                                          ),
-                                        ),
+                                        ).animate().fade(delay: 520.ms),
                                       ],
-                                    ).animate().fade(delay: 480.ms),
-
-                                    const SizedBox(height: 14),
-
-                                    // Phone OTP Alternative Button (matches LoginScreen)
-                                    SizedBox(
-                                      height: 46,
-                                      width: double.infinity,
-                                      child: OutlinedButton.icon(
-                                        onPressed: _isLoading
-                                            ? null
-                                            : () =>
-                                                  context.push('/phone-login'),
-                                        style: OutlinedButton.styleFrom(
-                                          backgroundColor: isDark
-                                              ? const Color(0xFF1E293B)
-                                              : Colors.white,
-                                          side: BorderSide(
-                                            color: isDark
-                                                ? Colors.white.withValues(
-                                                    alpha: 0.16,
-                                                  )
-                                                : const Color(0xFFCBD5E1),
-                                            width: 1.2,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 14,
-                                          ),
-                                        ),
-                                        icon: const Icon(
-                                          AppIcons.phone,
-                                          size: 18,
-                                          color: GlassTheme.primaryGreen,
-                                        ),
-                                        label: Text(
-                                          context.tr('auth.phoneOtpLogin'),
-                                          style: TextStyle(
-                                            color: isDark
-                                                ? Colors.white
-                                                : const Color(0xFF1E293B),
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                    ).animate().fade(delay: 520.ms),
-                                  ],
-                                ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ),
@@ -1244,45 +1152,61 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 20),
 
                           // Bottom Link: Already have an account? Sign in
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                '${context.tr('auth.alreadyHaveAccount')} ',
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.grey[400]
-                                      : GlassTheme.authSubtitle,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              AnimatedPressable(
-                                pressedScale: 0.94,
-                                onTap: () {
-                                  if (context.canPop()) {
-                                    context.pop();
-                                  } else {
-                                    context.go('/login');
-                                  }
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 2,
-                                  ),
-                                  child: Text(
-                                    context.tr('auth.login'),
-                                    style: TextStyle(
-                                      color: GlassTheme.primaryGreen,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                          Builder(
+                            builder: (context) {
+                              final brightness = Theme.of(context).brightness;
+                              final textTheme = Theme.of(context).textTheme;
+                              final secondaryText =
+                                  AppTypography.secondaryTextColor(brightness);
+                              final accentGreen = isDark
+                                  ? GlassTheme.primaryGreenAccent
+                                  : const Color(0xFF15803D);
+                              final isKhmer =
+                                  Localizations.localeOf(
+                                    context,
+                                  ).languageCode ==
+                                  'km';
+                              return Wrap(
+                                alignment: WrapAlignment.center,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    '${context.tr('auth.alreadyHaveAccount')} ',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: secondaryText,
+                                      height: isKhmer ? 1.5 : null,
+                                      letterSpacing: isKhmer ? 0 : null,
                                     ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ).animate().fade(delay: 560.ms),
+                                  AnimatedPressable(
+                                    pressedScale: 0.94,
+                                    onTap: () {
+                                      if (context.canPop()) {
+                                        context.pop();
+                                      } else {
+                                        context.go('/login');
+                                      }
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 2,
+                                      ),
+                                      child: Text(
+                                        context.tr('auth.login'),
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: accentGreen,
+                                          fontWeight: FontWeight.bold,
+                                          height: isKhmer ? 1.5 : null,
+                                          letterSpacing: isKhmer ? 0 : null,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ).animate().fade(delay: 560.ms);
+                            },
+                          ),
 
                           const SizedBox(height: 24),
                         ],

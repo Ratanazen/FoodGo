@@ -1095,3 +1095,163 @@ class WebSocketAsyncAccessTests(TransactionTestCase):
         self.assertTrue(can_connect)
         self.assertFalse(is_assigned)
 
+
+class DriverAutoTrackingAndPickupTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.customer = User.objects.create_user(
+            username='track_cust',
+            email='track_cust@foodgo.kh',
+            password='Password123!',
+            role='customer',
+        )
+        self.owner = User.objects.create_user(
+            username='track_owner',
+            email='track_owner@foodgo.kh',
+            password='Password123!',
+            role='restaurant_owner',
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.owner,
+            name='AutoTrack Kitchen',
+            address='St 240, Phnom Penh',
+            phone='023888999',
+            lat=Decimal('11.556400'),
+            lng=Decimal('104.928200'),
+            delivery_fee=Decimal('2.00'),
+        )
+        self.category = FoodCategory.objects.create(
+            restaurant=self.restaurant,
+            name='Mains',
+        )
+        self.food_item = FoodItem.objects.create(
+            category=self.category,
+            name='Amok Fish',
+            price=Decimal('6.50'),
+            is_available=True,
+        )
+        self.address = Address.objects.create(
+            user=self.customer,
+            street='Street 271, Boeng Tumpun',
+            city='Phnom Penh',
+            lat=Decimal('11.562100'),
+            lng=Decimal('104.916000'),
+        )
+
+    def _make_driver(self, username, is_online=True, is_approved=True, lat=None, lng=None):
+        user = User.objects.create_user(
+            username=username,
+            email=f'{username}@foodgo.kh',
+            password='Password123!',
+            role='driver',
+        )
+        return Driver.objects.create(
+            user=user,
+            vehicle_type='Motorcycle',
+            license_plate=f'PP-{username[:4].upper()}',
+            is_online=is_online,
+            is_approved=is_approved,
+            current_lat=Decimal(str(lat)) if lat is not None else None,
+            current_lng=Decimal(str(lng)) if lng is not None else None,
+        )
+
+    def test_auto_assign_picks_nearest_online_approved_driver_when_not_picked(self):
+        self._make_driver('unapproved_d', is_online=True, is_approved=False, lat='11.556400', lng='104.928200')
+        self._make_driver('offline_d', is_online=False, is_approved=True, lat='11.556400', lng='104.928200')
+        self._make_driver('far_d', is_online=True, is_approved=True, lat='11.610000', lng='104.880000')
+        near_driver = self._make_driver('near_d', is_online=True, is_approved=True, lat='11.556900', lng='104.928500')
+
+        self.client.force_authenticate(user=self.customer)
+        res = self.client.post('/api/orders/', {
+            'restaurant': self.restaurant.id,
+            'address': self.address.id,
+            'items': [{'food_item': self.food_item.id, 'quantity': 1}],
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(res.data['assigned_driver'])
+        self.assertEqual(res.data['assigned_driver']['id'], near_driver.id)
+        self.assertFalse(res.data['assigned_driver']['is_picked_up'])
+
+    def test_track_pre_pickup_vs_picked_up_and_unassigned_behavior(self):
+        # Create an unrelated driver in DB to prove track() does not invent Driver.objects.first()
+        self._make_driver('unrelated_d', is_online=True, is_approved=True)
+        order = Order.objects.create(
+            customer=self.customer,
+            restaurant=self.restaurant,
+            address=self.address,
+            total_amount=Decimal('8.50'),
+            status='preparing',
+        )
+
+        self.client.force_authenticate(user=self.customer)
+        res_unassigned = self.client.get(f'/api/orders/{order.id}/track/')
+        self.assertEqual(res_unassigned.status_code, status.HTTP_200_OK)
+        self.assertFalse(res_unassigned.data['driver_assigned'])
+        self.assertFalse(res_unassigned.data['is_picked_up'])
+        self.assertEqual(res_unassigned.data['tracking_stage'], 'awaiting_driver')
+        self.assertIsNone(res_unassigned.data['driver'])
+        self.assertIsNone(res_unassigned.data['driver_location'])
+
+        # Assign driver with no GPS reported yet while still pre-pickup
+        assigned_driver = self._make_driver('assigned_d', is_online=True, is_approved=True)
+        Delivery.objects.create(order=order, driver=assigned_driver, status='assigned')
+
+        res_pre_pickup = self.client.get(f'/api/orders/{order.id}/track/')
+        self.assertEqual(res_pre_pickup.status_code, status.HTTP_200_OK)
+        self.assertTrue(res_pre_pickup.data['driver_assigned'])
+        self.assertFalse(res_pre_pickup.data['is_picked_up'])
+        self.assertEqual(res_pre_pickup.data['tracking_stage'], 'en_route_to_restaurant')
+        # Must NOT jump to 45% midpoint along customer route
+        expected_mid_lng = round(104.9282 + (104.9160 - 104.9282) * 0.45, 6)
+        self.assertNotAlmostEqual(res_pre_pickup.data['driver_location']['lng'], expected_mid_lng, places=4)
+
+        # Driver arrives at restaurant (still not picked up) -> then picks up food
+        self.client.force_authenticate(user=assigned_driver.user)
+        arrive_res = self.client.post(f'/api/drivers/orders/{order.id}/arrive-restaurant/')
+        self.assertEqual(arrive_res.status_code, status.HTTP_200_OK)
+
+        self.client.force_authenticate(user=self.customer)
+        res_at_rest = self.client.get(f'/api/orders/{order.id}/track/')
+        self.assertFalse(res_at_rest.data['is_picked_up'])
+        self.assertEqual(res_at_rest.data['tracking_stage'], 'at_restaurant')
+        self.assertAlmostEqual(res_at_rest.data['driver_location']['lat'], 11.5564, places=4)
+
+        self.client.force_authenticate(user=assigned_driver.user)
+        pickup_res = self.client.post(f'/api/drivers/orders/{order.id}/pickup/')
+        self.assertEqual(pickup_res.status_code, status.HTTP_200_OK)
+
+        self.client.force_authenticate(user=self.customer)
+        res_picked = self.client.get(f'/api/orders/{order.id}/track/')
+        self.assertTrue(res_picked.data['is_picked_up'])
+        self.assertEqual(res_picked.data['tracking_stage'], 'on_the_way')
+        self.assertIsNotNone(res_picked.data['picked_up_at'])
+
+    def test_driver_location_endpoint_syncs_db_and_reports_active_orders(self):
+        driver = self._make_driver('gps_d', is_online=True, is_approved=True)
+        order = Order.objects.create(
+            customer=self.customer,
+            restaurant=self.restaurant,
+            address=self.address,
+            total_amount=Decimal('10.00'),
+            status='picked_up',
+        )
+        Delivery.objects.create(order=order, driver=driver, status='picked_up')
+
+        self.client.force_authenticate(user=driver.user)
+        loc_res = self.client.post('/api/drivers/location/', {
+            'lat': 11.5591,
+            'lng': 104.9225,
+            'speed': 33.5,
+            'bearing': 72.0,
+        }, format='json')
+        self.assertEqual(loc_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(loc_res.data['active_orders_updated'], 1)
+        self.assertIn('last_location_update', loc_res.data)
+
+        self.client.force_authenticate(user=self.customer)
+        track_res = self.client.get(f'/api/orders/{order.id}/track/')
+        self.assertEqual(track_res.status_code, status.HTTP_200_OK)
+        self.assertAlmostEqual(track_res.data['driver_location']['lat'], 11.5591, places=4)
+        self.assertAlmostEqual(track_res.data['driver_location']['lng'], 104.9225, places=4)
+
+

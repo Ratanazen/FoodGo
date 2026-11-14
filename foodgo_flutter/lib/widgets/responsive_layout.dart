@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../core/theme/app_typography.dart';
 import '../core/theme/glass_theme.dart';
 import '../core/localization/localization.dart';
 import '../providers/cart_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/user_provider.dart';
+import 'svg_icon.dart';
 
 /// Screen breakpoint helpers for responsive design
 class ResponsiveBreakpoints {
@@ -199,18 +201,7 @@ class WebHeaderNavBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: primaryColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.lunch_dining_rounded,
-                        color: primaryColor,
-                        size: 24,
-                      ),
-                    ),
+                    const FoodGoLogo(size: 36),
                     const SizedBox(width: 10),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -221,35 +212,41 @@ class WebHeaderNavBar extends StatelessWidget {
                             children: [
                               TextSpan(
                                 text: 'Food',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                  color: isDark
-                                      ? Colors.white
-                                      : GlassTheme.textDark,
-                                  letterSpacing: -0.5,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: AppTypography.primaryTextColor(
+                                        isDark
+                                            ? Brightness.dark
+                                            : Brightness.light,
+                                      ),
+                                    ),
                               ),
                               TextSpan(
                                 text: 'Go',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                  color: primaryColor,
-                                  letterSpacing: -0.5,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: primaryColor,
+                                    ),
                               ),
                             ],
                           ),
                         ),
                         Text(
                           'Web Edition',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: GlassTheme.textMuted,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppTypography.secondaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
                         ),
                       ],
                     ),
@@ -365,15 +362,17 @@ class WebHeaderNavBar extends StatelessWidget {
                               const SizedBox(width: 6),
                               Text(
                                 context.tr('nav.cart'),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: selectedIndex == 2
-                                      ? primaryColor
-                                      : (isDark
-                                            ? Colors.white70
-                                            : const Color(0xFF475569)),
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: selectedIndex == 2
+                                          ? primaryColor
+                                          : AppTypography.secondaryTextColor(
+                                              isDark
+                                                  ? Brightness.dark
+                                                  : Brightness.light,
+                                            ),
+                                    ),
                               ),
                             ],
                           ),
@@ -394,11 +393,11 @@ class WebHeaderNavBar extends StatelessWidget {
                             ),
                             child: Text(
                               '$cartCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                         ),
@@ -425,12 +424,12 @@ class WebHeaderNavBar extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            localeProvider.isKhmer ? '🇰🇭 ខ្មែរ' : '🇬🇧 EN',
-                            style: TextStyle(
-                              color: primaryColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            localeProvider.isKhmer ? 'KH ខ្មែរ' : 'EN',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                         ),
                       );
@@ -487,25 +486,27 @@ class WebHeaderNavBar extends StatelessWidget {
                                       user!['username'].toString().isNotEmpty)
                                   ? user['username'].toString()[0].toUpperCase()
                                   : 'U',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             user?['username'] ?? context.tr('nav.profile'),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: selectedIndex == 4
-                                  ? primaryColor
-                                  : (isDark
-                                        ? Colors.white
-                                        : GlassTheme.textDark),
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: selectedIndex == 4
+                                      ? primaryColor
+                                      : AppTypography.primaryTextColor(
+                                          isDark
+                                              ? Brightness.dark
+                                              : Brightness.light,
+                                        ),
+                                ),
                           ),
                         ],
                       ),
@@ -540,7 +541,9 @@ class _WebNavLink extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final activeColor = highlightColor ?? Theme.of(context).colorScheme.primary;
-    final inactiveColor = isDark ? Colors.white70 : const Color(0xFF475569);
+    final inactiveColor = AppTypography.secondaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(right: 12.0),
@@ -571,8 +574,7 @@ class _WebNavLink extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 14,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   color: isSelected ? activeColor : inactiveColor,
                 ),
@@ -643,22 +645,20 @@ class WebFooter extends StatelessWidget {
               Text(
                 'FoodGo Delivery Ecosystem • Kingdom of Cambodia',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.6)
-                      : const Color(0xFF64748B),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTypography.secondaryTextColor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Powered by National Bank of Cambodia Bakong KHQR & Real Cambodian SMS OTP',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.4)
-                      : const Color(0xFF94A3B8),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppTypography.secondaryTextColor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
                 ),
               ),
             ],
@@ -689,12 +689,11 @@ class _FooterLink extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w500,
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.85)
-                : const Color(0xFF334155),
+            color: AppTypography.primaryTextColor(
+              isDark ? Brightness.dark : Brightness.light,
+            ),
           ),
         ),
       ),

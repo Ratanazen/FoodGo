@@ -6,8 +6,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../widgets/glass_container.dart';
-import '../../../../widgets/responsive_layout.dart';
 import '../../../../widgets/onboarding_illustrations.dart';
+import '../../../../widgets/responsive_layout.dart';
+import '../../../../widgets/svg_icon.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -134,37 +135,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: GlassTheme.primaryGreen.withValues(
-                                  alpha: 0.2,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: GlassTheme.limeAccent.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                  width: 1.2,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Icon(
-                                AppIcons.snack,
-                                color: GlassTheme.limeAccent,
-                                size: 20,
-                              ),
-                            ),
+                            const FoodGoAppIcon(size: 38, borderRadius: 12),
                             const SizedBox(width: 10),
-                            const Text(
+                            Text(
                               'FoodGo',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 19,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.3,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.3,
+                                  ),
                             ),
                           ],
                         ),
@@ -183,16 +163,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 'Skip',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white70,
-                                ),
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white70,
+                                    ),
                               ),
                               SizedBox(width: 4),
                               Icon(
@@ -284,12 +264,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                                 child: Text(
                                   item['titleKh'] as String,
-                                  style: TextStyle(
-                                    color: itemAccent,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.3,
-                                  ),
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: itemAccent,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1.5,
+                                        letterSpacing: 0,
+                                      ),
                                 ),
                               ).animate().fadeIn(duration: 350.ms),
                               const SizedBox(height: 14),
@@ -298,13 +280,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               Text(
                                     item['title'] as String,
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 27,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                      letterSpacing: -0.5,
-                                      height: 1.25,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displayLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                        ),
                                   )
                                   .animate()
                                   .fadeIn(duration: 400.ms)
@@ -315,12 +297,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               Text(
                                 item['description'] as String,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  height: 1.5,
-                                  color: Colors.white.withValues(alpha: 0.72),
-                                  fontWeight: FontWeight.w400,
-                                ),
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.78,
+                                      ),
+                                    ),
                               ).animate().fadeIn(
                                 delay: 100.ms,
                                 duration: 400.ms,
@@ -393,11 +375,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   _currentPage == _pages.length - 1
                                       ? 'Get Started'
                                       : 'Next',
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.2,
-                                  ),
+                                  style: Theme.of(context).textTheme.labelLarge
+                                      ?.copyWith(fontWeight: FontWeight.w900),
                                 ),
                                 const SizedBox(width: 8),
                                 Icon(

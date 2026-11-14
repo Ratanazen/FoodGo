@@ -354,9 +354,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
     required String value,
     required Color color,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
-    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -389,24 +391,20 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
               children: [
                 Text(
                   value,
-                  style: TextStyle(
+                  style: textTheme.titleSmall?.copyWith(
                     color: primaryText,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      color: secondaryText,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
+                Text(
+                  label,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: secondaryText,
+                    fontWeight: FontWeight.w600,
+                    height: 1.25,
                   ),
+                  maxLines: 2,
+                  softWrap: true,
                 ),
               ],
             ),
@@ -417,9 +415,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
   }
 
   Widget _buildRestaurantHeaderCard() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
-    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
     final name = _restaurant!['name'] ?? 'Restaurant';
     final address = _restaurant!['address'] ?? 'Phnom Penh';
     final rating = _restaurant!['rating']?.toString() ?? '4.85';
@@ -439,7 +442,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isActive
-                        ? GlassTheme.primaryGreen
+                        ? accentGreen
                         : (isDark ? Colors.white24 : Colors.black26),
                     width: 2,
                   ),
@@ -461,10 +464,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                       ? CachedNetworkImageProvider(banner)
                       : null,
                   child: banner == null
-                      ? const Icon(
+                      ? Icon(
                           Icons.storefront_rounded,
                           size: 28,
-                          color: GlassTheme.primaryGreen,
+                          color: accentGreen,
                         )
                       : null,
                 ),
@@ -475,47 +478,50 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Flexible(
                           child: Text(
                             name,
-                            style: TextStyle(
+                            style: textTheme.titleLarge?.copyWith(
                               color: primaryText,
-                              fontSize: 19,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.2,
+                              fontWeight: FontWeight.w700,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Icon(
-                          Icons.verified_rounded,
-                          size: 18,
-                          color: GlassTheme.primaryGreen,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Icon(
+                            Icons.verified_rounded,
+                            size: 18,
+                            color: accentGreen,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 3),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 13,
-                          color: secondaryText,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: secondaryText,
+                          ),
                         ),
-                        const SizedBox(width: 3),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             address,
-                            style: TextStyle(
+                            style: textTheme.bodySmall?.copyWith(
                               color: secondaryText,
-                              fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                           ),
                         ),
                       ],
@@ -542,64 +548,66 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? GlassTheme.primaryGreen.withValues(alpha: 0.16)
-                        : Colors.redAccent.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
                       color: isActive
-                          ? GlassTheme.primaryGreen.withValues(alpha: 0.4)
-                          : Colors.redAccent.withValues(alpha: 0.4),
+                          ? GlassTheme.primaryGreen.withValues(alpha: 0.16)
+                          : Colors.redAccent.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isActive
+                            ? accentGreen.withValues(alpha: 0.45)
+                            : Colors.redAccent.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isActive ? accentGreen : Colors.redAccent,
+                            boxShadow: [
+                              BoxShadow(
+                                color: isActive
+                                    ? GlassTheme.primaryGreen
+                                    : Colors.redAccent,
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            isActive ? 'ACCEPTING ORDERS' : 'STORE CLOSED',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: isActive
+                                  ? accentGreen
+                                  : (isDark
+                                        ? Colors.redAccent
+                                        : const Color(0xFFB91C1C)),
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isActive
-                              ? GlassTheme.primaryGreen
-                              : Colors.redAccent,
-                          boxShadow: [
-                            BoxShadow(
-                              color: isActive
-                                  ? GlassTheme.primaryGreen
-                                  : Colors.redAccent,
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        isActive ? 'ACCEPTING ORDERS' : 'STORE CLOSED',
-                        style: TextStyle(
-                          color: isActive
-                              ? GlassTheme.primaryGreen
-                              : Colors.redAccent,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   isActive ? 'Live' : 'Paused',
-                  style: TextStyle(
+                  style: textTheme.bodySmall?.copyWith(
                     color: secondaryText,
-                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -624,35 +632,42 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
           ),
           const SizedBox(height: 12),
           // Metrics Summary Row
-          Row(
-            children: [
-              Expanded(
-                child: _buildMetricPill(
-                  icon: Icons.fastfood_rounded,
-                  label: 'Menu Items',
-                  value: '${_foodItems.length}',
-                  color: GlassTheme.primaryGreen,
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _buildMetricPill(
+                    icon: Icons.fastfood_rounded,
+                    label: 'Menu Items',
+                    value: '${_foodItems.length}',
+                    color: accentGreen,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildMetricPill(
-                  icon: Icons.receipt_long_rounded,
-                  label: 'Total Orders',
-                  value: '${_orders.length}',
-                  color: const Color(0xFF06B6D4),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildMetricPill(
+                    icon: Icons.receipt_long_rounded,
+                    label: 'Total Orders',
+                    value: '${_orders.length}',
+                    color: isDark
+                        ? const Color(0xFF06B6D4)
+                        : const Color(0xFF0E7490),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildMetricPill(
-                  icon: Icons.star_rounded,
-                  label: 'Store Rating',
-                  value: rating.toString(),
-                  color: const Color(0xFFF59E0B),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildMetricPill(
+                    icon: Icons.star_rounded,
+                    label: 'Store Rating',
+                    value: rating.toString(),
+                    color: isDark
+                        ? const Color(0xFFF59E0B)
+                        : const Color(0xFFB45309),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -660,9 +675,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
   }
 
   Widget _buildOrdersEmptyState() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
-    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
 
     return Center(
           child: SingleChildScrollView(
@@ -687,7 +707,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                         end: Alignment.bottomRight,
                       ),
                       border: Border.all(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                        color: accentGreen.withValues(alpha: 0.5),
                         width: 1.5,
                       ),
                       boxShadow: [
@@ -697,29 +717,28 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.soup_kitchen_rounded,
                       size: 40,
-                      color: GlassTheme.primaryGreen,
+                      color: accentGreen,
                     ),
                   ),
                   const SizedBox(height: 18),
                   Text(
                     'Kitchen is Ready & Waiting',
-                    style: TextStyle(
+                    textAlign: TextAlign.center,
+                    style: textTheme.titleLarge?.copyWith(
                       color: primaryText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'New customer orders will appear here in real-time. Keep your portal active to prepare fresh orders promptly.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: textTheme.bodySmall?.copyWith(
                       color: secondaryText,
-                      fontSize: 13,
-                      height: 1.4,
+                      height: 1.45,
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -732,7 +751,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                       color: GlassTheme.primaryGreen.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                        color: accentGreen.withValues(alpha: 0.35),
                       ),
                     ),
                     child: Row(
@@ -741,18 +760,18 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                         Container(
                           width: 7,
                           height: 7,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: GlassTheme.primaryGreen,
+                            color: accentGreen,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Listening for incoming tickets...',
-                          style: TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: Text(
+                            'Listening for incoming tickets...',
+                            style: textTheme.labelMedium?.copyWith(
+                              color: accentGreen,
+                            ),
                           ),
                         ),
                       ],
@@ -791,8 +810,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     return LiquidGlassBackground(
       child: Scaffold(
@@ -888,162 +910,174 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                 ? Center(
                     child: Text(
                       'You do not own a restaurant.',
-                      style: TextStyle(color: GlassTheme.textMuted),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
+                      ),
                     ),
                   )
                 : ResponsiveWebContainer(
                     maxWidth: 1050,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Restaurant Header Card
-                          _buildRestaurantHeaderCard(),
-                          const SizedBox(height: 16),
-
-                          // Modern Glass Pill Tab Selector
-                          Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.black.withValues(alpha: 0.35)
-                                  : Colors.black.withValues(alpha: 0.07),
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.1)
-                                    : Colors.black.withValues(alpha: 0.08),
-                                width: 1.2,
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: TabBar(
-                              controller: _tabController,
-                              dividerColor: Colors.transparent,
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              indicator: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    GlassTheme.primaryGreen,
-                                    Color(0xFF059669),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(21),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: GlassTheme.primaryGreen.withValues(
-                                      alpha: 0.35,
-                                    ),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              labelColor: Colors.white,
-                              unselectedLabelColor: isDark
-                                  ? Colors.white70
-                                  : const Color(0xFF374151),
-                              labelStyle: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13.5,
-                              ),
-                              unselectedLabelStyle: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 13.5,
-                              ),
-                              tabs: [
-                                Tab(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.receipt_long_rounded,
-                                        size: 17,
-                                      ),
-                                      const SizedBox(width: 7),
-                                      const Text('Orders'),
-                                      const SizedBox(width: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 7,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.22,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          '${_orders.length}',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Tab(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.restaurant_menu_rounded,
-                                        size: 17,
-                                      ),
-                                      const SizedBox(width: 7),
-                                      const Text('Menu'),
-                                      const SizedBox(width: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 7,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.22,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          '${_foodItems.length}',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-                          const SizedBox(height: 16),
-
-                          // Tab Views
-                          Expanded(
-                            child: TabBarView(
-                              controller: _tabController,
+                    child: NestedScrollView(
+                      headerSliverBuilder: (context, _) => [
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // Tab 1: Orders
-                                _buildOrdersTab(),
+                                // Restaurant Header Card
+                                _buildRestaurantHeaderCard(),
+                                const SizedBox(height: 16),
 
-                                // Tab 2: Menu Items
-                                _buildMenuTab(),
+                                // Modern Glass Pill Tab Selector
+                                Container(
+                                  constraints: const BoxConstraints(
+                                    minHeight: 50,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.black.withValues(alpha: 0.35)
+                                        : Colors.black.withValues(alpha: 0.07),
+                                    borderRadius: BorderRadius.circular(25),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.1)
+                                          : Colors.black.withValues(
+                                              alpha: 0.08,
+                                            ),
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                  child: TabBar(
+                                    controller: _tabController,
+                                    dividerColor: Colors.transparent,
+                                    indicatorSize: TabBarIndicatorSize.tab,
+                                    indicator: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          GlassTheme.primaryGreen,
+                                          Color(0xFF059669),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(21),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: GlassTheme.primaryGreen
+                                              .withValues(alpha: 0.35),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    labelColor: Colors.white,
+                                    unselectedLabelColor: primaryText,
+                                    labelStyle: textTheme.labelLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    unselectedLabelStyle: textTheme.bodyMedium
+                                        ?.copyWith(fontWeight: FontWeight.w500),
+                                    tabs: [
+                                      Tab(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.receipt_long_rounded,
+                                              size: 17,
+                                            ),
+                                            const SizedBox(width: 7),
+                                            const Text('Orders'),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.22,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                '${_orders.length}',
+                                                style: textTheme.labelSmall
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Tab(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.restaurant_menu_rounded,
+                                              size: 17,
+                                            ),
+                                            const SizedBox(width: 7),
+                                            const Text('Menu'),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.22,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                '${_foodItems.length}',
+                                                style: textTheme.labelSmall
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ).animate().fadeIn(
+                                  delay: 100.ms,
+                                  duration: 400.ms,
+                                ),
+                                const SizedBox(height: 16),
                               ],
                             ),
                           ),
-                        ],
+                        ),
+                      ],
+                      body: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            // Tab 1: Orders
+                            _buildOrdersTab(),
+
+                            // Tab 2: Menu Items
+                            _buildMenuTab(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1053,52 +1087,117 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
     );
   }
 
+  String _orderSearchQuery = '';
+
   Widget _buildOrdersTab() {
     if (_orders.isEmpty) {
       return _buildOrdersEmptyState();
     }
-    return RefreshIndicator(
-      color: GlassTheme.primaryGreen,
-      onRefresh: _fetchDashboardData,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 650;
-          if (isWide) {
-            return GridView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                mainAxisExtent: 260,
-              ),
-              itemCount: _orders.length,
-              itemBuilder: (context, index) {
-                final order = _orders[index];
-                return _buildRestaurantOrderCard(order);
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+
+    final query = _orderSearchQuery.trim().toLowerCase();
+    final filteredOrders = query.isEmpty
+        ? _orders
+        : _orders.where((o) {
+            if (o is! Map) return false;
+            final idStr = o['id']?.toString().toLowerCase() ?? '';
+            final status = o['status']?.toString().toLowerCase() ?? '';
+            final cust = o['customer_info'] is Map
+                ? (o['customer_info']['name']?.toString().toLowerCase() ?? '')
+                : '';
+            return idStr.contains(query) ||
+                status.contains(query) ||
+                cust.contains(query);
+          }).toList();
+
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.black.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white12
+                  : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
+          child: TextField(
+            onChanged: (val) => setState(() => _orderSearchQuery = val),
+            style: textTheme.bodyMedium?.copyWith(color: primaryText),
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              hintText: 'Find order by #ID, customer, or status...',
+              hintStyle: textTheme.bodySmall?.copyWith(color: secondaryText),
+              prefixIcon: Icon(Icons.search, color: accentGreen, size: 18),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            color: GlassTheme.primaryGreen,
+            onRefresh: _fetchDashboardData,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 650;
+                if (isWide) {
+                  return GridView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          mainAxisExtent: 280,
+                        ),
+                    itemCount: filteredOrders.length,
+                    itemBuilder: (context, index) {
+                      final order = filteredOrders[index];
+                      return _buildRestaurantOrderCard(order);
+                    },
+                  );
+                }
+                return ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: filteredOrders.length,
+                  itemBuilder: (context, index) {
+                    final order = filteredOrders[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _buildRestaurantOrderCard(order),
+                    );
+                  },
+                );
               },
-            );
-          }
-          return ListView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: _orders.length,
-            itemBuilder: (context, index) {
-              final order = _orders[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: _buildRestaurantOrderCard(order),
-              );
-            },
-          );
-        },
-      ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildRestaurantOrderCard(dynamic order) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
-    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
     final status = order['status']?.toString() ?? 'pending';
     final orderId = order['id'].toString();
     final assignedDriver = order['assigned_driver'];
@@ -1112,33 +1211,37 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.black.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.black.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.receipt_rounded,
+                        size: 16,
+                        color: secondaryText,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.receipt_rounded,
-                      size: 16,
-                      color: secondaryText,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Order #$orderId',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primaryText,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Order #$orderId',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: primaryText,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -1165,10 +1268,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                     const SizedBox(width: 5),
                     Text(
                       status.replaceAll('_', ' ').toUpperCase(),
-                      style: TextStyle(
+                      style: textTheme.labelSmall?.copyWith(
                         color: statusColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -1187,22 +1289,28 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
               final isPaid =
                   (order['payment_status'] ?? '').toString().toUpperCase() ==
                   'PAID';
+              final unpaidColor = isDark
+                  ? Colors.orangeAccent
+                  : const Color(0xFFC2410C);
               return Row(
                 children: [
                   Text(
                     '\$${amount.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                    style: textTheme.bodyLarge?.copyWith(
+                      color: accentGreen,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    '($khr)',
-                    style: TextStyle(color: secondaryText, fontSize: 12),
+                  Expanded(
+                    child: Text(
+                      '($khr)',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
+                      ),
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -1215,17 +1323,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: isPaid
-                            ? GlassTheme.primaryGreen.withValues(alpha: 0.3)
-                            : Colors.orange.withValues(alpha: 0.3),
+                            ? accentGreen.withValues(alpha: 0.35)
+                            : Colors.orange.withValues(alpha: 0.35),
                       ),
                     ),
                     child: Text(
                       isPaid ? 'PAID' : (order['payment_status'] ?? 'UNPAID'),
-                      style: TextStyle(
-                        color: isPaid
-                            ? GlassTheme.primaryGreen
-                            : Colors.orangeAccent,
-                        fontSize: 10.5,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: isPaid ? accentGreen : unpaidColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1238,19 +1343,22 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
               order['delivery_address_snapshot'].toString().isNotEmpty) ...[
             const SizedBox(height: 6),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.location_on_outlined,
-                  size: 14,
-                  color: secondaryText,
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.location_on_outlined,
+                    size: 14,
+                    color: secondaryText,
+                  ),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     order['delivery_address_snapshot'].toString(),
-                    style: TextStyle(color: secondaryText, fontSize: 12),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
+                    maxLines: 2,
                   ),
                 ),
               ],
@@ -1273,11 +1381,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.delivery_dining,
-                    size: 18,
-                    color: GlassTheme.primaryGreen,
-                  ),
+                  Icon(Icons.delivery_dining, size: 18, color: accentGreen),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -1285,15 +1389,15 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                       children: [
                         Text(
                           'Driver: ${assignedDriver['name'] ?? 'Assigned'}',
-                          style: TextStyle(
+                          style: textTheme.labelMedium?.copyWith(
                             color: primaryText,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
                           '${assignedDriver['vehicle_type'] ?? 'Motorbike'} • ${assignedDriver['license_plate'] ?? ''} • ${assignedDriver['phone'] ?? ''}',
-                          style: TextStyle(color: secondaryText, fontSize: 11),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                          ),
                         ),
                       ],
                     ),
@@ -1319,14 +1423,13 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  icon: const Icon(
-                    Icons.receipt_long,
-                    size: 16,
-                    color: GlassTheme.primaryGreen,
-                  ),
-                  label: const Text(
+                  icon: Icon(Icons.receipt_long, size: 16, color: accentGreen),
+                  label: Text(
                     'View Bill',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    style: textTheme.labelMedium?.copyWith(
+                      color: primaryText,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   onPressed: () => _showRestaurantOrderBill(order),
                 ),
@@ -1348,9 +1451,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                     ),
                   ),
                   onPressed: () => _restaurantRejectOrder(orderId),
-                  child: const Text(
+                  child: Text(
                     'Reject',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    style: textTheme.labelMedium?.copyWith(
+                      color: isDark
+                          ? Colors.redAccent
+                          : const Color(0xFFB91C1C),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1395,19 +1503,22 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                       color: Colors.blue.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(
                         Icons.hourglass_top,
                         size: 14,
-                        color: Colors.blueAccent,
+                        color: isDark
+                            ? Colors.blueAccent
+                            : const Color(0xFF1D4ED8),
                       ),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
                         'Awaiting Driver',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.blueAccent,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: isDark
+                              ? Colors.blueAccent
+                              : const Color(0xFF1D4ED8),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1434,13 +1545,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
-        final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
-        final mutedText = isDark ? Colors.white54 : const Color(0xFF6B7280);
+        final brightness = Theme.of(ctx).brightness;
+        final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(ctx).textTheme;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final secondaryText = AppTypography.secondaryTextColor(brightness);
         final accentGreen = isDark
-            ? GlassTheme.primaryGreen
-            : GlassTheme.primaryGreenDark;
+            ? const Color(0xFF4ADE80)
+            : const Color(0xFF15803D);
         final noteColor = isDark ? Colors.amber : const Color(0xFF92400E);
         final unpaidColor = isDark
             ? Colors.orangeAccent
@@ -1474,10 +1586,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                     Expanded(
                       child: Text(
                         'Order Bill #FG-${order['id']}',
-                        style: TextStyle(
+                        style: textTheme.headlineSmall?.copyWith(
                           color: primaryText,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1492,10 +1603,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                       ),
                       child: Text(
                         status.toUpperCase(),
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: accentGreen,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1514,17 +1624,16 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                     ),
                     child: Text(
                       'Note: $instructions',
-                      style: TextStyle(color: noteColor, fontSize: 12),
+                      style: textTheme.bodySmall?.copyWith(color: noteColor),
                     ),
                   ),
                   const SizedBox(height: 14),
                 ],
                 Text(
                   'ITEMS ORDERED',
-                  style: TextStyle(
-                    color: mutedText,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: secondaryText,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -1556,19 +1665,17 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                           Expanded(
                             child: Text(
                               '$qty x $name',
-                              style: TextStyle(
+                              style: textTheme.bodyMedium?.copyWith(
                                 color: primaryText,
-                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                           Text(
                             '\$$lineTotal',
-                            style: TextStyle(
+                            style: textTheme.labelLarge?.copyWith(
                               color: accentGreen,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ],
@@ -1587,15 +1694,17 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                   children: [
                     Text(
                       'Payment Status:',
-                      style: TextStyle(color: secondaryText),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
+                      ),
                     ),
                     Text(
                       paymentStatus,
-                      style: TextStyle(
+                      style: textTheme.labelLarge?.copyWith(
                         color: paymentStatus == 'PAID'
                             ? accentGreen
                             : unpaidColor,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -1606,18 +1715,16 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                   children: [
                     Text(
                       'Total Bill:',
-                      style: TextStyle(
+                      style: textTheme.titleMedium?.copyWith(
                         color: primaryText,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
                       '\$$total',
-                      style: TextStyle(
+                      style: textTheme.headlineSmall?.copyWith(
                         color: accentGreen,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -1644,11 +1751,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                           size: 16,
                           color: accentGreen,
                         ),
-                        label: const Text(
+                        label: Text(
                           'Copy Ticket TXT',
-                          style: TextStyle(
+                          style: textTheme.labelMedium?.copyWith(
+                            color: primaryText,
                             fontWeight: FontWeight.w600,
-                            fontSize: 13,
                           ),
                         ),
                         onPressed: () {
@@ -1724,13 +1831,37 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
     );
   }
 
+  String _menuSearchQuery = '';
+  int? _selectedMenuCatId;
+
   Widget _buildMenuTab() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+
+    final query = _menuSearchQuery.trim().toLowerCase();
+    final filteredMenu = _foodItems.where((item) {
+      if (_selectedMenuCatId != null &&
+          item['category_id'] != _selectedMenuCatId) {
+        return false;
+      }
+      if (query.isEmpty) return true;
+      final name = item['name']?.toString().toLowerCase() ?? '';
+      final cat = item['category_name']?.toString().toLowerCase() ?? '';
+      return name.contains(query) || cat.contains(query);
+    }).toList();
+
     return Column(
       children: [
         // Modern Glowing "+ Add New Food Item" Action Button
         Container(
           width: double.infinity,
-          height: 50,
+          constraints: const BoxConstraints(minHeight: 50),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: const LinearGradient(
@@ -1751,45 +1882,114 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: _showAddFoodItemDialog,
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.add_circle_outline_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'Add New Food Item',
-                    style: TextStyle(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.add_circle_outline_rounded,
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      letterSpacing: 0.2,
+                      size: 20,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Text(
+                      'Add New Food Item',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0),
-        const SizedBox(height: 14),
+        if (_foodItems.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.06)
+                  : Colors.black.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white12
+                    : Colors.black.withValues(alpha: 0.08),
+              ),
+            ),
+            child: TextField(
+              onChanged: (val) => setState(() => _menuSearchQuery = val),
+              style: textTheme.bodyMedium?.copyWith(color: primaryText),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                hintText: 'Find menu item by name or category...',
+                hintStyle: textTheme.bodySmall?.copyWith(color: secondaryText),
+                prefixIcon: Icon(Icons.search, color: accentGreen, size: 18),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          if (_categories.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6.0),
+                    child: ChoiceChip(
+                      visualDensity: VisualDensity.compact,
+                      label: Text('All (${_foodItems.length})'),
+                      selected: _selectedMenuCatId == null,
+                      onSelected: (_) =>
+                          setState(() => _selectedMenuCatId = null),
+                    ),
+                  ),
+                  ..._categories.map((cat) {
+                    final catId = cat['id'] as int?;
+                    final catName = cat['name']?.toString() ?? 'Category';
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 6.0),
+                      child: ChoiceChip(
+                        visualDensity: VisualDensity.compact,
+                        label: Text(catName),
+                        selected: _selectedMenuCatId == catId,
+                        onSelected: (_) =>
+                            setState(() => _selectedMenuCatId = catId),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
+        ],
+        const SizedBox(height: 12),
 
         // List of items
         Expanded(
           child: RefreshIndicator(
             color: GlassTheme.primaryGreen,
             onRefresh: _fetchDashboardData,
-            child: _foodItems.isEmpty
+            child: filteredMenu.isEmpty
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
-                      const SizedBox(height: 80),
+                      const SizedBox(height: 60),
                       Center(
                         child: Text(
-                          'No food items on menu yet. Add one above!',
-                          style: TextStyle(color: GlassTheme.textMuted),
+                          _foodItems.isEmpty
+                              ? 'No food items on menu yet. Add one above!'
+                              : 'No matching menu items found.',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: secondaryText,
+                          ),
                         ),
                       ),
                     ],
@@ -1805,20 +2005,20 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                                 crossAxisCount: 2,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
-                                mainAxisExtent: 108,
+                                mainAxisExtent: 120,
                               ),
-                          itemCount: _foodItems.length,
+                          itemCount: filteredMenu.length,
                           itemBuilder: (context, index) {
-                            final item = _foodItems[index];
+                            final item = filteredMenu[index];
                             return _buildMenuItemCard(item);
                           },
                         );
                       }
                       return ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: _foodItems.length,
+                        itemCount: filteredMenu.length,
                         itemBuilder: (context, index) {
-                          final item = _foodItems[index];
+                          final item = filteredMenu[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10.0),
                             child: _buildMenuItemCard(item),
@@ -1834,9 +2034,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
   }
 
   Widget _buildMenuItemCard(dynamic item) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
-    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
     final bool isAvail = item['is_available'] ?? true;
     final double price =
         double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
@@ -1881,9 +2086,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                         color: isDark
                             ? Colors.white.withValues(alpha: 0.05)
                             : Colors.black.withValues(alpha: 0.04),
-                        child: const Icon(
+                        child: Icon(
                           Icons.fastfood_rounded,
-                          color: GlassTheme.primaryGreen,
+                          color: accentGreen,
                           size: 26,
                         ),
                       ),
@@ -1892,9 +2097,9 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.05)
                           : Colors.black.withValues(alpha: 0.04),
-                      child: const Icon(
+                      child: Icon(
                         Icons.fastfood_rounded,
-                        color: GlassTheme.primaryGreen,
+                        color: accentGreen,
                         size: 26,
                       ),
                     ),
@@ -1909,55 +2114,55 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
               children: [
                 Text(
                   item['name'] ?? '',
-                  style: TextStyle(
+                  style: textTheme.titleSmall?.copyWith(
                     color: primaryText,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.5,
-                    letterSpacing: -0.2,
+                    fontWeight: FontWeight.w700,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 3),
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : Colors.black.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        item['category_name'] ?? 'General',
-                        style: TextStyle(
-                          color: secondaryText,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w500,
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          item['category_name'] ?? 'General',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 5,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       '\$${price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13.5,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: accentGreen,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 5),
                     Text(
                       '($khr)',
-                      style: TextStyle(color: secondaryText, fontSize: 11),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
+                      ),
                     ),
                   ],
                 ),
@@ -1993,10 +2198,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
                 ),
                 child: Text(
                   isAvail ? 'IN STOCK' : 'SOLD OUT',
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    color: isAvail ? GlassTheme.primaryGreen : Colors.redAccent,
-                    fontWeight: FontWeight.bold,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: isAvail
+                        ? accentGreen
+                        : (isDark ? Colors.redAccent : const Color(0xFFB91C1C)),
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 0.3,
                   ),
                 ),
@@ -2179,11 +2385,11 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                       const SizedBox(width: 12),
                       Text(
                         'Add Food Item',
-                        style: TextStyle(
-                          color: primaryText,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: primaryText,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ],
                   ),
@@ -2214,10 +2420,14 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                   dropdownColor: isDark
                       ? GlassTheme.dropdownDark
                       : Colors.white,
-                  style: TextStyle(color: primaryText),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: primaryText),
                   decoration: InputDecoration(
                     labelText: 'Category',
-                    labelStyle: TextStyle(color: secondaryText),
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: secondaryText),
                     prefixIcon: Icon(Icons.category, color: accentGreen),
                     filled: true,
                     fillColor: fieldFill,
@@ -2231,7 +2441,9 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                       value: cat['id'] as int?,
                       child: Text(
                         cat['name']?.toString() ?? 'Category',
-                        style: TextStyle(color: primaryText),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: primaryText),
                       ),
                     );
                   }).toList(),
@@ -2242,9 +2454,8 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                   icon: Icon(Icons.add, size: 16, color: accentGreen),
                   label: Text(
                     'Create New Category',
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: accentGreen,
-                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -2260,9 +2471,8 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                   TextButton(
                     child: Text(
                       'Choose from existing categories',
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: accentGreen,
-                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -2351,12 +2561,14 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
                       Expanded(
                         child: Text(
                           _modalError!,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w500,
-                            height: 1.4,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? Colors.redAccent
+                                    : const Color(0xFFB91C1C),
+                                fontWeight: FontWeight.w500,
+                                height: 1.4,
+                              ),
                         ),
                       ),
                     ],
@@ -2381,11 +2593,12 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
   }
 
   Widget _buildImagePresetChip({required String label, required String url}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     final isSelected = _imageController.text.trim() == url;
     final accentGreen = isDark
-        ? GlassTheme.primaryGreen
-        : GlassTheme.primaryGreenDark;
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
     return InkWell(
       onTap: () => setState(() => _imageController.text = url),
       borderRadius: BorderRadius.circular(10),
@@ -2408,12 +2621,11 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
         ),
         child: Text(
           label,
-          style: TextStyle(
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: isSelected
                 ? accentGreen
-                : (isDark ? Colors.white70 : const Color(0xFF374151)),
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                : AppTypography.secondaryTextColor(brightness),
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
       ),
@@ -2427,22 +2639,23 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
     TextInputType? keyboardType,
     int maxLines = 1,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
-      style: TextStyle(
-        color: isDark ? Colors.white : GlassTheme.textInverseDark,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: AppTypography.primaryTextColor(brightness),
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          color: isDark ? GlassTheme.textMuted : const Color(0xFF4B5563),
+        labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: AppTypography.secondaryTextColor(brightness),
         ),
         prefixIcon: Icon(
           icon,
-          color: isDark ? GlassTheme.primaryGreen : GlassTheme.primaryGreenDark,
+          color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D),
         ),
         filled: true,
         fillColor: isDark
@@ -2477,9 +2690,11 @@ class _RestaurantRejectOrderDialogState
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? Colors.white : GlassTheme.textInverseDark;
-    final secondaryText = isDark ? Colors.white70 : const Color(0xFF4B5563);
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     return AlertDialog(
       backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
@@ -2493,7 +2708,10 @@ class _RestaurantRejectOrderDialogState
       ),
       title: Text(
         'Reject Order',
-        style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+        style: textTheme.titleLarge?.copyWith(
+          color: primaryText,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -2501,16 +2719,14 @@ class _RestaurantRejectOrderDialogState
         children: [
           Text(
             'Please provide a rejection reason (prepaid orders are automatically refunded):',
-            style: TextStyle(color: secondaryText, fontSize: 13),
+            style: textTheme.bodySmall?.copyWith(color: secondaryText),
           ),
           const SizedBox(height: 14),
           TextField(
             controller: _reasonController,
             decoration: InputDecoration(
               hintText: 'e.g., Kitchen at full capacity',
-              hintStyle: TextStyle(
-                color: isDark ? GlassTheme.textMuted : const Color(0xFF6B7280),
-              ),
+              hintStyle: textTheme.bodySmall?.copyWith(color: secondaryText),
               filled: true,
               fillColor: isDark
                   ? Colors.white.withValues(alpha: 0.06)
@@ -2524,14 +2740,17 @@ class _RestaurantRejectOrderDialogState
                 ),
               ),
             ),
-            style: TextStyle(color: primaryText),
+            style: textTheme.bodyMedium?.copyWith(color: primaryText),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: secondaryText)),
+          child: Text(
+            'Cancel',
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -2543,9 +2762,12 @@ class _RestaurantRejectOrderDialogState
           ),
           onPressed: () =>
               Navigator.pop(context, _reasonController.text.trim()),
-          child: const Text(
+          child: Text(
             'Reject & Refund',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: textTheme.labelLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],

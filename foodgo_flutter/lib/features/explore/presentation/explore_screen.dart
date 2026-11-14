@@ -36,8 +36,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final amberText = isDark ? Colors.amber : const Color(0xFFB45309);
     final surfaceFill = isDark
         ? Colors.white.withValues(alpha: 0.06)
         : Colors.white.withValues(alpha: 0.85);
@@ -46,40 +51,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
         : GlassTheme.borderLight;
     final accentIconColor = isDark
         ? GlassTheme.limeAccent
-        : Theme.of(context).colorScheme.primary;
+        : const Color(0xFF15803D);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'Explore Food & Spots',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            color: primaryText,
-          ),
-        ),
+      appBar: GlassAppBar(
+        title: 'Explore Food & Spots',
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: surfaceFill,
-                shape: BoxShape.circle,
-                border: Border.all(color: surfaceBorder),
-              ),
-              child: IconButton(
-                icon: Icon(
-                  Icons.map_outlined,
-                  color: accentIconColor,
-                  size: 20,
-                ),
-                tooltip: 'View on Google Maps',
-                onPressed: () => context.push('/map'),
-              ),
+          Container(
+            decoration: BoxDecoration(
+              color: surfaceFill,
+              shape: BoxShape.circle,
+              border: Border.all(color: surfaceBorder),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.map_outlined, color: accentIconColor, size: 20),
+              tooltip: 'View on Google Maps',
+              onPressed: () => context.push('/map'),
             ),
           ),
         ],
@@ -114,24 +102,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.search,
-                            color: accentIconColor,
-                            size: 22,
-                          ),
+                          Icon(Icons.search, color: accentIconColor, size: 22),
                           const SizedBox(width: 10),
                           Expanded(
                             child: TextField(
-                              style: TextStyle(
+                              style: textTheme.bodyMedium?.copyWith(
                                 color: primaryText,
-                                fontSize: 14,
                               ),
                               decoration: InputDecoration(
                                 hintText:
                                     'Search restaurants, cuisines, dishes...',
-                                hintStyle: TextStyle(
+                                hintStyle: textTheme.bodyMedium?.copyWith(
                                   color: secondaryText,
-                                  fontSize: 14,
                                 ),
                                 border: InputBorder.none,
                               ),
@@ -158,12 +140,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     const SizedBox(height: 16),
 
                     // ── Modern Filter Chips ──────────────────
-                    SizedBox(
-                      height: 38,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _filters.length,
-                        itemBuilder: (context, index) {
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: List.generate(_filters.length, (index) {
                           final isSelected = _activeFilterIndex == index;
                           final filter = _filters[index];
                           return Padding(
@@ -188,8 +169,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   border: Border.all(
                                     color: isSelected
                                         ? (isDark
-                                            ? GlassTheme.limeAccent
-                                            : Colors.black12)
+                                              ? GlassTheme.limeAccent
+                                              : Colors.black12)
                                         : surfaceBorder,
                                   ),
                                 ),
@@ -208,8 +189,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                     ],
                                     Text(
                                       filter['label'] as String,
-                                      style: TextStyle(
-                                        fontSize: 12,
+                                      style: textTheme.bodySmall?.copyWith(
                                         fontWeight: isSelected
                                             ? FontWeight.w900
                                             : FontWeight.w600,
@@ -223,7 +203,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               ),
                             ),
                           );
-                        },
+                        }),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -322,9 +302,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         ? 'No restaurants match this filter'
                                         : 'No restaurants available right now',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
+                                    style: textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 17,
                                       color: primaryText,
                                     ),
                                   ),
@@ -338,9 +317,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           ? 'Try clearing your search term or picking another category filter above.'
                                           : 'Could not connect to the live restaurant server. Check your connection or load the demo menu.',
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(
+                                      style: textTheme.bodySmall?.copyWith(
                                         color: secondaryText,
-                                        fontSize: 13,
                                       ),
                                     ),
                                   ),
@@ -357,9 +335,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       },
                                     )
                                   else
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                    Wrap(
+                                      alignment: WrapAlignment.center,
+                                      spacing: 12,
+                                      runSpacing: 12,
                                       children: [
                                         GlassButton(
                                           text: 'Retry',
@@ -367,24 +346,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           onPressed: () =>
                                               provider.fetchRestaurants(),
                                         ),
-                                        const SizedBox(width: 12),
                                         OutlinedButton.icon(
                                           onPressed: () =>
                                               provider.loadDemoFallback(),
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.restaurant_menu,
-                                            color: GlassTheme.primaryGreen,
+                                            color: accentGreen,
                                             size: 18,
                                           ),
                                           label: Text(
                                             'Load demo menu',
-                                            style: TextStyle(
-                                              color: primaryText,
-                                            ),
+                                            style: textTheme.labelLarge
+                                                ?.copyWith(color: primaryText),
                                           ),
                                           style: OutlinedButton.styleFrom(
-                                            side: const BorderSide(
-                                              color: GlassTheme.primaryGreen,
+                                            side: BorderSide(
+                                              color: accentGreen,
                                             ),
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 16,
@@ -421,21 +398,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                     color: Colors.amber.withValues(alpha: 0.35),
                                   ),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   children: [
                                     Icon(
                                       Icons.info_outline,
-                                      color: Colors.amber,
+                                      color: amberText,
                                       size: 18,
                                     ),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         'Demo menu — not live availability. '
                                         'Reconnect to FoodGo before ordering.',
-                                        style: TextStyle(
-                                          color: Colors.amber,
-                                          fontSize: 12,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: amberText,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -447,9 +423,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             ],
                             Text(
                               'Showing ${restaurants.length} restaurants',
-                              style: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 13,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: secondaryText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

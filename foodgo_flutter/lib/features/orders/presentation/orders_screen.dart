@@ -348,27 +348,31 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildError() {
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 64, color: GlassTheme.textMuted),
+            Icon(Icons.error_outline, size: 64, color: secondaryText),
             const SizedBox(height: 16),
             Text(
               'Failed to load orders',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: GlassTheme.textMuted,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: primaryText,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               _error ?? 'Unknown error',
               textAlign: TextAlign.center,
-              style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+              style: textTheme.bodySmall?.copyWith(color: secondaryText),
             ),
             const SizedBox(height: 24),
             GlassButton(
@@ -383,6 +387,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildEmpty() {
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -394,14 +403,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
               size: 160,
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No orders yet',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: textTheme.headlineMedium?.copyWith(color: primaryText),
             ),
             const SizedBox(height: 8),
             Text(
               'Your order history will appear here',
-              style: TextStyle(color: GlassTheme.textMuted),
+              style: textTheme.bodyMedium?.copyWith(color: secondaryText),
             ),
             const SizedBox(height: 24),
             GlassButton(
@@ -471,8 +480,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget _buildOrderCard(Map<String, dynamic> order, int index) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
+    final actionPrimary = isDark
+        ? colorScheme.primary
+        : HSLColor.fromColor(colorScheme.primary).withLightness(0.30).toColor();
+    final cancelColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
+    final rateColor = isDark ? Colors.amber : const Color(0xFFB45309);
     final status = (order['status'] as String?) ?? 'pending';
     final color = _statusColor(status);
     final itemCount = (order['items'] as List?)?.length ?? 0;
@@ -499,9 +518,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   children: [
                     Text(
                       'Order #${order['id']}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: primaryText,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -510,7 +529,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       tooltip: 'Get Help',
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      color: GlassTheme.textMuted,
+                      color: secondaryText,
                       onPressed: () => _showSupportBottomSheet(
                         context,
                         orderId: order['id'],
@@ -524,7 +543,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     vertical: 4,
                   ),
                   borderRadius: GlassTheme.borderRadiusSmall,
-                  customColor: color.withValues(alpha: 0.2),
+                  customColor: color.withValues(alpha: isDark ? 0.2 : 0.14),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -537,10 +556,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ],
                       Text(
                         _formatStatus(status),
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: color,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -582,10 +600,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             width: 60,
                             height: 60,
                             color: Colors.grey.withValues(alpha: 0.2),
-                            child: const Icon(
-                              Icons.restaurant,
-                              color: GlassTheme.textMuted,
-                            ),
+                            child: Icon(Icons.restaurant, color: secondaryText),
                           ),
                         )
                       : Container(
@@ -595,10 +610,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             color: Colors.grey.withValues(alpha: 0.2),
                             borderRadius: GlassTheme.borderRadiusSmall,
                           ),
-                          child: const Icon(
-                            Icons.restaurant,
-                            color: GlassTheme.textMuted,
-                          ),
+                          child: Icon(Icons.restaurant, color: secondaryText),
                         ),
                 ),
                 const SizedBox(width: 16),
@@ -609,19 +621,23 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       Text(
                         order['restaurant_name'] ??
                             'Restaurant #${order['restaurant']}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primaryText,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$itemCount items • \$${order['total_amount']} (${KhmerCurrency.formatKhr(double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0)})',
-                        style: TextStyle(color: GlassTheme.textMuted),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: secondaryText,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _formatDate(order['created_at'] as String?),
-                        style: TextStyle(
-                          color: GlassTheme.textMuted,
-                          fontSize: 12,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: secondaryText,
                         ),
                       ),
                     ],
@@ -654,11 +670,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.delivery_dining,
-                      size: 20,
-                      color: GlassTheme.primaryGreen,
-                    ),
+                    Icon(Icons.delivery_dining, size: 20, color: accentGreen),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -666,16 +678,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         children: [
                           Text(
                             'Driver: ${order['assigned_driver']['name'] ?? 'Courier'}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                            style: textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w700,
                               color: primaryText,
                             ),
                           ),
                           Text(
                             '${order['assigned_driver']['vehicle_type'] ?? 'Motorbike'} • ${order['assigned_driver']['license_plate'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 11,
+                            style: textTheme.labelSmall?.copyWith(
                               color: secondaryText,
                             ),
                           ),
@@ -690,15 +700,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                          color: accentGreen.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           'ETA: ~${order['eta_minutes']} min',
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: accentGreen,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -735,16 +744,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           vertical: 10,
                         ),
                       ),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.receipt_long,
                         size: 16,
-                        color: GlassTheme.primaryGreen,
+                        color: accentGreen,
                       ),
                       label: Text(
                         'View Bill',
-                        style: TextStyle(
+                        style: textTheme.labelLarge?.copyWith(
                           color: primaryText,
-                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -761,10 +769,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     child: IgnorePointer(
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
                           side: BorderSide(
                             color: Colors.white.withValues(alpha: 0.4),
                             width: 1.2,
@@ -778,11 +784,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.qr_code_2, size: 16),
-                        label: const Text(
+                        label: Text(
                           'Pay KHQR',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                          style: textTheme.labelLarge?.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         onPressed: () {},
@@ -801,9 +807,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       child: IgnorePointer(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.redAccent,
+                            foregroundColor: cancelColor,
                             side: BorderSide(
-                              color: Colors.redAccent.withValues(alpha: 0.6),
+                              color: cancelColor.withValues(alpha: 0.6),
                               width: 1.2,
                             ),
                             shape: RoundedRectangleBorder(
@@ -815,11 +821,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             ),
                           ),
                           onPressed: () {},
-                          child: const Text(
+                          child: Text(
                             'Cancel',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                            style: textTheme.labelLarge?.copyWith(
+                              color: cancelColor,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -837,13 +843,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     child: IgnorePointer(
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          side: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 1.2,
-                          ),
+                          foregroundColor: actionPrimary,
+                          side: BorderSide(color: actionPrimary, width: 1.2),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -853,11 +854,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.qr_code_2, size: 16),
-                        label: const Text(
+                        label: Text(
                           'Delivery QR',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                          style: textTheme.labelLarge?.copyWith(
+                            color: actionPrimary,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         onPressed: () {},
@@ -866,7 +867,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                   AnimatedPressable(
                     pressedScale: 0.94,
-                    onTap: () => context.push('/map/${order['id']}'),
+                    onTap: () => context.push(
+                      '/map/${order['id']}?status=${Uri.encodeComponent(status)}',
+                    ),
                     child: IgnorePointer(
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -894,14 +897,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           size: 16,
                           color: isDark
                               ? GlassTheme.limeAccent
-                              : GlassTheme.primaryGreenDark,
+                              : const Color(0xFF15803D),
                         ),
                         label: Text(
                           'Track Order',
-                          style: TextStyle(
+                          style: textTheme.labelLarge?.copyWith(
                             color: primaryText,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         onPressed: () {},
@@ -916,15 +918,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       child: IgnorePointer(
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: isDark
-                                ? Colors.amber
-                                : const Color(0xFFB45309),
+                            foregroundColor: rateColor,
                             side: BorderSide(
-                              color:
-                                  (isDark
-                                          ? Colors.amber
-                                          : const Color(0xFFB45309))
-                                      .withValues(alpha: 0.6),
+                              color: rateColor.withValues(alpha: 0.6),
                               width: 1.2,
                             ),
                             shape: RoundedRectangleBorder(
@@ -935,21 +931,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               vertical: 10,
                             ),
                           ),
-                          icon: Icon(
-                            Icons.star,
-                            size: 16,
-                            color: isDark
-                                ? Colors.amber
-                                : const Color(0xFFB45309),
-                          ),
+                          icon: Icon(Icons.star, size: 16, color: rateColor),
                           label: Text(
                             'Rate',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.amber
-                                  : const Color(0xFFB45309),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                            style: textTheme.labelLarge?.copyWith(
+                              color: rateColor,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           onPressed: () {},
@@ -983,11 +970,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           size: 16,
                           color: Colors.black,
                         ),
-                        label: const Text(
+                        label: Text(
                           'Order Again',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
+                          style: textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
                             color: Colors.black,
                           ),
                         ),
@@ -1074,7 +1060,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   void _showSupportBottomSheet(BuildContext context, {dynamic orderId}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1109,12 +1102,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                      color: accentGreen.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.support_agent_rounded,
-                      color: GlassTheme.primaryGreen,
+                      color: accentGreen,
                       size: 24,
                     ),
                   ),
@@ -1123,10 +1116,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'FoodGo Support Concierge',
-                          style: TextStyle(
-                            fontSize: 18,
+                          style: textTheme.titleLarge?.copyWith(
+                            color: primaryText,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1134,9 +1127,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           orderId != null
                               ? 'Assistance for Order #$orderId'
                               : '24/7 Customer Support',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: GlassTheme.textMuted,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: secondaryText,
                           ),
                         ),
                       ],
@@ -1213,7 +1205,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
@@ -1230,7 +1229,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: GlassTheme.primaryGreen, size: 22),
+            Icon(icon, color: accentGreen, size: 22),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -1238,20 +1237,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: textTheme.titleSmall?.copyWith(
+                      color: primaryText,
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 11, color: GlassTheme.textMuted),
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+            Icon(Icons.chevron_right, size: 18, color: secondaryText),
           ],
         ),
       ),
@@ -1282,6 +1281,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   void _showFaqDialog() {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     showDialog(
@@ -1296,7 +1297,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
         ),
         title: Text(
           'FoodGo Support FAQ',
-          style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+          style: textTheme.titleLarge?.copyWith(
+            color: primaryText,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -1305,44 +1309,41 @@ class _OrdersScreenState extends State<OrdersScreen> {
             children: [
               Text(
                 'How do refunds work?',
-                style: TextStyle(
+                style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: primaryText,
-                  fontSize: 14,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Cancelled orders or reported missing items are refunded back to your original payment method within 2-4 business hours.',
-                style: TextStyle(color: secondaryText, fontSize: 12),
+                style: textTheme.bodySmall?.copyWith(color: secondaryText),
               ),
               const SizedBox(height: 14),
               Text(
                 'What if my food is late?',
-                style: TextStyle(
+                style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: primaryText,
-                  fontSize: 14,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'If your order is delayed more than 20 minutes past the estimated arrival time, you receive an automated 20% discount coupon for your next order.',
-                style: TextStyle(color: secondaryText, fontSize: 12),
+                style: textTheme.bodySmall?.copyWith(color: secondaryText),
               ),
               const SizedBox(height: 14),
               Text(
                 'Need immediate help?',
-                style: TextStyle(
+                style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: primaryText,
-                  fontSize: 14,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Contact our Phnom Penh support center 24/7 at +855 23 999 888.',
-                style: TextStyle(color: secondaryText, fontSize: 12),
+                style: textTheme.bodySmall?.copyWith(color: secondaryText),
               ),
             ],
           ),
@@ -1350,10 +1351,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: GlassTheme.primaryGreen,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: Colors.white)),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -1395,8 +1397,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
         double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0;
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final warningAmber = isDark ? Colors.orangeAccent : const Color(0xFFB45309);
+    final statusTone = _statusColor(status);
 
     showModalBottomSheet(
       context: context,
@@ -1437,18 +1445,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         children: [
                           Text(
                             'Order Bill Receipt',
-                            style: TextStyle(
+                            style: textTheme.headlineMedium?.copyWith(
                               color: primaryText,
-                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '#FG-${order['id']} · ${_formatDate(order['created_at'] as String?)}',
-                            style: TextStyle(
+                            style: textTheme.bodySmall?.copyWith(
                               color: secondaryText,
-                              fontSize: 13,
                             ),
                           ),
                         ],
@@ -1461,15 +1467,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: _statusColor(status).withValues(alpha: 0.2),
+                        color: statusTone.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         _formatStatus(status),
-                        style: TextStyle(
-                          color: _statusColor(status),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: statusTone,
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -1486,19 +1491,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.store,
-                        color: GlassTheme.primaryGreen,
-                        size: 22,
-                      ),
+                      Icon(Icons.store, color: accentGreen, size: 22),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           restaurantName,
-                          style: TextStyle(
+                          style: textTheme.titleMedium?.copyWith(
                             color: primaryText,
                             fontWeight: FontWeight.bold,
-                            fontSize: 15,
                           ),
                         ),
                       ),
@@ -1508,9 +1508,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 const SizedBox(height: 16),
                 Text(
                   'ITEMS',
-                  style: TextStyle(
+                  style: textTheme.labelSmall?.copyWith(
                     color: secondaryText,
-                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.8,
                   ),
@@ -1543,18 +1542,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           Expanded(
                             child: Text(
                               '$qty x $name',
-                              style: TextStyle(
+                              style: textTheme.bodyMedium?.copyWith(
                                 color: secondaryText,
-                                fontSize: 14,
                               ),
                             ),
                           ),
                           Text(
                             '\$$lineTotal',
-                            style: TextStyle(
+                            style: textTheme.bodyMedium?.copyWith(
                               color: primaryText,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -1573,16 +1570,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   children: [
                     Text(
                       'Payment Status',
-                      style: TextStyle(color: secondaryText, fontSize: 13),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
+                      ),
                     ),
                     Text(
                       paymentStatus,
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: paymentStatus == 'PAID'
-                            ? GlassTheme.primaryGreen
-                            : Colors.orangeAccent,
+                            ? accentGreen
+                            : warningAmber,
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -1593,10 +1591,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   children: [
                     Text(
                       'Total Amount',
-                      style: TextStyle(
+                      style: textTheme.titleMedium?.copyWith(
                         color: primaryText,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
                       ),
                     ),
                     Column(
@@ -1604,15 +1601,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       children: [
                         Text(
                           '\$${totalAmount.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
+                          style: textTheme.titleLarge?.copyWith(
+                            color: accentGreen,
                             fontWeight: FontWeight.bold,
-                            fontSize: 20,
                           ),
                         ),
                         Text(
                           '≈ ${KhmerCurrency.formatKhr(totalAmount)} KHR (អត្រា ៤,១០០)',
-                          style: TextStyle(color: secondaryText, fontSize: 11),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                            height: 1.5,
+                            letterSpacing: 0,
+                          ),
                         ),
                       ],
                     ),
@@ -1647,16 +1647,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.copy_rounded,
                           size: 16,
-                          color: GlassTheme.primaryGreen,
+                          color: accentGreen,
                         ),
-                        label: const Text(
+                        label: Text(
                           'Copy Receipt TXT',
-                          style: TextStyle(
+                          style: textTheme.labelLarge?.copyWith(
+                            color: primaryText,
                             fontWeight: FontWeight.w600,
-                            fontSize: 13,
                           ),
                         ),
                         onPressed: () {
@@ -1735,6 +1735,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget _buildFilterChips() {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     const filters = ['All', 'Active', 'Delivered', 'Cancelled'];
     return SingleChildScrollView(
@@ -1788,10 +1789,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
                 child: Text(
                   filter,
-                  style: TextStyle(
+                  style: textTheme.labelLarge?.copyWith(
                     color: isSelected ? Colors.black : primaryText,
-                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   ),
                 ),
               ),
@@ -1804,8 +1804,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Widget _buildOrderList() {
     final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = brightness == Brightness.dark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     final list = _filteredOrders;
     if (list.isEmpty) {
       return Center(
@@ -1822,9 +1826,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
               const SizedBox(height: 12),
               Text(
                 'No $_selectedFilter orders found',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   color: primaryText,
-                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1832,7 +1835,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               Text(
                 'Orders will appear here once updated to this status.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: secondaryText, fontSize: 13),
+                style: textTheme.bodyMedium?.copyWith(color: secondaryText),
               ),
             ],
           ),
@@ -1841,7 +1844,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
 
     return RefreshIndicator(
-      color: GlassTheme.primaryGreen,
+      color: accentGreen,
       onRefresh: _fetchOrders,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -1857,6 +1860,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final accentGreen = brightness == Brightness.dark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     return SafeArea(
       child: ResponsiveWebContainer(
         maxWidth: 900,
@@ -1879,15 +1886,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     icon: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                        color: accentGreen.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                          color: accentGreen.withValues(alpha: 0.3),
                         ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.support_agent_rounded,
-                        color: GlassTheme.primaryGreen,
+                        color: accentGreen,
                         size: 20,
                       ),
                     ),
@@ -1950,8 +1957,13 @@ class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
 
     return AlertDialog(
       backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
@@ -1965,8 +1977,7 @@ class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
         widget.orderId != null
             ? 'Report Issue: Order #${widget.orderId}'
             : 'Report Delivery Issue',
-        style: TextStyle(
-          fontSize: 17,
+        style: textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.bold,
           color: primaryText,
         ),
@@ -1978,7 +1989,7 @@ class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
           children: [
             Text(
               'Please select the problem with this order:',
-              style: TextStyle(color: secondaryText, fontSize: 13),
+              style: textTheme.bodyMedium?.copyWith(color: secondaryText),
             ),
             const SizedBox(height: 12),
             ..._reasons.map((r) {
@@ -1997,16 +2008,16 @@ class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
                         isSelected
                             ? Icons.radio_button_checked
                             : Icons.radio_button_off,
-                        color: isSelected
-                            ? GlassTheme.primaryGreen
-                            : secondaryText,
+                        color: isSelected ? accentGreen : secondaryText,
                         size: 18,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           r,
-                          style: TextStyle(fontSize: 13, color: primaryText),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: primaryText,
+                          ),
                         ),
                       ),
                     ],
@@ -2018,10 +2029,10 @@ class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
             TextField(
               controller: _notesCtrl,
               maxLines: 2,
-              style: TextStyle(color: primaryText, fontSize: 13),
+              style: textTheme.bodyMedium?.copyWith(color: primaryText),
               decoration: InputDecoration(
                 hintText: 'Additional details (optional)...',
-                hintStyle: TextStyle(color: secondaryText, fontSize: 12),
+                hintStyle: textTheme.bodySmall?.copyWith(color: secondaryText),
                 filled: true,
                 fillColor: isDark
                     ? Colors.white.withValues(alpha: 0.05)
@@ -2050,8 +2061,8 @@ class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: GlassTheme.primaryGreen,
-            foregroundColor: Colors.white,
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -2088,8 +2099,11 @@ class _OrderRatingDialogState extends State<_OrderRatingDialog> {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final starAmber = isDark ? Colors.amber : const Color(0xFFB45309);
 
     return AlertDialog(
       backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
@@ -2101,14 +2115,17 @@ class _OrderRatingDialogState extends State<_OrderRatingDialog> {
       ),
       title: Text(
         'Rate Order #${widget.order['id']}',
-        style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+        style: textTheme.titleLarge?.copyWith(
+          color: primaryText,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'How was your meal from ${widget.order['restaurant_name'] ?? 'the restaurant'}?',
-            style: TextStyle(color: secondaryText, fontSize: 13),
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
           ),
           const SizedBox(height: 16),
           Row(
@@ -2118,7 +2135,7 @@ class _OrderRatingDialogState extends State<_OrderRatingDialog> {
               return IconButton(
                 icon: Icon(
                   starIndex <= _selectedRating ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
+                  color: starAmber,
                   size: 32,
                 ),
                 onPressed: () => setState(() => _selectedRating = starIndex),
@@ -2129,10 +2146,10 @@ class _OrderRatingDialogState extends State<_OrderRatingDialog> {
           TextField(
             controller: _commentController,
             maxLines: 2,
-            style: TextStyle(color: primaryText, fontSize: 13),
+            style: textTheme.bodyMedium?.copyWith(color: primaryText),
             decoration: InputDecoration(
               hintText: 'Share your feedback (optional)...',
-              hintStyle: TextStyle(color: secondaryText, fontSize: 12),
+              hintStyle: textTheme.bodySmall?.copyWith(color: secondaryText),
               filled: true,
               fillColor: isDark
                   ? Colors.white.withValues(alpha: 0.05)
@@ -2164,16 +2181,14 @@ class _OrderRatingDialogState extends State<_OrderRatingDialog> {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: GlassTheme.primaryGreen,
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
           ),
           onPressed: () {
             Navigator.pop(context);
             widget.onSubmitted();
           },
-          child: const Text(
-            'Submit Rating',
-            style: TextStyle(color: Colors.white),
-          ),
+          child: const Text('Submit Rating'),
         ),
       ],
     );

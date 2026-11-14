@@ -207,6 +207,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _showAddressPickerModal() {
     final addressProvider = context.read<AddressProvider>();
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -215,167 +224,182 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: GlassTheme.dialogDark,
+            color: isDark ? GlassTheme.dialogDark : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : const Color(0xFFE5E7EB),
+            ),
           ),
           child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Select Delivery Address',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(AppIcons.close, color: Colors.white60),
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ...addressProvider.addresses.map((addr) {
-                  final isSelected =
-                      addressProvider.selectedAddress?.id == addr.id;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: InkWell(
-                      onTap: () {
-                        addressProvider.selectAddress(addr);
-                        Navigator.pop(ctx);
-                      },
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? GlassTheme.primaryGreen.withValues(alpha: 0.15)
-                              : Colors.white.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isSelected
-                                ? GlassTheme.primaryGreen
-                                : Colors.white.withValues(alpha: 0.1),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Select Delivery Address',
+                          style: textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: primaryText,
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              addr.isDefault
-                                  ? AppIcons.home
-                                  : AppIcons.locationOutline,
+                      ),
+                      IconButton(
+                        icon: Icon(AppIcons.close, color: secondaryText),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ...addressProvider.addresses.map((addr) {
+                    final isSelected =
+                        addressProvider.selectedAddress?.id == addr.id;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: InkWell(
+                        onTap: () {
+                          addressProvider.selectAddress(addr);
+                          Navigator.pop(ctx);
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? accentGreen.withValues(alpha: 0.12)
+                                : (isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : const Color(0xFFF8FAFC)),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
                               color: isSelected
-                                  ? GlassTheme.primaryGreen
-                                  : Colors.white70,
+                                  ? accentGreen
+                                  : (isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : const Color(0xFFE5E7EB)),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        addr.street,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: isSelected
-                                              ? FontWeight.bold
-                                              : FontWeight.w500,
-                                        ),
-                                      ),
-                                      if (addr.isDefault) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: GlassTheme.primaryGreen
-                                                .withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Default',
-                                            style: TextStyle(
-                                              color: GlassTheme.primaryGreen,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    addr.city,
-                                    style: TextStyle(
-                                      color: GlassTheme.textMuted,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                addr.isDefault
+                                    ? AppIcons.home
+                                    : AppIcons.locationOutline,
+                                color: isSelected ? accentGreen : secondaryText,
                               ),
-                            ),
-                            Icon(
-                              isSelected
-                                  ? AppIcons.radioSelected
-                                  : AppIcons.radioUnselected,
-                              color: isSelected
-                                  ? GlassTheme.primaryGreen
-                                  : Colors.white38,
-                            ),
-                          ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            addr.street,
+                                            maxLines: 2,
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: primaryText,
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w700
+                                                      : FontWeight.w500,
+                                                ),
+                                          ),
+                                        ),
+                                        if (addr.isDefault) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: accentGreen.withValues(
+                                                alpha: 0.18,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              'Default',
+                                              style: textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    color: accentGreen,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      addr.city,
+                                      maxLines: 2,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: secondaryText,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                isSelected
+                                    ? AppIcons.radioSelected
+                                    : AppIcons.radioUnselected,
+                                color: isSelected
+                                    ? accentGreen
+                                    : secondaryText.withValues(alpha: 0.6),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      context.push('/addresses');
+                    },
+                    icon: Icon(AppIcons.add, color: accentGreen),
+                    label: Text(
+                      'Manage & Add Addresses',
+                      style: textTheme.labelLarge?.copyWith(color: primaryText),
                     ),
-                  );
-                }),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    context.push('/addresses');
-                  },
-                  icon: Icon(AppIcons.add, color: GlassTheme.primaryGreen),
-                  label: const Text(
-                    'Manage & Add Addresses',
-                    style: TextStyle(color: Colors.white),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : const Color(0xFFD1D5DB),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.2),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -384,18 +408,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _showInsufficientBalanceDialog(double total) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final colorScheme = Theme.of(context).colorScheme;
+    final warningColor = isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFB45309);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
+        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(AppIcons.warning, color: Colors.amber, size: 24),
-            SizedBox(width: 10),
-            Text(
-              'Insufficient Balance',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+            Icon(AppIcons.warning, color: warningColor, size: 24),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Insufficient Balance',
+                style: textTheme.titleLarge?.copyWith(color: primaryText),
+              ),
             ),
           ],
         ),
@@ -405,36 +441,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             Text(
               'Your account balance is \$${_walletBalance.toStringAsFixed(2)}, but order total is \$${total.toStringAsFixed(2)}.',
-              style: TextStyle(color: GlassTheme.textMuted, fontSize: 14),
+              style: textTheme.bodyMedium?.copyWith(color: secondaryText),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Please select another payment method such as Bakong KHQR, Card, or Cash on Delivery.',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+              style: textTheme.bodyMedium?.copyWith(color: primaryText),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white70),
+              style: textTheme.labelLarge?.copyWith(color: secondaryText),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: GlassTheme.primaryGreen,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
             ),
             onPressed: () {
               Navigator.pop(ctx);
               setState(() => _selectedProvider = 'BAKONG');
             },
-            child: const Text(
+            child: Text(
               'Pay via Bakong KHQR',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+              style: textTheme.labelLarge?.copyWith(
+                color: colorScheme.onPrimary,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -444,61 +481,65 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _showLoginRequiredDialog() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final colorScheme = Theme.of(context).colorScheme;
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2E),
+        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                color: accentGreen.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                AppIcons.lock,
-                color: GlassTheme.primaryGreen,
-                size: 24,
-              ),
+              child: Icon(AppIcons.lock, color: accentGreen, size: 24),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'Sign In Required',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+            Expanded(
+              child: Text(
+                'Sign In Required',
+                style: textTheme.titleLarge?.copyWith(
+                  color: primaryText,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Please sign in or create an account to place your order and track live delivery.',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                height: 1.4,
-              ),
+              style: textTheme.bodyMedium?.copyWith(color: secondaryText),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: textTheme.labelLarge?.copyWith(color: secondaryText),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: GlassTheme.primaryGreen,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -507,11 +548,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Navigator.pop(ctx);
               context.push('/login');
             },
-            child: const Text(
+            child: Text(
               'Sign In / Register',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+              style: textTheme.labelLarge?.copyWith(
+                color: colorScheme.onPrimary,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -830,8 +871,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final primary = colorScheme.primary;
+    final accessiblePrimary = isDark
+        ? primary
+        : HSLColor.fromColor(primary).withLightness(0.30).toColor();
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
+    final errorTextColor = isDark
+        ? const Color(0xFFF87171)
+        : const Color(0xFFB91C1C);
+    final ratingColor = isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFB45309);
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     final addressProvider = context.watch<AddressProvider>();
     final activeAddress = addressProvider.selectedAddress;
     final cart = context.watch<CartProvider>();
@@ -855,9 +914,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // ── Delivery Address Section ─────────────────────────────
               Text(
                 context.tr('checkout.deliveryAddress'),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: primaryText,
+                  letterSpacing: 0,
                 ),
               ),
               const SizedBox(height: 12),
@@ -865,10 +925,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const SvgAssetIcon(
+                    SvgAssetIcon(
                       assetName: 'restaurant_pin',
                       size: 30,
-                      color: GlassTheme.primaryGreen,
+                      color: accentGreen,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -882,11 +942,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   activeAddress != null
                                       ? activeAddress.street
                                       : 'Home',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
+                                  maxLines: 2,
+                                  style: textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: primaryText,
                                   ),
                                 ),
                               ),
@@ -898,17 +957,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: GlassTheme.primaryGreen.withValues(
-                                      alpha: 0.2,
-                                    ),
+                                    color: accentGreen.withValues(alpha: 0.16),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Text(
+                                  child: Text(
                                     'Default',
-                                    style: TextStyle(
-                                      color: GlassTheme.primaryGreen,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: accentGreen,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),
@@ -920,9 +976,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             activeAddress != null
                                 ? activeAddress.fullAddress
                                 : 'Daun Penh, Phnom Penh, Cambodia',
-                            style: TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 13,
+                            maxLines: 2,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
                             ),
                           ),
                         ],
@@ -937,23 +993,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: GlassTheme.primaryGreen.withValues(
-                            alpha: 0.18,
-                          ),
+                          color: accentGreen.withValues(alpha: 0.14),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.35,
-                            ),
+                            color: accentGreen.withValues(alpha: 0.35),
                             width: 1.2,
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Change',
-                          style: TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: accentGreen,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -970,27 +1021,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: GlassTheme.primaryGreen.withValues(alpha: 0.1),
+                  color: accentGreen.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.25),
+                    color: accentGreen.withValues(alpha: 0.25),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
-                      AppIcons.eta,
-                      color: GlassTheme.primaryGreen,
-                      size: 18,
-                    ),
-                    SizedBox(width: 8),
-                    Flexible(
+                    Icon(AppIcons.eta, color: accentGreen, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: Text(
                         'Estimated Delivery Time: 25 - 35 mins',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: GlassTheme.primaryGreen,
-                          fontSize: 13,
+                        maxLines: 2,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: accentGreen,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1009,18 +1055,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: TextField(
                   controller: _deliveryInstructionsController,
                   maxLines: 2,
-                  style: const TextStyle(fontSize: 13, color: Colors.white),
+                  style: textTheme.bodyMedium?.copyWith(color: primaryText),
                   decoration: InputDecoration(
-                    icon: const Icon(
-                      AppIcons.edit,
-                      color: GlassTheme.primaryGreen,
-                      size: 20,
-                    ),
+                    icon: Icon(AppIcons.edit, color: accentGreen, size: 20),
                     hintText:
                         'Delivery instructions (e.g., Gate code, ring bell, leave at door)...',
-                    hintStyle: TextStyle(
-                      color: GlassTheme.textMuted,
-                      fontSize: 12,
+                    hintStyle: textTheme.bodySmall?.copyWith(
+                      color: secondaryText,
                     ),
                     border: InputBorder.none,
                   ),
@@ -1032,24 +1073,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Flexible(
+                  Expanded(
                     child: Text(
                       'Choose Delivery Driver',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      maxLines: 2,
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: primaryText,
                       ),
                     ),
                   ),
                   if (_selectedDriverId != null)
                     TextButton(
                       onPressed: () => setState(() => _selectedDriverId = null),
-                      child: const Text(
+                      child: Text(
                         'Reset to Auto',
-                        style: TextStyle(
-                          color: GlassTheme.primaryGreen,
-                          fontSize: 12,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: accentGreen,
                         ),
                       ),
                     ),
@@ -1087,8 +1127,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         child: Icon(
                           AppIcons.fastDelivery,
                           color: _selectedDriverId == null
-                              ? Colors.white
-                              : (isDark ? Colors.white70 : primary),
+                              ? colorScheme.onPrimary
+                              : (isDark ? Colors.white70 : accessiblePrimary),
                           size: 24,
                         ),
                       ),
@@ -1097,19 +1137,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 6,
+                              runSpacing: 4,
                               children: [
-                                const Flexible(
-                                  child: Text(
-                                    'Fastest Available Driver',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
+                                Text(
+                                  'Fastest Available Driver',
+                                  maxLines: 2,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: primaryText,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 6,
@@ -1125,14 +1165,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       Icon(
                                         AppIcons.fastDelivery,
                                         size: 13,
-                                        color: primary,
+                                        color: accessiblePrimary,
                                       ),
                                       const SizedBox(width: 2),
                                       Text(
                                         'Auto-Assign',
-                                        style: TextStyle(
-                                          color: primary,
-                                          fontSize: 11,
+                                        style: textTheme.labelSmall?.copyWith(
+                                          color: accessiblePrimary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -1144,9 +1183,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             const SizedBox(height: 2),
                             Text(
                               'System automatically pairs with nearest top-rated rider',
-                              style: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 12,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: secondaryText,
                               ),
                             ),
                           ],
@@ -1157,7 +1195,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ? AppIcons.radioSelected
                             : AppIcons.radioUnselected,
                         color: _selectedDriverId == null
-                            ? primary
+                            ? accessiblePrimary
                             : (isDark
                                   ? Colors.white38
                                   : const Color(0xFFD1D5DB)),
@@ -1171,12 +1209,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
               // Option 2: Specific available drivers
               if (_isLoadingDrivers)
-                const Center(
+                Center(
                   child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(
-                      color: GlassTheme.primaryGreen,
-                    ),
+                    padding: const EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(color: accentGreen),
                   ),
                 )
               else
@@ -1222,8 +1258,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               child: Icon(
                                 AppIcons.delivery,
                                 color: isSelected
-                                    ? Colors.white
-                                    : (isDark ? Colors.white70 : primary),
+                                    ? colorScheme.onPrimary
+                                    : (isDark
+                                          ? Colors.white70
+                                          : accessiblePrimary),
                                 size: 24,
                               ),
                             ),
@@ -1232,24 +1270,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
+                                  Wrap(
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    spacing: 6,
+                                    runSpacing: 4,
                                     children: [
                                       Text(
                                         name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                        maxLines: 2,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: primaryText,
                                         ),
                                       ),
-                                      const SizedBox(width: 6),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 6,
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.amber.withValues(
-                                            alpha: 0.2,
+                                          color: ratingColor.withValues(
+                                            alpha: 0.16,
                                           ),
                                           borderRadius: BorderRadius.circular(
                                             6,
@@ -1258,19 +1300,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               AppIcons.star,
-                                              color: Colors.amber,
+                                              color: ratingColor,
                                               size: 12,
                                             ),
                                             const SizedBox(width: 2),
                                             Text(
                                               rating,
-                                              style: const TextStyle(
-                                                color: Colors.amber,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    color: ratingColor,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -1280,9 +1322,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     '$vehicle • $plate',
-                                    style: TextStyle(
-                                      color: GlassTheme.textMuted,
-                                      fontSize: 12,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: secondaryText,
                                     ),
                                   ),
                                 ],
@@ -1293,7 +1334,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ? AppIcons.radioSelected
                                   : AppIcons.radioUnselected,
                               color: isSelected
-                                  ? primary
+                                  ? accessiblePrimary
                                   : (isDark
                                         ? Colors.white38
                                         : const Color(0xFFD1D5DB)),
@@ -1312,18 +1353,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Voucher & Discount',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  if (cart.appliedPromoCode != null)
-                    TextButton(
-                      onPressed: () => cart.removePromoCode(),
-                      child: const Text(
-                        'Remove',
-                        style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                  Expanded(
+                    child: Text(
+                      'Voucher & Discount',
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: primaryText,
                       ),
                     ),
+                  ),
+                  if (cart.appliedPromoCode != null) ...[
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () => cart.removePromoCode(),
+                      child: Text(
+                        'Remove',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: errorTextColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 10),
@@ -1331,11 +1381,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    const Icon(
-                      AppIcons.coupon,
-                      color: GlassTheme.primaryGreen,
-                      size: 24,
-                    ),
+                    Icon(AppIcons.coupon, color: accentGreen, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: cart.appliedPromoCode != null
@@ -1344,17 +1390,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               children: [
                                 Text(
                                   'Promo Code "${cart.appliedPromoCode}" Applied',
-                                  style: const TextStyle(
-                                    color: GlassTheme.primaryGreen,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: accentGreen,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 Text(
                                   'Saving \$${cart.discountAmount.toStringAsFixed(2)} on this order',
-                                  style: TextStyle(
-                                    color: GlassTheme.textMuted,
-                                    fontSize: 12,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: secondaryText,
                                   ),
                                 ),
                               ],
@@ -1362,16 +1406,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           : TextField(
                               controller: _voucherController,
                               textCapitalization: TextCapitalization.characters,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: primaryText,
+                                fontWeight: FontWeight.w700,
                               ),
                               decoration: InputDecoration(
                                 hintText: 'Enter Promo Code (e.g. FOODGO30)',
-                                hintStyle: TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 13,
+                                hintStyle: textTheme.bodyMedium?.copyWith(
+                                  color: secondaryText,
                                 ),
                                 border: InputBorder.none,
                                 isDense: true,
@@ -1386,7 +1428,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     if (cart.appliedPromoCode == null)
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: GlassTheme.primaryGreen,
+                          backgroundColor: primary,
+                          foregroundColor: colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 14,
                             vertical: 8,
@@ -1408,12 +1451,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             );
                           }
                         },
-                        child: const Text(
+                        child: Text(
                           'Apply',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                          style: textTheme.labelLarge?.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -1425,9 +1467,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // ── Select Payment Method Section ────────────────────────
               Text(
                 context.tr('checkout.paymentMethod'),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: primaryText,
+                  letterSpacing: 0,
                 ),
               ),
               if (_isLoadingPaymentMethods && _availablePaymentMethods.isEmpty)
@@ -1453,15 +1496,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.1),
+                    color: primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.3),
-                    ),
+                    border: Border.all(color: primary.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1471,20 +1508,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
-                              color: GlassTheme.primaryGreen,
+                            decoration: BoxDecoration(
+                              color: accentGreen,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Flexible(
+                          Expanded(
                             child: Text(
                               'Live Real-Time KHQR Active',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: GlassTheme.primaryGreen,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                              maxLines: 2,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: accentGreen,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
@@ -1495,23 +1531,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.06),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
                                   AppIcons.eta,
                                   size: 12,
-                                  color: Colors.white70,
+                                  color: secondaryText,
                                 ),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Text(
                                   '15m Session',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11,
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: secondaryText,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -1521,9 +1558,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Generates a dynamic KHQR code with live WebSocket status. Supported by all Cambodian banking apps:',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: secondaryText,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       SingleChildScrollView(
@@ -1572,14 +1611,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 title: 'Credit / Debit Card (ទូទាត់តាមកាត)',
                 subtitle: 'Visa, Mastercard, JCB, UnionPay • Instant & Secure',
                 icon: AppIcons.creditCard,
-                iconColor: const Color(0xFF60A5FA),
+                iconColor: const Color(0xFF2563EB),
                 badge: 'INSTANT',
-                badgeColor: const Color(0xFF60A5FA),
+                badgeColor: const Color(0xFF2563EB),
                 isSelected: _selectedProvider == 'CARD',
                 onTap: () => setState(() => _selectedProvider = 'CARD'),
               ),
               if (_selectedProvider == 'CARD') ...[
-                _buildCardPaymentSection(isDark, primary),
+                _buildCardPaymentSection(isDark, accessiblePrimary),
               ],
               const SizedBox(height: 10),
 
@@ -1589,12 +1628,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 subtitle:
                     'Pay cash in USD or Khmer Riel (៛) directly to rider upon delivery',
                 svgAsset: 'delivery_bike',
-                iconColor: Theme.of(context).colorScheme.primary,
+                iconColor: accessiblePrimary,
                 isSelected: _selectedProvider == 'COD',
                 onTap: () => setState(() => _selectedProvider = 'COD'),
               ),
               if (_selectedProvider == 'COD') ...[
-                _buildCodInfoSection(isDark, primary, cart.grandTotal),
+                _buildCodInfoSection(
+                  isDark,
+                  accessiblePrimary,
+                  cart.grandTotal,
+                ),
               ],
               const SizedBox(height: 10),
 
@@ -1605,14 +1648,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ? 'Checking account balance...'
                     : 'Balance: \$${_walletBalance.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(_walletBalance)}) • 1-Tap Pay',
                 icon: AppIcons.wallet,
-                iconColor: Theme.of(context).colorScheme.primary,
+                iconColor: accessiblePrimary,
                 isSelected: _selectedProvider == 'WALLET',
                 badge: _walletBalance >= cart.grandTotal
                     ? 'INSTANT PAY'
                     : 'LOW BALANCE',
                 badgeColor: _walletBalance >= cart.grandTotal
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.white24,
+                    ? accessiblePrimary
+                    : errorTextColor,
                 onTap: () => setState(() => _selectedProvider = 'WALLET'),
               ),
               const SizedBox(height: 80),
@@ -1680,53 +1723,60 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    context.tr('common.total'),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark
-                                          ? Colors.white70
-                                          : const Color(0xFF6B7280),
-                                    ),
-                                  ),
-                                  if (cart.discountAmount > 0)
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
-                                      'Saved \$${cart.discountAmount.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: primary,
-                                        fontWeight: FontWeight.bold,
+                                      context.tr('common.total'),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color: secondaryText,
+                                        letterSpacing: 0,
                                       ),
                                     ),
-                                ],
+                                    if (cart.discountAmount > 0)
+                                      Text(
+                                        'Saved \$${cart.discountAmount.toStringAsFixed(2)}',
+                                        style: textTheme.labelSmall?.copyWith(
+                                          color: accessiblePrimary,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    '\$${total.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
-                                      color: primary,
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerRight,
+                                      child: Text(
+                                        '\$${total.toStringAsFixed(2)}',
+                                        style: textTheme.displayLarge?.copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          color: accessiblePrimary,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '≈ ${KhmerCurrency.formatKhr(total)} KHR',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.8)
-                                          : const Color(0xFF6B7280),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerRight,
+                                      child: Text(
+                                        '≈ ${KhmerCurrency.formatKhr(total)} KHR',
+                                        style: textTheme.bodySmall?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: secondaryText,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -1743,9 +1793,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withValues(alpha: 0.35),
+                                  color: primary.withValues(alpha: 0.35),
                                   blurRadius: 14,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1770,26 +1818,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildCheckoutBankChip(String name, Color color) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final textColor = isDark
+        ? Colors.white
+        : HSLColor.fromColor(color).withLightness(0.28).toColor();
+
     return Container(
       margin: const EdgeInsets.only(right: 6),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
+        color: color.withValues(alpha: isDark ? 0.24 : 0.12),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
       ),
       child: Text(
         name,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
+        style: textTheme.labelSmall?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
   }
 
   Widget _buildCardPaymentSection(bool isDark, Color primary) {
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final secondaryText = AppTypography.secondaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+
     return Container(
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(16),
@@ -1802,167 +1864,165 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Visual Card Preview ──────────────────────────────
-          Container(
-            height: 180,
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF0F2027),
-                  Color(0xFF203A43),
-                  Color(0xFF2C5364),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 180),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF0F2027),
+                    Color(0xFF203A43),
+                    Color(0xFF2C5364),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ],
-              border: Border.all(color: Colors.white24, width: 1.0),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // EMV Gold Chip & Contactless
-                    Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 26,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+                border: Border.all(color: Colors.white24, width: 1.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // EMV Gold Chip & Contactless
+                      Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                              ),
+                              borderRadius: BorderRadius.circular(5),
                             ),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Center(
-                            child: Container(
-                              width: 24,
-                              height: 14,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.black38,
-                                  width: 0.8,
+                            child: Center(
+                              child: Container(
+                                width: 24,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.black38,
+                                    width: 0.8,
+                                  ),
+                                  borderRadius: BorderRadius.circular(3),
                                 ),
-                                borderRadius: BorderRadius.circular(3),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.contactless_rounded,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                    // Card Brand Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.contactless_rounded,
+                            color: Colors.white70,
+                            size: 20,
+                          ),
+                        ],
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _cardBrand.toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 13,
-                          letterSpacing: 1.2,
+                      // Card Brand Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _cardBrand.toUpperCase(),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.2,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                // Card Number
-                Text(
-                  _cardNumberController.text.isEmpty
-                      ? '•••• •••• •••• ••••'
-                      : _cardNumberController.text,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2.5,
-                    fontFamily: 'monospace',
+                    ],
                   ),
-                ),
-                // Cardholder & Expiry
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 18),
+                  // Card Number
+                  Text(
+                    _cardNumberController.text.isEmpty
+                        ? '•••• •••• •••• ••••'
+                        : _cardNumberController.text,
+                    style: textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2.5,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  // Cardholder & Expiry
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'CARDHOLDER NAME',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.72),
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            Text(
+                              _cardHolderController.text.isEmpty
+                                  ? 'FOODGO CUSTOMER'
+                                  : _cardHolderController.text.toUpperCase(),
+                              maxLines: 2,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text(
-                            'CARDHOLDER NAME',
-                            style: TextStyle(
-                              color: Colors.white54,
-                              fontSize: 9,
+                          Text(
+                            'EXPIRES',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.72),
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.8,
                             ),
                           ),
                           Text(
-                            _cardHolderController.text.isEmpty
-                                ? 'FOODGO CUSTOMER'
-                                : _cardHolderController.text.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            _cardExpiryController.text.isEmpty
+                                ? 'MM/YY'
+                                : _cardExpiryController.text,
+                            style: textTheme.bodySmall?.copyWith(
                               color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.0,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const Text(
-                          'EXPIRES',
-                          style: TextStyle(
-                            color: Colors.white54,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        Text(
-                          _cardExpiryController.text.isEmpty
-                              ? 'MM/YY'
-                              : _cardExpiryController.text,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -1971,11 +2031,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Card Details',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  style: textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: primaryText,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1988,7 +2051,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: primary.withValues(alpha: 0.15),
+                    color: primary.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: primary.withValues(alpha: 0.3)),
                   ),
@@ -1999,10 +2062,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(width: 4),
                       Text(
                         'Autofill Test Card',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: primary,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -2078,16 +2140,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           // Security Footnote
           Row(
             children: [
-              const Icon(
-                Icons.shield_outlined,
-                size: 14,
-                color: Colors.white54,
-              ),
+              Icon(Icons.shield_outlined, size: 14, color: secondaryText),
               const SizedBox(width: 6),
-              Flexible(
+              Expanded(
                 child: Text(
                   'Encrypted and processed via 256-bit TLS secure gateway.',
-                  style: TextStyle(fontSize: 11, color: GlassTheme.textMuted),
+                  style: textTheme.labelSmall?.copyWith(color: secondaryText),
                 ),
               ),
             ],
@@ -2108,26 +2166,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     bool obscureText = false,
     ValueChanged<String>? onChanged,
   }) {
+    final textTheme = Theme.of(context).textTheme;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
       onChanged: onChanged,
-      style: TextStyle(
-        fontSize: 13.5,
-        color: isDark ? Colors.white : Colors.black87,
+      style: textTheme.bodyMedium?.copyWith(
+        color: primaryText,
         fontWeight: FontWeight.w600,
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          color: isDark ? Colors.white60 : Colors.black54,
-          fontSize: 12,
-        ),
+        labelStyle: textTheme.bodySmall?.copyWith(color: secondaryText),
         hintText: hint,
-        hintStyle: TextStyle(
-          color: isDark ? Colors.white24 : Colors.black26,
-          fontSize: 12,
+        hintStyle: textTheme.bodySmall?.copyWith(
+          color: secondaryText.withValues(alpha: 0.5),
         ),
         prefixIcon: Icon(icon, size: 18, color: primary),
         filled: true,
@@ -2153,6 +2211,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildCodInfoSection(bool isDark, Color primary, double total) {
+    final textTheme = Theme.of(context).textTheme;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return Container(
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(14),
@@ -2167,7 +2230,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: primary.withValues(alpha: 0.2),
+              color: primary.withValues(alpha: 0.16),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.payments_outlined, color: primary, size: 20),
@@ -2177,18 +2240,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Cash on Delivery Selected',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: primaryText,
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   'Please prepare cash \$${total.toStringAsFixed(2)} (${KhmerCurrency.formatKhr(total)}) to hand directly to the delivery rider at your doorstep.',
-                  style: TextStyle(
-                    color: GlassTheme.textMuted,
-                    fontSize: 12,
-                    height: 1.35,
-                  ),
+                  style: textTheme.bodySmall?.copyWith(color: secondaryText),
                 ),
               ],
             ),
@@ -2224,6 +2286,20 @@ class _PaymentOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = theme.textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final baseBadge = badgeColor ?? theme.colorScheme.primary;
+    final accessibleBadgeColor = isDark
+        ? baseBadge
+        : HSLColor.fromColor(baseBadge).withLightness(0.32).toColor();
+    final accessibleIconColor = isDark
+        ? iconColor
+        : HSLColor.fromColor(iconColor).withLightness(0.35).toColor();
+
     return Semantics(
       button: true,
       selected: isSelected,
@@ -2234,8 +2310,10 @@ class _PaymentOptionTile extends StatelessWidget {
         child: GlassCard(
           border: Border.all(
             color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.white.withValues(alpha: 0.14),
+                ? theme.colorScheme.primary
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.14)
+                      : const Color(0xFFE5E7EB)),
             width: isSelected ? 1.6 : 1.2,
           ),
           padding: const EdgeInsets.all(16),
@@ -2244,14 +2322,14 @@ class _PaymentOptionTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.2),
+                  color: iconColor.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: svgAsset != null
                     ? SvgAssetIcon(assetName: svgAsset!, size: 26)
                     : Icon(
                         icon ?? AppIcons.payment,
-                        color: iconColor,
+                        color: accessibleIconColor,
                         size: 26,
                       ),
               ),
@@ -2260,52 +2338,47 @@ class _PaymentOptionTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 4,
                       children: [
-                        Flexible(
-                          child: Text(
-                            title,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
+                        Text(
+                          title,
+                          maxLines: 2,
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: primaryText,
+                            letterSpacing: 0,
                           ),
                         ),
-                        if (badge != null) ...[
-                          const SizedBox(width: 6),
+                        if (badge != null)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  (badgeColor ??
-                                          Theme.of(context).colorScheme.primary)
-                                      .withValues(alpha: 0.2),
+                              color: accessibleBadgeColor.withValues(
+                                alpha: 0.16,
+                              ),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               badge!,
-                              style: TextStyle(
-                                color:
-                                    badgeColor ??
-                                    Theme.of(context).colorScheme.primary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                              style: textTheme.labelSmall?.copyWith(
+                                color: accessibleBadgeColor,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
                       ),
                     ),
                   ],
@@ -2314,8 +2387,12 @@ class _PaymentOptionTile extends StatelessWidget {
               Icon(
                 isSelected ? AppIcons.radioSelected : AppIcons.radioUnselected,
                 color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.white38,
+                    ? (isDark
+                          ? theme.colorScheme.primary
+                          : HSLColor.fromColor(
+                              theme.colorScheme.primary,
+                            ).withLightness(0.30).toColor())
+                    : (isDark ? Colors.white38 : const Color(0xFF9CA3AF)),
               ),
             ],
           ),

@@ -72,5 +72,58 @@ void main() {
         expect(find.text('Back to Home'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'MapScreen in Customer pre-pickup (preparing) mode displays Heading to Pickup and Not picked up yet',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: MapScreen(
+              orderId: '202',
+              isDriver: false,
+              initialLoading: false,
+              initialStatus: 'preparing',
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('Heading to Pickup'), findsOneWidget);
+        expect(find.textContaining('not picked up yet'), findsWidgets);
+        expect(find.text('Pre-Pickup • Auto-Tracking'), findsOneWidget);
+        expect(find.text('On the way to you'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'MapScreen in Driver pre-pickup (assigned) mode displays Not picked up yet status',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: MapScreen(
+              orderId: '203',
+              isDriver: true,
+              initialLoading: false,
+              initialStatus: 'assigned',
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(
+          find.text('Heading to restaurant • Not picked up yet'),
+          findsOneWidget,
+        );
+        expect(find.text('Pre-Pickup • Auto-Tracking'), findsOneWidget);
+      },
+    );
   });
 }

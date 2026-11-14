@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_motion.dart';
@@ -9,7 +8,6 @@ import '../../../core/utils/khmer_currency.dart';
 import '../../../providers/admin_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
-// ignore: unused_import
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
@@ -112,95 +110,78 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
-    final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: isDark
-            ? GlassTheme.surfaceDark
-            : Colors.white.withValues(alpha: 0.92),
-        surfaceTintColor: Colors.transparent,
-        shape: Border(
-          bottom: BorderSide(
-            color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            AppIcons.back,
-            size: 18,
-            color: GlassTheme.dynamicPrimaryColor,
-          ),
-          onPressed: () =>
-              context.canPop() ? context.pop() : context.go('/home'),
-        ),
-        title: Row(
-          children: [
-            Icon(
-              AppIcons.security,
-              color: GlassTheme.dynamicPrimaryColor,
-              size: 24,
+    return LiquidGlassBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBodyBehindAppBar: true,
+        appBar: GlassAppBar(
+          title: 'Admin Console',
+          leading: IconButton(
+            icon: Icon(
+              AppIcons.back,
+              size: 18,
+              color: isDark
+                  ? GlassTheme.dynamicPrimaryColor
+                  : Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(width: 8),
-            Text(
-              'Admin Console',
-              style: TextStyle(
-                color: primaryText,
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(
+                AppIcons.refresh,
+                color: isDark
+                    ? GlassTheme.dynamicPrimaryColor
+                    : Theme.of(context).colorScheme.primary,
               ),
+              tooltip: 'Refresh Data',
+              onPressed: _loadAllData,
+            ),
+            IconButton(
+              icon: const Icon(AppIcons.logout, color: Colors.redAccent),
+              tooltip: 'Log Out',
+              onPressed: () => _confirmLogout(context),
             ),
           ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(AppIcons.refresh, color: GlassTheme.dynamicPrimaryColor),
-            tooltip: 'Refresh Data',
-            onPressed: _loadAllData,
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            dividerColor: Colors.transparent,
+            splashBorderRadius: BorderRadius.circular(12),
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicatorColor: Theme.of(context).colorScheme.primary,
+            indicatorWeight: 3,
+            labelColor: Theme.of(context).colorScheme.primary,
+            unselectedLabelColor: secondaryText,
+            tabs: const [
+              Tab(icon: Icon(AppIcons.admin), text: 'Overview'),
+              Tab(icon: Icon(AppIcons.orders), text: 'Orders'),
+              Tab(icon: Icon(AppIcons.payment), text: 'Payments'),
+              Tab(icon: Icon(AppIcons.users), text: 'Users'),
+              Tab(icon: Icon(AppIcons.restaurants), text: 'Restaurants'),
+              Tab(icon: Icon(AppIcons.security), text: 'Audit Logs'),
+            ],
           ),
-          IconButton(
-            icon: const Icon(AppIcons.logout, color: Colors.redAccent),
-            tooltip: 'Log Out',
-            onPressed: () => _confirmLogout(context),
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          dividerColor: Colors.transparent,
-          splashBorderRadius: BorderRadius.circular(12),
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicatorColor: Theme.of(context).colorScheme.primary,
-          indicatorWeight: 3,
-          labelColor: Theme.of(context).colorScheme.primary,
-          unselectedLabelColor: secondaryText,
-          tabs: const [
-            Tab(icon: Icon(AppIcons.admin), text: 'Overview'),
-            Tab(icon: Icon(AppIcons.orders), text: 'Orders'),
-            Tab(icon: Icon(AppIcons.payment), text: 'Payments'),
-            Tab(icon: Icon(AppIcons.users), text: 'Users'),
-            Tab(icon: Icon(AppIcons.restaurants), text: 'Restaurants'),
-            Tab(icon: Icon(AppIcons.security), text: 'Audit Logs'),
-          ],
         ),
-      ),
-      body: ResponsiveWebContainer(
-        maxWidth: 1200,
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildOverviewTab(),
-            _buildOrdersTab(),
-            _buildPaymentsTab(),
-            _buildUsersTab(),
-            _buildRestaurantsTab(),
-            _buildAuditLogsTab(),
-          ],
+        body: SafeArea(
+          child: ResponsiveWebContainer(
+            maxWidth: 1200,
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildOverviewTab(),
+                _buildOrdersTab(),
+                _buildPaymentsTab(),
+                _buildUsersTab(),
+                _buildRestaurantsTab(),
+                _buildAuditLogsTab(),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -350,6 +331,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       {'key': 'all', 'label': 'All Time'},
     ];
 
+    final textTheme = Theme.of(context).textTheme;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -365,12 +348,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               backgroundColor: isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : Colors.white.withValues(alpha: 0.85),
-              labelStyle: TextStyle(
+              labelStyle: textTheme.bodyMedium?.copyWith(
                 color: isSelected
                     ? Theme.of(context).colorScheme.onPrimary
                     : primaryText,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 13,
               ),
               side: BorderSide(
                 color: isSelected
@@ -389,6 +371,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildSystemHealthCard(Map<String, dynamic> health) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final isHealthy = health['database'] == 'healthy';
@@ -421,15 +404,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               children: [
                 Row(
                   children: [
-                    Text(
-                      'System & Core Health',
-                      style: TextStyle(
-                        color: primaryText,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                    Flexible(
+                      child: Text(
+                        'System & Core Health',
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: primaryText,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -441,10 +425,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       ),
                       child: Text(
                         isHealthy ? 'OPERATIONAL' : 'DEGRADED',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: statusColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -453,7 +436,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 const SizedBox(height: 4),
                 Text(
                   '$dbEngine: ${health['database'] ?? 'OK'} · ASGI Daphne: ${health['daphne_asgi'] ?? 'Running'}',
-                  style: TextStyle(color: secondaryText, fontSize: 12),
+                  style: textTheme.bodySmall?.copyWith(color: secondaryText),
                 ),
               ],
             ),
@@ -472,6 +455,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     VoidCallback? onTap,
   }) {
     final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final card = GlassContainer(
@@ -483,25 +467,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: TextStyle(color: secondaryText, fontSize: 12)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: textTheme.bodySmall?.copyWith(color: secondaryText),
+                  maxLines: 2,
+                ),
+              ),
+              const SizedBox(width: 6),
               Icon(icon, color: accentColor, size: 20),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             value,
-            style: TextStyle(
+            style: textTheme.headlineMedium?.copyWith(
               color: primaryText,
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: TextStyle(
+            style: textTheme.labelSmall?.copyWith(
               color: accentColor,
-              fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -520,6 +509,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildStatusPipelineCard(Map<String, dynamic> distribution) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final statuses = [
@@ -561,17 +551,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             children: [
               Text(
                 'Order Status Breakdown',
-                style: TextStyle(
+                style: textTheme.bodyLarge?.copyWith(
                   color: primaryText,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
                 'Tap status to filter',
-                style: TextStyle(
-                  color: GlassTheme.dynamicPrimaryColor,
-                  fontSize: 11,
+                style: textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -597,16 +585,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       children: [
                         Text(
                           '$count',
-                          style: TextStyle(
+                          style: textTheme.titleLarge?.copyWith(
                             color: color,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           s['label'] as String,
-                          style: TextStyle(color: secondaryText, fontSize: 10),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -627,6 +616,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   ) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final tileBg = isDark
@@ -638,6 +628,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     final greenColor = isDark ? Colors.greenAccent : const Color(0xFF15803D);
     final amberColor = isDark ? Colors.amberAccent : const Color(0xFFB45309);
     final purpleColor = isDark ? Colors.purpleAccent : const Color(0xFF7E22CE);
+    final outlinedAccent = isDark
+        ? GlassTheme.dynamicPrimaryColor
+        : HSLColor.fromColor(
+            GlassTheme.dynamicPrimaryColor,
+          ).withLightness(0.32).toColor();
 
     final activeDrivers = metrics['active_drivers'] ?? 0;
     final totalDrivers = metrics['total_drivers'] ?? 0;
@@ -671,15 +666,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   children: [
                     Text(
                       'Live Delivery & Courier Fleet',
-                      style: TextStyle(
+                      style: textTheme.bodyLarge?.copyWith(
                         color: primaryText,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
                       ),
                     ),
                     Text(
                       'Real-time dispatch overview & courier readiness',
-                      style: TextStyle(color: secondaryText, fontSize: 11),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
+                      ),
                     ),
                   ],
                 ),
@@ -706,9 +702,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     const SizedBox(width: 5),
                     Text(
                       '$activeDrivers Online',
-                      style: TextStyle(
+                      style: textTheme.labelSmall?.copyWith(
                         color: activeDrivers > 0 ? greenColor : amberColor,
-                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -733,27 +728,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     children: [
                       Text(
                         'COURIERS',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: secondaryText,
-                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$activeDrivers / $totalDrivers',
-                        style: TextStyle(
+                        style: textTheme.titleMedium?.copyWith(
                           color: primaryText,
-                          fontSize: 16,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Ready to ride',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: greenColor,
-                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -775,27 +767,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     children: [
                       Text(
                         'ON ROAD',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: secondaryText,
-                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$inTransit',
-                        style: TextStyle(
+                        style: textTheme.titleMedium?.copyWith(
                           color: purpleColor,
-                          fontSize: 16,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'In transit',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: purpleColor,
-                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -823,27 +812,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     children: [
                       Text(
                         'DISPATCH',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: secondaryText,
-                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$pending',
-                        style: TextStyle(
+                        style: textTheme.titleMedium?.copyWith(
                           color: pending > 0 ? amberColor : primaryText,
-                          fontSize: 16,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         pending > 0 ? 'Needs courier' : 'All dispatched',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: pending > 0 ? amberColor : secondaryText,
-                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -859,11 +845,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               Expanded(
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: GlassTheme.dynamicPrimaryColor,
+                    foregroundColor: outlinedAccent,
                     side: BorderSide(
-                      color: GlassTheme.dynamicPrimaryColor.withValues(
-                        alpha: 0.5,
-                      ),
+                      color: outlinedAccent.withValues(alpha: 0.5),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -871,9 +855,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ),
                   ),
                   icon: const Icon(Icons.people_outline, size: 16),
-                  label: const Text(
+                  label: Text(
                     'Manage Couriers',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: outlinedAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   onPressed: () {
                     _tabController.animateTo(3);
@@ -894,9 +881,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     elevation: 0,
                   ),
                   icon: const Icon(Icons.flash_on_rounded, size: 16),
-                  label: const Text(
+                  label: Text(
                     'Dispatch Orders',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   onPressed: () {
                     _tabController.animateTo(1);
@@ -916,25 +906,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildRecentOrdersSection(List<dynamic> recentOrders) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final amountAccent = isDark
+        ? GlassTheme.dynamicPrimaryColor
+        : HSLColor.fromColor(
+            GlassTheme.dynamicPrimaryColor,
+          ).withLightness(0.32).toColor();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Live Recent Orders',
-          style: TextStyle(
+          style: textTheme.bodyLarge?.copyWith(
             color: primaryText,
             fontWeight: FontWeight.bold,
-            fontSize: 15,
           ),
         ),
         const SizedBox(height: 10),
         if (recentOrders.isEmpty)
           Text(
             'No recent orders logged.',
-            style: TextStyle(color: secondaryText, fontSize: 13),
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
           )
         else
           ...recentOrders.map((o) {
@@ -982,28 +977,29 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       children: [
                         Text(
                           '${o['reference']} · ${o['restaurant']}',
-                          style: TextStyle(
+                          style: textTheme.bodyMedium?.copyWith(
                             color: primaryText,
                             fontWeight: FontWeight.bold,
-                            fontSize: 13,
                           ),
                         ),
                         Text(
                           'Customer: ${o['customer']}',
-                          style: TextStyle(color: secondaryText, fontSize: 11),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         o['amount'] ?? '\$0.00',
-                        style: TextStyle(
-                          color: GlassTheme.dynamicPrimaryColor,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: amountAccent,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
                         ),
                       ),
                       Container(
@@ -1017,9 +1013,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         ),
                         child: Text(
                           statusStr.toUpperCase(),
-                          style: TextStyle(
+                          style: textTheme.labelSmall?.copyWith(
                             color: badgeColor,
-                            fontSize: 9,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -1044,6 +1039,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
         final brightness = Theme.of(context).brightness;
         final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(context).textTheme;
         final primaryText = AppTypography.primaryTextColor(brightness);
         final secondaryText = AppTypography.secondaryTextColor(brightness);
 
@@ -1056,11 +1052,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 children: [
                   TextField(
                     controller: _orderSearchCtrl,
-                    style: TextStyle(color: primaryText, fontSize: 14),
+                    style: textTheme.bodyMedium?.copyWith(color: primaryText),
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       hintText: 'Search order ref, customer, phone...',
-                      hintStyle: TextStyle(color: secondaryText, fontSize: 13),
+                      hintStyle: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
+                      ),
                       prefixIcon: Icon(
                         Icons.search,
                         color: GlassTheme.dynamicPrimaryColor,
@@ -1136,9 +1134,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                           ? Center(
                               child: Text(
                                 'No matching orders found',
-                                style: TextStyle(
+                                style: textTheme.bodyMedium?.copyWith(
                                   color: secondaryText,
-                                  fontSize: 14,
                                 ),
                               ),
                             )
@@ -1164,6 +1161,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildOrderStatusFilters(AdminProvider admin) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final selectedOnPrimary =
         GlassTheme.dynamicPrimaryColor.computeLuminance() > 0.45
@@ -1194,10 +1192,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               backgroundColor: isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : Colors.white.withValues(alpha: 0.88),
-              labelStyle: TextStyle(
+              labelStyle: textTheme.bodySmall?.copyWith(
                 color: isSelected ? selectedOnPrimary : secondaryText,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 12,
               ),
               side: BorderSide(
                 color: isSelected
@@ -1214,8 +1211,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildOrderCard(Map<String, dynamic> order, AdminProvider admin) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentColor = isDark
+        ? GlassTheme.dynamicPrimaryColor
+        : HSLColor.fromColor(
+            GlassTheme.dynamicPrimaryColor,
+          ).withLightness(0.32).toColor();
+    final blueActionColor = isDark
+        ? Colors.blueAccent
+        : const Color(0xFF1D4ED8);
+    final redActionColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
 
     final statusStr = order['status'] ?? 'pending';
     final paymentStatus = order['payment_status'] ?? 'UNPAID';
@@ -1234,7 +1241,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     if (statusStr == 'delivered') {
       statusColor = isDark ? Colors.greenAccent : const Color(0xFF15803D);
     }
-    if (statusStr == 'cancelled') statusColor = Colors.redAccent;
+    if (statusStr == 'cancelled') statusColor = redActionColor;
     if (statusStr == 'on_the_way') {
       statusColor = isDark ? Colors.purpleAccent : const Color(0xFF7E22CE);
     }
@@ -1276,14 +1283,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                order['order_reference'] ?? 'Order #${order['id']}',
-                style: TextStyle(
-                  color: primaryText,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 15,
+              Expanded(
+                child: Text(
+                  order['order_reference'] ?? 'Order #${order['id']}',
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: primaryText,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1293,9 +1302,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 ),
                 child: Text(
                   statusStr.toUpperCase(),
-                  style: TextStyle(
+                  style: textTheme.labelSmall?.copyWith(
                     color: statusColor,
-                    fontSize: 10,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -1310,9 +1318,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               Expanded(
                 child: Text(
                   'Restaurant: ${order['restaurant_name'] ?? 'N/A'}',
-                  style: TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     color: secondaryText,
-                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -1328,7 +1335,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 Expanded(
                   child: Text(
                     'Customer: ${customer['name']} (${customer['phone'] ?? ''})',
-                    style: TextStyle(color: secondaryText, fontSize: 12),
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
                   ),
                 ),
               ],
@@ -1338,39 +1345,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.location_on_outlined,
-                color: Colors.redAccent,
-                size: 15,
-              ),
+              Icon(Icons.location_on_outlined, color: redActionColor, size: 15),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   'Deliver to: $address',
-                  style: TextStyle(color: secondaryText, fontSize: 12),
+                  style: textTheme.bodySmall?.copyWith(color: secondaryText),
                   maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
             children: [
-              Text(
-                'Total: \$${order['total_amount']}',
-                style: TextStyle(
-                  color: GlassTheme.dynamicPrimaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 6,
+                children: [
+                  Text(
+                    'Total: \$${order['total_amount']}',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: accentColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '≈ ${KhmerCurrency.formatKhr(totalVal)}',
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
+                  ),
+                ],
               ),
-              const SizedBox(width: 6),
-              Text(
-                '≈ ${KhmerCurrency.formatKhr(totalVal)}',
-                style: TextStyle(color: secondaryText, fontSize: 11),
-              ),
-              const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
@@ -1381,9 +1391,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 ),
                 child: Text(
                   isPaid ? 'PAYMENT: PAID' : 'PAYMENT: DUE',
-                  style: TextStyle(
+                  style: textTheme.labelSmall?.copyWith(
                     color: isPaid ? greenTextColor : orangeTextColor,
-                    fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1427,15 +1436,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         driver != null
                             ? 'Courier: ${driver['name']} (${driver['license_plate'] ?? 'Plate PP'})'
                             : 'No courier assigned yet',
-                        style: TextStyle(
+                        style: textTheme.bodySmall?.copyWith(
                           color: driver != null ? primaryText : amberTextColor,
-                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         'Delivery Fee: \$$deliveryFee · ${driver != null ? (driver['phone'] ?? 'Active') : 'Waiting for dispatch'}',
-                        style: TextStyle(color: secondaryText, fontSize: 10),
+                        style: textTheme.labelSmall?.copyWith(
+                          color: secondaryText,
+                        ),
                       ),
                     ],
                   ),
@@ -1468,8 +1478,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ),
                     child: Text(
                       driver != null ? 'Reassign' : 'Assign Driver',
-                      style: const TextStyle(
-                        fontSize: 11,
+                      style: textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1485,8 +1494,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               children: [
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blueAccent,
-                    side: const BorderSide(color: Colors.blueAccent),
+                    foregroundColor: blueActionColor,
+                    side: BorderSide(color: blueActionColor),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 4,
@@ -1497,9 +1506,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ),
                   ),
                   icon: const Icon(Icons.map_outlined, size: 13),
-                  label: const Text(
+                  label: Text(
                     'Live Route',
-                    style: TextStyle(fontSize: 11),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: blueActionColor,
+                    ),
                   ),
                   onPressed: () =>
                       context.push('/map/${order['id']}?isDriver=false'),
@@ -1508,14 +1519,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 TextButton(
                   onPressed: () => _showCancelOrderDialog(order['id'], admin),
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.redAccent,
+                    foregroundColor: redActionColor,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 4,
                     ),
                     minimumSize: Size.zero,
                   ),
-                  child: const Text('Cancel', style: TextStyle(fontSize: 11)),
+                  child: Text(
+                    'Cancel',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: redActionColor,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1592,11 +1608,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final greenBadgeColor = isDark
         ? Colors.greenAccent
         : const Color(0xFF15803D);
+    final accentColor = isDark
+        ? GlassTheme.dynamicPrimaryColor
+        : HSLColor.fromColor(
+            GlassTheme.dynamicPrimaryColor,
+          ).withLightness(0.32).toColor();
 
     showDialog(
       context: context,
@@ -1611,17 +1633,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ),
           title: Row(
             children: [
-              Icon(
-                Icons.two_wheeler_rounded,
-                color: GlassTheme.dynamicPrimaryColor,
-              ),
+              Icon(Icons.two_wheeler_rounded, color: accentColor),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
                   'Assign Courier Driver',
-                  style: TextStyle(
+                  style: textTheme.titleMedium?.copyWith(
                     color: primaryText,
-                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1636,7 +1654,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               children: [
                 Text(
                   'Select an available registered courier to dispatch this delivery:',
-                  style: TextStyle(color: secondaryText, fontSize: 13),
+                  style: textTheme.bodyMedium?.copyWith(color: secondaryText),
                 ),
                 const SizedBox(height: 12),
                 Flexible(
@@ -1684,11 +1702,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                               Flexible(
                                 child: Text(
                                   d['name'],
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: textTheme.bodyMedium?.copyWith(
                                     color: primaryText,
-                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -1711,11 +1726,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                 ),
                                 child: Text(
                                   isOnline ? 'ONLINE' : 'OFFLINE',
-                                  style: TextStyle(
+                                  style: textTheme.labelSmall?.copyWith(
                                     color: isOnline
                                         ? greenBadgeColor
                                         : secondaryText,
-                                    fontSize: 9,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -1724,14 +1738,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                           ),
                           subtitle: Text(
                             '${d['vehicle']} · ${d['plate']} · ${d['phone']}',
-                            style: TextStyle(
+                            style: textTheme.labelSmall?.copyWith(
                               color: secondaryText,
-                              fontSize: 11,
                             ),
                           ),
                           trailing: Icon(
                             Icons.check_circle_outline_rounded,
-                            color: GlassTheme.dynamicPrimaryColor,
+                            color: accentColor,
                             size: 20,
                           ),
                           onTap: () async {
@@ -1751,7 +1764,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                             'Failed to assign courier.'),
                                 ),
                                 backgroundColor: ok
-                                    ? GlassTheme.primaryGreen
+                                    ? const Color(0xFF15803D)
                                     : Colors.redAccent,
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -1768,7 +1781,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('Cancel', style: TextStyle(color: secondaryText)),
+              child: Text(
+                'Cancel',
+                style: textTheme.labelLarge?.copyWith(color: secondaryText),
+              ),
             ),
           ],
         );
@@ -1793,6 +1809,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
         final brightness = Theme.of(context).brightness;
         final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(context).textTheme;
         final primaryText = AppTypography.primaryTextColor(brightness);
         final secondaryText = AppTypography.secondaryTextColor(brightness);
 
@@ -1804,11 +1821,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 children: [
                   TextField(
                     controller: _paymentSearchCtrl,
-                    style: TextStyle(color: primaryText, fontSize: 14),
+                    style: textTheme.bodyMedium?.copyWith(color: primaryText),
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       hintText: 'Search by Order Ref, Txn ID, or Customer...',
-                      hintStyle: TextStyle(color: secondaryText, fontSize: 13),
+                      hintStyle: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
+                      ),
                       prefixIcon: Icon(
                         Icons.search,
                         color: GlassTheme.dynamicPrimaryColor,
@@ -1884,9 +1903,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                           ? Center(
                               child: Text(
                                 'No matching payment transactions found',
-                                style: TextStyle(
+                                style: textTheme.bodyMedium?.copyWith(
                                   color: secondaryText,
-                                  fontSize: 14,
                                 ),
                               ),
                             )
@@ -1912,6 +1930,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildPaymentStatusFilters(AdminProvider admin) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final selectedOnPrimary =
         GlassTheme.dynamicPrimaryColor.computeLuminance() > 0.45
@@ -1942,9 +1961,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               backgroundColor: isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : Colors.white.withValues(alpha: 0.88),
-              labelStyle: TextStyle(
+              labelStyle: textTheme.bodySmall?.copyWith(
                 color: isSelected ? selectedOnPrimary : secondaryText,
-                fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
               shape: RoundedRectangleBorder(
@@ -1967,8 +1985,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildPaymentCard(Map<String, dynamic> payment, AdminProvider admin) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentColor = isDark
+        ? GlassTheme.dynamicPrimaryColor
+        : HSLColor.fromColor(
+            GlassTheme.dynamicPrimaryColor,
+          ).withLightness(0.32).toColor();
 
     final status = (payment['status'] as String? ?? 'PENDING').toUpperCase();
     final provider = (payment['provider'] as String? ?? 'KHQR').toUpperCase();
@@ -1982,17 +2006,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     final createdAt = payment['created_at']?.toString() ?? '';
 
     final purpleColor = isDark ? Colors.purpleAccent : const Color(0xFF7E22CE);
+    final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
     Color statusColor;
     switch (status) {
       case 'PAID':
-        statusColor = Theme.of(context).colorScheme.primary;
+        statusColor = isDark ? Colors.greenAccent : const Color(0xFF15803D);
         break;
       case 'PENDING':
         statusColor = isDark ? Colors.orangeAccent : const Color(0xFFC2410C);
         break;
       case 'EXPIRED':
       case 'FAILED':
-        statusColor = Colors.redAccent;
+        statusColor = dangerColor;
         break;
       case 'REFUNDED':
         statusColor = purpleColor;
@@ -2021,42 +2046,44 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.black.withValues(alpha: 0.04),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.payment,
-                      color: GlassTheme.dynamicPrimaryColor,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Payment #${payment['id']} · $provider',
-                        style: TextStyle(
-                          color: primaryText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      Text(
-                        '$orderRef · $customer',
-                        style: TextStyle(color: secondaryText, fontSize: 12),
+                      child: Icon(Icons.payment, color: accentColor, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Payment #${payment['id']} · $provider',
+                            style: textTheme.bodyLarge?.copyWith(
+                              color: primaryText,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '$orderRef · $customer',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -2069,9 +2096,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 ),
                 child: Text(
                   status,
-                  style: TextStyle(
+                  style: textTheme.labelSmall?.copyWith(
                     color: statusColor,
-                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -2087,14 +2113,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 children: [
                   Text(
                     'Authoritative Amount',
-                    style: TextStyle(color: secondaryText, fontSize: 11),
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '$currency ${amount.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: GlassTheme.dynamicPrimaryColor,
-                      fontSize: 18,
+                    style: textTheme.titleLarge?.copyWith(
+                      color: accentColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2105,14 +2130,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 children: [
                   Text(
                     'Transaction Ref',
-                    style: TextStyle(color: secondaryText, fontSize: 11),
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     txnId.length > 18 ? '${txnId.substring(0, 16)}...' : txnId,
-                    style: TextStyle(
+                    style: textTheme.bodySmall?.copyWith(
                       color: primaryText,
-                      fontSize: 12,
                       fontFamily: 'monospace',
                     ),
                   ),
@@ -2123,7 +2147,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           const SizedBox(height: 8),
           Text(
             'Ref: $merchantRef · ${createdAt.length > 16 ? createdAt.substring(0, 16).replaceAll('T', ' ') : createdAt}',
-            style: TextStyle(color: secondaryText, fontSize: 11),
+            style: textTheme.labelSmall?.copyWith(color: secondaryText),
           ),
           if (status == 'PAID') ...[
             const SizedBox(height: 12),
@@ -2142,9 +2166,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   ),
                 ),
                 icon: const Icon(Icons.undo, size: 16),
-                label: const Text(
+                label: Text(
                   'Issue Refund',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: purpleColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 onPressed: () => _showRefundDialog(context, payment, admin),
               ),
@@ -2194,8 +2221,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
         final brightness = Theme.of(context).brightness;
         final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(context).textTheme;
         final primaryText = AppTypography.primaryTextColor(brightness);
         final secondaryText = AppTypography.secondaryTextColor(brightness);
+        final accentColor = isDark
+            ? GlassTheme.dynamicPrimaryColor
+            : HSLColor.fromColor(
+                GlassTheme.dynamicPrimaryColor,
+              ).withLightness(0.32).toColor();
 
         return Column(
           children: [
@@ -2205,11 +2238,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 children: [
                   TextField(
                     controller: _userSearchCtrl,
-                    style: TextStyle(color: primaryText, fontSize: 14),
+                    style: textTheme.bodyMedium?.copyWith(color: primaryText),
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       hintText: 'Search username, email, phone...',
-                      hintStyle: TextStyle(color: secondaryText, fontSize: 13),
+                      hintStyle: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
+                      ),
                       prefixIcon: Icon(
                         Icons.search,
                         color: GlassTheme.dynamicPrimaryColor,
@@ -2310,8 +2345,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                       .withValues(alpha: 0.15),
                                   child: Text(
                                     (user['username'] ?? 'U')[0].toUpperCase(),
-                                    style: TextStyle(
-                                      color: GlassTheme.dynamicPrimaryColor,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: accentColor,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -2327,12 +2362,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                           Flexible(
                                             child: Text(
                                               user['username'] ?? 'User',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                color: primaryText,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                              ),
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    color: primaryText,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ),
                                           const SizedBox(width: 6),
@@ -2350,12 +2384,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                             ),
                                             child: Text(
                                               role.toUpperCase(),
-                                              style: TextStyle(
-                                                color: GlassTheme
-                                                    .dynamicPrimaryColor,
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    color: accentColor,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ),
                                         ],
@@ -2363,9 +2396,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                       const SizedBox(height: 3),
                                       Text(
                                         '${user['email'] ?? 'No email'} · ${user['phone'] ?? 'No phone'}',
-                                        style: TextStyle(
+                                        style: textTheme.labelSmall?.copyWith(
                                           color: secondaryText,
-                                          fontSize: 11,
                                         ),
                                       ),
                                     ],
@@ -2399,6 +2431,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildUserRoleFilters(AdminProvider admin) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final selectedOnPrimary =
         GlassTheme.dynamicPrimaryColor.computeLuminance() > 0.45
@@ -2427,10 +2460,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               backgroundColor: isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : Colors.white.withValues(alpha: 0.88),
-              labelStyle: TextStyle(
+              labelStyle: textTheme.bodySmall?.copyWith(
                 color: isSelected ? selectedOnPrimary : secondaryText,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 12,
               ),
               side: BorderSide(
                 color: isSelected
@@ -2452,6 +2484,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     final username = user['username'] ?? 'this user';
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
 
@@ -2471,18 +2504,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             const SizedBox(width: 8),
             Text(
               'Deactivate Account',
-              style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+              style: textTheme.titleMedium?.copyWith(
+                color: primaryText,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
         content: Text(
           'Are you sure you want to deactivate $username? They will immediately lose access to place or fulfill orders.',
-          style: TextStyle(color: secondaryText, fontSize: 13),
+          style: textTheme.bodyMedium?.copyWith(color: secondaryText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: secondaryText)),
+            child: Text(
+              'Cancel',
+              style: textTheme.labelLarge?.copyWith(color: secondaryText),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -2493,12 +2532,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               Navigator.pop(ctx);
               admin.toggleUserStatus(user['id']);
             },
-            child: const Text('Deactivate'),
+            child: Text(
+              'Deactivate',
+              style: textTheme.labelLarge?.copyWith(color: Colors.white),
+            ),
           ),
         ],
       ),
     );
   }
+
+  String _restaurantSearchQuery = '';
 
   // ─────────────────────────────────────────────
   // 4. RESTAURANTS MANAGEMENT TAB
@@ -2506,13 +2550,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildRestaurantsTab() {
     return Consumer<AdminProvider>(
       builder: (context, admin, _) {
-        final restaurants = admin.restaurants;
+        final rawRestaurants = admin.restaurants;
+        final query = _restaurantSearchQuery.trim().toLowerCase();
+        final restaurants = query.isEmpty
+            ? rawRestaurants
+            : rawRestaurants.where((item) {
+                if (item is! Map) return false;
+                final name = item['name']?.toString().toLowerCase() ?? '';
+                final addr = item['address']?.toString().toLowerCase() ?? '';
+                return name.contains(query) || addr.contains(query);
+              }).toList();
         final brightness = Theme.of(context).brightness;
         final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(context).textTheme;
         final primaryText = AppTypography.primaryTextColor(brightness);
         final secondaryText = AppTypography.secondaryTextColor(brightness);
+        final accentColor = isDark
+            ? GlassTheme.dynamicPrimaryColor
+            : HSLColor.fromColor(
+                GlassTheme.dynamicPrimaryColor,
+              ).withLightness(0.32).toColor();
 
-        if (admin.isLoading && restaurants.isEmpty) {
+        if (admin.isLoading && rawRestaurants.isEmpty) {
           return Center(
             child: CircularProgressIndicator(
               color: GlassTheme.dynamicPrimaryColor,
@@ -2524,95 +2583,141 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           color: GlassTheme.dynamicPrimaryColor,
           backgroundColor: isDark ? GlassTheme.heroDarkCard : Colors.white,
           onRefresh: () => admin.fetchRestaurants(),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: restaurants.length,
-            itemBuilder: (context, idx) {
-              final r = restaurants[idx] as Map<String, dynamic>;
-              final isActive = r['is_active'] == true;
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.04)
-                      : Colors.white.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
                     color: isDark
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : const Color(0xFFE2E8F0),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: TextField(
+                    onChanged: (val) =>
+                        setState(() => _restaurantSearchQuery = val),
+                    style: textTheme.bodyMedium?.copyWith(color: primaryText),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      hintText: 'Find restaurant by name or address...',
+                      hintStyle: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: accentColor,
+                        size: 18,
+                      ),
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: restaurants.length,
+                  itemBuilder: (context, idx) {
+                    final r = restaurants[idx] as Map<String, dynamic>;
+                    final isActive = r['is_active'] == true;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : Colors.black.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(12),
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.white.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : const Color(0xFFE2E8F0),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.storefront_rounded,
-                        color: GlassTheme.dynamicPrimaryColor,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          Text(
-                            r['name'] ?? 'Restaurant',
-                            style: TextStyle(
-                              color: primaryText,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.black.withValues(alpha: 0.04),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.storefront_rounded,
+                              color: accentColor,
+                              size: 24,
                             ),
                           ),
-                          Row(
-                            children: [
-                              Text(
-                                'Delivery: \$${r['delivery_fee']} · Rating: ${r['rating']} ',
-                                style: TextStyle(
-                                  color: secondaryText,
-                                  fontSize: 12,
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  r['name'] ?? 'Restaurant',
+                                  style: textTheme.bodyLarge?.copyWith(
+                                    color: primaryText,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              const Icon(
-                                Icons.star,
-                                size: 13,
-                                color: Colors.amber,
-                              ),
-                            ],
-                          ),
-                          Text(
-                            r['address'] ?? '',
-                            style: TextStyle(
-                              color: secondaryText,
-                              fontSize: 11,
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Delivery: \$${r['delivery_fee']} · Rating: ${r['rating']} ',
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: secondaryText,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.star,
+                                      size: 13,
+                                      color: isDark
+                                          ? Colors.amber
+                                          : const Color(0xFFD97706),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  r['address'] ?? '',
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: secondaryText,
+                                  ),
+                                  maxLines: 2,
+                                  softWrap: true,
+                                ),
+                              ],
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Switch(
+                            value: isActive,
+                            activeThumbColor: GlassTheme.dynamicPrimaryColor,
+                            onChanged: (_) {
+                              admin.toggleRestaurantStatus(r['id']);
+                            },
                           ),
                         ],
                       ),
-                    ),
-                    Switch(
-                      value: isActive,
-                      activeThumbColor: GlassTheme.dynamicPrimaryColor,
-                      onChanged: (_) {
-                        admin.toggleRestaurantStatus(r['id']);
-                      },
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ],
           ),
         );
       },
@@ -2628,8 +2733,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         final logs = admin.auditLogs;
         final brightness = Theme.of(context).brightness;
         final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(context).textTheme;
         final primaryText = AppTypography.primaryTextColor(brightness);
         final secondaryText = AppTypography.secondaryTextColor(brightness);
+        final accentColor = isDark
+            ? GlassTheme.dynamicPrimaryColor
+            : HSLColor.fromColor(
+                GlassTheme.dynamicPrimaryColor,
+              ).withLightness(0.32).toColor();
 
         if (admin.isLoading && logs.isEmpty) {
           return Center(
@@ -2647,7 +2758,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               ? Center(
                   child: Text(
                     'No audit events logged yet',
-                    style: TextStyle(color: secondaryText),
+                    style: textTheme.bodyMedium?.copyWith(color: secondaryText),
                   ),
                 )
               : ListView.builder(
@@ -2686,7 +2797,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                             ),
                             child: Icon(
                               Icons.shield_outlined,
-                              color: GlassTheme.dynamicPrimaryColor,
+                              color: accentColor,
                               size: 16,
                             ),
                           ),
@@ -2702,11 +2813,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                     Flexible(
                                       child: Text(
                                         action,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
+                                        style: textTheme.bodySmall?.copyWith(
                                           color: primaryText,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
                                         ),
                                       ),
                                     ),
@@ -2717,9 +2826,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                                 .substring(0, 16)
                                                 .replaceAll('T', ' ')
                                           : timestamp,
-                                      style: TextStyle(
+                                      style: textTheme.labelSmall?.copyWith(
                                         color: secondaryText,
-                                        fontSize: 10,
                                       ),
                                     ),
                                   ],
@@ -2727,9 +2835,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                 const SizedBox(height: 3),
                                 Text(
                                   'Actor: $adminName · Target: ${log['target_type']} #${log['target_id']}',
-                                  style: TextStyle(
+                                  style: textTheme.labelSmall?.copyWith(
                                     color: secondaryText,
-                                    fontSize: 11,
                                   ),
                                 ),
                                 if (log['details'] != null &&
@@ -2737,9 +2844,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                   const SizedBox(height: 4),
                                   Text(
                                     '${log['details']}',
-                                    style: TextStyle(
+                                    style: textTheme.labelSmall?.copyWith(
                                       color: secondaryText,
-                                      fontSize: 10,
                                       fontFamily: 'monospace',
                                     ),
                                   ),
@@ -2784,6 +2890,7 @@ class _AdminCancelOrderDialogState extends State<_AdminCancelOrderDialog> {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
 
@@ -2797,9 +2904,8 @@ class _AdminCancelOrderDialogState extends State<_AdminCancelOrderDialog> {
       ),
       title: Text(
         'Cancel Order Confirmation',
-        style: TextStyle(
+        style: textTheme.titleMedium?.copyWith(
           color: primaryText,
-          fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -2808,15 +2914,15 @@ class _AdminCancelOrderDialogState extends State<_AdminCancelOrderDialog> {
         children: [
           Text(
             'This will transition the order to CANCELLED and log an administrative audit event.',
-            style: TextStyle(color: secondaryText, fontSize: 13),
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _reasonCtrl,
-            style: TextStyle(color: primaryText, fontSize: 13),
+            style: textTheme.bodyMedium?.copyWith(color: primaryText),
             decoration: InputDecoration(
               labelText: 'Cancellation Reason',
-              labelStyle: TextStyle(color: secondaryText),
+              labelStyle: textTheme.bodyMedium?.copyWith(color: secondaryText),
               filled: true,
               fillColor: isDark
                   ? Colors.white.withValues(alpha: 0.05)
@@ -2831,7 +2937,10 @@ class _AdminCancelOrderDialogState extends State<_AdminCancelOrderDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Keep Order', style: TextStyle(color: secondaryText)),
+          child: Text(
+            'Keep Order',
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
         ),
         ElevatedButton(
           onPressed: () {
@@ -2839,10 +2948,15 @@ class _AdminCancelOrderDialogState extends State<_AdminCancelOrderDialog> {
             Navigator.of(context).pop();
             widget.admin.cancelOrder(widget.orderId, reason);
           },
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-          child: const Text(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark
+                ? Colors.redAccent
+                : const Color(0xFFB91C1C),
+            foregroundColor: Colors.white,
+          ),
+          child: Text(
             'Cancel Order',
-            style: TextStyle(color: Colors.white),
+            style: textTheme.labelLarge?.copyWith(color: Colors.white),
           ),
         ),
       ],
@@ -2880,6 +2994,7 @@ class _AdminRefundDialogState extends State<_AdminRefundDialog> {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final purpleColor = isDark ? Colors.purpleAccent : const Color(0xFF7E22CE);
@@ -2899,7 +3014,10 @@ class _AdminRefundDialogState extends State<_AdminRefundDialog> {
           Flexible(
             child: Text(
               'Authorize Refund',
-              style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+              style: textTheme.titleLarge?.copyWith(
+                color: primaryText,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -2910,15 +3028,15 @@ class _AdminRefundDialogState extends State<_AdminRefundDialog> {
         children: [
           Text(
             'Refund ${widget.payment['currency']} ${widget.payment['amount']} for Payment #${widget.payment['id']}?',
-            style: TextStyle(color: secondaryText, fontSize: 14),
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _reasonCtrl,
-            style: TextStyle(color: primaryText, fontSize: 13),
+            style: textTheme.bodyMedium?.copyWith(color: primaryText),
             decoration: InputDecoration(
               labelText: 'Reason for Refund',
-              labelStyle: TextStyle(color: secondaryText),
+              labelStyle: textTheme.bodyMedium?.copyWith(color: secondaryText),
               filled: true,
               fillColor: isDark
                   ? Colors.white.withValues(alpha: 0.05)
@@ -2938,7 +3056,10 @@ class _AdminRefundDialogState extends State<_AdminRefundDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: secondaryText)),
+          child: Text(
+            'Cancel',
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -2957,7 +3078,10 @@ class _AdminRefundDialogState extends State<_AdminRefundDialog> {
             );
             widget.onCompleted(success);
           },
-          child: const Text('Confirm Refund'),
+          child: Text(
+            'Confirm Refund',
+            style: textTheme.labelLarge?.copyWith(color: Colors.white),
+          ),
         ),
       ],
     );

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/glass/animated_pressable.dart';
@@ -249,14 +250,17 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               Expanded(
                                 child: Text(
                                   name,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w900,
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF1B1B1B),
-                                    letterSpacing: -0.5,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        color: AppTypography.primaryTextColor(
+                                          isDark
+                                              ? Brightness.dark
+                                              : Brightness.light,
+                                        ),
+                                      ),
                                 ),
                               ),
                               const SizedBox(width: 14),
@@ -265,25 +269,28 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                 children: [
                                   Text(
                                     '\$${price.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                      color: isDark
-                                          ? GlassTheme
-                                                .activePalette
-                                                .primaryAccent
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          color: isDark
+                                              ? const Color(0xFF4ADE80)
+                                              : const Color(0xFF15803D),
+                                        ),
                                   ),
                                   Text(
                                     KhmerCurrency.formatKhr(price),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: GlassTheme.textMuted,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color:
+                                              AppTypography.secondaryTextColor(
+                                                isDark
+                                                    ? Brightness.dark
+                                                    : Brightness.light,
+                                              ),
+                                        ),
                                   ),
                                 ],
                               ),
@@ -300,15 +307,23 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                           Icon(
                             AppIcons.location,
                             size: 16,
-                            color: GlassTheme.textMuted,
+                            color: AppTypography.secondaryTextColor(
+                              isDark ? Brightness.dark : Brightness.light,
+                            ),
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            location,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: GlassTheme.textMuted,
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Text(
+                              location,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: AppTypography.secondaryTextColor(
+                                      isDark
+                                          ? Brightness.dark
+                                          : Brightness.light,
+                                    ),
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ),
                         ],
@@ -353,13 +368,13 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       // Description Section
                       Text(
                         'Description',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF1B1B1B),
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppTypography.primaryTextColor(
+                                isDark ? Brightness.dark : Brightness.light,
+                              ),
+                            ),
                       ),
                       const SizedBox(height: 8),
 
@@ -369,12 +384,10 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         overflow: _isDescriptionExpanded
                             ? TextOverflow.visible
                             : TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.5,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF757575),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTypography.secondaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -388,13 +401,13 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         },
                         child: Text(
                           _isDescriptionExpanded ? 'Show less' : 'Show more',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? GlassTheme.activePalette.primaryAccent
-                                : Theme.of(context).colorScheme.primary,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF15803D),
+                              ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -408,22 +421,26 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                             children: [
                               Text(
                                 'Quantity',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF1B1B1B),
-                                ),
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTypography.primaryTextColor(
+                                        isDark
+                                            ? Brightness.dark
+                                            : Brightness.light,
+                                      ),
+                                    ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '\$${(price * _quantity).toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? const Color(0xFF4ADE80)
+                                          : const Color(0xFF15803D),
+                                    ),
                               ),
                             ],
                           ),
@@ -444,9 +461,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                 IconButton(
                                   icon: const Icon(AppIcons.remove, size: 18),
                                   splashRadius: 20,
-                                  color: isDark
-                                      ? Colors.white70
-                                      : Colors.black87,
+                                  color: AppTypography.primaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
                                   onPressed: _quantity > 1
                                       ? () => setState(() => _quantity--)
                                       : null,
@@ -457,13 +474,17 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                   ),
                                   child: Text(
                                     '$_quantity',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTypography.primaryTextColor(
+                                            isDark
+                                                ? Brightness.dark
+                                                : Brightness.light,
+                                          ),
+                                        ),
                                   ),
                                 ),
                                 IconButton(
@@ -482,12 +503,11 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       // Special Instructions Note Input
                       Text(
                         'Special Instructions',
-                        style: TextStyle(
-                          fontSize: 15,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF1B1B1B),
+                          color: AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -506,17 +526,21 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         child: TextField(
                           controller: _instructionsCtrl,
                           maxLines: 2,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: AppTypography.primaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                              ),
                           decoration: InputDecoration(
                             hintText:
                                 'e.g. Extra sauce, no onions, allergy notes...',
-                            hintStyle: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white38 : Colors.black38,
-                            ),
+                            hintStyle: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: AppTypography.secondaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
+                                ),
                             prefixIcon: Icon(
                               AppIcons.edit,
                               size: 22,
@@ -564,10 +588,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                 // Center Title
                 Text(
                   'Details',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF1B1B1B),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF1F2937),
                   ),
                 ),
 
@@ -710,15 +733,17 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                     ),
                                   ],
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: Text(
                                     'Buy Now',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.2,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 0.2,
+                                        ),
                                   ),
                                 ),
                               ),
@@ -737,24 +762,23 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
   }
 
   Widget _buildMacroMetric(String value, String label, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             value,
-            style: TextStyle(
-              fontSize: 17,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white : const Color(0xFF1B1B1B),
+              color: AppTypography.primaryTextColor(brightness),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
-              color: GlassTheme.textMuted,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppTypography.secondaryTextColor(brightness),
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -224,6 +224,118 @@ def record_order_status_transition(order, to_status, actor=None, actor_role='', 
     return history
 
 
+PICKED_UP_ORDER_STATUSES = (
+    'picked_up', 'on_the_way', 'out_for_delivery', 'on_delivery',
+    'driver_arrived', 'arrived', 'delivered',
+)
+PICKED_UP_DELIVERY_STATUSES = (
+    'picked_up', 'on_the_way', 'out_for_delivery', 'arrived', 'delivered',
+)
+ACTIVE_DELIVERY_STATUSES = (
+    'assigned', 'accepted', 'arrived_at_restaurant', 'preparing',
+    'ready_for_pickup', 'picked_up', 'on_the_way', 'out_for_delivery', 'arrived',
+)
+
+
+def _order_is_picked_up(order, delivery=None):
+    """Return True only once food has actually been picked up from the restaurant."""
+    if getattr(order, 'status', None) in PICKED_UP_ORDER_STATUSES:
+        return True
+    if delivery is not None and getattr(delivery, 'status', None) in PICKED_UP_DELIVERY_STATUSES:
+        return True
+    return False
+
+
+def _get_tracking_stage(order, delivery=None, driver_obj=None):
+    """Return a granular tracking stage distinguishing pre-pickup from in-transit states."""
+    if order.status == 'delivered' or (delivery and delivery.status == 'delivered'):
+        return 'delivered'
+    if order.status in ('driver_arrived', 'arrived') or (delivery and delivery.status == 'arrived'):
+        return 'arrived'
+    if _order_is_picked_up(order, delivery):
+        return 'on_the_way'
+    if driver_obj is None:
+        return 'awaiting_driver'
+    if delivery and delivery.status == 'arrived_at_restaurant':
+        return 'at_restaurant'
+    return 'en_route_to_restaurant'
+
+
+def _select_or_assign_driver(request_data, restaurant=None):
+    """
+    Resolve an explicitly picked driver_id, or auto-assign the best available
+    online & approved driver (fewest active deliveries, nearest to restaurant).
+    """
+    driver_id = request_data.get('driver_id') or request_data.get('driver')
+    driver = None
+    if driver_id:
+        try:
+            driver = Driver.objects.filter(pk=driver_id, is_approved=True).first()
+        except (TypeError, ValueError):
+            driver = None
+
+    if not driver:
+        candidates = list(
+            Driver.objects.filter(is_online=True, is_approved=True)
+            .prefetch_related('deliveries')
+        )
+        if candidates:
+            rest_lat = float(restaurant.lat) if (restaurant and restaurant.lat is not None) else None
+            rest_lng = float(restaurant.lng) if (restaurant and restaurant.lng is not None) else None
+
+            def _score(cand):
+                active_count = cand.deliveries.filter(status__in=ACTIVE_DELIVERY_STATUSES).count()
+                if (
+                    rest_lat is not None and rest_lng is not None and
+                    cand.current_lat is not None and cand.current_lng is not None
+                ):
+                    d_lat = float(cand.current_lat) - rest_lat
+                    d_lng = float(cand.current_lng) - rest_lng
+                    dist_sq = d_lat * d_lat + d_lng * d_lng
+                else:
+                    dist_sq = 9999.0
+                return (active_count, dist_sq, cand.id)
+
+            candidates.sort(key=_score)
+            driver = candidates[0]
+
+    return driver
+
+
+def _broadcast_driver_location_to_orders(driver, lat, lng, speed=0.0, bearing=0.0):
+    """Push REST driver GPS updates to all active Channels order tracking groups."""
+    active_deliveries = list(
+        Delivery.objects.select_related('order')
+        .filter(driver=driver, status__in=ACTIVE_DELIVERY_STATUSES)
+    )
+    if not active_deliveries:
+        return 0
+
+    try:
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+
+        channel_layer = get_channel_layer()
+        if channel_layer is not None:
+            for deliv in active_deliveries:
+                order = deliv.order
+                async_to_sync(channel_layer.group_send)(
+                    f'order_{order.id}',
+                    {
+                        'type': 'driver_location_update',
+                        'lat': float(lat),
+                        'lng': float(lng),
+                        'speed': float(speed),
+                        'bearing': float(bearing),
+                        'is_picked_up': _order_is_picked_up(order, deliv),
+                        'tracking_stage': _get_tracking_stage(order, deliv, driver),
+                    },
+                )
+    except Exception:
+        pass
+    return len(active_deliveries)
+
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -685,16 +797,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 for food, qty, price in order_items_to_create
             ])
 
-            # Assign selected driver or auto-assign online driver
-            driver_id = self.request.data.get('driver_id') or self.request.data.get('driver')
-            driver = None
-            if driver_id:
-                try:
-                    driver = Driver.objects.filter(pk=driver_id).first()
-                except Exception:
-                    pass
-            if not driver:
-                driver = Driver.objects.filter(is_online=True).first()
+            # Assign explicitly picked driver or auto-assign best online approved driver
+            driver = _select_or_assign_driver(self.request.data, restaurant)
             if driver:
                 Delivery.objects.create(order=order, driver=driver, status='assigned')
 
@@ -774,16 +878,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             for item in cart_items
         ])
 
-        # Assign selected driver or auto-assign online driver
-        driver_id = self.request.data.get('driver_id') or self.request.data.get('driver')
-        driver = None
-        if driver_id:
-            try:
-                driver = Driver.objects.filter(pk=driver_id).first()
-            except Exception:
-                pass
-        if not driver:
-            driver = Driver.objects.filter(is_online=True).first()
+        # Assign explicitly picked driver or auto-assign best online approved driver
+        driver = _select_or_assign_driver(self.request.data, restaurant)
         if driver:
             Delivery.objects.create(order=order, driver=driver, status='assigned')
 
@@ -822,61 +918,102 @@ class OrderViewSet(viewsets.ModelViewSet):
         
         rest_lat = float(order.restaurant.lat) if (order.restaurant and order.restaurant.lat) else 11.5564
         rest_lng = float(order.restaurant.lng) if (order.restaurant and order.restaurant.lng) else 104.9282
-        
+
         cust_lat = float(order.address.lat) if (order.address and order.address.lat) else 11.5621
         cust_lng = float(order.address.lng) if (order.address and order.address.lng) else 104.9160
-        
+
+        delivery = getattr(order, 'delivery', None)
+        driver_model = delivery.driver if (delivery and delivery.driver) else None
+        is_picked_up = _order_is_picked_up(order, delivery)
+        tracking_stage = _get_tracking_stage(order, delivery, driver_model)
+        driver_assigned = driver_model is not None
+
         driver_lat = None
         driver_lng = None
         driver_obj = None
-        if hasattr(order, 'delivery') and order.delivery and order.delivery.driver:
-            driver = order.delivery.driver
+        if driver_model is not None:
             driver_obj = {
-                'id': driver.id,
-                'name': driver.user.get_full_name() or driver.user.username,
-                'phone': driver.user.phone or '+855 12 888 999',
-                'vehicle_type': driver.vehicle_type or 'Motorcycle',
-                'license_plate': driver.license_plate or 'PP-1AB-2026',
-                'is_online': driver.is_online,
+                'id': driver_model.id,
+                'name': driver_model.user.get_full_name() or driver_model.user.username,
+                'phone': driver_model.user.phone or '+855 12 888 999',
+                'vehicle_type': driver_model.vehicle_type or 'Motorcycle',
+                'license_plate': driver_model.license_plate or 'PP-1AB-2026',
+                'is_online': driver_model.is_online,
+                'status': delivery.status if delivery else 'assigned',
+                'is_picked_up': is_picked_up,
                 'rating': 4.9,
             }
-            if driver.current_lat and driver.current_lng:
-                driver_lat = float(driver.current_lat)
-                driver_lng = float(driver.current_lng)
-        
-        if driver_obj is None:
-            first_driver = Driver.objects.first()
-            if first_driver:
-                driver_obj = {
-                    'id': first_driver.id,
-                    'name': first_driver.user.get_full_name() or first_driver.user.username,
-                    'phone': first_driver.user.phone or '+855 12 888 999',
-                    'vehicle_type': first_driver.vehicle_type or 'Motorcycle (Honda Wave)',
-                    'license_plate': first_driver.license_plate or 'PP-1AB-2026',
-                    'is_online': True,
-                    'rating': 4.9,
-                }
-        
-        if driver_lat is None:
-            # Active in-transit driver estimation along path
-            driver_lat = round(rest_lat + (cust_lat - rest_lat) * 0.45, 6)
-            driver_lng = round(rest_lng + (cust_lng - rest_lng) * 0.45, 6)
-            
+            if driver_model.current_lat is not None and driver_model.current_lng is not None:
+                driver_lat = float(driver_model.current_lat)
+                driver_lng = float(driver_model.current_lng)
+
+        if driver_assigned and driver_lat is None:
+            if not is_picked_up:
+                if tracking_stage == 'at_restaurant':
+                    driver_lat = round(rest_lat, 6)
+                    driver_lng = round(rest_lng, 6)
+                else:
+                    # Assigned/heading to restaurant for pickup — do NOT jump onto customer leg yet
+                    driver_lat = round(rest_lat - 0.0022, 6)
+                    driver_lng = round(rest_lng - 0.0018, 6)
+            elif tracking_stage in ('arrived', 'delivered'):
+                driver_lat = round(cust_lat, 6)
+                driver_lng = round(cust_lng, 6)
+            else:
+                # Active in-transit fallback when driver GPS hasn't pinged since pickup
+                driver_lat = round(rest_lat + (cust_lat - rest_lat) * 0.45, 6)
+                driver_lng = round(rest_lng + (cust_lng - rest_lng) * 0.45, 6)
+
         cust_phone = ''
         if order.customer:
             cust_phone = getattr(order.customer, 'phone', '') or ''
         if not cust_phone:
             cust_phone = '+855 12 345 678'
-        
+
         cust_name = 'Customer'
         if order.customer:
             cust_name = order.customer.get_full_name() or order.customer.username
 
+        eta_minutes = 0
+        if order.status not in ('delivered', 'cancelled', 'failed_delivery'):
+            if order.estimated_delivery_time:
+                diff = (order.estimated_delivery_time - timezone.now()).total_seconds()
+                eta_minutes = max(1, int(diff / 60))
+            elif tracking_stage == 'arrived':
+                eta_minutes = 1
+            elif is_picked_up:
+                eta_minutes = 12
+            else:
+                eta_minutes = 22
+
         data = {
             'order_id': order.id,
+            'order_reference': order.order_reference,
             'status': order.status,
+            'delivery_status': delivery.status if delivery else None,
+            'driver_assigned': driver_assigned,
+            'is_picked_up': is_picked_up,
+            'tracking_stage': tracking_stage,
+            'auto_tracking': bool(
+                driver_model and driver_model.is_online
+                and order.status not in ('delivered', 'cancelled', 'failed_delivery')
+            ),
+            'last_location_update': (
+                driver_model.last_location_update.isoformat()
+                if (driver_model and driver_model.last_location_update) else None
+            ),
+            'confirmed_at': order.confirmed_at.isoformat() if order.confirmed_at else None,
+            'ready_at': order.ready_at.isoformat() if order.ready_at else None,
+            'picked_up_at': (
+                order.picked_up_at.isoformat()
+                if order.picked_up_at else (
+                    delivery.pickup_time.isoformat() if (delivery and delivery.pickup_time) else None
+                )
+            ),
+            'delivered_at': order.delivered_at.isoformat() if order.delivered_at else None,
+            'eta_minutes': eta_minutes,
             'restaurant_name': order.restaurant.name if order.restaurant else 'Restaurant',
-            'delivery_address': str(order.address) if order.address else 'Phnom Penh, Cambodia',
+            'delivery_address': order.delivery_address_snapshot or (str(order.address) if order.address else 'Phnom Penh, Cambodia'),
             'restaurant_location': {
                 'lat': rest_lat,
                 'lng': rest_lng,
@@ -888,16 +1025,16 @@ class OrderViewSet(viewsets.ModelViewSet):
             'customer': {
                 'name': cust_name,
                 'phone': cust_phone,
-                'address': str(order.address) if order.address else 'Phnom Penh, Cambodia',
+                'address': order.delivery_address_snapshot or (str(order.address) if order.address else 'Phnom Penh, Cambodia'),
                 'special_instructions': order.special_instructions or (order.address.delivery_instructions if order.address else ''),
             },
             'driver_location': {
                 'lat': driver_lat,
                 'lng': driver_lng,
-            },
+            } if (driver_lat is not None and driver_lng is not None) else None,
             'driver': driver_obj,
         }
-        
+
         return Response(data)
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny], url_path='tracking')
@@ -1443,7 +1580,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = Driver.objects.select_related('user').all()
         if self.request.query_params.get('online') == 'true':
-            qs = qs.filter(is_online=True)
+            qs = qs.filter(is_online=True, is_approved=True)
         return qs
 
     def _get_driver(self, user):
@@ -1513,14 +1650,26 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         lat = request.data.get('lat')
         lng = request.data.get('lng')
         if lat is not None and lng is not None:
-            driver.current_lat = Decimal(str(lat))
-            driver.current_lng = Decimal(str(lng))
+            try:
+                lat_dec = Decimal(str(lat))
+                lng_dec = Decimal(str(lng))
+            except (InvalidOperation, TypeError, ValueError):
+                return Response({'error': 'Invalid coordinates'}, status=status.HTTP_400_BAD_REQUEST)
+            speed = float(request.data.get('speed') or request.data.get('speed_kmh') or 25.0)
+            bearing = float(request.data.get('bearing') or request.data.get('heading') or 0.0)
+            driver.current_lat = lat_dec
+            driver.current_lng = lng_dec
             driver.last_location_update = timezone.now()
             driver.save(update_fields=['current_lat', 'current_lng', 'last_location_update'])
+            updated_orders = _broadcast_driver_location_to_orders(
+                driver, lat_dec, lng_dec, speed=speed, bearing=bearing
+            )
             return Response({
                 'status': 'Location updated',
                 'lat': float(driver.current_lat),
                 'lng': float(driver.current_lng),
+                'last_location_update': driver.last_location_update.isoformat(),
+                'active_orders_updated': updated_orders,
             })
         return Response({'error': 'lat and lng required'}, status=status.HTTP_400_BAD_REQUEST)
 

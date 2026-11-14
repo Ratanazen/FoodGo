@@ -493,9 +493,11 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('KHQR Code Unavailable'), findsOneWidget);
-        expect(find.text('Regenerate KHQR Code'), findsOneWidget);
+        final regenBtn = find.text('Regenerate KHQR Code');
+        expect(regenBtn, findsOneWidget);
 
-        await tester.tap(find.text('Regenerate KHQR Code'));
+        await tester.ensureVisible(regenBtn);
+        await tester.tap(regenBtn);
         await tester.pumpAndSettle();
 
         expect(mockService.createCalled, isTrue);

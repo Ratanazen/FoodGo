@@ -288,19 +288,19 @@ class FestivalThemeBanner extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Flexible(
+                      Expanded(
                         child: Text(
                           ThemeStyles.getFestivalGreeting(palette),
-                          style: TextStyle(
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF111827),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12.5,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1F2937),
+                                fontWeight: FontWeight.bold,
+                              ),
+                          maxLines: 2,
                         ),
                       ),
                       if (showBadge && palette.badgeText.isNotEmpty) ...[
@@ -311,16 +311,20 @@ class FestivalThemeBanner extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: palette.primary.withValues(alpha: 0.2),
+                            color: palette.primary.withValues(alpha: 0.16),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             palette.badgeText,
-                            style: TextStyle(
-                              color: palette.primary,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: isDark
+                                      ? palette.primary
+                                      : HSLColor.fromColor(
+                                          palette.primary,
+                                        ).withLightness(0.30).toColor(),
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                         ),
                       ],
@@ -329,21 +333,33 @@ class FestivalThemeBanner extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     ThemeStyles.getFestivalSubtitleKh(palette),
-                    style: TextStyle(
-                      fontFamily: AppTheme.khmerPrimaryFont,
-                      fontFamilyFallback: AppTheme.khmerFontFallbacks,
-                      color: isDark ? Colors.white60 : const Color(0xFF6B7280),
-                      fontSize: 11,
-                      height: 1.35,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    style:
+                        (Theme.of(context).textTheme.labelSmall ??
+                                const TextStyle())
+                            .copyWith(
+                              fontFamily: AppTheme.khmerPrimaryFont,
+                              fontFamilyFallback: AppTheme.khmerFontFallbacks,
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF4B5563),
+                              height: 1.5,
+                              letterSpacing: 0,
+                            ),
+                    maxLines: 2,
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.palette_outlined, color: palette.primary, size: 18),
+            Icon(
+              Icons.palette_outlined,
+              color: isDark
+                  ? palette.primary
+                  : HSLColor.fromColor(
+                      palette.primary,
+                    ).withLightness(0.32).toColor(),
+              size: 18,
+            ),
           ],
         ),
       ),

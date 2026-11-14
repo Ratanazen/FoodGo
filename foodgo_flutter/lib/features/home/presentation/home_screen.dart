@@ -563,11 +563,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                         .textTheme
                                         .labelSmall
                                         ?.copyWith(
-                                          color: AppTypography.secondaryTextColor(
-                                            isDark
-                                                ? Brightness.dark
-                                                : Brightness.light,
-                                          ),
+                                          color:
+                                              AppTypography.secondaryTextColor(
+                                                isDark
+                                                    ? Brightness.dark
+                                                    : Brightness.light,
+                                              ),
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),
@@ -721,9 +722,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 alignment: Alignment.center,
                                 child: Text(
                                   initials,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
+                                  style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(
                                         color: Theme.of(
                                           context,
@@ -775,10 +774,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       context.tr('home.search'),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTypography.secondaryTextColor(
-                              isDark ? Brightness.dark : Brightness.light,
-                            ),
-                          ),
+                        color: AppTypography.secondaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
+                      ),
                     ),
                   ),
                   Icon(
@@ -849,17 +848,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   '50% OFF',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Your First Healthy Meal!',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                   maxLines: 2,
                 ),
                 const SizedBox(height: 12),
@@ -1059,11 +1058,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     item['name'] as String,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppTypography.primaryTextColor(
-                            isDark ? Brightness.dark : Brightness.light,
-                          ),
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: AppTypography.primaryTextColor(
+                        isDark ? Brightness.dark : Brightness.light,
+                      ),
+                    ),
                     maxLines: 1,
                   ),
                   const SizedBox(height: 2),
@@ -1080,19 +1079,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         '4.8',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppTypography.secondaryTextColor(
-                                isDark ? Brightness.dark : Brightness.light,
-                              ),
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: AppTypography.secondaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
                           '• 15 min',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
+                          style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: AppTypography.secondaryTextColor(
                                   isDark ? Brightness.dark : Brightness.light,
@@ -1114,9 +1111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Text(
                             KhmerCurrency.formatUsd(item['price'] as double),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
+                            style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   color: isDark
@@ -1126,9 +1121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           Text(
                             KhmerCurrency.formatKhr(item['price'] as double),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.w500,
                                   color: AppTypography.secondaryTextColor(
@@ -1261,15 +1254,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     cat['name'] as String,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: isSelected
-                              ? FontWeight.w800
-                              : FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : AppTypography.secondaryTextColor(
-                                  isDark ? Brightness.dark : Brightness.light,
-                                ),
-                        ),
+                      fontWeight: isSelected
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : AppTypography.secondaryTextColor(
+                              isDark ? Brightness.dark : Brightness.light,
+                            ),
+                    ),
                     maxLines: 1,
                   ),
                 ],
@@ -1432,24 +1425,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Item Name
                     Text(
                       item['name'] as String,
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
+                        color: AppTypography.primaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
 
                     // Subtitle
                     Text(
                       item['subtitle'] as String,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? Colors.grey[400]
-                            : const Color(0xFF8E8E93),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppTypography.secondaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1466,21 +1458,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               '\$${(item['price'] as double).toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 15,
-                                color: GlassTheme.primaryGreen,
-                              ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark
+                                        ? const Color(0xFF4ADE80)
+                                        : const Color(0xFF15803D),
+                                  ),
                             ),
                             Text(
                               KhmerCurrency.formatKhr(item['price'] as double),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? Colors.white54
-                                    : const Color(0xFF6B7280),
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTypography.secondaryTextColor(
+                                      isDark
+                                          ? Brightness.dark
+                                          : Brightness.light,
+                                    ),
+                                  ),
                             ),
                           ],
                         ),
@@ -1595,9 +1591,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         deal['label'] ?? 'YOUR WHOLE ORDER',
-                        style: const TextStyle(
-                          color: Color(0xFFB0B0B0),
-                          fontSize: 10,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: const Color(0xFFD1D5DB),
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                         ),
@@ -1605,12 +1600,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 3),
                       Text(
                         deal['discount'] ?? '30% OFF',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
-                        ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -1629,12 +1623,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: Text(
                               deal['code'] ?? 'FOODIE30',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -1662,14 +1656,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ],
                               ),
-                              child: const Text(
+                              child: Text(
                                 'Claim',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                  letterSpacing: 0.3,
-                                ),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.3,
+                                    ),
                               ),
                             ),
                           ),
@@ -1700,16 +1694,20 @@ class _HomeScreenState extends State<HomeScreen> {
   // Fast Delivery: 20 min or less (TikTok Signature Section)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildFastDeliverySection(bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Fast delivery · 20 min or less',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppTypography.primaryTextColor(brightness),
+          ),
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 155,
+          height: 164,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: _fastDeliveryRestaurants.length,
@@ -1762,11 +1760,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: Text(
                               item['discount'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                         ),
@@ -1779,12 +1777,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Text(
                             item['name'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTypography.primaryTextColor(
+                                    brightness,
+                                  ),
+                                ),
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 3),
                           Row(
@@ -1798,12 +1798,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               Flexible(
                                 child: Text(
                                   '${item['rating']} · ${item['timeMin']} min · ${item['distanceKm']} km',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: GlassTheme.textMuted,
-                                  ),
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: AppTypography.secondaryTextColor(
+                                          brightness,
+                                        ),
+                                      ),
                                   maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -1825,6 +1826,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Sorting Filter Chips
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildSortingChips(bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     const sorts = [
       {'name': 'All', 'icon': null},
       {'name': 'Top Rated', 'icon': AppIcons.star},
@@ -1851,7 +1853,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 16,
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                          : AppTypography.secondaryTextColor(brightness),
                     )
                   : null,
               label: Text(sort),
@@ -1861,12 +1863,11 @@ class _HomeScreenState extends State<HomeScreen> {
               backgroundColor: isDark
                   ? Colors.white.withValues(alpha: 0.08)
                   : Colors.white,
-              labelStyle: TextStyle(
+              labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                    : AppTypography.primaryTextColor(brightness),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 12,
               ),
               side: BorderSide(
                 color: isSelected
@@ -2147,10 +2148,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Text(
                       discountText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
@@ -2200,46 +2200,47 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                      color: isDark ? Colors.white : const Color(0xFF222222),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppTypography.primaryTextColor(
+                        isDark ? Brightness.dark : Brightness.light,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 5),
 
                   // Rating • Delivery Time • Distance
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         AppIcons.star,
-                        color: Color(0xFFFFB300),
+                        color: isDark
+                            ? const Color(0xFFFBBF24)
+                            : const Color(0xFFB45309),
                         size: 13,
                       ),
                       const SizedBox(width: 3),
                       Text(
                         rating.toStringAsFixed(1),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF444444),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                         ),
                       ),
-                      Flexible(
+                      Expanded(
                         child: Text(
                           ' • ${timeMin}m • ${distanceKm.toStringAsFixed(1)}km',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark
-                                ? Colors.white54
-                                : const Color(0xFF757575),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppTypography.secondaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                              ),
+                          maxLines: 2,
                         ),
                       ),
                     ],
@@ -2251,15 +2252,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     fee == 0.0
                         ? 'Free Delivery'
                         : 'Delivery ${KhmerCurrency.formatDualApprox(fee)}',
-                    style: TextStyle(
-                      fontSize: 10,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: fee == 0.0
-                          ? Theme.of(context).colorScheme.primary
-                          : GlassTheme.textMuted,
+                          ? (isDark
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFF15803D))
+                          : AppTypography.secondaryTextColor(
+                              isDark ? Brightness.dark : Brightness.light,
+                            ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ],
               ),
@@ -2314,10 +2317,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Text(
         letter,
-        style: TextStyle(
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: fg,
-          fontSize: letter.length > 2 ? 8 : 10,
           fontWeight: FontWeight.w900,
+          height: 1.0,
         ),
       ),
     );
@@ -2438,17 +2441,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       courierTitle,
-                      style: const TextStyle(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        color: AppTypography.primaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       courierSub,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: GlassTheme.textMuted,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTypography.secondaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                     ),
                   ],
@@ -2473,23 +2479,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         '$etaMinutes',
-                        style: TextStyle(
-                          color: isDark
-                              ? GlassTheme.paleSmalt
-                              : Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          height: 1.1,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: isDark
+                                  ? GlassTheme.paleSmalt
+                                  : Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
+                            ),
                       ),
                       Text(
                         'min',
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: isDark
                               ? GlassTheme.paleSmalt
                               : Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
-                          fontSize: 11,
                           height: 1.0,
                         ),
                       ),
@@ -2499,7 +2504,9 @@ class _HomeScreenState extends State<HomeScreen> {
               else if (orderId != null)
                 Icon(
                   AppIcons.chevronRight,
-                  color: GlassTheme.textMuted,
+                  color: AppTypography.secondaryTextColor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
                   size: AppIconSizes.sm,
                 ),
             ],
@@ -2513,17 +2520,22 @@ class _HomeScreenState extends State<HomeScreen> {
   // Common Section Header with Green "See All"
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildSectionHeader(String title, VoidCallback onSeeAll) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.2,
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppTypography.primaryTextColor(
+                isDark ? Brightness.dark : Brightness.light,
+              ),
+            ),
           ),
         ),
+        const SizedBox(width: 8),
         AnimatedPressable(
           pressedScale: 0.92,
           onTap: onSeeAll,
@@ -2534,17 +2546,20 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(
                   context.tr('common.seeAll'),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: isDark
+                        ? const Color(0xFF4ADE80)
+                        : const Color(0xFF15803D),
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Icon(
                   AppIcons.chevronRight,
                   size: 11,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: isDark
+                      ? const Color(0xFF4ADE80)
+                      : const Color(0xFF15803D),
                 ),
               ],
             ),

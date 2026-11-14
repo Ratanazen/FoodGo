@@ -109,13 +109,13 @@ class _CartScreenState extends State<CartScreen> {
                       ? 'You unlocked FREE delivery!'
                       : 'Add \$${remaining.toStringAsFixed(2)} more for FREE delivery',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: isFree
-                            ? Theme.of(context).colorScheme.primary
-                            : AppTypography.primaryTextColor(
-                                isDark ? Brightness.dark : Brightness.light,
-                              ),
-                      ),
+                    fontWeight: FontWeight.w600,
+                    color: isFree
+                        ? Theme.of(context).colorScheme.primary
+                        : AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
+                  ),
                 ),
               ),
             ],
@@ -163,9 +163,9 @@ class _CartScreenState extends State<CartScreen> {
               Text(
                 'Delete',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -258,11 +258,11 @@ class _CartScreenState extends State<CartScreen> {
                     Text(
                       item.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppTypography.primaryTextColor(
-                              isDark ? Brightness.dark : Brightness.light,
-                            ),
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: AppTypography.primaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
+                      ),
                       maxLines: 2,
                     ),
                     const SizedBox(height: 4),
@@ -324,11 +324,11 @@ class _CartScreenState extends State<CartScreen> {
                     child: Text(
                       '${item.quantity}',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppTypography.primaryTextColor(
-                              isDark ? Brightness.dark : Brightness.light,
-                            ),
-                          ),
+                        fontWeight: FontWeight.w800,
+                        color: AppTypography.primaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
+                      ),
                     ),
                   ),
                   AnimatedPressable(
@@ -463,11 +463,11 @@ class _CartScreenState extends State<CartScreen> {
               Text(
                 'Order Summary',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTypography.primaryTextColor(
-                        isDark ? Brightness.dark : Brightness.light,
-                      ),
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: AppTypography.primaryTextColor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],
@@ -507,9 +507,7 @@ class _CartScreenState extends State<CartScreen> {
                               Flexible(
                                 child: Text(
                                   'Code "$promoCode" Applied',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: isDark
                                             ? const Color(0xFF4ADE80)
@@ -551,22 +549,16 @@ class _CartScreenState extends State<CartScreen> {
                           child: TextField(
                             controller: _voucherController,
                             textCapitalization: TextCapitalization.characters,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: AppTypography.primaryTextColor(
-                                    isDark
-                                        ? Brightness.dark
-                                        : Brightness.light,
+                                    isDark ? Brightness.dark : Brightness.light,
                                   ),
                                   fontWeight: FontWeight.bold,
                                 ),
                             decoration: InputDecoration(
                               hintText: 'Enter Voucher or Promo Code',
-                              hintStyle: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              hintStyle: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: AppTypography.secondaryTextColor(
                                       isDark
@@ -602,9 +594,7 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                             child: Text(
                               'Apply',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
                                     color: isDark
                                         ? const Color(0xFF4ADE80)
@@ -654,19 +644,19 @@ class _CartScreenState extends State<CartScreen> {
                 Text(
                   'Subtotal',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTypography.secondaryTextColor(
-                          isDark ? Brightness.dark : Brightness.light,
-                        ),
-                      ),
+                    color: AppTypography.secondaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
+                  ),
                 ),
                 Text(
                   '\$${cart.totalAmount.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTypography.primaryTextColor(
-                          isDark ? Brightness.dark : Brightness.light,
-                        ),
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: AppTypography.primaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -677,25 +667,25 @@ class _CartScreenState extends State<CartScreen> {
                 Text(
                   'Delivery Fee',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTypography.secondaryTextColor(
-                          isDark ? Brightness.dark : Brightness.light,
-                        ),
-                      ),
+                    color: AppTypography.secondaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
+                  ),
                 ),
                 Text(
                   cart.deliveryFee <= 0
                       ? 'FREE'
                       : '\$${cart.deliveryFee.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: cart.deliveryFee <= 0
-                            ? (isDark
-                                  ? const Color(0xFF4ADE80)
-                                  : const Color(0xFF15803D))
-                            : AppTypography.primaryTextColor(
-                                isDark ? Brightness.dark : Brightness.light,
-                              ),
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: cart.deliveryFee <= 0
+                        ? (isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D))
+                        : AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
+                  ),
                 ),
               ],
             ),
@@ -708,20 +698,20 @@ class _CartScreenState extends State<CartScreen> {
                     child: Text(
                       'Discount ($promoCode)',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: isDark
-                                ? const Color(0xFF4ADE80)
-                                : const Color(0xFF15803D),
-                          ),
+                        color: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
+                      ),
                     ),
                   ),
                   Text(
                     '-\$${cart.discountAmount.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? const Color(0xFF4ADE80)
-                              : const Color(0xFF15803D),
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? const Color(0xFF4ADE80)
+                          : const Color(0xFF15803D),
+                    ),
                   ),
                 ],
               ),
@@ -740,20 +730,18 @@ class _CartScreenState extends State<CartScreen> {
                 Text(
                   'Total',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTypography.primaryTextColor(
-                          isDark ? Brightness.dark : Brightness.light,
-                        ),
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: AppTypography.primaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
+                  ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       '\$${cart.grandTotal.toStringAsFixed(2)}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
+                      style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(
                             fontWeight: FontWeight.w900,
                             color: isDark
@@ -764,11 +752,11 @@ class _CartScreenState extends State<CartScreen> {
                     Text(
                       '≈ ${KhmerCurrency.formatKhr(cart.grandTotal)} KHR',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppTypography.secondaryTextColor(
-                              isDark ? Brightness.dark : Brightness.light,
-                            ),
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: AppTypography.secondaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -813,9 +801,7 @@ class _CartScreenState extends State<CartScreen> {
                       child: Text(
                         context.tr('cart.checkout'),
                         textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
@@ -859,11 +845,11 @@ class _CartScreenState extends State<CartScreen> {
         child: Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppTypography.secondaryTextColor(
-                  isDark ? Brightness.dark : Brightness.light,
-                ),
-                fontWeight: FontWeight.w600,
-              ),
+            color: AppTypography.secondaryTextColor(
+              isDark ? Brightness.dark : Brightness.light,
+            ),
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
@@ -927,11 +913,11 @@ class _CartScreenState extends State<CartScreen> {
                     child: Text(
                       '${cart.itemCount} ${cart.itemCount == 1 ? "Product" : "Products"}',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: isDark
-                                ? const Color(0xFF4ADE80)
-                                : const Color(0xFF15803D),
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -951,34 +937,24 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                           title: Text(
                             'Clear Cart?',
-                            style: Theme.of(ctx)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  color: AppTypography.primaryTextColor(
-                                    brightness,
-                                  ),
-                                ),
+                            style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
+                              color: AppTypography.primaryTextColor(brightness),
+                            ),
                           ),
                           content: Text(
                             'Are you sure you want to remove all items from your cart?',
-                            style: Theme.of(ctx)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: AppTypography.secondaryTextColor(
-                                    brightness,
-                                  ),
-                                ),
+                            style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                              color: AppTypography.secondaryTextColor(
+                                brightness,
+                              ),
+                            ),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),
                               child: Text(
                                 'Cancel',
-                                style: Theme.of(ctx)
-                                    .textTheme
-                                    .labelLarge
+                                style: Theme.of(ctx).textTheme.labelLarge
                                     ?.copyWith(
                                       color: AppTypography.secondaryTextColor(
                                         brightness,
@@ -996,9 +972,7 @@ class _CartScreenState extends State<CartScreen> {
                               },
                               child: Text(
                                 'Clear',
-                                style: Theme.of(ctx)
-                                    .textTheme
-                                    .labelLarge
+                                style: Theme.of(ctx).textTheme.labelLarge
                                     ?.copyWith(color: Colors.white),
                               ),
                             ),
@@ -1049,9 +1023,7 @@ class _CartScreenState extends State<CartScreen> {
                         Text(
                           context.tr('cart.emptyTitle'),
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
+                          style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppTypography.primaryTextColor(
@@ -1063,9 +1035,7 @@ class _CartScreenState extends State<CartScreen> {
                         Text(
                           context.tr('cart.emptySubtitle'),
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
+                          style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: AppTypography.secondaryTextColor(
                                   brightness,

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../services/api_service.dart';
+import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
 
@@ -21,6 +24,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   Map<String, dynamic>? _trackingData;
+  Timer? _autoRefreshTimer;
 
   @override
   void initState() {
@@ -33,13 +37,32 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
 
   @override
   void dispose() {
+    _autoRefreshTimer?.cancel();
     _orderIdController.dispose();
     super.dispose();
   }
 
-  Future<void> _performTrack(String idStr) async {
+  void _syncAutoRefresh(String cleanId, String? status) {
+    final lower = (status ?? '').toLowerCase();
+    final isTerminal =
+        lower == 'delivered' ||
+        lower == 'cancelled' ||
+        lower == 'failed_delivery';
+    if (isTerminal) {
+      _autoRefreshTimer?.cancel();
+      _autoRefreshTimer = null;
+      return;
+    }
+    _autoRefreshTimer ??= Timer.periodic(const Duration(seconds: 8), (_) {
+      if (!mounted) return;
+      _performTrack(cleanId, silent: true);
+    });
+  }
+
+  Future<void> _performTrack(String idStr, {bool silent = false}) async {
     final cleanId = idStr.trim();
     if (cleanId.isEmpty) {
+      _autoRefreshTimer?.cancel();
       setState(() {
         _errorMessage = 'Please enter a valid numeric Order ID.';
         _trackingData = null;
@@ -47,10 +70,12 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (!silent) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       dynamic response;
@@ -60,18 +85,21 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
         response = await ApiService().get('orders/$cleanId/tracking/');
       }
 
+      if (!mounted) return;
       if (response != null && response is Map<String, dynamic>) {
         setState(() {
           _trackingData = response;
           _isLoading = false;
         });
-      } else {
+        _syncAutoRefresh(cleanId, response['status']?.toString());
+      } else if (!silent) {
         setState(() {
           _errorMessage = 'Order not found or tracking data unavailable.';
           _isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted || silent) return;
       setState(() {
         _errorMessage =
             'Unable to locate Order #$cleanId. Verify the ID and try again.';
@@ -83,26 +111,23 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final dangerRed = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Live Delivery Tracking',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : GlassTheme.textDark,
-          ),
-        ),
+      appBar: GlassAppBar(
+        title: 'Live Delivery Tracking',
         leading: IconButton(
-          icon: Icon(
-            AppIcons.back,
-            color: isDark ? Colors.white : GlassTheme.textDark,
-          ),
+          icon: Icon(AppIcons.back, color: primaryText),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -129,20 +154,16 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                     children: [
                       Text(
                         'Public Order Tracker',
-                        style: TextStyle(
-                          fontSize: 18,
+                        style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : GlassTheme.textDark,
+                          color: primaryText,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         'Enter your FoodGo order reference number to view real-time delivery status.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.65)
-                              : GlassTheme.textMuted,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: secondaryText,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -152,21 +173,17 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                             child: TextField(
                               controller: _orderIdController,
                               keyboardType: TextInputType.number,
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white
-                                    : GlassTheme.textDark,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: primaryText,
                               ),
                               decoration: InputDecoration(
-                                prefixIcon: const Icon(
+                                prefixIcon: Icon(
                                   AppIcons.search,
-                                  color: GlassTheme.primaryGreen,
+                                  color: accentGreen,
                                 ),
                                 hintText: 'Enter Order ID (e.g. 101)',
-                                hintStyle: TextStyle(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.4)
-                                      : GlassTheme.textMuted,
+                                hintStyle: textTheme.bodyMedium?.copyWith(
+                                  color: secondaryText,
                                 ),
                                 filled: true,
                                 fillColor: isDark
@@ -190,7 +207,8 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                                 ? null
                                 : () => _performTrack(_orderIdController.text),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: GlassTheme.primaryGreen,
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 22,
                                 vertical: 16,
@@ -200,22 +218,21 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                               ),
                             ),
                             child: _isLoading
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
+                                        colorScheme.onPrimary,
                                       ),
                                     ),
                                   )
-                                : const Text(
+                                : Text(
                                     'Track',
-                                    style: TextStyle(
-                                      fontSize: 15,
+                                    style: textTheme.bodyLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: colorScheme.onPrimary,
                                     ),
                                   ),
                           ),
@@ -231,26 +248,21 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.15),
+                      color: dangerRed.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: Colors.redAccent.withValues(alpha: 0.3),
+                        color: dangerRed.withValues(alpha: 0.35),
                       ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
-                          AppIcons.error,
-                          color: Colors.redAccent,
-                          size: 20,
-                        ),
+                        Icon(AppIcons.error, color: dangerRed, size: 20),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 13,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: dangerRed,
                             ),
                           ),
                         ),
@@ -268,20 +280,57 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                     _buildDriverCard(
                       _trackingData!['driver'] as Map<String, dynamic>,
                       isDark,
+                    )
+                  else
+                    GlassContainer(
+                      borderRadius: BorderRadius.circular(16),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            AppIcons.delivery,
+                            color: isDark
+                                ? GlassTheme.primaryGreenAccent
+                                : const Color(0xFF15803D),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Assigning Nearby Driver',
+                                  style: textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryText,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Auto-dispatch is locating an online rider for restaurant pickup.',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: secondaryText,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     icon: const Icon(AppIcons.map, color: Colors.white),
-                    label: const Text(
+                    label: Text(
                       'Open Full Interactive Map',
-                      style: TextStyle(
-                        fontSize: 15,
+                      style: textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: GlassTheme.authBlue,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -289,7 +338,8 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                     ),
                     onPressed: () {
                       final id = _trackingData!['order_id'];
-                      context.push('/map?orderId=$id');
+                      final st = _trackingData!['status']?.toString() ?? '';
+                      context.push('/map/$id?status=$st');
                     },
                   ),
                 ],
@@ -302,9 +352,38 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
   }
 
   Widget _buildOrderOverviewCard(Map<String, dynamic> data, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final accentAmber = isDark ? Colors.orangeAccent : const Color(0xFFB45309);
     final status = (data['status'] ?? '').toString();
+    final isPickedUp = data['is_picked_up'] == true;
+    final driverAssigned =
+        data['driver_assigned'] == true || data['driver'] != null;
+    final trackingStage = (data['tracking_stage'] ?? '').toString();
+    final etaMinutes = data['eta_minutes'];
+    final autoTracking = data['auto_tracking'] == true;
     final restaurant = data['restaurant_name'] ?? 'Restaurant';
     final address = data['delivery_address'] ?? 'Destination address';
+
+    String pickupSummary = 'Picked Up • In Transit';
+    if (status == 'delivered') {
+      pickupSummary = 'Delivered to Destination';
+    } else if (!isPickedUp) {
+      if (!driverAssigned) {
+        pickupSummary = 'Not Picked Up • Auto-Assigning Driver';
+      } else if (trackingStage == 'at_restaurant') {
+        pickupSummary = 'Not Picked Up • Rider at Restaurant';
+      } else {
+        pickupSummary = 'Not Picked Up • Rider Heading to Restaurant';
+      }
+    } else if (trackingStage == 'arrived') {
+      pickupSummary = 'Picked Up • Rider at Destination';
+    }
 
     return GlassContainer(
       borderRadius: BorderRadius.circular(16),
@@ -315,32 +394,77 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Order #${data['order_id']}',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : GlassTheme.textDark,
+              Flexible(
+                child: Text(
+                  'Order #${data['order_id']}',
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: primaryText,
+                  ),
                 ),
               ),
-              _buildStatusBadge(status),
+              const SizedBox(width: 8),
+              _buildStatusBadge(status, isDark),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: (isPickedUp ? accentGreen : accentAmber).withValues(
+                    alpha: 0.12,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  pickupSummary,
+                  style: textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: isPickedUp ? accentGreen : accentAmber,
+                  ),
+                ),
+              ),
+              if (autoTracking)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accentGreen.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    etaMinutes != null && (etaMinutes as num) > 0
+                        ? 'Auto-Tracking Live • ETA $etaMinutes min'
+                        : 'Auto-Tracking Live',
+                    style: textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: accentGreen,
+                    ),
+                  ),
+                ),
             ],
           ),
           Divider(height: 24, color: isDark ? Colors.white12 : Colors.black12),
           Row(
             children: [
-              const Icon(
-                AppIcons.restaurants,
-                color: GlassTheme.primaryGreen,
-                size: 18,
-              ),
+              Icon(AppIcons.restaurants, color: accentGreen, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Merchant: $restaurant',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white : GlassTheme.textDark,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: primaryText,
+                    height: 1.5,
+                    letterSpacing: 0,
                   ),
                 ),
               ),
@@ -348,21 +472,17 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
           ),
           const SizedBox(height: 8),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                AppIcons.locationOutline,
-                color: Colors.orangeAccent,
-                size: 18,
-              ),
+              Icon(AppIcons.locationOutline, color: accentAmber, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Delivery: $address',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.8)
-                        : const Color(0xFF475569),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: secondaryText,
+                    height: 1.5,
+                    letterSpacing: 0,
                   ),
                 ),
               ),
@@ -374,6 +494,10 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
   }
 
   Widget _buildDeliveryProgressCard(Map<String, dynamic> data, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final status = (data['status'] ?? '').toString().toLowerCase();
 
     final steps = [
@@ -406,10 +530,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
         children: [
           Text(
             'Delivery Milestones',
-            style: TextStyle(
-              fontSize: 16,
+            style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : GlassTheme.textDark,
+              color: primaryText,
             ),
           ),
           const SizedBox(height: 16),
@@ -435,10 +558,10 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                                   : Colors.black.withValues(alpha: 0.12)),
                       ),
                       child: isDone
-                          ? const Icon(
+                          ? Icon(
                               AppIcons.check,
                               size: 14,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onPrimary,
                             )
                           : null,
                     ),
@@ -455,18 +578,17 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                   ],
                 ),
                 const SizedBox(width: 14),
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    step['title']!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: isCurrent
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isDone
-                          ? (isDark ? Colors.white : GlassTheme.textDark)
-                          : (isDark ? Colors.white38 : Colors.black38),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      step['title']!,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: isCurrent
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isDone ? primaryText : secondaryText,
+                      ),
                     ),
                   ),
                 ),
@@ -479,6 +601,15 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
   }
 
   Widget _buildDriverCard(Map<String, dynamic> driver, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final accentAmber = isDark ? Colors.amber : const Color(0xFFB45309);
+
     return GlassContainer(
       borderRadius: BorderRadius.circular(16),
       padding: const EdgeInsets.all(20),
@@ -487,10 +618,9 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
         children: [
           Text(
             'Assigned Courier Details',
-            style: TextStyle(
-              fontSize: 16,
+            style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : GlassTheme.textDark,
+              color: primaryText,
             ),
           ),
           const SizedBox(height: 12),
@@ -499,10 +629,7 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
               CircleAvatar(
                 radius: 22,
                 backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(
-                  AppIcons.motorcycle,
-                  color: GlassTheme.primaryGreen,
-                ),
+                child: Icon(AppIcons.motorcycle, color: accentGreen),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -511,20 +638,18 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                   children: [
                     Text(
                       driver['name'] ?? 'Driver Partner',
-                      style: TextStyle(
-                        fontSize: 15,
+                      style: textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : GlassTheme.textDark,
+                        color: primaryText,
+                        height: 1.5,
+                        letterSpacing: 0,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${driver['vehicle_type'] ?? 'Motorcycle'} • ${driver['license_plate'] ?? 'Phnom Penh'}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.6)
-                            : GlassTheme.textMuted,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
                       ),
                     ),
                   ],
@@ -541,14 +666,13 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(AppIcons.star, color: Colors.amber, size: 14),
+                    Icon(AppIcons.star, color: accentAmber, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       '${driver['rating'] ?? 4.9}',
-                      style: const TextStyle(
-                        fontSize: 13,
+                      style: textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.amber,
+                        color: accentAmber,
                       ),
                     ),
                   ],
@@ -561,23 +685,29 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color bg = Colors.white10;
-    Color fg = Colors.white;
-    String label = status.replaceAll('_', ' ').toUpperCase();
+  Widget _buildStatusBadge(String status, bool isDark) {
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    Color bg = isDark
+        ? Colors.white.withValues(alpha: 0.10)
+        : Colors.black.withValues(alpha: 0.06);
+    Color fg = primaryText;
+    final String label = status.replaceAll('_', ' ').toUpperCase();
 
     if (status == 'delivered') {
-      bg = Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
-      fg = Theme.of(context).colorScheme.primary;
+      bg = GlassTheme.primaryGreen.withValues(alpha: 0.16);
+      fg = isDark ? GlassTheme.primaryGreenAccent : const Color(0xFF15803D);
     } else if (status == 'on_the_way' || status == 'picked_up') {
-      bg = Colors.blue.withValues(alpha: 0.2);
-      fg = Colors.lightBlueAccent;
+      bg = Colors.blue.withValues(alpha: 0.16);
+      fg = isDark ? Colors.lightBlueAccent : const Color(0xFF1D4ED8);
     } else if (status == 'preparing') {
-      bg = Colors.orange.withValues(alpha: 0.2);
-      fg = Colors.orangeAccent;
+      bg = Colors.orange.withValues(alpha: 0.16);
+      fg = isDark ? Colors.orangeAccent : const Color(0xFFB45309);
     } else if (status == 'cancelled') {
-      bg = Colors.red.withValues(alpha: 0.2);
-      fg = Colors.redAccent;
+      bg = Colors.red.withValues(alpha: 0.16);
+      fg = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
     }
 
     return Container(
@@ -588,7 +718,10 @@ class _PublicTrackingScreenState extends State<PublicTrackingScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: fg),
+        style: textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: fg,
+        ),
       ),
     );
   }

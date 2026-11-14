@@ -359,10 +359,8 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                 widget.isDriver
                     ? 'Delivery Handover QR'
                     : 'Delivery Confirmation QR',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: scheme.onSurface,
-                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -370,8 +368,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                 widget.isDriver
                     ? 'Order #${widget.orderId} • Show to customer'
                     : 'Order #${widget.orderId} • Show to driver',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -405,9 +404,8 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           Flexible(
             child: Text(
               'Delivery Confirmation (Not Payment)',
-              style: TextStyle(
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: amber,
-                fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -458,9 +456,11 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
             ),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
+          child: Text(
             'Close',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -479,7 +479,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           const SizedBox(height: AppSpacing.md),
           Text(
             'Requesting a verified handover code…',
-            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -505,19 +507,17 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           Text(
             'Verified code unavailable',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: scheme.onSurface,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             _errorMessage ?? 'The delivery code could not be loaded.',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
-              fontSize: 13,
               height: 1.4,
             ),
           ),
@@ -567,7 +567,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                 Expanded(
                   child: Text(
                     _errorMessage!,
-                    style: TextStyle(color: scheme.error, fontSize: 12),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: scheme.error),
                   ),
                 ),
               ],
@@ -628,12 +630,13 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                                   size: 40,
                                 ),
                                 const SizedBox(height: AppSpacing.sm),
-                                const Text(
+                                Text(
                                   'Code expired',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                                 const SizedBox(height: AppSpacing.sm),
                                 ElevatedButton(
@@ -648,12 +651,13 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                                   onPressed: _isLoading
                                       ? null
                                       : () => _loadCode(regenerate: true),
-                                  child: const Text(
+                                  child: Text(
                                     'Get new code',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: scheme.onPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -676,10 +680,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                     ),
                     child: Text(
                       'HANDOVER PIN: $_verificationPin',
-                      style: const TextStyle(
-                        color: Color(0xFF1B5E20),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: const Color(0xFF1B5E20),
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
                         letterSpacing: 2.0,
                       ),
                     ),
@@ -707,12 +710,10 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                           ? 'Valid for ${_formatTimer(_secondsRemaining)} '
                                 '• Auto-verifies upon scan'
                           : 'Secure code • Auto-verifies upon scan'),
-                style: TextStyle(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: isExpired ? scheme.error : scheme.onSurfaceVariant,
-                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (!isExpired && widget.autoFetch) ...[
@@ -756,11 +757,9 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
                   : 'Show this code to your assigned FoodGo driver on arrival. '
                         'The driver scans it; delivery is only marked complete '
                         'after FoodGo confirms it.',
-              style: TextStyle(
-                color: scheme.onSurfaceVariant,
-                fontSize: 12,
-                height: 1.4,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ),
         ],
@@ -803,9 +802,8 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           child: Text(
             'Delivery Confirmed',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: scheme.onSurface,
-              fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -814,16 +812,17 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
         Text(
           'FoodGo confirmed order #${widget.orderId} as delivered.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
         ),
         if (_deliveryTimestamp != null) ...[
           const SizedBox(height: 6),
           Text(
             'Confirmed at $_deliveryTimestamp',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: primary,
-              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -841,7 +840,10 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             widget.isDriver ? 'Back to Dashboard' : 'Done',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: scheme.onPrimary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),

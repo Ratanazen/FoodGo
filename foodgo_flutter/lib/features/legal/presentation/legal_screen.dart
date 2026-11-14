@@ -36,18 +36,23 @@ class _LegalScreenState extends State<LegalScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final fgColor = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+
     return LiquidGlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+        appBar: GlassAppBar(
+          title: 'Legal & Compliance',
           leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: isDark ? Colors.white : GlassTheme.textInverseDark,
-            ),
+            icon: Icon(Icons.arrow_back_ios_new_rounded, color: fgColor),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -56,18 +61,15 @@ class _LegalScreenState extends State<LegalScreen>
               }
             },
           ),
-          title: Text(
-            'Legal & Compliance',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : GlassTheme.textInverseDark,
-            ),
-          ),
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: GlassTheme.primaryGreen,
-            labelColor: GlassTheme.primaryGreen,
-            unselectedLabelColor: GlassTheme.textMuted,
+            indicatorColor: accentGreen,
+            labelColor: accentGreen,
+            unselectedLabelColor: secondaryText,
+            labelStyle: textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            unselectedLabelStyle: textTheme.labelLarge,
             tabs: const [
               Tab(text: 'Terms of Service'),
               Tab(text: 'Privacy Policy'),

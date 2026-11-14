@@ -50,6 +50,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   MapLayerType _selectedLayer = MapLayerType.openStreetMap;
   late bool _isLoading = widget.initialLoading ?? true;
   late String _orderStatus = widget.initialStatus ?? 'pending';
+  String? _deliveryStatus;
   String? _restaurantName;
   String? _deliveryAddress;
 
@@ -61,13 +62,45 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   Map<String, dynamic>? _driverInfo;
   Map<String, dynamic>? _customerInfo;
   Timer? _liveMovementTimer;
+  Timer? _pollingTimer;
   double _routeProgress = 0.45;
   double _currentSpeedKmH = 34.0;
   double _driverBearing = 0.0;
+  bool _isPickedUp = false;
+  bool _driverAssigned = true;
+  String _trackingStage = 'en_route_to_restaurant';
+  bool _autoFollowDriver = true;
+  bool _autoTrackingActive = false;
+  int? _backendEtaMinutes;
+  String? _confirmedAtIso;
+  String? _pickedUpAtIso;
+  String? _deliveredAtIso;
+  DateTime? _lastLiveLocationAt;
 
   // Nearby restaurants list when in explore mode (orderId is empty)
   List<Map<String, dynamic>> _nearbyRestaurants = [];
   Map<String, dynamic>? _selectedRestaurant;
+
+  bool _statusImpliesPickedUp(String status, {String? deliveryStatus}) {
+    const pickedOrder = {
+      'picked_up',
+      'on_the_way',
+      'out_for_delivery',
+      'on_delivery',
+      'driver_arrived',
+      'arrived',
+      'delivered',
+    };
+    const pickedDelivery = {
+      'picked_up',
+      'on_the_way',
+      'out_for_delivery',
+      'arrived',
+      'delivered',
+    };
+    return pickedOrder.contains(status) ||
+        (deliveryStatus != null && pickedDelivery.contains(deliveryStatus));
+  }
 
   @override
   void initState() {
@@ -76,20 +109,31 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
+    _isPickedUp = _statusImpliesPickedUp(_orderStatus);
+    if (_isPickedUp) {
+      _trackingStage = _orderStatus == 'delivered' ? 'delivered' : 'on_the_way';
+    } else if (_orderStatus == 'arrived_at_restaurant') {
+      _trackingStage = 'at_restaurant';
+    }
 
     if (widget.initialLoading != false) {
       if (widget.orderId.isNotEmpty && widget.orderId != '0') {
         _fetchOrderTrackingData();
         _connectWebSocket();
+        _startRestPollingFallback();
         _startLiveDriverMovementSimulation();
       } else {
         _fetchNearbyRestaurants();
         _autoInitLocation();
       }
     } else {
+      _driverAssigned = true;
       _restaurantLocation ??= const LatLng(11.5564, 104.9282);
       _customerLocation ??= const LatLng(11.5621, 104.9160);
-      _driverLocation ??= const LatLng(11.5590, 104.9220);
+      _driverLocation ??= _isPickedUp
+          ? const LatLng(11.5590, 104.9220)
+          : const LatLng(11.5546, 104.9268);
+      _currentSpeedKmH = _isPickedUp ? 34.0 : 0.0;
       _driverInfo ??= {
         'id': 1,
         'name': 'Ahmad Faizal',
@@ -110,6 +154,23 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     }
   }
 
+  void _startRestPollingFallback() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_orderStatus == 'delivered' ||
+          _orderStatus == 'cancelled' ||
+          _orderStatus == 'failed_delivery') {
+        timer.cancel();
+        return;
+      }
+      _fetchOrderTrackingData(silent: true);
+    });
+  }
+
   void _startLiveDriverMovementSimulation() {
     _liveMovementTimer?.cancel();
     _liveMovementTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -118,10 +179,55 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           _customerLocation == null) {
         return;
       }
-      if (_orderStatus == 'delivered') {
+      if (_orderStatus == 'delivered' ||
+          _orderStatus == 'cancelled' ||
+          _orderStatus == 'failed_delivery') {
+        if (_currentSpeedKmH != 0) {
+          setState(() => _currentSpeedKmH = 0);
+        }
         timer.cancel();
         return;
       }
+
+      // Preserve genuine WebSocket / DB telemetry when recently received
+      if (_lastLiveLocationAt != null &&
+          DateTime.now().difference(_lastLiveLocationAt!).inSeconds < 12) {
+        return;
+      }
+
+      // CRITICAL: Before food pickup, keep rider anchored/heading to restaurant,
+      // never advancing along the customer delivery route.
+      if (!_isPickedUp) {
+        if (!_driverAssigned) {
+          return;
+        }
+        final atRestaurant =
+            _trackingStage == 'at_restaurant' ||
+            _deliveryStatus == 'arrived_at_restaurant';
+        final targetAtRest = atRestaurant
+            ? _restaurantLocation!
+            : LatLng(
+                _restaurantLocation!.latitude - 0.0015,
+                _restaurantLocation!.longitude - 0.0012,
+              );
+        setState(() {
+          _driverLocation ??= targetAtRest;
+          _currentSpeedKmH = atRestaurant ? 0.0 : 18.0;
+        });
+        return;
+      }
+
+      if (_trackingStage == 'arrived' ||
+          _orderStatus == 'arrived' ||
+          _orderStatus == 'driver_arrived' ||
+          _deliveryStatus == 'arrived') {
+        setState(() {
+          _driverLocation = _customerLocation;
+          _currentSpeedKmH = 0.0;
+        });
+        return;
+      }
+
       setState(() {
         _routeProgress += 0.03;
         if (_routeProgress > 0.95) _routeProgress = 0.95;
@@ -148,6 +254,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _liveMovementTimer?.cancel();
+    _pollingTimer?.cancel();
     _cameraController.dispose();
     _channel?.sink.close();
     super.dispose();
@@ -184,11 +291,22 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   _currentSpeedKmH;
 
               setState(() {
+                _driverAssigned = true;
+                _autoTrackingActive = true;
+                _lastLiveLocationAt = DateTime.now();
                 _driverLocation = LatLng(newLat, newLng);
                 _driverBearing = bearing;
                 _currentSpeedKmH = speed;
+                if (data['is_picked_up'] is bool) {
+                  _isPickedUp = data['is_picked_up'] as bool;
+                }
+                if (data['tracking_stage'] != null) {
+                  _trackingStage = data['tracking_stage'].toString();
+                }
               });
-              _animatedMapMove(_driverLocation!, 15.0);
+              if (_autoFollowDriver && _driverLocation != null) {
+                _animatedMapMove(_driverLocation!, 15.2);
+              }
             }
           } catch (_) {}
         },
@@ -199,14 +317,43 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     } catch (_) {}
   }
 
-  Future<void> _fetchOrderTrackingData() async {
-    setState(() => _isLoading = true);
+  Future<void> _fetchOrderTrackingData({bool silent = false}) async {
+    if (!silent) {
+      setState(() => _isLoading = true);
+    }
     try {
       final data = await ApiService().get('orders/${widget.orderId}/track/');
       if (!mounted) return;
 
+      final fetchedStatus = (data['status'] ?? 'pending').toString();
+      final fetchedDeliveryStatus = data['delivery_status']?.toString();
+      final hasDriver = data['driver_assigned'] is bool
+          ? data['driver_assigned'] as bool
+          : (data['driver'] != null);
+      final picked = data['is_picked_up'] is bool
+          ? data['is_picked_up'] as bool
+          : _statusImpliesPickedUp(
+              fetchedStatus,
+              deliveryStatus: fetchedDeliveryStatus,
+            );
+
       setState(() {
-        _orderStatus = data['status'] ?? 'pending';
+        _orderStatus = fetchedStatus;
+        _deliveryStatus = fetchedDeliveryStatus;
+        _driverAssigned = hasDriver;
+        _isPickedUp = picked;
+        _trackingStage =
+            data['tracking_stage']?.toString() ??
+            (picked
+                ? (fetchedStatus == 'delivered' ? 'delivered' : 'on_the_way')
+                : (hasDriver ? 'en_route_to_restaurant' : 'awaiting_driver'));
+        _autoTrackingActive = data['auto_tracking'] == true;
+        _backendEtaMinutes = data['eta_minutes'] is int
+            ? data['eta_minutes'] as int
+            : int.tryParse(data['eta_minutes']?.toString() ?? '');
+        _confirmedAtIso = data['confirmed_at']?.toString();
+        _pickedUpAtIso = data['picked_up_at']?.toString();
+        _deliveredAtIso = data['delivered_at']?.toString();
         _restaurantName = data['restaurant_name'];
         _deliveryAddress = data['delivery_address'];
 
@@ -227,9 +374,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             double.parse(data['driver_location']['lat'].toString()),
             double.parse(data['driver_location']['lng'].toString()),
           );
+          if (data['last_location_update'] != null) {
+            _lastLiveLocationAt = DateTime.now();
+          }
+        } else if (!hasDriver) {
+          _driverLocation = null;
         }
         if (data['driver'] != null && data['driver'] is Map) {
           _driverInfo = Map<String, dynamic>.from(data['driver']);
+        } else if (!hasDriver) {
+          _driverInfo = null;
         } else {
           _driverInfo ??= {
             'id': 1,
@@ -258,19 +412,28 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         _isLoading = false;
       });
 
-      final focusTarget =
-          _driverLocation ?? _restaurantLocation ?? _customerLocation;
-      if (focusTarget != null) {
-        _animatedMapMove(focusTarget, 14.8);
+      if (!silent) {
+        final focusTarget =
+            _driverLocation ?? _restaurantLocation ?? _customerLocation;
+        if (focusTarget != null) {
+          _animatedMapMove(focusTarget, 14.8);
+        }
+      } else if (_autoFollowDriver && _driverLocation != null) {
+        _animatedMapMove(_driverLocation!, 15.0);
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && !silent) {
         setState(() {
           _isLoading = false;
           // Graceful fallback coordinates
           _restaurantLocation = const LatLng(11.5564, 104.9282);
           _customerLocation = const LatLng(11.5621, 104.9160);
-          _driverLocation = const LatLng(11.5590, 104.9220);
+          _driverLocation = _driverAssigned
+              ? (_isPickedUp
+                    ? const LatLng(11.5590, 104.9220)
+                    : const LatLng(11.5546, 104.9268))
+              : null;
+          _currentSpeedKmH = _isPickedUp ? 34.0 : 0.0;
           _customerInfo ??= {
             'name': 'Customer',
             'phone': '+855 12 345 678',
@@ -431,6 +594,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
+        final brightness = Theme.of(context).brightness;
+        final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(context).textTheme;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final accentGreen = isDark
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
         return GlassContainer(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           padding: const EdgeInsets.all(24),
@@ -441,12 +611,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Select Map Layer',
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: primaryText,
                     ),
                   ),
                   Container(
@@ -455,14 +624,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                      color: accentGreen.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
+                    child: Text(
                       'OpenMap Engine',
-                      style: TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontSize: 11,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: accentGreen,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -513,6 +681,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     String subtitle,
     IconData icon,
   ) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     final isSelected = _selectedLayer == type;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -526,21 +702,22 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: isSelected
-                ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
-                : Colors.white.withValues(alpha: 0.05),
+                ? accentGreen.withValues(alpha: 0.16)
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03)),
             border: Border.all(
               color: isSelected
-                  ? GlassTheme.primaryGreen
-                  : Colors.white.withValues(alpha: 0.1),
+                  ? accentGreen
+                  : (isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black12),
             ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
-              Icon(
-                icon,
-                color: isSelected ? GlassTheme.primaryGreen : Colors.white70,
-              ),
+              Icon(icon, color: isSelected ? accentGreen : secondaryText),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -548,29 +725,22 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isSelected
-                            ? GlassTheme.primaryGreen
-                            : Colors.white,
+                        color: isSelected ? accentGreen : primaryText,
                       ),
                     ),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: GlassTheme.textMuted,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
                       ),
                     ),
                   ],
                 ),
               ),
               if (isSelected)
-                const Icon(
-                  Icons.check_circle,
-                  color: GlassTheme.primaryGreen,
-                  size: 20,
-                ),
+                Icon(Icons.check_circle, color: accentGreen, size: 20),
             ],
           ),
         ),
@@ -660,19 +830,35 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 userAgentPackageName: 'com.foodgo.app',
               ),
 
-              // Polyline connecting restaurant -> driver -> customer
+              // Polyline connecting pickup/delivery route accurately
               if (_isTrackingMode) ...[
                 if (_restaurantLocation != null && _customerLocation != null)
                   PolylineLayer(
                     polylines: [
                       Polyline(
                         points: [_restaurantLocation!, _customerLocation!],
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                        color: GlassTheme.primaryGreen.withValues(
+                          alpha: _isPickedUp ? 0.35 : 0.22,
+                        ),
                         strokeWidth: 4.0,
                       ),
                     ],
                   ),
-                if (_driverLocation != null && _customerLocation != null)
+                if (!_isPickedUp &&
+                    _driverLocation != null &&
+                    _restaurantLocation != null)
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: [_driverLocation!, _restaurantLocation!],
+                        color: Colors.orangeAccent,
+                        strokeWidth: 4.5,
+                      ),
+                    ],
+                  ),
+                if (_isPickedUp &&
+                    _driverLocation != null &&
+                    _customerLocation != null)
                   PolylineLayer(
                     polylines: [
                       Polyline(
@@ -766,21 +952,27 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       ),
                     ),
 
-                  // 3. Driver Live Marker with animated pulsing halo and speed tag
+                  // 3. Driver Live Marker with pre-pickup vs in-transit status pill
                   if (_driverLocation != null)
                     Marker(
                       point: _driverLocation!,
-                      width: 180,
-                      height: 80,
+                      width: 210,
+                      height: 82,
                       child: GestureDetector(
-                        onTap: () => _showMarkerInfo(
-                          _driverInfo?['name'] ?? 'Delivery Driver',
-                          '${_driverInfo?['vehicle_type'] ?? 'Motorcycle'} • Speed: ${_currentSpeedKmH.toStringAsFixed(0)} km/h • On the way to your doorstep!',
-                        ),
+                        onTap: () {
+                          final riderName =
+                              _driverInfo?['name'] ?? 'Delivery Driver';
+                          final vehicle =
+                              _driverInfo?['vehicle_type'] ?? 'Motorcycle';
+                          final infoMsg = !_isPickedUp
+                              ? '$vehicle • Heading to restaurant to pick up order (not picked up yet)'
+                              : '$vehicle • Speed: ${_currentSpeedKmH.toStringAsFixed(0)} km/h • On the way to your doorstep!';
+                          _showMarkerInfo(riderName.toString(), infoMsg);
+                        },
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Floating Driver Name & Speed Pill
+                            // Floating Driver Name & Status/Speed Pill
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -790,7 +982,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                 color: Colors.black.withValues(alpha: 0.85),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: GlassTheme.primaryGreen,
+                                  color: _isPickedUp
+                                      ? GlassTheme.primaryGreen
+                                      : Colors.orangeAccent,
                                   width: 1,
                                 ),
                                 boxShadow: const [
@@ -807,8 +1001,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                   Container(
                                         width: 6,
                                         height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: GlassTheme.primaryGreen,
+                                        decoration: BoxDecoration(
+                                          color: _isPickedUp
+                                              ? GlassTheme.primaryGreen
+                                              : Colors.orangeAccent,
                                           shape: BoxShape.circle,
                                         ),
                                       )
@@ -821,14 +1017,24 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                       ),
                                   const SizedBox(width: 4),
                                   Flexible(
-                                    child: Text(
-                                      '${_driverInfo?['name'] ?? 'Driver'} • ${_currentSpeedKmH.toStringAsFixed(0)} km/h',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        !_isPickedUp
+                                            ? ((_trackingStage ==
+                                                          'at_restaurant' ||
+                                                      _deliveryStatus ==
+                                                          'arrived_at_restaurant')
+                                                  ? '${_driverInfo?['name'] ?? 'Driver'} • At Restaurant'
+                                                  : '${_driverInfo?['name'] ?? 'Driver'} • To Pickup')
+                                            : '${_driverInfo?['name'] ?? 'Driver'} • ${_currentSpeedKmH.toStringAsFixed(0)} km/h',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -846,8 +1052,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                       height: 46,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: GlassTheme.primaryGreen
-                                            .withValues(alpha: 0.3),
+                                        color:
+                                            (_isPickedUp
+                                                    ? GlassTheme.primaryGreen
+                                                    : Colors.orangeAccent)
+                                                .withValues(alpha: 0.3),
                                       ),
                                     )
                                     .animate(onPlay: (c) => c.repeat())
@@ -864,7 +1073,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                     width: 42,
                                     height: 42,
                                     decoration: BoxDecoration(
-                                      color: GlassTheme.primaryGreen,
+                                      color: _isPickedUp
+                                          ? GlassTheme.primaryGreen
+                                          : Colors.orangeAccent,
                                       shape: BoxShape.circle,
                                       border: Border.all(
                                         color: Colors.white,
@@ -872,8 +1083,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: GlassTheme.primaryGreen
-                                              .withValues(alpha: 0.6),
+                                          color:
+                                              (_isPickedUp
+                                                      ? GlassTheme.primaryGreen
+                                                      : Colors.orangeAccent)
+                                                  .withValues(alpha: 0.6),
                                           blurRadius: 10,
                                           spreadRadius: 2,
                                         ),
@@ -984,9 +1198,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   const SizedBox(width: 4),
                   Text(
                     MapConfig.getLayerName(_selectedLayer),
-                    style: const TextStyle(
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Colors.white,
-                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1015,12 +1228,38 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 8),
 
+                if (_isTrackingMode) ...[
+                  // Auto-Follow Live Driver Camera Toggle
+                  FloatingActionButton.small(
+                    heroTag: 'auto_follow_btn',
+                    backgroundColor: _autoFollowDriver
+                        ? GlassTheme.primaryGreen
+                        : Colors.black87,
+                    foregroundColor: Colors.white,
+                    tooltip: _autoFollowDriver
+                        ? 'Auto-Follow Driver: ON'
+                        : 'Auto-Follow Driver: OFF',
+                    onPressed: () {
+                      setState(() => _autoFollowDriver = !_autoFollowDriver);
+                      if (_autoFollowDriver && _driverLocation != null) {
+                        _animatedMapMove(_driverLocation!, 15.2);
+                      }
+                    },
+                    child: Icon(
+                      _autoFollowDriver ? Icons.gps_fixed : Icons.gps_off,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
                 // Re-center on Driver / Target
                 FloatingActionButton.small(
                   heroTag: 'target_btn',
                   backgroundColor: GlassTheme.primaryGreen,
                   foregroundColor: Colors.white,
                   onPressed: () {
+                    setState(() => _autoFollowDriver = true);
                     final target =
                         _driverLocation ??
                         _restaurantLocation ??
@@ -1098,32 +1337,44 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         ),
                         const SizedBox(width: 14),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _selectedRestaurant!['name'] ?? 'Restaurant',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_selectedRestaurant!['address'] ?? 'Phnom Penh'} • Rating ${_selectedRestaurant!['rating'] ?? '4.8'}',
-                                style: TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                          child: Builder(
+                            builder: (context) {
+                              final brightness = Theme.of(context).brightness;
+                              final textTheme = Theme.of(context).textTheme;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _selectedRestaurant!['name'] ??
+                                        'Restaurant',
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTypography.primaryTextColor(
+                                        brightness,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${_selectedRestaurant!['address'] ?? 'Phnom Penh'} • Rating ${_selectedRestaurant!['rating'] ?? '4.8'}',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: AppTypography.secondaryTextColor(
+                                        brightness,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white54),
+                          icon: Icon(
+                            Icons.close,
+                            color: AppTypography.secondaryTextColor(
+                              Theme.of(context).brightness,
+                            ),
+                          ),
                           onPressed: () =>
                               setState(() => _selectedRestaurant = null),
                         ),
@@ -1238,9 +1489,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ],
                 Text(
                   widget.isDriver ? 'Delivery #$orderNum' : 'Order #$orderNum',
-                  style: const TextStyle(
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w800,
-                    fontSize: 14,
                     color: Colors.black87,
                   ),
                 ),
@@ -1290,7 +1540,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     double? distanceKm,
     int? etaMinutes,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     final driver =
         _driverInfo ??
         {
@@ -1304,7 +1561,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
         };
 
-    final etaMin = etaMinutes ?? 15;
+    final etaMin = _backendEtaMinutes ?? etaMinutes ?? (_isPickedUp ? 12 : 22);
     final distance = distanceKm != null ? distanceKm.toStringAsFixed(1) : '3.4';
 
     String headline = 'Preparing your food';
@@ -1314,30 +1571,69 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       if (_orderStatus == 'delivered') {
         headline = 'Delivered to $custName';
         subtitle = 'Delivery completed successfully';
+      } else if (_orderStatus == 'arrived' ||
+          _orderStatus == 'driver_arrived') {
+        headline = 'Arrived at $custName';
+        subtitle = 'Ready for QR handover at drop-off';
       } else if (_orderStatus == 'on_the_way' ||
-          _orderStatus == 'on_delivery') {
+          _orderStatus == 'on_delivery' ||
+          _orderStatus == 'out_for_delivery') {
         headline = 'Delivering to $custName';
         subtitle = 'Drop-off is $distance km away • $etaMin min';
-      } else if (_orderStatus == 'picked_up') {
+      } else if (_isPickedUp) {
         headline = 'Order Picked Up';
-        subtitle = 'Heading to customer: $custName';
+        subtitle = 'Auto-tracking en route to $custName';
+      } else if (_trackingStage == 'at_restaurant' ||
+          _deliveryStatus == 'arrived_at_restaurant') {
+        headline = 'At ${_restaurantName ?? "Restaurant"}';
+        subtitle = 'Waiting for food handover (not picked up yet)';
       } else {
         headline = 'Pickup at ${_restaurantName ?? "Restaurant"}';
-        subtitle = 'Order preparing for pickup';
+        subtitle = 'Heading to restaurant • Not picked up yet';
       }
     } else {
       if (_orderStatus == 'delivered') {
         headline = 'Order Delivered!';
         subtitle = 'Enjoy your delicious meal!';
+      } else if (_orderStatus == 'arrived' ||
+          _orderStatus == 'driver_arrived') {
+        headline = 'Driver Has Arrived';
+        subtitle = '${driver['name']} is waiting at your drop-off';
       } else if (_orderStatus == 'on_the_way' ||
-          _orderStatus == 'on_delivery') {
+          _orderStatus == 'on_delivery' ||
+          _orderStatus == 'out_for_delivery') {
         headline = 'On the way to you';
         subtitle = '${driver['name']} is $distance km away';
-      } else if (_orderStatus == 'picked_up') {
+      } else if (_isPickedUp) {
         headline = 'Rider Picked Up';
         subtitle = '${driver['name']} picked up your order';
+      } else if (!_driverAssigned) {
+        headline = 'Finding a Driver';
+        subtitle = 'Auto-assigning nearest courier for pickup';
+      } else if (_trackingStage == 'at_restaurant' ||
+          _deliveryStatus == 'arrived_at_restaurant') {
+        headline = 'Rider at Restaurant';
+        subtitle =
+            '${driver['name']} is waiting for pickup (not picked up yet)';
+      } else {
+        headline = 'Heading to Pickup';
+        subtitle =
+            '${driver['name']} is going to the restaurant (not picked up yet)';
       }
     }
+
+    final liveBadgeLabel = _orderStatus == 'delivered'
+        ? 'Completed'
+        : (!_driverAssigned
+              ? 'Auto-Assigning Rider'
+              : (!_isPickedUp
+                    ? 'Pre-Pickup • Auto-Tracking'
+                    : (_autoTrackingActive
+                          ? 'Auto-Tracking Live'
+                          : 'Live Delivery')));
+    final etaSubLabel = _orderStatus == 'delivered'
+        ? 'Completed'
+        : (_isPickedUp ? 'En route' : 'Pickup + Trip');
 
     return DraggableScrollableSheet(
       initialChildSize: 0.44,
@@ -1386,8 +1682,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                             Container(
                                   width: 8,
                                   height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: GlassTheme.primaryGreen,
+                                  decoration: BoxDecoration(
+                                    color: _isPickedUp
+                                        ? accentGreen
+                                        : Colors.orangeAccent,
                                     shape: BoxShape.circle,
                                   ),
                                 )
@@ -1397,12 +1695,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                   end: const Offset(1.3, 1.3),
                                 ),
                             const SizedBox(width: 6),
-                            const Text(
-                              'Live • 0:16',
-                              style: TextStyle(
-                                color: GlassTheme.primaryGreen,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                            Flexible(
+                              child: Text(
+                                liveBadgeLabel,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: _isPickedUp
+                                      ? accentGreen
+                                      : (isDark
+                                            ? Colors.orangeAccent
+                                            : const Color(0xFFB45309)),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
@@ -1410,20 +1713,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         const SizedBox(height: 6),
                         Text(
                           headline,
-                          style: TextStyle(
-                            fontSize: 20,
+                          style: textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w900,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF222222),
+                            color: primaryText,
                           ),
                         ),
                         const SizedBox(height: 3),
                         Text(
                           subtitle,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: GlassTheme.textMuted,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: secondaryText,
                           ),
                         ),
                       ],
@@ -1453,18 +1752,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       children: [
                         Text(
                           '$etaMin min',
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
+                          style: textTheme.titleLarge?.copyWith(
+                            color: accentGreen,
                             fontWeight: FontWeight.w900,
-                            fontSize: 18,
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
-                          'Arriving 11:15 PM',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: GlassTheme.textMuted,
+                        Text(
+                          etaSubLabel,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1479,10 +1776,64 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               _buildFiveStepProgress(),
               const SizedBox(height: 20),
 
-              // Courier / Driver Contact Card OR Customer Card (for Driver View)
-              widget.isDriver
-                  ? _buildCustomerCard(context, _customerInfo ?? {}, isDark)
-                  : _buildDriverCard(context, driver, isDark),
+              // Courier / Driver Contact Card OR Waiting Card OR Customer Card (for Driver View)
+              if (widget.isDriver)
+                _buildCustomerCard(context, _customerInfo ?? {}, isDark)
+              else if (!_driverAssigned)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? GlassTheme.surfaceCardDark
+                        : const Color(0xFFF9FBF9),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.orangeAccent.withValues(alpha: 0.16),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.two_wheeler,
+                          color: isDark
+                              ? Colors.orangeAccent
+                              : const Color(0xFFB45309),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Auto-Dispatching Nearby Driver',
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: primaryText,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Live GPS map tracking starts automatically as soon as your rider is assigned.',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: secondaryText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                _buildDriverCard(context, driver, isDark),
               const SizedBox(height: 20),
 
               // Order Status Timeline
@@ -1507,8 +1858,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     onConfirmed: () => _fetchOrderTrackingData(),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: GlassTheme.primaryGreen,
-                    foregroundColor: Colors.black,
+                    backgroundColor: isDark
+                        ? GlassTheme.primaryGreen
+                        : const Color(0xFF15803D),
+                    foregroundColor: isDark ? Colors.black : Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -1516,9 +1869,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     elevation: 2,
                   ),
                   icon: const Icon(Icons.qr_code_scanner, size: 22),
-                  label: const Text(
+                  label: Text(
                     'Complete Delivery (Scan Drop-off QR)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.black : Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -1530,19 +1886,20 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     onDelivered: () => _fetchOrderTrackingData(),
                   ),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark ? Colors.white : Colors.black87,
-                    side: BorderSide(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.6),
-                    ),
+                    foregroundColor: primaryText,
+                    side: BorderSide(color: accentGreen.withValues(alpha: 0.6)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   icon: const Icon(Icons.qr_code_2, size: 18),
-                  label: const Text(
+                  label: Text(
                     'Show Courier Handover QR',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    style: textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: primaryText,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -1555,7 +1912,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     }
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    foregroundColor: primaryText,
                     side: BorderSide(
                       color: isDark ? Colors.white24 : const Color(0xFFDDDDDD),
                     ),
@@ -1565,9 +1922,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   icon: const Icon(Icons.delivery_dining, size: 18),
-                  label: const Text(
+                  label: Text(
                     'Back to Driver Dashboard',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: primaryText,
+                    ),
                   ),
                 ),
               ] else ...[
@@ -1579,8 +1939,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     onDelivered: () => _fetchOrderTrackingData(),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: GlassTheme.primaryGreen,
-                    foregroundColor: Colors.black,
+                    backgroundColor: isDark
+                        ? GlassTheme.primaryGreen
+                        : const Color(0xFF15803D),
+                    foregroundColor: isDark ? Colors.black : Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -1588,9 +1950,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     elevation: 2,
                   ),
                   icon: const Icon(Icons.qr_code_2, size: 22),
-                  label: const Text(
+                  label: Text(
                     'Show Delivery Confirmation QR',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.black : Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -1602,26 +1967,27 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     onConfirmed: () => _fetchOrderTrackingData(),
                   ),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark ? Colors.white : Colors.black87,
-                    side: BorderSide(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.6),
-                    ),
+                    foregroundColor: primaryText,
+                    side: BorderSide(color: accentGreen.withValues(alpha: 0.6)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   icon: const Icon(Icons.qr_code_scanner, size: 18),
-                  label: const Text(
+                  label: Text(
                     'Scan Driver Handover QR',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    style: textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: primaryText,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
                   onPressed: () => context.go('/home'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    foregroundColor: primaryText,
                     side: BorderSide(
                       color: isDark ? Colors.white24 : const Color(0xFFDDDDDD),
                     ),
@@ -1631,9 +1997,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   icon: const Icon(Icons.home_outlined, size: 18),
-                  label: const Text(
+                  label: Text(
                     'Back to Home',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: primaryText,
+                    ),
                   ),
                 ),
               ],
@@ -1649,6 +2018,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   // 5-Step Visual Stepper (TikTok Reference Style)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildFiveStepProgress() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final stepAccent = isDark ? GlassTheme.paleSmalt : GlassTheme.royalSmalt;
     final steps = [
       'Confirmed',
       'Preparing',
@@ -1656,14 +2030,21 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'On the way',
       'Delivered',
     ];
-    int currentStep = 1; // Default to 'Preparing' (matches reference video)
+    int currentStep = 0;
     if (_orderStatus == 'delivered') {
       currentStep = 4;
-    } else if (_orderStatus == 'on_the_way' || _orderStatus == 'on_delivery') {
+    } else if (_orderStatus == 'on_the_way' ||
+        _orderStatus == 'on_delivery' ||
+        _orderStatus == 'out_for_delivery' ||
+        _orderStatus == 'driver_arrived' ||
+        _orderStatus == 'arrived') {
       currentStep = 3;
-    } else if (_orderStatus == 'picked_up') {
+    } else if (_isPickedUp) {
       currentStep = 2;
-    } else if (_orderStatus == 'preparing') {
+    } else if (_orderStatus == 'preparing' ||
+        _orderStatus == 'ready' ||
+        _orderStatus == 'ready_for_pickup' ||
+        _orderStatus == 'arrived_at_restaurant') {
       currentStep = 1;
     } else {
       currentStep = 0;
@@ -1682,8 +2063,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 height: 4,
                 decoration: BoxDecoration(
                   color: isCompletedOrCurrent
-                      ? GlassTheme.royalSmalt
-                      : const Color(0xFFE0E0E0),
+                      ? stepAccent
+                      : (isDark ? Colors.white24 : const Color(0xFFE0E0E0)),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1695,12 +2076,18 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(steps.length, (index) {
             final isPassed = index <= currentStep;
-            return Text(
-              steps[index],
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isPassed ? FontWeight.bold : FontWeight.w500,
-                color: isPassed ? GlassTheme.royalSmalt : GlassTheme.textMuted,
+            return Expanded(
+              child: Text(
+                steps[index],
+                textAlign: index == 0
+                    ? TextAlign.start
+                    : (index == steps.length - 1
+                          ? TextAlign.end
+                          : TextAlign.center),
+                style: textTheme.labelSmall?.copyWith(
+                  fontWeight: isPassed ? FontWeight.bold : FontWeight.w500,
+                  color: isPassed ? stepAccent : secondaryText,
+                ),
               ),
             );
           }),
@@ -1717,6 +2104,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     Map<String, dynamic> customer,
     bool isDark,
   ) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
+    final infoBlue = isDark ? Colors.lightBlueAccent : const Color(0xFF1D4ED8);
+    final warningAmber = isDark ? Colors.amber : const Color(0xFFB45309);
     final phone = customer['phone']?.toString() ?? '+855 12 345 678';
     final name = customer['name']?.toString() ?? 'Customer';
     final address =
@@ -1742,15 +2139,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withValues(alpha: 0.15),
+                  color: dangerColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.redAccent, width: 1.5),
+                  border: Border.all(color: dangerColor, width: 1.5),
                 ),
-                child: const Icon(
-                  Icons.person,
-                  color: Colors.redAccent,
-                  size: 24,
-                ),
+                child: Icon(Icons.person, color: dangerColor, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1762,14 +2155,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         Flexible(
                           child: Text(
                             name,
-                            style: TextStyle(
+                            style: textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF222222),
+                              color: primaryText,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -1779,15 +2168,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blueAccent.withValues(alpha: 0.15),
+                            color: infoBlue.withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Recipient',
-                            style: TextStyle(
-                              fontSize: 10,
+                            style: textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
+                              color: infoBlue,
                             ),
                           ),
                         ),
@@ -1796,10 +2184,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     const SizedBox(height: 2),
                     Text(
                       phone,
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: GlassTheme.textMuted,
+                        color: secondaryText,
                       ),
                     ),
                   ],
@@ -1812,7 +2199,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Chat with customer $name opened.'),
-                      backgroundColor: GlassTheme.primaryGreen,
+                      backgroundColor: GlassTheme.primaryGreenDark,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -1825,9 +2212,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     color: isDark ? Colors.white12 : const Color(0xFFE8F5E9),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.chat_bubble_outline,
-                    color: GlassTheme.primaryGreen,
+                    color: accentGreen,
                     size: 18,
                   ),
                 ),
@@ -1843,7 +2230,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       content: Text(
                         'Calling customer at $phone (copied to clipboard)',
                       ),
-                      backgroundColor: GlassTheme.primaryGreen,
+                      backgroundColor: GlassTheme.primaryGreenDark,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -1853,7 +2240,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   width: 38,
                   height: 38,
                   decoration: const BoxDecoration(
-                    color: GlassTheme.primaryGreen,
+                    color: Color(0xFF15803D),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.phone, color: Colors.white, size: 18),
@@ -1877,22 +2264,15 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.location_on,
-                  color: Colors.redAccent,
-                  size: 18,
-                ),
+                Icon(Icons.location_on, color: dangerColor, size: 18),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     address,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w500,
                       color: isDark ? Colors.white70 : const Color(0xFF334155),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -1903,20 +2283,19 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.15),
+                color: warningAmber.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                border: Border.all(color: warningAmber.withValues(alpha: 0.35)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, color: Colors.amber, size: 14),
+                  Icon(Icons.info_outline, color: warningAmber, size: 14),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'Note: $instructions',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.amber,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: warningAmber,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1938,6 +2317,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     Map<String, dynamic> driver,
     bool isDark,
   ) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final starAmber = isDark
+        ? const Color(0xFFFFB300)
+        : const Color(0xFFB45309);
     final phone = driver['phone']?.toString() ?? '+855 12 888 999';
     final name = driver['name']?.toString() ?? 'Ahmad Faizal';
     final rating = driver['rating']?.toString() ?? '4.9';
@@ -1977,27 +2366,21 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   children: [
                     Text(
                       name,
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : const Color(0xFF222222),
+                        color: primaryText,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.star,
-                          color: Color(0xFFFFB300),
-                          size: 13,
-                        ),
+                        Icon(Icons.star, color: starAmber, size: 13),
                         const SizedBox(width: 3),
                         Text(
                           '$rating • $trips trips',
-                          style: TextStyle(
-                            fontSize: 11,
+                          style: textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: GlassTheme.textMuted,
+                            color: secondaryText,
                           ),
                         ),
                       ],
@@ -2012,7 +2395,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Chat with driver $name opened.'),
-                      backgroundColor: GlassTheme.primaryGreen,
+                      backgroundColor: GlassTheme.primaryGreenDark,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -2025,9 +2408,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     color: isDark ? Colors.white12 : const Color(0xFFE8F5E9),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.chat_bubble_outline,
-                    color: GlassTheme.primaryGreen,
+                    color: accentGreen,
                     size: 18,
                   ),
                 ),
@@ -2043,7 +2426,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       content: Text(
                         'Calling driver at $phone (copied to clipboard)',
                       ),
-                      backgroundColor: GlassTheme.primaryGreen,
+                      backgroundColor: GlassTheme.primaryGreenDark,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -2053,7 +2436,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   width: 38,
                   height: 38,
                   decoration: const BoxDecoration(
-                    color: GlassTheme.primaryGreen,
+                    color: Color(0xFF15803D),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.phone, color: Colors.white, size: 18),
@@ -2081,19 +2464,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.two_wheeler,
-                        size: 16,
-                        color: GlassTheme.primaryGreen,
-                      ),
+                      Icon(Icons.two_wheeler, size: 16, color: accentGreen),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           vehicle,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 12,
+                          style: textTheme.bodySmall?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: isDark
                                 ? Colors.white70
@@ -2116,9 +2492,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   ),
                   child: Text(
                     plate,
-                    style: const TextStyle(
+                    style: textTheme.labelSmall?.copyWith(
                       color: Colors.white,
-                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                     ),
@@ -2135,46 +2510,83 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   // ──────────────────────────────────────────────────────────────────────────
   // Order Status Milestone Timeline
   // ──────────────────────────────────────────────────────────────────────────
+  String _formatShortTime(String? iso) {
+    if (iso == null || iso.isEmpty) return '';
+    final dt = DateTime.tryParse(iso)?.toLocal();
+    if (dt == null) return '';
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
   Widget _buildOrderTimeline(bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final isPreparingOrLater =
+        _isPickedUp ||
+        const {
+          'confirmed',
+          'driver_assigned',
+          'driver_accepted',
+          'preparing',
+          'ready',
+          'ready_for_pickup',
+          'arrived_at_restaurant',
+        }.contains(_orderStatus);
+    final isOnTheWayOrDelivered =
+        _isPickedUp &&
+        (_orderStatus == 'on_the_way' ||
+            _orderStatus == 'on_delivery' ||
+            _orderStatus == 'out_for_delivery' ||
+            _orderStatus == 'driver_arrived' ||
+            _orderStatus == 'arrived' ||
+            _orderStatus == 'delivered');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Order status',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+          style: textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: primaryText,
+          ),
         ),
         const SizedBox(height: 10),
         _buildTimelineTile(
           'Order confirmed',
-          '10:55 PM',
-          isDone: true,
+          _formatShortTime(_confirmedAtIso),
+          isDone: _orderStatus != 'pending' && _orderStatus != 'cancelled',
           isLast: false,
           isDark: isDark,
         ),
         _buildTimelineTile(
           'Preparing your food',
-          '10:55 PM',
-          isDone: true,
+          '',
+          isDone: isPreparingOrLater,
           isLast: false,
           isDark: isDark,
         ),
         _buildTimelineTile(
           'Rider picked up',
-          '0:01',
-          isDone: _orderStatus == 'on_the_way' || _orderStatus == 'delivered',
+          _isPickedUp
+              ? _formatShortTime(_pickedUpAtIso)
+              : (_driverAssigned ? 'Not picked up yet' : 'Finding rider'),
+          isDone: _isPickedUp,
           isLast: false,
           isDark: isDark,
         ),
         _buildTimelineTile(
           'On the way',
           '',
-          isDone: _orderStatus == 'on_the_way' || _orderStatus == 'delivered',
+          isDone: isOnTheWayOrDelivered,
           isLast: false,
           isDark: isDark,
         ),
         _buildTimelineTile(
           'Delivered',
-          '',
+          _formatShortTime(_deliveredAtIso),
           isDone: _orderStatus == 'delivered',
           isLast: true,
           isDark: isDark,
@@ -2190,6 +2602,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     required bool isLast,
     required bool isDark,
   }) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2199,7 +2618,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: isDone ? GlassTheme.primaryGreen : Colors.grey.shade400,
+                color: isDone
+                    ? accentGreen
+                    : (isDark ? Colors.white24 : Colors.grey.shade400),
                 shape: BoxShape.circle,
               ),
             ),
@@ -2207,7 +2628,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               Container(
                 width: 2,
                 height: 24,
-                color: isDone ? GlassTheme.primaryGreen : Colors.grey.shade300,
+                color: isDone
+                    ? accentGreen
+                    : (isDark ? Colors.white24 : Colors.grey.shade300),
               ),
           ],
         ),
@@ -2215,12 +2638,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         Expanded(
           child: Text(
             title,
-            style: TextStyle(
-              fontSize: 13,
+            style: textTheme.bodyMedium?.copyWith(
               fontWeight: isDone ? FontWeight.bold : FontWeight.w500,
-              color: isDone
-                  ? (isDark ? Colors.white : const Color(0xFF222222))
-                  : GlassTheme.textMuted,
+              color: isDone ? primaryText : secondaryText,
             ),
           ),
         ),
@@ -2239,8 +2659,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   ),
                   child: Text(
                     time,
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: isDark
                           ? GlassTheme.paleSmalt
@@ -2250,7 +2669,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 )
               : Text(
                   time,
-                  style: TextStyle(fontSize: 11, color: GlassTheme.textMuted),
+                  style: textTheme.labelSmall?.copyWith(color: secondaryText),
                 ),
       ],
     );
@@ -2260,6 +2679,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   // Route Summary Card: Origin -> Destination with Dotted Line & Distance Pill
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildRouteSummaryCard(bool isDark, String distance) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     final fromName = _restaurantName ?? "McDonald's - Bukit Bintang";
     final toName = _deliveryAddress ?? "Home • 12 Jalan Ampang, Kuala Lumpur";
 
@@ -2283,13 +2709,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   color: Color(0xFFFFC72C),
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
                     'M',
-                    style: TextStyle(
-                      color: Color(0xFFDA291C),
+                    style: textTheme.titleMedium?.copyWith(
+                      color: const Color(0xFFDA291C),
                       fontWeight: FontWeight.w900,
-                      fontSize: 16,
                     ),
                   ),
                 ),
@@ -2299,18 +2724,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'From',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: GlassTheme.textMuted,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
                       ),
                     ),
                     Text(
                       fromName,
-                      style: const TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        color: primaryText,
                       ),
                     ),
                   ],
@@ -2337,18 +2761,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'To',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: GlassTheme.textMuted,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
                       ),
                     ),
                     Text(
                       toName,
-                      style: const TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        color: primaryText,
                       ),
                     ),
                   ],
@@ -2366,18 +2789,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.route,
-                  size: 14,
-                  color: GlassTheme.primaryGreen,
-                ),
+                Icon(Icons.route, size: 14, color: accentGreen),
                 const SizedBox(width: 5),
                 Text(
                   '$distance km • 6 min ride',
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: GlassTheme.primaryGreen,
+                    color: accentGreen,
                   ),
                 ),
               ],
@@ -2392,12 +2810,18 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   // Itemized Order Section ("Your order")
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildItemizedOrderSection(bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Your order',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+          style: textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: primaryText,
+          ),
         ),
         const SizedBox(height: 10),
         _buildReceiptItem(
@@ -2434,6 +2858,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     String imageUrl,
     bool isDark,
   ) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     return Row(
       children: [
         ClipRRect(
@@ -2448,22 +2878,27 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         const SizedBox(width: 10),
         Text(
           qty,
-          style: const TextStyle(
+          style: textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 13,
-            color: GlassTheme.primaryGreen,
+            color: accentGreen,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             name,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            style: textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: primaryText,
+            ),
           ),
         ),
         Text(
           price,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: primaryText,
+          ),
         ),
       ],
     );
@@ -2472,32 +2907,45 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   void _showMarkerInfo(String title, String description) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: GlassTheme.badgeTagDark,
-        shape: RoundedRectangleBorder(
-          borderRadius: GlassTheme.borderRadiusSmall,
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        content: Text(
-          description,
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'OK',
-              style: TextStyle(color: GlassTheme.primaryGreen),
+      builder: (context) {
+        final brightness = Theme.of(context).brightness;
+        final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(context).textTheme;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final secondaryText = AppTypography.secondaryTextColor(brightness);
+        final accentGreen = isDark
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
+        return AlertDialog(
+          backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: GlassTheme.borderRadiusSmall,
+            side: BorderSide(
+              color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
             ),
           ),
-        ],
-      ),
+          title: Text(
+            title,
+            style: textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: primaryText,
+            ),
+          ),
+          content: Text(
+            description,
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'OK',
+                style: textTheme.labelLarge?.copyWith(color: accentGreen),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

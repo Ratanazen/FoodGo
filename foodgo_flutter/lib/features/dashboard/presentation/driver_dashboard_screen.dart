@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +11,7 @@ import '../../../core/theme/glass_theme.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/utils/khmer_currency.dart';
+import '../../../screens/map_screen_location.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
@@ -59,6 +62,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   double _todayEarningsUsd = 0.0;
   double _totalEarningsUsd = 0.0;
 
+  Timer? _autoTrackTimer;
+  bool _autoTrackEnabled = true;
+  bool _isBroadcastingLocation = false;
+  DateTime? _lastLocationBroadcastAt;
+  double _simulatedLegProgress = 0.15;
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +89,27 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     }
     if (widget.initialLoading) {
       _fetchDashboardData();
+    }
+  }
+
+  @override
+  void dispose() {
+    _autoTrackTimer?.cancel();
+    super.dispose();
+  }
+
+  void _syncAutoTracking() {
+    if (!widget.initialLoading || !_isOnline || !_autoTrackEnabled) {
+      _autoTrackTimer?.cancel();
+      _autoTrackTimer = null;
+      return;
+    }
+    _autoTrackTimer ??= Timer.periodic(const Duration(seconds: 8), (_) {
+      if (!mounted) return;
+      _broadcastLocation(silent: true);
+    });
+    if (_activeOrders.isNotEmpty && _lastLocationBroadcastAt == null) {
+      _broadcastLocation(silent: true);
     }
   }
 
@@ -184,9 +214,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
       if (mounted) {
         setState(() => _isLoading = false);
+        _syncAutoTracking();
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _syncAutoTracking();
+      }
     }
   }
 
@@ -195,6 +229,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     try {
       await _api.post('drivers/toggle-online/', {'is_online': value});
       if (!mounted) return;
+      _syncAutoTracking();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -206,22 +241,127 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       );
       _fetchDashboardData();
     } catch (_) {
-      if (mounted) setState(() => _isOnline = !value);
+      if (mounted) {
+        setState(() => _isOnline = !value);
+        _syncAutoTracking();
+      }
     }
   }
 
-  Future<void> _broadcastLocation() async {
-    try {
-      await _api.post('drivers/location/', {'lat': 11.5580, 'lng': 104.9210});
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Live GPS location broadcast to active customers.'),
-          backgroundColor: GlassTheme.primaryGreen,
-          behavior: SnackBarBehavior.floating,
+  void _toggleAutoTrack() {
+    setState(() => _autoTrackEnabled = !_autoTrackEnabled);
+    _syncAutoTracking();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _autoTrackEnabled
+              ? 'Auto GPS tracking enabled for active orders.'
+              : 'Auto GPS tracking paused.',
         ),
-      );
-    } catch (_) {}
+        backgroundColor: _autoTrackEnabled
+            ? GlassTheme.primaryGreen
+            : Colors.orange,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Map<String, dynamic> _computeNextDriverTelemetry(dynamic deviceLoc) {
+    if (deviceLoc != null) {
+      return {
+        'lat': double.parse(deviceLoc.latitude.toStringAsFixed(6)),
+        'lng': double.parse(deviceLoc.longitude.toStringAsFixed(6)),
+        'speed': _activeOrders.isNotEmpty ? 28.0 : 0.0,
+        'bearing': 0.0,
+      };
+    }
+
+    if (_activeOrders.isNotEmpty) {
+      final order = _activeOrders.first;
+      final status = (order['status'] ?? 'assigned').toString();
+      final rest = order['restaurant'] is Map ? order['restaurant'] : {};
+      final addr = order['address'] is Map ? order['address'] : {};
+      final restLat = double.tryParse(rest['lat']?.toString() ?? '') ?? 11.5564;
+      final restLng =
+          double.tryParse(rest['lng']?.toString() ?? '') ?? 104.9282;
+      final custLat = double.tryParse(addr['lat']?.toString() ?? '') ?? 11.5621;
+      final custLng =
+          double.tryParse(addr['lng']?.toString() ?? '') ?? 104.9160;
+
+      const pickedUpStatuses = {
+        'picked_up',
+        'on_the_way',
+        'out_for_delivery',
+        'arrived',
+        'driver_arrived',
+      };
+
+      if (!pickedUpStatuses.contains(status)) {
+        // Not picked up yet: anchor at or approaching restaurant pickup, never ahead of pickup
+        if (status == 'arrived_at_restaurant') {
+          return {
+            'lat': double.parse(restLat.toStringAsFixed(6)),
+            'lng': double.parse(restLng.toStringAsFixed(6)),
+            'speed': 0.0,
+            'bearing': 0.0,
+          };
+        }
+        return {
+          'lat': double.parse((restLat - 0.0014).toStringAsFixed(6)),
+          'lng': double.parse((restLng - 0.0011).toStringAsFixed(6)),
+          'speed': 18.0,
+          'bearing': 45.0,
+        };
+      }
+
+      if (status == 'arrived' || status == 'driver_arrived') {
+        return {
+          'lat': double.parse(custLat.toStringAsFixed(6)),
+          'lng': double.parse(custLng.toStringAsFixed(6)),
+          'speed': 0.0,
+          'bearing': 0.0,
+        };
+      }
+
+      // Food is picked up: advance along restaurant -> customer route
+      _simulatedLegProgress = (_simulatedLegProgress + 0.08).clamp(0.10, 0.92);
+      final lat = restLat + (custLat - restLat) * _simulatedLegProgress;
+      final lng = restLng + (custLng - restLng) * _simulatedLegProgress;
+      return {
+        'lat': double.parse(lat.toStringAsFixed(6)),
+        'lng': double.parse(lng.toStringAsFixed(6)),
+        'speed': 32.0,
+        'bearing': 120.0,
+      };
+    }
+
+    return {'lat': 11.5580, 'lng': 104.9210, 'speed': 0.0, 'bearing': 0.0};
+  }
+
+  Future<void> _broadcastLocation({bool silent = false}) async {
+    if (_isBroadcastingLocation) return;
+    _isBroadcastingLocation = true;
+    try {
+      final deviceLoc = await getDeviceLocation();
+      final payload = _computeNextDriverTelemetry(deviceLoc);
+      await _api.post('drivers/location/', payload);
+      if (!mounted) return;
+      setState(() => _lastLocationBroadcastAt = DateTime.now());
+      if (!silent) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Live GPS location broadcast to active customers.'),
+            backgroundColor: GlassTheme.primaryGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (_) {
+    } finally {
+      _isBroadcastingLocation = false;
+    }
   }
 
   Future<void> _acceptOrder(String orderId) async {
@@ -445,10 +585,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               const SizedBox(height: 16),
               Text(
                 'Complete Delivery #$orderId',
-                style: TextStyle(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: sheetPrimaryText,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 8),
@@ -472,19 +611,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           children: [
                             Text(
                               'Bank QR Pending Verification',
-                              style: TextStyle(
-                                color: warningTextColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    color: warningTextColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'Customer must complete payment in their banking app or scan the KHQR code before delivery.',
-                              style: TextStyle(
-                                color: sheetSecondaryText,
-                                fontSize: 12,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: sheetSecondaryText),
                             ),
                           ],
                         ),
@@ -513,18 +650,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           children: [
                             Text(
                               'Payment Due Upon Delivery',
-                              style: TextStyle(
-                                color: warningTextColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    color: warningTextColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
                             Text(
                               'Collect \$${order['total_amount']} (≈ ${KhmerCurrency.formatKhr(double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0)}) cash from customer',
-                              style: TextStyle(
-                                color: sheetSecondaryText,
-                                fontSize: 12,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: sheetSecondaryText),
                             ),
                           ],
                         ),
@@ -536,7 +671,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ],
               Text(
                 'Select delivery verification method:',
-                style: TextStyle(color: sheetSecondaryText, fontSize: 13),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
               ),
               const SizedBox(height: 14),
               ListTile(
@@ -554,15 +691,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
                 title: Text(
                   'Scan Customer Delivery QR Code',
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: sheetPrimaryText,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 subtitle: Text(
                   'Scan QR from customer\'s FoodGo app or enter PIN',
-                  style: TextStyle(color: sheetSecondaryText, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
                 ),
                 trailing: const Icon(
                   AppIcons.chevronRight,
@@ -594,15 +732,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 leading: Icon(AppIcons.qrCode, color: sheetSecondaryText),
                 title: Text(
                   'Show Driver Handover QR',
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: sheetPrimaryText,
-                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 subtitle: Text(
                   'Customer scans code displayed on your screen',
-                  style: TextStyle(color: sheetSecondaryText, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
                 ),
                 trailing: Icon(
                   AppIcons.chevronRight,
@@ -637,15 +776,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
                 title: Text(
                   'Direct Handover Confirmation',
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: sheetPrimaryText,
-                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 subtitle: Text(
                   'Confirm package handed to customer directly',
-                  style: TextStyle(color: sheetSecondaryText, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
                 ),
                 trailing: Icon(
                   AppIcons.chevronRight,
@@ -772,7 +912,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     },
                     title: Text(
                       'I collected the cash payment from the customer',
-                      style: TextStyle(color: primaryText, fontSize: 13),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: primaryText),
                     ),
                   ),
                 ],
@@ -952,47 +1094,49 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         child: SafeArea(
           child: ResponsiveWebContainer(
             maxWidth: 900,
-            child: Column(
-              children: [
-                // ── Status & Navigation Header ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: _buildHeaderCard(),
-                ),
-
-                // ── Segmented Tab Selector ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 4.0,
-                  ),
-                  child: _buildTabSelector(),
-                ),
-
-                const SizedBox(height: 8),
-
-                // ── Tab Content ──
-                Expanded(
-                  child: _isLoading
-                      ? Center(
-                          child: CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        )
-                      : RefreshIndicator(
-                          color: Theme.of(context).colorScheme.primary,
-                          backgroundColor:
-                              Theme.of(context).brightness == Brightness.dark
-                              ? GlassTheme.backgroundDark
-                              : Colors.white,
-                          onRefresh: _fetchDashboardData,
-                          child: _buildSelectedTabContent(),
+            child: NestedScrollView(
+              headerSliverBuilder: (context, _) => [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      // ── Status & Navigation Header ──
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
                         ),
+                        child: _buildHeaderCard(),
+                      ),
+
+                      // ── Segmented Tab Selector ──
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 4.0,
+                        ),
+                        child: _buildTabSelector(),
+                      ),
+
+                      const SizedBox(height: 8),
+                    ],
+                  ),
                 ),
               ],
+              body: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
+                  : RefreshIndicator(
+                      color: Theme.of(context).colorScheme.primary,
+                      backgroundColor:
+                          Theme.of(context).brightness == Brightness.dark
+                          ? GlassTheme.backgroundDark
+                          : Colors.white,
+                      onRefresh: _fetchDashboardData,
+                      child: _buildSelectedTabContent(),
+                    ),
             ),
           ),
         ),
@@ -1003,6 +1147,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   Widget _buildHeaderCard() {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
     final amberTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
     final rating =
         double.tryParse(_driverProfile?['rating']?.toString() ?? '') ?? 4.9;
@@ -1027,39 +1177,32 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                    color: accentGreen.withValues(alpha: 0.5),
                     width: 1.5,
                   ),
                 ),
-                child: const Icon(
-                  Icons.two_wheeler,
-                  color: GlassTheme.primaryGreen,
-                  size: 22,
-                ),
+                child: Icon(Icons.two_wheeler, color: accentGreen, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(
-                            _driverProfile?['full_name'] ??
-                                _driverProfile?['username'] ??
-                                'FoodGo Driver',
-                            style: TextStyle(
-                              color: AppTypography.primaryTextColor(
-                                Theme.of(context).brightness,
-                              ),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          _driverProfile?['full_name'] ??
+                              _driverProfile?['username'] ??
+                              'FoodGo Driver',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.w700,
                           ),
+                          maxLines: 2,
                         ),
-                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 6,
@@ -1080,17 +1223,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               const SizedBox(width: 2),
                               Text(
                                 rating.toStringAsFixed(1),
-                                style: TextStyle(
+                                style: textTheme.labelSmall?.copyWith(
                                   color: amberTextColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        if (!_isApproved) ...[
-                          const SizedBox(width: 6),
+                        if (!_isApproved)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -1102,24 +1243,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                             ),
                             child: Text(
                               'Pending Approval',
-                              style: TextStyle(
+                              style: textTheme.labelSmall?.copyWith(
                                 color: amberTextColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${_driverProfile?['vehicle_type'] ?? 'Motorcycle'} · ${_driverProfile?['license_plate'] ?? 'PP-2026'}',
-                      style: TextStyle(
-                        color: AppTypography.secondaryTextColor(
-                          Theme.of(context).brightness,
-                        ),
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
                       ),
                     ),
                   ],
@@ -1154,7 +1290,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: GlassTheme.primaryGreen,
+                          color: accentGreen,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -1171,41 +1307,105 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       Flexible(
                         child: Text(
                           context.tr('driver.onlineAvailable'),
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 12,
+                          style: textTheme.labelMedium?.copyWith(
+                            color: accentGreen,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: GlassTheme.primaryGreen,
-                      backgroundColor: GlassTheme.primaryGreen.withValues(
-                        alpha: 0.1,
-                      ),
-                      shape: RoundedRectangleBorder(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: _toggleAutoTrack,
                         borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _autoTrackEnabled
+                                ? GlassTheme.primaryGreen.withValues(
+                                    alpha: 0.14,
+                                  )
+                                : Colors.orange.withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _autoTrackEnabled
+                                  ? accentGreen.withValues(alpha: 0.4)
+                                  : (isDark
+                                            ? Colors.orangeAccent
+                                            : const Color(0xFFB45309))
+                                        .withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _autoTrackEnabled
+                                    ? Icons.gps_fixed
+                                    : Icons.gps_off,
+                                size: 14,
+                                color: _autoTrackEnabled
+                                    ? accentGreen
+                                    : (isDark
+                                          ? Colors.orangeAccent
+                                          : const Color(0xFFB45309)),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                _autoTrackEnabled
+                                    ? (_activeOrders.isNotEmpty
+                                          ? 'Auto-Track: ON (${_activeOrders.length})'
+                                          : 'Auto-Track: Standby')
+                                    : 'Auto-Track: Paused',
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: _autoTrackEnabled
+                                      ? accentGreen
+                                      : (isDark
+                                            ? Colors.orangeAccent
+                                            : const Color(0xFFB45309)),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: accentGreen,
+                          backgroundColor: GlassTheme.primaryGreen.withValues(
+                            alpha: 0.1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: accentGreen.withValues(alpha: 0.35),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                        ),
+                        icon: const Icon(Icons.my_location, size: 14),
+                        label: Text(
+                          'Broadcast Location',
+                          style: textTheme.labelMedium?.copyWith(
+                            color: accentGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: _broadcastLocation,
                       ),
-                    ),
-                    icon: const Icon(Icons.my_location, size: 14),
-                    label: const Text(
-                      'Broadcast Location',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    onPressed: _broadcastLocation,
+                    ],
                   ),
                 ],
               ),
@@ -1219,6 +1419,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   Widget _buildTabSelector() {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final tabs = [
@@ -1247,59 +1448,67 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           color: isDark ? Colors.white10 : GlassTheme.borderLight,
         ),
       ),
-      child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isSelected = _selectedTab == index;
-          return Expanded(
-            child: InkWell(
-              onTap: () => setState(() => _selectedTab = index),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary.withValues(
-                          alpha: isDark ? 0.25 : 0.12,
-                        )
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  border: isSelected
-                      ? Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.5),
-                        )
-                      : null,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      tabs[index]['icon'] as IconData,
-                      size: 16,
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : secondaryText,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      tabs[index]['title'] as String,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: isSelected ? primaryText : secondaryText,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: List.generate(tabs.length, (index) {
+            final isSelected = _selectedTab == index;
+            return Expanded(
+              child: InkWell(
+                onTap: () => setState(() => _selectedTab = index),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primary.withValues(
+                            alpha: isDark ? 0.25 : 0.12,
+                          )
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: isSelected
+                        ? Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.5),
+                          )
+                        : null,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        tabs[index]['icon'] as IconData,
+                        size: 16,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : secondaryText,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        tabs[index]['title'] as String,
+                        style: textTheme.labelSmall?.copyWith(
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected ? primaryText : secondaryText,
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        softWrap: true,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -1324,48 +1533,61 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   // ─────────────────────────────────────────────
   Widget _buildActiveDeliveriesTab() {
     if (_activeOrders.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.directions_bike,
-                size: 56,
-                color: GlassTheme.textMuted.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No Active Deliveries',
-                style: TextStyle(
-                  color: AppTypography.primaryTextColor(
-                    Theme.of(context).brightness,
-                  ),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.directions_bike,
+                  size: 48,
+                  color: GlassTheme.textMuted.withValues(alpha: 0.5),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Check available orders tab to accept an order assignment.',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 12),
+                Text(
+                  'No Active Deliveries',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTypography.primaryTextColor(
+                      Theme.of(context).brightness,
+                    ),
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                icon: const Icon(Icons.search, size: 18),
-                label: const Text('View Available Orders'),
-                onPressed: () => setState(() => _selectedTab = 1),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  'Check available orders tab to accept an order assignment.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTypography.secondaryTextColor(
+                      Theme.of(context).brightness,
+                    ),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).brightness == Brightness.dark
+                        ? GlassTheme.primaryGreen
+                        : const Color(0xFF15803D),
+                    foregroundColor:
+                        Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black
+                        : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.search, size: 18),
+                  label: const Text('View Available Orders'),
+                  onPressed: () => setState(() => _selectedTab = 1),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -1441,12 +1663,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Expanded(
                 child: Text(
                   'Order #${order['id']}',
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: primaryText,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
@@ -1465,13 +1685,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                   child: Text(
                     _getStatusLabel(status),
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: _getStatusColor(status),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ),
               ),
@@ -1481,10 +1699,66 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             const SizedBox(height: 2),
             Text(
               order['order_reference'],
-              style: TextStyle(color: secondaryText, fontSize: 11),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: secondaryText),
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          Builder(
+            builder: (context) {
+              final pickedUp = const {
+                'picked_up',
+                'on_the_way',
+                'out_for_delivery',
+                'arrived',
+                'driver_arrived',
+                'delivered',
+              }.contains(status);
+              final trackAccent = pickedUp
+                  ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
+                  : amberTextColor;
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: trackAccent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: trackAccent.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      pickedUp
+                          ? Icons.gps_fixed
+                          : Icons.hourglass_bottom_rounded,
+                      size: 14,
+                      color: trackAccent,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        pickedUp
+                            ? (_autoTrackEnabled && _isOnline
+                                  ? 'Food Picked Up • Auto-Tracking to Customer'
+                                  : 'Food Picked Up • Proceeding to Customer')
+                            : (_autoTrackEnabled && _isOnline
+                                  ? 'Not Picked Up Yet • Auto-Tracking Approach'
+                                  : 'Not Picked Up Yet • Head to Restaurant'),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: trackAccent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 14),
 
           // Lifecycle Stepper
           _buildLifecycleStepper(status),
@@ -1509,19 +1783,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.store,
-                      color: GlassTheme.primaryGreen,
+                      color: isDark
+                          ? const Color(0xFF4ADE80)
+                          : const Color(0xFF15803D),
                       size: 18,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Pickup: $restName',
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: primaryText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1530,7 +1805,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 const SizedBox(height: 6),
                 Text(
                   restAddress,
-                  style: TextStyle(color: secondaryText, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: secondaryText),
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 10),
                 Wrap(
@@ -1539,8 +1817,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: GlassTheme.primaryGreen,
-                        side: const BorderSide(color: GlassTheme.primaryGreen),
+                        foregroundColor: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
+                        side: BorderSide(
+                          color: isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -1548,9 +1832,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.map_outlined, size: 14),
-                      label: const Text(
+                      label: Text(
                         'Map Route',
-                        style: TextStyle(fontSize: 11),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       onPressed: () =>
                           context.push('/map/${order['id']}?isDriver=true'),
@@ -1570,9 +1859,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.navigation, size: 14),
-                      label: const Text(
+                      label: Text(
                         'Directions',
-                        style: TextStyle(fontSize: 11),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: secondaryText),
                       ),
                       onPressed: () => _launchMaps(restLat, restLng, restName),
                     ),
@@ -1591,7 +1882,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.phone, size: 14),
-                      label: const Text('Call', style: TextStyle(fontSize: 11)),
+                      label: Text(
+                        'Call',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: secondaryText),
+                      ),
                       onPressed: () =>
                           _copyToClipboard(restPhone, 'Restaurant Phone'),
                     ),
@@ -1630,10 +1926,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     Expanded(
                       child: Text(
                         'Deliver to: $custName',
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: primaryText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1642,7 +1937,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 const SizedBox(height: 6),
                 Text(
                   custStreet,
-                  style: TextStyle(color: secondaryText, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: secondaryText),
+                  maxLines: 2,
                 ),
                 if (order['special_instructions'] != null &&
                     order['special_instructions']
@@ -1652,7 +1950,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   const SizedBox(height: 6),
                   Text(
                     'Note: ${order['special_instructions']}',
-                    style: TextStyle(color: amberTextColor, fontSize: 11),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelSmall?.copyWith(color: amberTextColor),
                   ),
                 ],
                 const SizedBox(height: 10),
@@ -1671,11 +1971,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.map_rounded, size: 15),
-                      label: const Text(
+                      label: Text(
                         'Open Delivery Map',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       onPressed: () =>
@@ -1683,8 +1983,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.blueAccent,
-                        side: const BorderSide(color: Colors.blueAccent),
+                        foregroundColor: isDark
+                            ? Colors.blueAccent
+                            : const Color(0xFF1D4ED8),
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.blueAccent
+                              : const Color(0xFF1D4ED8),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -1692,9 +1998,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.navigation, size: 14),
-                      label: const Text(
+                      label: Text(
                         'Directions',
-                        style: TextStyle(fontSize: 11),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: isDark
+                              ? Colors.blueAccent
+                              : const Color(0xFF1D4ED8),
+                        ),
                       ),
                       onPressed: () =>
                           _launchMaps(custLat, custLng, custStreet),
@@ -1714,7 +2024,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.phone, size: 14),
-                      label: const Text('Call', style: TextStyle(fontSize: 11)),
+                      label: Text(
+                        'Call',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: secondaryText),
+                      ),
                       onPressed: () =>
                           _copyToClipboard(custPhone, 'Customer Phone'),
                     ),
@@ -1735,7 +2050,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   children: [
                     Text(
                       'Payment Status',
-                      style: TextStyle(color: secondaryText, fontSize: 11),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: secondaryText),
                     ),
                     const SizedBox(height: 2),
                     Container(
@@ -1755,12 +2072,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                             : (isBankPayment
                                   ? 'KHQR PENDING VERIFICATION'
                                   : 'CASH DUE ON DELIVERY'),
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: isPaid
-                              ? GlassTheme.primaryGreen
+                              ? (isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF15803D))
                               : amberTextColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1775,22 +2093,27 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     Text(
                       'Delivery Fee Earning',
                       textAlign: TextAlign.end,
-                      style: TextStyle(color: secondaryText, fontSize: 11),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: secondaryText),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '+\$$deliveryFee ≈ ${KhmerCurrency.formatKhr(double.tryParse(deliveryFee) ?? 2.0)}',
                       textAlign: TextAlign.end,
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
                       'Order Total: \$$totalAmount',
                       textAlign: TextAlign.end,
-                      style: TextStyle(color: secondaryText, fontSize: 11),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: secondaryText),
                     ),
                   ],
                 ),
@@ -1808,7 +2131,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             onPressed: () => _showCancelOrderDialog(order['id'].toString()),
             child: Text(
               'Report Issue or Reassign',
-              style: TextStyle(color: secondaryText, fontSize: 12),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: secondaryText),
             ),
           ),
         ],
@@ -1918,11 +2243,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               )
                             : Text(
                                 '${i + 1}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: secondaryText,
-                                ),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: secondaryText,
+                                    ),
                               ),
                       ),
                     ),
@@ -1945,18 +2270,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 const SizedBox(height: 6),
                 Text(
                   steps[i]['label']!,
-                  style: TextStyle(
-                    fontSize: 9.5,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
                     color: isCurrent
                         ? primaryText
                         : (isCompleted
-                              ? GlassTheme.primaryGreen
+                              ? (isDark
+                                    ? GlassTheme.primaryGreen
+                                    : const Color(0xFF15803D))
                               : secondaryText),
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ],
             ),
@@ -2062,6 +2387,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     }
   }
 
+  String _availableOrderQuery = '';
+
   // ─────────────────────────────────────────────
   // TAB 1: AVAILABLE ORDERS
   // ─────────────────────────────────────────────
@@ -2070,6 +2397,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final isDark = brightness == Brightness.dark;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
 
     if (!_isOnline) {
       return Center(
@@ -2086,23 +2416,26 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               const SizedBox(height: 16),
               Text(
                 'You are Currently Offline',
-                style: TextStyle(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: primaryText,
-                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Turn on your online status to receive live delivery requests.',
-                style: TextStyle(color: secondaryText, fontSize: 13),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: secondaryText),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.primaryGreen,
-                  foregroundColor: Colors.white,
+                  backgroundColor: isDark
+                      ? GlassTheme.primaryGreen
+                      : const Color(0xFF15803D),
+                  foregroundColor: isDark ? Colors.black : Colors.white,
                 ),
                 icon: const Icon(Icons.toggle_on),
                 label: const Text('Go Online Now'),
@@ -2129,16 +2462,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               const SizedBox(height: 16),
               Text(
                 'No Available Orders',
-                style: TextStyle(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: primaryText,
-                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Waiting for incoming food orders from nearby restaurants.',
-                style: TextStyle(color: secondaryText, fontSize: 13),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: secondaryText),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -2149,10 +2483,55 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
     final bool isPhoneVerified = _driverProfile?['is_phone_verified'] == true;
     final warningTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
+    final query = _availableOrderQuery.trim().toLowerCase();
+    final filteredAvailable = query.isEmpty
+        ? _availableOrders
+        : _availableOrders.where((o) {
+            final idStr = o['id']?.toString().toLowerCase() ?? '';
+            final rest = o['restaurant'] is Map
+                ? (o['restaurant']['name']?.toString().toLowerCase() ?? '')
+                : (o['restaurant_name']?.toString().toLowerCase() ?? '');
+            final addr = o['address'] is Map
+                ? (o['address']['street']?.toString().toLowerCase() ?? '')
+                : (o['delivery_address_snapshot']?.toString().toLowerCase() ??
+                      '');
+            return idStr.contains(query) ||
+                rest.contains(query) ||
+                addr.contains(query);
+          }).toList();
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.black.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white12
+                  : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
+          child: TextField(
+            onChanged: (val) => setState(() => _availableOrderQuery = val),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: primaryText),
+            decoration: InputDecoration(
+              hintText: 'Find order by #ID, restaurant, or dropoff...',
+              hintStyle: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: secondaryText),
+              prefixIcon: Icon(Icons.search, color: accentGreen, size: 20),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
         if (!isPhoneVerified) ...[
           Container(
             margin: const EdgeInsets.only(bottom: 16),
@@ -2176,10 +2555,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     Expanded(
                       child: Text(
                         'Phone Verification Required',
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: primaryText,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -2188,7 +2566,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 const SizedBox(height: 6),
                 Text(
                   'You must verify your Cambodian phone number (+855) via SMS OTP before accepting delivery assignments.',
-                  style: TextStyle(color: secondaryText, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: secondaryText),
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton.icon(
@@ -2216,7 +2596,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             ),
           ),
         ],
-        ..._availableOrders.asMap().entries.map(
+        ...filteredAvailable.asMap().entries.map(
           (entry) => _buildAvailableOrderCard(
             entry.value,
           ).motionEntrance(staggerIndex: entry.key),
@@ -2260,9 +2640,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final amberTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
+    final statusGreen = isDark
+        ? GlassTheme.primaryGreen
+        : const Color(0xFF15803D);
 
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -2271,16 +2655,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Text(
                   'Order #$orderId',
-                  style: TextStyle(
+                  style: textTheme.titleMedium?.copyWith(
                     color: primaryText,
-                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
@@ -2300,13 +2683,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     isPaid
                         ? 'PAID'
                         : (isBankPayment ? 'KHQR PENDING' : 'COD DUE'),
-                    style: TextStyle(
-                      color: isPaid ? GlassTheme.primaryGreen : amberTextColor,
-                      fontSize: 10,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: isPaid ? statusGreen : amberTextColor,
                       fontWeight: FontWeight.bold,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -2318,7 +2698,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.store, color: GlassTheme.primaryGreen, size: 16),
+              Icon(Icons.store, color: statusGreen, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -2326,17 +2706,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   children: [
                     Text(
                       restName,
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: primaryText,
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
                       ),
                     ),
                     Text(
                       restAddress,
-                      style: TextStyle(color: secondaryText, fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
                     ),
                   ],
                 ),
@@ -2357,17 +2738,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   children: [
                     Text(
                       'Delivery Destination',
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: primaryText,
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
                       ),
                     ),
                     Text(
                       custStreet,
-                      style: TextStyle(color: secondaryText, fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
                     ),
                   ],
                 ),
@@ -2393,19 +2775,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 children: [
                   Text(
                     'Delivery Earning',
-                    style: TextStyle(color: secondaryText, fontSize: 11),
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                   Text(
                     '+\$$deliveryFee ≈ ${KhmerCurrency.formatKhr(double.tryParse(deliveryFee) ?? 2.0)}',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
+                    style: textTheme.labelLarge?.copyWith(
+                      color: statusGreen,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
                     ),
                   ),
                   Text(
                     'Order: \$$totalAmount',
-                    style: TextStyle(color: secondaryText, fontSize: 11),
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                 ],
               ),
@@ -2416,9 +2797,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 children: [
                   IconButton(
                     style: IconButton.styleFrom(
-                      foregroundColor: GlassTheme.primaryGreen,
+                      foregroundColor: statusGreen,
                       side: BorderSide(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.5),
+                        color: statusGreen.withValues(alpha: 0.5),
                         width: 1.2,
                       ),
                       shape: RoundedRectangleBorder(
@@ -2452,9 +2833,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     onPressed: () => _declineOrder(orderId),
                     child: Text(
                       'Decline',
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: primaryText,
-                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -2474,11 +2854,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       elevation: 2,
                     ),
                     icon: const Icon(Icons.check, size: 18),
-                    label: const Text(
+                    label: Text(
                       'Accept',
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.black,
                         fontWeight: FontWeight.w900,
-                        fontSize: 13,
                       ),
                     ),
                     onPressed: () => _acceptOrder(orderId),
@@ -2498,8 +2878,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   Widget _buildEarningsTab() {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final statusGreen = isDark
+        ? GlassTheme.primaryGreen
+        : const Color(0xFF15803D);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -2514,41 +2898,44 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Today's Earnings",
-                        style: TextStyle(color: secondaryText, fontSize: 12),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '\$${_todayEarningsUsd.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: primaryText,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Today's Earnings",
+                          style: textTheme.bodySmall?.copyWith(
+                            color: secondaryText,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '≈ ${KhmerCurrency.formatKhr(_todayEarningsUsd)}',
-                        style: const TextStyle(
-                          color: GlassTheme.primaryGreen,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 2),
+                        Text(
+                          '\$${_todayEarningsUsd.toStringAsFixed(2)}',
+                          style: textTheme.displayLarge?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          '≈ ${KhmerCurrency.formatKhr(_todayEarningsUsd)}',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: statusGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 12),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.account_balance_wallet,
-                      color: GlassTheme.primaryGreen,
+                      color: statusGreen,
                       size: 32,
                     ),
                   ),
@@ -2567,16 +2954,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       children: [
                         Text(
                           '$_completedDeliveries',
-                          style: TextStyle(
+                          style: textTheme.titleLarge?.copyWith(
                             color: primaryText,
-                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           'Total Trips',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: secondaryText, fontSize: 11),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                          ),
                         ),
                       ],
                     ),
@@ -2593,20 +2981,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       children: [
                         Text(
                           '\$${_totalEarningsUsd.toStringAsFixed(2)}',
-                          style: TextStyle(
+                          style: textTheme.titleLarge?.copyWith(
                             color: primaryText,
-                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           '≈ ${KhmerCurrency.formatKhr(_totalEarningsUsd)}',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.9,
-                            ),
-                            fontSize: 10,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: statusGreen,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2614,7 +2998,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         Text(
                           'Lifetime Earned',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: secondaryText, fontSize: 11),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                          ),
                         ),
                       ],
                     ),
@@ -2628,9 +3014,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
         Text(
           'Completed Deliveries',
-          style: TextStyle(
+          style: textTheme.titleLarge?.copyWith(
             color: primaryText,
-            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -2642,7 +3027,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               padding: const EdgeInsets.all(32.0),
               child: Text(
                 'No completed deliveries yet.',
-                style: TextStyle(color: secondaryText),
+                style: textTheme.bodyMedium?.copyWith(color: secondaryText),
               ),
             ),
           )
@@ -2671,11 +3056,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
-                        Icons.check,
-                        color: GlassTheme.primaryGreen,
-                        size: 18,
-                      ),
+                      child: Icon(Icons.check, color: statusGreen, size: 18),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -2684,28 +3065,26 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         children: [
                           Text(
                             'Order #${o['id']} · $restName',
-                            style: TextStyle(
+                            style: textTheme.bodyMedium?.copyWith(
                               color: primaryText,
                               fontWeight: FontWeight.w600,
-                              fontSize: 13,
                             ),
                           ),
                           Text(
                             dateStr,
-                            style: TextStyle(
+                            style: textTheme.labelSmall?.copyWith(
                               color: secondaryText,
-                              fontSize: 11,
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       '+\$$fee',
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: statusGreen,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
                       ),
                     ),
                   ],
@@ -2731,9 +3110,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         double.tryParse(_driverProfile?['rating']?.toString() ?? '') ?? 4.9;
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     final warningTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
+    final statusGreen = isDark
+        ? GlassTheme.primaryGreen
+        : const Color(0xFF15803D);
+    final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -2746,24 +3130,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               CircleAvatar(
                 radius: 36,
                 backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(
-                  Icons.person,
-                  size: 40,
-                  color: GlassTheme.primaryGreen,
-                ),
+                child: Icon(Icons.person, size: 40, color: statusGreen),
               ),
               const SizedBox(height: 12),
               Text(
                 fullName,
-                style: TextStyle(
+                textAlign: TextAlign.center,
+                style: textTheme.titleLarge?.copyWith(
                   color: primaryText,
-                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 '@$username',
-                style: TextStyle(color: secondaryText, fontSize: 12),
+                style: textTheme.bodySmall?.copyWith(color: secondaryText),
               ),
               const SizedBox(height: 8),
               Container(
@@ -2784,9 +3164,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     const SizedBox(width: 4),
                     Text(
                       '$rating Rating',
-                      style: TextStyle(
+                      style: textTheme.bodySmall?.copyWith(
                         color: primaryText,
-                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -2805,10 +3184,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             children: [
               Text(
                 'Vehicle & Registration',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   color: primaryText,
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
                 ),
               ),
               Divider(
@@ -2829,7 +3207,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     Expanded(
                       child: Text(
                         'Phone Verification',
-                        style: TextStyle(color: secondaryText, fontSize: 13),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: secondaryText,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -2845,25 +3225,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           ),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.3,
-                            ),
+                            color: statusGreen.withValues(alpha: 0.35),
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.check_circle,
                               size: 12,
-                              color: GlassTheme.primaryGreen,
+                              color: statusGreen,
                             ),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
                               'Verified (+855)',
-                              style: TextStyle(
-                                color: GlassTheme.primaryGreen,
-                                fontSize: 12,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: statusGreen,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -2904,9 +3281,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               const SizedBox(width: 4),
                               Text(
                                 'Verify Now',
-                                style: TextStyle(
+                                style: textTheme.bodySmall?.copyWith(
                                   color: warningTextColor,
-                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -2921,9 +3297,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Icons.verified_user,
                 'Account Approval',
                 _isApproved ? 'Approved & Active' : 'Pending Review',
-                valueColor: _isApproved
-                    ? GlassTheme.primaryGreen
-                    : warningTextColor,
+                valueColor: _isApproved ? statusGreen : warningTextColor,
               ),
             ],
           ),
@@ -2938,18 +3312,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         const SizedBox(height: 14),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent.withValues(alpha: 0.15),
-            foregroundColor: Colors.redAccent,
-            side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.5)),
+            backgroundColor: dangerColor.withValues(alpha: 0.12),
+            foregroundColor: dangerColor,
+            elevation: 0,
+            side: BorderSide(color: dangerColor.withValues(alpha: 0.5)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           icon: const Icon(Icons.logout, size: 18),
-          label: const Text(
+          label: Text(
             'Log Out from Driver Portal',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: textTheme.labelLarge?.copyWith(
+              color: dangerColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           onPressed: () => _confirmLogout(context),
         ),
@@ -2964,6 +3342,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     Color? valueColor,
   }) {
     final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     return Padding(
@@ -2976,7 +3355,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             flex: 2,
             child: Text(
               label,
-              style: TextStyle(color: secondaryText, fontSize: 13),
+              style: textTheme.bodyMedium?.copyWith(color: secondaryText),
             ),
           ),
           const SizedBox(width: 12),
@@ -2985,10 +3364,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: TextStyle(
+              style: textTheme.bodyMedium?.copyWith(
                 color: valueColor ?? primaryText,
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
               ),
             ),
           ),
@@ -3066,7 +3444,10 @@ class _DriverFailedDeliveryDialogState
       ),
       title: Text(
         'Report Delivery Issue',
-        style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: primaryText,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -3074,14 +3455,18 @@ class _DriverFailedDeliveryDialogState
         children: [
           Text(
             'Specify reason (e.g., Customer unreachable, wrong address, gate locked):',
-            style: TextStyle(color: secondaryText, fontSize: 13),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: secondaryText),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _reasonController,
             decoration: InputDecoration(
               hintText: 'Customer phone unreachable',
-              hintStyle: TextStyle(color: secondaryText),
+              hintStyle: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: secondaryText),
               filled: true,
               fillColor: isDark
                   ? Colors.black26
@@ -3099,26 +3484,40 @@ class _DriverFailedDeliveryDialogState
                 ),
               ),
             ),
-            style: TextStyle(color: primaryText),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: primaryText),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: secondaryText)),
+          child: Text(
+            'Cancel',
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark
+                ? Colors.redAccent
+                : const Color(0xFFB91C1C),
+            foregroundColor: Colors.white,
+          ),
           onPressed: () {
             final reason = _reasonController.text.trim().isEmpty
                 ? 'Customer unreachable after multiple attempts'
                 : _reasonController.text.trim();
             Navigator.pop(context, reason);
           },
-          child: const Text(
+          child: Text(
             'Submit Report',
-            style: TextStyle(color: Colors.white),
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: Colors.white),
           ),
         ),
       ],
@@ -3149,6 +3548,7 @@ class _DriverCancelOrderDialogState extends State<_DriverCancelOrderDialog> {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
 
@@ -3162,22 +3562,25 @@ class _DriverCancelOrderDialogState extends State<_DriverCancelOrderDialog> {
       ),
       title: Text(
         'Report Issue / Cancel',
-        style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+        style: textTheme.titleLarge?.copyWith(
+          color: primaryText,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'Are you sure you want to release this delivery? If not picked up yet, it will be reassigned to another driver.',
-            style: TextStyle(color: secondaryText, fontSize: 13),
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _reasonController,
-            style: TextStyle(color: primaryText),
+            style: textTheme.bodyMedium?.copyWith(color: primaryText),
             decoration: InputDecoration(
               labelText: 'Reason for cancellation',
-              labelStyle: TextStyle(color: secondaryText),
+              labelStyle: textTheme.bodyMedium?.copyWith(color: secondaryText),
               filled: true,
               fillColor: isDark
                   ? Colors.white.withValues(alpha: 0.05)
@@ -3192,15 +3595,23 @@ class _DriverCancelOrderDialogState extends State<_DriverCancelOrderDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Keep Delivery', style: TextStyle(color: secondaryText)),
+          child: Text(
+            'Keep Delivery',
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark
+                ? Colors.redAccent
+                : const Color(0xFFB91C1C),
+            foregroundColor: Colors.white,
+          ),
           onPressed: () =>
               Navigator.pop(context, _reasonController.text.trim()),
-          child: const Text(
+          child: Text(
             'Confirm Cancel',
-            style: TextStyle(color: Colors.white),
+            style: textTheme.labelLarge?.copyWith(color: Colors.white),
           ),
         ),
       ],
@@ -3353,19 +3764,17 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                         children: [
                           Text(
                             'Edit Driver Profile',
-                            style: TextStyle(
-                              color: primaryText,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: primaryText,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Update vehicle specifications and contact info',
-                            style: TextStyle(
-                              color: secondaryText,
-                              fontSize: 12,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: secondaryText),
                           ),
                         ],
                       ),
@@ -3379,9 +3788,8 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                 const SizedBox(height: 20),
                 Text(
                   'Vehicle Type',
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: primaryText,
-                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -3402,12 +3810,11 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                       ),
                       label: Text(
                         name,
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isSel ? Colors.black : secondaryText,
                           fontWeight: isSel
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          fontSize: 12,
                         ),
                       ),
                       selected: isSel,
@@ -3436,7 +3843,9 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                 const SizedBox(height: 14),
                 TextField(
                   controller: _vehicleCtrl,
-                  style: TextStyle(color: primaryText, fontSize: 14),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: primaryText),
                   onChanged: (text) {
                     setState(() {
                       _selectedVehicle = text.trim();
@@ -3444,7 +3853,9 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                   },
                   decoration: InputDecoration(
                     labelText: 'Vehicle Specification',
-                    labelStyle: TextStyle(color: secondaryText, fontSize: 13),
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: secondaryText),
                     prefixIcon: Icon(
                       Icons.directions_bike,
                       color: accentColor,
@@ -3471,10 +3882,14 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                 const SizedBox(height: 14),
                 TextField(
                   controller: _plateCtrl,
-                  style: TextStyle(color: primaryText, fontSize: 14),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: primaryText),
                   decoration: InputDecoration(
                     labelText: 'License Plate Number',
-                    labelStyle: TextStyle(color: secondaryText, fontSize: 13),
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: secondaryText),
                     prefixIcon: Icon(Icons.pin, color: accentColor, size: 20),
                     filled: true,
                     fillColor: isDark
@@ -3498,10 +3913,14 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                 TextField(
                   controller: _phoneCtrl,
                   keyboardType: TextInputType.phone,
-                  style: TextStyle(color: primaryText, fontSize: 14),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: primaryText),
                   decoration: InputDecoration(
                     labelText: 'Contact Phone Number',
-                    labelStyle: TextStyle(color: secondaryText, fontSize: 13),
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: secondaryText),
                     prefixIcon: Icon(
                       Icons.phone_outlined,
                       color: accentColor,
@@ -3546,10 +3965,11 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                         ),
                         child: Text(
                           'Cancel',
-                          style: TextStyle(
-                            color: secondaryText,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: secondaryText,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ),
                     ),
@@ -3559,27 +3979,33 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
                       child: ElevatedButton(
                         onPressed: _isSaving ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: GlassTheme.primaryGreen,
+                          backgroundColor: isDark
+                              ? GlassTheme.primaryGreen
+                              : const Color(0xFF15803D),
+                          foregroundColor: isDark ? Colors.black : Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: _isSaving
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white,
+                                  color: isDark ? Colors.black : Colors.white,
                                 ),
                               )
-                            : const Text(
+                            : Text(
                                 'Save Changes',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? Colors.black
+                                          : Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                       ),
                     ),

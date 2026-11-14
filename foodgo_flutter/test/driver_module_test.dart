@@ -183,6 +183,35 @@ void main() {
 
         expect(find.text('Arrived at Customer'), findsOneWidget);
         expect(find.byIcon(Icons.report_problem_outlined), findsOneWidget);
+        expect(
+          find.text('Food Picked Up • Auto-Tracking to Customer'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'Pre-pickup active order displays Not Picked Up Yet badge and Auto-Track toggle works',
+      (tester) async {
+        await tester.pumpWidget(buildDriverDashboard(active: [sampleOrder]));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('Auto-Track: ON (1)'), findsOneWidget);
+        expect(
+          find.text('Not Picked Up Yet • Auto-Tracking Approach'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Auto-Track: ON (1)'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('Auto-Track: Paused'), findsOneWidget);
+        expect(
+          find.text('Not Picked Up Yet • Head to Restaurant'),
+          findsOneWidget,
+        );
       },
     );
   });

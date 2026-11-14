@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
 
@@ -30,6 +31,19 @@ class GlassFoodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final greenAccent = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final starColor = isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFB45309);
+
     return AnimatedPressable(
       onTap: onTap,
       pressedScale: 0.98,
@@ -38,7 +52,9 @@ class GlassFoodCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         margin: const EdgeInsets.only(bottom: 16),
         customBorder: Border.all(
-          color: Colors.white.withValues(alpha: 0.18),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.18)
+              : Colors.black.withValues(alpha: 0.08),
           width: 1.2,
         ),
         child: Row(
@@ -56,14 +72,16 @@ class GlassFoodCard extends StatelessWidget {
                         placeholder: (context, url) => Container(
                           width: 82,
                           height: 82,
-                          color: Colors.white.withValues(alpha: 0.05),
-                          child: const Center(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.04),
+                          child: Center(
                             child: SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: GlassTheme.primaryGreen,
+                                color: greenAccent,
                               ),
                             ),
                           ),
@@ -72,17 +90,14 @@ class GlassFoodCard extends StatelessWidget {
                           width: 82,
                           height: 82,
                           color: Colors.grey.withValues(alpha: 0.2),
-                          child: const Icon(
-                            Icons.fastfood,
-                            color: Colors.white38,
-                          ),
+                          child: Icon(Icons.fastfood, color: secondaryText),
                         ),
                       )
                     : Container(
                         width: 82,
                         height: 82,
                         color: Colors.grey.withValues(alpha: 0.2),
-                        child: const Icon(Icons.image),
+                        child: Icon(Icons.image, color: secondaryText),
                       ),
               ),
             ),
@@ -93,44 +108,37 @@ class GlassFoodCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: textTheme.titleMedium?.copyWith(
+                      color: primaryText,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      letterSpacing: -0.2,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                    maxLines: 1,
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.star_rounded,
-                        color: Colors.amber,
-                        size: 18,
-                      ),
+                      Icon(Icons.star_rounded, color: starColor, size: 18),
                       const SizedBox(width: 4),
                       Text(
                         rating,
-                        style: const TextStyle(
+                        style: textTheme.bodySmall?.copyWith(
+                          color: primaryText,
                           fontWeight: FontWeight.w700,
-                          fontSize: 13,
                         ),
                       ),
                       const Spacer(),
                       Text(
                         price,
-                        style: const TextStyle(
+                        style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w900,
-                          fontSize: 15,
-                          color: GlassTheme.primaryGreen,
+                          color: greenAccent,
                         ),
                       ),
                     ],
@@ -144,9 +152,9 @@ class GlassFoodCard extends StatelessWidget {
               onPressed: onAddTap,
               size: 38,
               iconSize: 22,
-              color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-              iconColor: GlassTheme.primaryGreen,
-              borderColor: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+              color: greenAccent.withValues(alpha: 0.15),
+              iconColor: greenAccent,
+              borderColor: greenAccent.withValues(alpha: 0.35),
             ),
           ],
         ),

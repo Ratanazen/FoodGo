@@ -52,9 +52,8 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
           ],
           Text(
             label,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: color,
-              fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -133,18 +132,22 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                       Expanded(
                         child: Text(
                           item['name'] ?? 'Dish',
-                          style: const TextStyle(
-                            fontSize: 20,
+                          style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: AppTypography.primaryTextColor(
+                              Theme.of(ctx).brightness,
+                            ),
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
                         '\$${price.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 22,
+                        style: Theme.of(ctx).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w900,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Theme.of(ctx).brightness == Brightness.dark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
                         ),
                       ),
                     ],
@@ -155,21 +158,24 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                       alignment: Alignment.centerRight,
                       child: Text(
                         '\$${originalPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
                           decoration: TextDecoration.lineThrough,
-                          color: Colors.white38,
-                          fontSize: 14,
+                          color: AppTypography.secondaryTextColor(
+                            Theme.of(ctx).brightness,
+                          ),
                         ),
                       ),
                     ),
                   ],
                   const SizedBox(height: 8),
-                  Row(
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
                     children: [
                       if (isVeg)
                         _buildDietaryBadge(
                           'Vegetarian',
-                          Colors.green,
+                          const Color(0xFF15803D),
                           Icons.eco,
                         ),
                       if (isHalal)
@@ -196,10 +202,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                   Text(
                     item['description'] ??
                         'Freshly prepared recipe from our kitchen.',
-                    style: TextStyle(
-                      color: GlassTheme.textMuted,
-                      fontSize: 14,
-                      height: 1.4,
+                    style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                      color: AppTypography.secondaryTextColor(
+                        Theme.of(ctx).brightness,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -210,10 +216,10 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                         color: Colors.redAccent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'Currently Sold Out',
-                          style: TextStyle(
+                          style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
                             color: Colors.redAccent,
                             fontWeight: FontWeight.bold,
                           ),
@@ -232,29 +238,31 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                             Icons.remove_circle_outline,
                             size: 28,
                           ),
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Theme.of(ctx).colorScheme.primary,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
                             '$qty',
-                            style: const TextStyle(
-                              fontSize: 20,
+                            style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
+                              color: AppTypography.primaryTextColor(
+                                Theme.of(ctx).brightness,
+                              ),
                             ),
                           ),
                         ),
                         IconButton(
                           onPressed: () => setSheetState(() => qty++),
                           icon: const Icon(Icons.add_circle_outline, size: 28),
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Theme.of(ctx).colorScheme.primary,
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor: Theme.of(ctx).colorScheme.primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -288,8 +296,7 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                       },
                       child: Text(
                         'Add to Cart • \$${(price * qty).toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -352,21 +359,23 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                         color: GlassTheme.textMuted,
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Restaurant not found',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : const Color(0xFF1F2937),
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'The requested restaurant may be closed or unavailable.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: GlassTheme.textMuted,
-                          fontSize: 13,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? GlassTheme.textMuted
+                              : const Color(0xFF6B7280),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -538,11 +547,13 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                   color: Colors.transparent,
                                   child: Text(
                                     restaurant['name'] ?? 'Restaurant',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.w900,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                        ),
                                   ),
                                 ),
                               ),
@@ -564,181 +575,221 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                           children: [
                             // Restaurant Metadata Card
                             GlassContainer(
-                                  padding: const EdgeInsets.all(16),
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Column(
+                              padding: const EdgeInsets.all(16),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(
-                                                  Icons.star,
-                                                  color: GlassTheme.ratingAmber,
-                                                  size: 18,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  rating,
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
+                                      Expanded(
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.star,
+                                              color: GlassTheme.ratingAmber,
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              rating,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
                                                     fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Flexible(
-                                                  child: Text(
-                                                    '(350+ reviews)',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    maxLines: 1,
-                                                    style: TextStyle(
-                                                      color:
-                                                          GlassTheme.textMuted,
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 6,
-                                                        vertical: 2,
-                                                      ),
-                                                  decoration: BoxDecoration(
                                                     color:
-                                                        (restaurant['is_active'] !=
-                                                                    false
-                                                                ? Theme.of(
-                                                                        context,
-                                                                      )
-                                                                      .colorScheme
-                                                                      .primary
-                                                                : Colors
-                                                                      .redAccent)
-                                                            .withValues(
-                                                              alpha: 0.2,
-                                                            ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          6,
+                                                        AppTypography.primaryTextColor(
+                                                          Theme.of(
+                                                            context,
+                                                          ).brightness,
                                                         ),
                                                   ),
-                                                  child: Text(
-                                                    restaurant['is_active'] !=
-                                                            false
-                                                        ? 'Open Now'
-                                                        : 'Closed',
-                                                    style: TextStyle(
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Flexible(
+                                              child: Text(
+                                                '(350+ reviews)',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                      color:
+                                                          AppTypography.secondaryTextColor(
+                                                            Theme.of(
+                                                              context,
+                                                            ).brightness,
+                                                          ),
+                                                    ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    (restaurant['is_active'] !=
+                                                                false
+                                                            ? Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary
+                                                            : Colors.redAccent)
+                                                        .withValues(alpha: 0.2),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                restaurant['is_active'] != false
+                                                    ? 'Open Now'
+                                                    : 'Closed',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelSmall
+                                                    ?.copyWith(
                                                       color:
                                                           restaurant['is_active'] !=
                                                               false
-                                                          ? Theme.of(context)
-                                                                .colorScheme
-                                                                .primary
+                                                          ? (Theme.of(
+                                                                      context,
+                                                                    ).brightness ==
+                                                                    Brightness
+                                                                        .dark
+                                                                ? const Color(
+                                                                    0xFF4ADE80,
+                                                                  )
+                                                                : const Color(
+                                                                    0xFF15803D,
+                                                                  ))
                                                           : Colors.redAccent,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      fontSize: 10,
                                                     ),
-                                                  ),
-                                                ),
-                                              ],
+                                              ),
                                             ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.16),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
                                           ),
-                                          const SizedBox(width: 6),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 3,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.access_time,
+                                              size: 14,
+                                              color:
+                                                  Theme.of(
+                                                        context,
+                                                      ).brightness ==
+                                                      Brightness.dark
+                                                  ? const Color(0xFF4ADE80)
+                                                  : const Color(0xFF15803D),
                                             ),
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withValues(alpha: 0.2),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.access_time,
-                                                  size: 14,
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  '$minTime-$maxTime min',
-                                                  style: TextStyle(
-                                                    color: Theme.of(
-                                                      context,
-                                                    ).colorScheme.primary,
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '$minTime-$maxTime min',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color:
+                                                        Theme.of(
+                                                              context,
+                                                            ).brightness ==
+                                                            Brightness.dark
+                                                        ? const Color(
+                                                            0xFF4ADE80,
+                                                          )
+                                                        : const Color(
+                                                            0xFF15803D,
+                                                          ),
                                                     fontWeight: FontWeight.bold,
-                                                    fontSize: 12,
                                                   ),
-                                                ),
-                                              ],
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      const Divider(
-                                        height: 20,
-                                        color: Colors.white12,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.moped,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            deliveryFee <= 0
-                                                ? 'Free Delivery'
-                                                : 'Delivery: \$${deliveryFee.toStringAsFixed(2)}',
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          const Icon(
-                                            Icons.location_on,
-                                            color: Colors.blueAccent,
-                                            size: 16,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            '1.2 km away',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.white70,
-                                            ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                )
-                                .animate()
-                                .fadeIn(duration: 400.ms)
-                                .slideY(
-                                  begin: 0.1,
-                                  end: 0,
-                                  curve: Curves.easeOutQuad,
-                                ),
+                                  Divider(
+                                    height: 20,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white12
+                                        : Colors.black12,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.moped,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        deliveryFee <= 0
+                                            ? 'Free Delivery'
+                                            : 'Delivery: \$${deliveryFee.toStringAsFixed(2)}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                              color:
+                                                  AppTypography.primaryTextColor(
+                                                    Theme.of(
+                                                      context,
+                                                    ).brightness,
+                                                  ),
+                                            ),
+                                      ),
+                                      const Spacer(),
+                                      const Icon(
+                                        Icons.location_on,
+                                        color: Colors.blueAccent,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '1.2 km away',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color:
+                                                  AppTypography.secondaryTextColor(
+                                                    Theme.of(
+                                                      context,
+                                                    ).brightness,
+                                                  ),
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
                             const SizedBox(height: 12),
 
                             // Foodpanda Deals Pill Banner
@@ -757,22 +808,29 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                     ),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.local_offer,
                                         color: GlassTheme.foodpandaPink,
                                         size: 18,
                                       ),
-                                      SizedBox(width: 8),
+                                      const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           '20% OFF orders over \$10 • Code: FOODGO20',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color:
+                                                    AppTypography.primaryTextColor(
+                                                      Theme.of(
+                                                        context,
+                                                      ).brightness,
+                                                    ),
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                       ),
                                     ],
@@ -789,18 +847,28 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                 horizontal: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.06),
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : Colors.black.withValues(alpha: 0.04),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.08),
                                 ),
                               ),
                               child: TextField(
                                 controller: _searchController,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: AppTypography.primaryTextColor(
+                                        Theme.of(context).brightness,
+                                      ),
+                                    ),
                                 decoration: InputDecoration(
                                   icon: Icon(
                                     Icons.search,
@@ -811,18 +879,25 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                   ),
                                   hintText:
                                       'Search dishes in this restaurant...',
-                                  hintStyle: TextStyle(
-                                    color: GlassTheme.textMuted,
-                                    fontSize: 12,
-                                  ),
+                                  hintStyle: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppTypography.secondaryTextColor(
+                                          Theme.of(context).brightness,
+                                        ),
+                                      ),
                                   border: InputBorder.none,
                                   isDense: true,
                                   suffixIcon: _searchQuery.isNotEmpty
                                       ? IconButton(
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.clear,
                                             size: 16,
-                                            color: Colors.white60,
+                                            color:
+                                                AppTypography.secondaryTextColor(
+                                                  Theme.of(context).brightness,
+                                                ),
                                           ),
                                           onPressed: () {
                                             _searchController.clear();
@@ -905,15 +980,21 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                             child: Center(
                                               child: Text(
                                                 categoryNames[index],
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: isSelected
-                                                      ? FontWeight.bold
-                                                      : FontWeight.w500,
-                                                  color: isSelected
-                                                      ? Colors.white
-                                                      : Colors.white70,
-                                                ),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                      fontWeight: isSelected
+                                                          ? FontWeight.bold
+                                                          : FontWeight.w500,
+                                                      color: isSelected
+                                                          ? Colors.white
+                                                          : AppTypography.secondaryTextColor(
+                                                              Theme.of(
+                                                                context,
+                                                              ).brightness,
+                                                            ),
+                                                    ),
                                               ),
                                             ),
                                           ),
@@ -929,10 +1010,13 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
 
                             Text(
                               categoryNames[_selectedCategoryIndex],
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTypography.primaryTextColor(
+                                      Theme.of(context).brightness,
+                                    ),
+                                  ),
                             ),
                             const SizedBox(height: 12),
                           ],
@@ -964,6 +1048,8 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                               .items[itemId];
                           final int inCartQty = cartItem?.quantity ?? 0;
 
+                          final brightness = Theme.of(context).brightness;
+                          final isDark = brightness == Brightness.dark;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12.0),
                             child: AnimatedPressable(
@@ -972,7 +1058,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                   _showDishDetailSheet(item, restaurant),
                               child: GlassCard(
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.16),
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.16)
+                                      : Colors.black.withValues(alpha: 0.08),
                                   width: 1.2,
                                 ),
                                 padding: const EdgeInsets.all(12),
@@ -990,13 +1078,18 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                               Expanded(
                                                 child: Text(
                                                   item['name'] ?? 'Dish',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleMedium
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color:
+                                                            AppTypography.primaryTextColor(
+                                                              brightness,
+                                                            ),
+                                                      ),
+                                                  maxLines: 2,
                                                 ),
                                               ),
                                               if (!isAvailable)
@@ -1017,14 +1110,17 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                           6,
                                                         ),
                                                   ),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Sold Out',
-                                                    style: TextStyle(
-                                                      color: Colors.redAccent,
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .labelSmall
+                                                        ?.copyWith(
+                                                          color:
+                                                              Colors.redAccent,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
                                                   ),
                                                 ),
                                             ],
@@ -1033,21 +1129,28 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                           Text(
                                             item['description'] ??
                                                 'Delicious freshly prepared recipe.',
-                                            style: TextStyle(
-                                              color: GlassTheme.textMuted,
-                                              fontSize: 12,
-                                            ),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color:
+                                                      AppTypography.secondaryTextColor(
+                                                        brightness,
+                                                      ),
+                                                ),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           if (isVeg || isSpicy || isHalal) ...[
                                             const SizedBox(height: 6),
-                                            Row(
+                                            Wrap(
+                                              spacing: 4,
+                                              runSpacing: 4,
                                               children: [
                                                 if (isVeg)
                                                   _buildDietaryBadge(
                                                     'Veg',
-                                                    Colors.green,
+                                                    const Color(0xFF15803D),
                                                     Icons.eco,
                                                   ),
                                                 if (isHalal)
@@ -1070,25 +1173,38 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                             children: [
                                               Text(
                                                 '\$${price.toStringAsFixed(2)}',
-                                                style: TextStyle(
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                  fontWeight: FontWeight.w900,
-                                                  fontSize: 16,
-                                                ),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium
+                                                    ?.copyWith(
+                                                      color: isDark
+                                                          ? const Color(
+                                                              0xFF4ADE80,
+                                                            )
+                                                          : const Color(
+                                                              0xFF15803D,
+                                                            ),
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                    ),
                                               ),
                                               if (originalPrice != null &&
                                                   originalPrice > price) ...[
                                                 const SizedBox(width: 8),
                                                 Text(
                                                   '\$${originalPrice.toStringAsFixed(2)}',
-                                                  style: const TextStyle(
-                                                    decoration: TextDecoration
-                                                        .lineThrough,
-                                                    color: Colors.white38,
-                                                    fontSize: 12,
-                                                  ),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        decoration:
+                                                            TextDecoration
+                                                                .lineThrough,
+                                                        color:
+                                                            AppTypography.secondaryTextColor(
+                                                              brightness,
+                                                            ),
+                                                      ),
                                                 ),
                                               ],
                                             ],
@@ -1319,14 +1435,15 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                                                   child: inCartQty > 0
                                                       ? Text(
                                                           '$inCartQty',
-                                                          style:
-                                                              const TextStyle(
+                                                          style: Theme.of(context)
+                                                              .textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
                                                                 color: Colors
                                                                     .white,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .bold,
-                                                                fontSize: 12,
                                                               ),
                                                         )
                                                       : const Icon(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../core/theme/app_typography.dart';
 import '../core/theme/glass_theme.dart';
 import '../providers/user_provider.dart';
 import '../services/api_service.dart';
@@ -267,15 +268,38 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textTheme = theme.textTheme;
+    final primaryText = AppTypography.primaryTextColor(theme.brightness);
+    final secondaryText = AppTypography.secondaryTextColor(theme.brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
+    final surfaceFill = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.black.withValues(alpha: 0.04);
+    final subtleBorder = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.12);
+    final buttonBg = isDark
+        ? GlassTheme.primaryGreenDark
+        : const Color(0xFF15803D);
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
       child: ResponsiveBottomSheet(
         child: Container(
           decoration: BoxDecoration(
-            color: GlassTheme.dialogDark,
+            color: isDark
+                ? GlassTheme.dialogDark
+                : Colors.white.withValues(alpha: 0.96),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.08),
+            ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: SingleChildScrollView(
@@ -289,7 +313,7 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: isDark ? Colors.white24 : Colors.black26,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -302,12 +326,12 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                        color: accentGreen.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.phone_android_rounded,
-                        color: GlassTheme.primaryGreen,
+                        color: accentGreen,
                         size: 22,
                       ),
                     ),
@@ -322,10 +346,9 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                 : (_isCodeSent
                                       ? 'Enter SMS Code'
                                       : 'Verify Cambodian Phone'),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                            style: textTheme.titleLarge?.copyWith(
+                              color: primaryText,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -335,16 +358,15 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                 : (_isCodeSent
                                       ? 'Enter 6-digit OTP sent to $_maskedPhone'
                                       : 'Carrier SMS verification (Smart, Cellcard, Metfone)'),
-                            style: const TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 12,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
                             ),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white70),
+                      icon: Icon(Icons.close, color: secondaryText),
                       onPressed: () => Navigator.of(context).pop(false),
                     ),
                   ],
@@ -359,26 +381,26 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.15),
+                      color: theme.colorScheme.error.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.redAccent.withValues(alpha: 0.3),
+                        color: theme.colorScheme.error.withValues(alpha: 0.35),
                       ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.error_outline,
-                          color: Colors.redAccent,
+                          color: theme.colorScheme.error,
                           size: 18,
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 13,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.error,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -400,36 +422,29 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                           height: 68,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.2,
-                            ),
-                            border: Border.all(
-                              color: GlassTheme.primaryGreen,
-                              width: 2,
-                            ),
+                            color: accentGreen.withValues(alpha: 0.16),
+                            border: Border.all(color: accentGreen, width: 2),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.check_circle_rounded,
-                            color: GlassTheme.primaryGreen,
+                            color: accentGreen,
                             size: 40,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Verification Complete',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
+                          style: textTheme.titleMedium?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        const Text(
+                        Text(
                           'Your Cambodian phone number is active and verified.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: GlassTheme.textMuted,
-                            fontSize: 13,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: secondaryText,
                           ),
                         ),
                       ],
@@ -447,14 +462,12 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                         children: [
                           Container(
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
+                              color: surfaceFill,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: detectedCarrier != null
-                                    ? GlassTheme.primaryGreen.withValues(
-                                        alpha: 0.5,
-                                      )
-                                    : Colors.white.withValues(alpha: 0.12),
+                                    ? accentGreen.withValues(alpha: 0.6)
+                                    : subtleBorder,
                               ),
                             ),
                             padding: const EdgeInsets.symmetric(
@@ -469,21 +482,17 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.08),
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.08)
+                                        : Colors.black.withValues(alpha: 0.06),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'KH +855',
-                                        style: TextStyle(
-                                          color: GlassTheme.primaryGreen,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
+                                  child: Text(
+                                    'KH +855',
+                                    style: textTheme.labelMedium?.copyWith(
+                                      color: accentGreen,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -491,9 +500,8 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                   child: TextField(
                                     controller: _phoneController,
                                     keyboardType: TextInputType.phone,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: primaryText,
                                       fontWeight: FontWeight.w600,
                                     ),
                                     inputFormatters: [
@@ -501,11 +509,12 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                         RegExp(r'[0-9\s\+\-]'),
                                       ),
                                     ],
-                                    decoration: const InputDecoration(
+                                    decoration: InputDecoration(
                                       hintText: '012 345 678',
-                                      hintStyle: TextStyle(
-                                        color: Colors.white30,
-                                        fontSize: 15,
+                                      hintStyle: textTheme.bodyLarge?.copyWith(
+                                        color: secondaryText.withValues(
+                                          alpha: 0.75,
+                                        ),
                                       ),
                                       border: InputBorder.none,
                                     ),
@@ -520,21 +529,21 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: GlassTheme.primaryGreen.withValues(
-                                        alpha: 0.15,
+                                      color: accentGreen.withValues(
+                                        alpha: 0.14,
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: GlassTheme.primaryGreen
-                                            .withValues(alpha: 0.35),
+                                        color: accentGreen.withValues(
+                                          alpha: 0.35,
+                                        ),
                                       ),
                                     ),
                                     child: Text(
                                       detectedCarrier,
-                                      style: const TextStyle(
-                                        color: GlassTheme.primaryGreen,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 11,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: accentGreen,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ),
@@ -542,11 +551,10 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          const Text(
+                          Text(
                             'Supported carriers: Smart, Cellcard, Metfone, Seatel, Cootel.',
-                            style: TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 12,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
                             ),
                           ),
                         ],
@@ -561,7 +569,7 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _sendOTP,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.primaryGreen,
+                        backgroundColor: buttonBg,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -577,11 +585,11 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
+                          : Text(
                               'Send Verification Code',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
+                              style: textTheme.labelLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                     ),
@@ -594,18 +602,16 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: surfaceFill,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08),
-                      ),
+                      border: Border.all(color: subtleBorder),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.mark_email_read_outlined,
                           size: 16,
-                          color: GlassTheme.primaryGreen,
+                          color: accentGreen,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -613,9 +619,8 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                             _maskedPhone.isNotEmpty
                                 ? _maskedPhone
                                 : _phoneController.text,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -629,8 +634,8 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                             });
                           },
                           borderRadius: BorderRadius.circular(6),
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
@@ -640,15 +645,14 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                 Icon(
                                   Icons.edit_outlined,
                                   size: 13,
-                                  color: GlassTheme.primaryGreen,
+                                  color: accentGreen,
                                 ),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Text(
                                   'Change',
-                                  style: TextStyle(
-                                    color: GlassTheme.primaryGreen,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                                  style: textTheme.labelMedium?.copyWith(
+                                    color: accentGreen,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ],
@@ -679,23 +683,22 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.06),
+                            color: surfaceFill,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.timer_outlined,
                                 size: 13,
-                                color: GlassTheme.textMuted,
+                                color: secondaryText,
                               ),
                               const SizedBox(width: 5),
                               Text(
                                 'Resend in ${_cooldownRemaining}s',
-                                style: const TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 12,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: secondaryText,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -704,17 +707,16 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                         )
                       else
                         TextButton.icon(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.refresh_rounded,
                             size: 15,
-                            color: GlassTheme.primaryGreen,
+                            color: accentGreen,
                           ),
-                          label: const Text(
+                          label: Text(
                             'Resend Code',
-                            style: TextStyle(
-                              color: GlassTheme.primaryGreen,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                            style: textTheme.labelLarge?.copyWith(
+                              color: accentGreen,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           onPressed: _isLoading ? null : _sendOTP,
@@ -729,7 +731,7 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _verifyOTP,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.primaryGreen,
+                        backgroundColor: buttonBg,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -745,11 +747,11 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
+                          : Text(
                               'Verify Code',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
+                              style: textTheme.labelLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                     ),

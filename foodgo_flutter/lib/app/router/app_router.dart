@@ -295,9 +295,14 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) {
         final queryId = state.uri.queryParameters['orderId'] ?? '';
         final isDriver = state.uri.queryParameters['isDriver'] == 'true';
+        final status = state.uri.queryParameters['status'];
         return _buildPage(
           state: state,
-          child: MapScreen(orderId: queryId, isDriver: isDriver),
+          child: MapScreen(
+            orderId: queryId,
+            isDriver: isDriver,
+            initialStatus: status,
+          ),
           type: PageTransitionType.slideRight,
         );
       },
@@ -307,9 +312,14 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) {
         final id = state.pathParameters['id'] ?? '';
         final isDriver = state.uri.queryParameters['isDriver'] == 'true';
+        final status = state.uri.queryParameters['status'];
         return _buildPage(
           state: state,
-          child: MapScreen(orderId: id, isDriver: isDriver),
+          child: MapScreen(
+            orderId: id,
+            isDriver: isDriver,
+            initialStatus: status,
+          ),
           type: PageTransitionType.slideRight,
         );
       },

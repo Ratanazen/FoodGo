@@ -80,7 +80,8 @@ class AdminProvider with ChangeNotifier {
         }
       } catch (e) {
         debugPrint('Admin analytics error: $e');
-        _errorMessage = 'Failed to load analytics: ${ApiService.formatError(e)}';
+        _errorMessage =
+            'Failed to load analytics: ${ApiService.formatError(e)}';
       }
     });
   }
@@ -230,7 +231,8 @@ class AdminProvider with ChangeNotifier {
         }
       } catch (e) {
         debugPrint('Admin fetch audit logs error: $e');
-        _errorMessage = 'Failed to load audit logs: ${ApiService.formatError(e)}';
+        _errorMessage =
+            'Failed to load audit logs: ${ApiService.formatError(e)}';
       }
     });
   }
@@ -270,7 +272,8 @@ class AdminProvider with ChangeNotifier {
         ok = true;
       } catch (e) {
         debugPrint('Admin refund payment error: $e');
-        _errorMessage = 'Failed to process refund: ${ApiService.formatError(e)}';
+        _errorMessage =
+            'Failed to process refund: ${ApiService.formatError(e)}';
       }
     });
     return ok;

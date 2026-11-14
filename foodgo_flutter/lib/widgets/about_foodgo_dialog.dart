@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../core/theme/app_typography.dart';
 import '../core/theme/glass_theme.dart';
 import 'glass_container.dart';
 import 'svg_icon.dart';
@@ -7,12 +8,22 @@ import 'svg_icon.dart';
 /// Displays the official About FoodGo modal dialog with app logo, version,
 /// capabilities, and platform links.
 Future<void> showAboutFoodGoDialog(BuildContext context) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-
   return showDialog<void>(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.65),
     builder: (ctx) {
+      final brightness = Theme.of(ctx).brightness;
+      final isDark = brightness == Brightness.dark;
+      final textTheme = Theme.of(ctx).textTheme;
+      final colorScheme = Theme.of(ctx).colorScheme;
+      final primaryText = AppTypography.primaryTextColor(brightness);
+      final secondaryText = AppTypography.secondaryTextColor(brightness);
+      final brandTextColor = isDark
+          ? GlassTheme.dynamicPrimaryColor
+          : HSLColor.fromColor(
+              GlassTheme.dynamicPrimaryColor,
+            ).withLightness(0.32).toColor();
+
       return Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -21,196 +32,184 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
           child: GlassContainer(
             borderRadius: BorderRadius.circular(24),
             padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // App Logo Icon Showcase
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: GlassTheme.dynamicPrimaryColor.withValues(
-                      alpha: 0.12,
-                    ),
-                    border: Border.all(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // App Logo Icon Showcase
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
                       color: GlassTheme.dynamicPrimaryColor.withValues(
-                        alpha: 0.4,
+                        alpha: 0.12,
                       ),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
+                      border: Border.all(
                         color: GlassTheme.dynamicPrimaryColor.withValues(
-                          alpha: 0.25,
+                          alpha: 0.4,
                         ),
-                        blurRadius: 18,
-                        spreadRadius: 2,
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: GlassTheme.dynamicPrimaryColor.withValues(
+                            alpha: 0.25,
+                          ),
+                          blurRadius: 18,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const FoodGoAppIcon(size: 64, borderRadius: 16),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Brand Title & Slogan
+                  Text(
+                    'FoodGo Delivery',
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineMedium?.copyWith(
+                      color: primaryText,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Healthy & Organic Food Delivery · Phnom Penh',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: secondaryText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Version Badge Pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: GlassTheme.dynamicPrimaryColor.withValues(
+                        alpha: 0.15,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: GlassTheme.dynamicPrimaryColor.withValues(
+                          alpha: 0.35,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'Version 2.0.0 (Build 20) • Production Ready',
+                      textAlign: TextAlign.center,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: brandTextColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Highlights & Badges
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildFeatureChip(
+                        textTheme: textTheme,
+                        icon: Icons.qr_code_2_rounded,
+                        label: 'Bakong KHQR',
+                        color: isDark
+                            ? const Color(0xFFF87171)
+                            : const Color(0xFFB91C1C),
+                      ),
+                      _buildFeatureChip(
+                        textTheme: textTheme,
+                        icon: Icons.bolt_rounded,
+                        label: 'Live Daphne WS',
+                        color: isDark ? Colors.amber : const Color(0xFFB45309),
+                      ),
+                      _buildFeatureChip(
+                        textTheme: textTheme,
+                        icon: Icons.eco_rounded,
+                        label: '100% Organic',
+                        color: brandTextColor,
                       ),
                     ],
                   ),
-                  child: const FoodGoAppIcon(size: 64, borderRadius: 16),
-                ),
-                const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
-                // Brand Title & Slogan
-                const Text(
-                  'FoodGo Delivery',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
+                  // Description
+                  Text(
+                    'FoodGo brings fresh, organic meals and drinks from Phnom Penh\'s top culinary kitchens directly to your home with real-time driver tracking and cashless KHQR payments.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Healthy & Organic Food Delivery · Phnom Penh',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    color: GlassTheme.textMuted,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 18),
 
-                // Version Badge Pill
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
+                  // Links Row
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      for (final entry in const [
+                        ('Terms', '/terms'),
+                        ('Privacy', '/privacy'),
+                        ('Settings', '/settings'),
+                      ].indexed) ...[
+                        if (entry.$1 > 0)
+                          Text(
+                            '•',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
+                            ),
+                          ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            context.push(entry.$2.$2);
+                          },
+                          child: Text(
+                            entry.$2.$1,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: brandTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: GlassTheme.dynamicPrimaryColor.withValues(
-                      alpha: 0.15,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: GlassTheme.dynamicPrimaryColor.withValues(
-                        alpha: 0.35,
+                  const SizedBox(height: 14),
+
+                  // Close Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
                       ),
-                    ),
-                  ),
-                  child: Text(
-                    'Version 2.0.0 (Build 20) • Production Ready',
-                    style: TextStyle(
-                      color: GlassTheme.dynamicPrimaryColor,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Highlights & Badges
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildFeatureChip(
-                      icon: Icons.qr_code_2_rounded,
-                      label: 'Bakong KHQR',
-                      color: const Color(0xFFE1251B),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildFeatureChip(
-                      icon: Icons.bolt_rounded,
-                      label: 'Live Daphne WS',
-                      color: Colors.amber,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildFeatureChip(
-                      icon: Icons.eco_rounded,
-                      label: '100% Organic',
-                      color: GlassTheme.dynamicPrimaryColor,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Description
-                Text(
-                  'FoodGo brings fresh, organic meals and drinks from Phnom Penh\'s top culinary kitchens directly to your home with real-time driver tracking and cashless KHQR payments.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    color: isDark ? Colors.white70 : const Color(0xFF4B5563),
-                    height: 1.45,
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Links Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        context.push('/terms');
-                      },
                       child: Text(
-                        'Terms',
-                        style: TextStyle(
-                          color: GlassTheme.dynamicPrimaryColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                        'Close',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const Text('•', style: TextStyle(color: Colors.grey)),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        context.push('/privacy');
-                      },
-                      child: Text(
-                        'Privacy',
-                        style: TextStyle(
-                          color: GlassTheme.dynamicPrimaryColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const Text('•', style: TextStyle(color: Colors.grey)),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        context.push('/settings');
-                      },
-                      child: Text(
-                        'Settings',
-                        style: TextStyle(
-                          color: GlassTheme.dynamicPrimaryColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Close Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlassTheme.dynamicPrimaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Close',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -220,6 +219,7 @@ Future<void> showAboutFoodGoDialog(BuildContext context) {
 }
 
 Widget _buildFeatureChip({
+  required TextTheme textTheme,
   required IconData icon,
   required String label,
   required Color color,
@@ -238,9 +238,8 @@ Widget _buildFeatureChip({
         const SizedBox(width: 4),
         Text(
           label,
-          style: TextStyle(
+          style: textTheme.labelSmall?.copyWith(
             color: color,
-            fontSize: 11,
             fontWeight: FontWeight.bold,
           ),
         ),

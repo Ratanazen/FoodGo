@@ -23,13 +23,13 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogCtx) {
-        final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-        final primaryText = AppTypography.primaryTextColor(
-          isDark ? Brightness.dark : Brightness.light,
-        );
-        final secondaryText = AppTypography.secondaryTextColor(
-          isDark ? Brightness.dark : Brightness.light,
-        );
+        final brightness = Theme.of(dialogCtx).brightness;
+        final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(dialogCtx).textTheme;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final secondaryText = AppTypography.secondaryTextColor(brightness);
+        final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
+        final isKhmer = Localizations.localeOf(dialogCtx).languageCode == 'km';
         return AlertDialog(
           backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
           shape: RoundedRectangleBorder(
@@ -37,23 +37,37 @@ class ProfileScreen extends StatelessWidget {
           ),
           title: Text(
             context.tr('settings.logoutConfirmTitle'),
-            style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+            style: textTheme.titleLarge?.copyWith(
+              color: primaryText,
+              fontWeight: FontWeight.bold,
+              height: isKhmer ? 1.5 : null,
+              letterSpacing: isKhmer ? 0 : null,
+            ),
           ),
           content: Text(
             context.tr('settings.logoutConfirmMessage'),
-            style: TextStyle(color: secondaryText),
+            style: textTheme.bodyMedium?.copyWith(
+              color: secondaryText,
+              height: isKhmer ? 1.5 : null,
+              letterSpacing: isKhmer ? 0 : null,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
               child: Text(
                 context.tr('common.cancel'),
-                style: TextStyle(color: secondaryText),
+                style: textTheme.labelLarge?.copyWith(
+                  color: secondaryText,
+                  height: isKhmer ? 1.5 : null,
+                  letterSpacing: isKhmer ? 0 : null,
+                ),
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: dangerColor,
+                foregroundColor: Colors.white,
                 side: BorderSide(
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.3)
@@ -72,9 +86,11 @@ class ProfileScreen extends StatelessWidget {
               },
               child: Text(
                 context.tr('auth.logout'),
-                style: const TextStyle(
+                style: textTheme.labelLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
+                  height: isKhmer ? 1.5 : null,
+                  letterSpacing: isKhmer ? 0 : null,
                 ),
               ),
             ),
@@ -90,16 +106,41 @@ class ProfileScreen extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        final primaryText = AppTypography.primaryTextColor(
-          isDark ? Brightness.dark : Brightness.light,
-        );
-        final secondaryText = AppTypography.secondaryTextColor(
-          isDark ? Brightness.dark : Brightness.light,
-        );
+        final brightness = Theme.of(ctx).brightness;
+        final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(ctx).textTheme;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final secondaryText = AppTypography.secondaryTextColor(brightness);
         final accentGreen = isDark
-            ? GlassTheme.primaryGreen
-            : GlassTheme.primaryGreenDark;
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
+        final paymentMethods = [
+          (
+            icon: AppIcons.qrCode,
+            color: isDark ? Colors.redAccent : const Color(0xFFB91C1C),
+            title: 'Bakong KHQR (National Bank of Cambodia)',
+            subtitle: 'Universal QR in USD & KHR across all member banks',
+          ),
+          (
+            icon: AppIcons.bankTransfer,
+            color: isDark ? Colors.cyanAccent : const Color(0xFF0E7490),
+            title: 'ABA Mobile KHQR / PayWay',
+            subtitle: 'Direct scan-to-pay via ABA Mobile app',
+          ),
+          (
+            icon: AppIcons.creditCard,
+            color: isDark ? Colors.lightBlueAccent : const Color(0xFF1D4ED8),
+            title: 'ACLEDA Bank KHQR / x-Pay',
+            subtitle: 'Instant payment via ACLEDA Mobile banking',
+          ),
+          (
+            icon: AppIcons.payment,
+            color: isDark ? Colors.amberAccent : const Color(0xFFB45309),
+            title: 'Cash on Delivery (COD)',
+            subtitle: 'Pay cash directly to driver upon order arrival',
+          ),
+        ];
+
         return ResponsiveBottomSheet(
           child: SafeArea(
             child: Container(
@@ -140,12 +181,13 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Text(
-                          'Payment Methods',
-                          style: TextStyle(
-                            color: primaryText,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        Flexible(
+                          child: Text(
+                            'Payment Methods',
+                            style: textTheme.titleLarge?.copyWith(
+                              color: primaryText,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -153,133 +195,47 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       'FoodGo supports secure banking rails and cash on delivery in Cambodia.',
-                      style: TextStyle(color: secondaryText, fontSize: 13),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
+                    ...paymentMethods.map(
+                      (method) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: method.color.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              method.icon,
+                              color: method.color,
+                              size: 21,
+                            ),
+                          ),
+                          title: Text(
+                            method.title,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: primaryText,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            method.subtitle,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
+                            ),
+                          ),
                         ),
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          AppIcons.qrCode,
-                          color: Colors.redAccent,
-                          size: 22,
-                        ),
-                      ),
-                      title: Text(
-                        'Bakong KHQR (National Bank of Cambodia)',
-                        style: TextStyle(
-                          color: primaryText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Universal QR in USD & KHR across all member banks',
-                        style: TextStyle(color: secondaryText, fontSize: 12),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.cyanAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        alignment: Alignment.center,
-                        child: Icon(
-                          AppIcons.bankTransfer,
-                          color: isDark
-                              ? Colors.cyanAccent
-                              : const Color(0xFF0E7490),
-                          size: 20,
-                        ),
-                      ),
-                      title: Text(
-                        'ABA Mobile KHQR / PayWay',
-                        style: TextStyle(
-                          color: primaryText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Direct scan-to-pay via ABA Mobile app',
-                        style: TextStyle(color: secondaryText, fontSize: 12),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          AppIcons.creditCard,
-                          color: Colors.blueAccent,
-                          size: 20,
-                        ),
-                      ),
-                      title: Text(
-                        'ACLEDA Bank KHQR / x-Pay',
-                        style: TextStyle(
-                          color: primaryText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Instant payment via ACLEDA Mobile banking',
-                        style: TextStyle(color: secondaryText, fontSize: 12),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.amberAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        alignment: Alignment.center,
-                        child: Icon(
-                          AppIcons.payment,
-                          color: isDark
-                              ? Colors.amberAccent
-                              : const Color(0xFFB45309),
-                          size: 22,
-                        ),
-                      ),
-                      title: Text(
-                        'Cash on Delivery (COD)',
-                        style: TextStyle(
-                          color: primaryText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Pay cash directly to driver upon order arrival',
-                        style: TextStyle(color: secondaryText, fontSize: 12),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
@@ -300,7 +256,13 @@ class ProfileScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('View Orders & Receipts'),
+                            child: Text(
+                              'View Orders & Receipts',
+                              textAlign: TextAlign.center,
+                              style: textTheme.labelLarge?.copyWith(
+                                color: primaryText,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -308,14 +270,23 @@ class ProfileScreen extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: () => Navigator.pop(ctx),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: GlassTheme.primaryGreen,
-                              foregroundColor: Colors.white,
+                              backgroundColor: Theme.of(
+                                ctx,
+                              ).colorScheme.primary,
+                              foregroundColor: Theme.of(
+                                ctx,
+                              ).colorScheme.onPrimary,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Close'),
+                            child: Text(
+                              'Close',
+                              style: textTheme.labelLarge?.copyWith(
+                                color: Theme.of(ctx).colorScheme.onPrimary,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -332,7 +303,16 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final accentAmber = isDark ? Colors.amber : const Color(0xFFB45309);
+    final dangerRed = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
 
     return SafeArea(
       child: ResponsiveWebContainer(
@@ -344,10 +324,8 @@ class ProfileScreen extends StatelessWidget {
               builder: (context, userProvider, child) {
                 final user = userProvider.user;
                 if (userProvider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: GlassTheme.primaryGreen,
-                    ),
+                  return Center(
+                    child: CircularProgressIndicator(color: accentGreen),
                   );
                 }
                 final String displayName = userProvider.displayName;
@@ -442,13 +420,15 @@ class ProfileScreen extends StatelessWidget {
                                                         .lightGreenSurface,
                                                     child: Text(
                                                       initials,
-                                                      style: const TextStyle(
-                                                        fontSize: 32,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: GlassTheme
-                                                            .primaryGreen,
-                                                      ),
+                                                      style: textTheme
+                                                          .displayLarge
+                                                          ?.copyWith(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: const Color(
+                                                              0xFF15803D,
+                                                            ),
+                                                          ),
                                                     ),
                                                   ),
                                             )
@@ -458,12 +438,14 @@ class ProfileScreen extends StatelessWidget {
                                                   GlassTheme.lightGreenSurface,
                                               child: Text(
                                                 initials,
-                                                style: const TextStyle(
-                                                  fontSize: 32,
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      GlassTheme.primaryGreen,
-                                                ),
+                                                style: textTheme.displayLarge
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: const Color(
+                                                        0xFF15803D,
+                                                      ),
+                                                    ),
                                               ),
                                             ),
                                     ),
@@ -473,7 +455,7 @@ class ProfileScreen extends StatelessWidget {
                                       child: Container(
                                         padding: const EdgeInsets.all(6),
                                         decoration: const BoxDecoration(
-                                          color: GlassTheme.primaryGreen,
+                                          color: Color(0xFF15803D),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
@@ -489,12 +471,12 @@ class ProfileScreen extends StatelessWidget {
                               const SizedBox(height: 14),
                               Text(
                                 displayName,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF111827),
+                                textAlign: TextAlign.center,
+                                style: textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: primaryText,
+                                  height: 1.4,
+                                  letterSpacing: 0,
                                 ),
                               ),
                               if (username.isNotEmpty &&
@@ -503,9 +485,8 @@ class ProfileScreen extends StatelessWidget {
                                 const SizedBox(height: 2),
                                 Text(
                                   '@$username',
-                                  style: const TextStyle(
-                                    color: GlassTheme.primaryGreen,
-                                    fontSize: 13,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: accentGreen,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -513,32 +494,26 @@ class ProfileScreen extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 email,
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white60
-                                      : const Color(0xFF6B7280),
-                                  fontSize: 13,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: secondaryText,
                                 ),
                               ),
                               const SizedBox(height: 6),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     AppIcons.phone,
                                     size: 14,
-                                    color: GlassTheme.primaryGreen,
+                                    color: accentGreen,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
                                     phone.isNotEmpty
                                         ? phone
                                         : 'No phone linked',
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white70
-                                          : const Color(0xFF374151),
-                                      fontSize: 13,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: primaryText,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -558,22 +533,22 @@ class ProfileScreen extends StatelessWidget {
                                               .withValues(alpha: 0.3),
                                         ),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             AppIcons.successFilled,
                                             size: 10,
-                                            color: GlassTheme.primaryGreen,
+                                            color: accentGreen,
                                           ),
-                                          SizedBox(width: 3),
+                                          const SizedBox(width: 3),
                                           Text(
                                             'Verified',
-                                            style: TextStyle(
-                                              color: GlassTheme.primaryGreen,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                            style: textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: accentGreen,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -605,22 +580,22 @@ class ProfileScreen extends StatelessWidget {
                                             width: 1.2,
                                           ),
                                         ),
-                                        child: const Row(
+                                        child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(
                                               AppIcons.warning,
                                               size: 10,
-                                              color: Colors.amber,
+                                              color: accentAmber,
                                             ),
-                                            SizedBox(width: 3),
+                                            const SizedBox(width: 3),
                                             Text(
                                               'Verify SMS',
-                                              style: TextStyle(
-                                                color: Colors.amber,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    color: accentAmber,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -637,22 +612,19 @@ class ProfileScreen extends StatelessWidget {
                                   OutlinedButton.icon(
                                     onPressed: () =>
                                         context.push('/edit-profile'),
-                                    icon: const Icon(
+                                    icon: Icon(
                                       AppIcons.edit,
                                       size: 14,
-                                      color: GlassTheme.primaryGreen,
+                                      color: accentGreen,
                                     ),
                                     label: Text(
                                       context.tr(
                                         'profile.editProfile',
                                         fallback: 'Edit Profile',
                                       ),
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF111827),
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: primaryText,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 12,
                                       ),
                                     ),
                                     style: OutlinedButton.styleFrom(
@@ -709,17 +681,33 @@ class ProfileScreen extends StatelessWidget {
                                               width: 1.2,
                                             ),
                                           ),
-                                          child: Text(
-                                            isKhmer
-                                                ? '🇰🇭 ភាសាខ្មែរ'
-                                                : '🇬🇧 English',
-                                            style: TextStyle(
-                                              color: isDark
-                                                  ? Colors.white
-                                                  : GlassTheme.textDark,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                AppIcons.language,
+                                                size: 14,
+                                                color: accentGreen,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                isKhmer
+                                                    ? 'ភាសាខ្មែរ'
+                                                    : 'English',
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      color: primaryText,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      height: isKhmer
+                                                          ? 1.5
+                                                          : null,
+                                                      letterSpacing: isKhmer
+                                                          ? 0
+                                                          : null,
+                                                    ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       );
@@ -728,7 +716,7 @@ class ProfileScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 16),
-                              // Quick Action Shortcuts: Addresses, Orders, KHQR
+                              // Quick Action Shortcuts: Addresses, Orders
                               Row(
                                 children: [
                                   Expanded(
@@ -759,21 +747,19 @@ class ProfileScreen extends StatelessWidget {
                                         ),
                                         child: Column(
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               AppIcons.locationOutline,
-                                              color: GlassTheme.primaryGreen,
+                                              color: accentGreen,
                                               size: 22,
                                             ),
                                             const SizedBox(height: 6),
                                             Text(
                                               'Addresses',
-                                              style: TextStyle(
-                                                color: isDark
-                                                    ? Colors.white
-                                                    : const Color(0xFF111827),
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: primaryText,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -809,21 +795,19 @@ class ProfileScreen extends StatelessWidget {
                                         ),
                                         child: Column(
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               AppIcons.orders,
-                                              color: GlassTheme.primaryGreen,
+                                              color: accentGreen,
                                               size: 22,
                                             ),
                                             const SizedBox(height: 6),
                                             Text(
                                               'Orders',
-                                              style: TextStyle(
-                                                color: isDark
-                                                    ? Colors.white
-                                                    : const Color(0xFF111827),
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: primaryText,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -845,20 +829,20 @@ class ProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
-                          leading: const Icon(
+                          leading: Icon(
                             AppIcons.restaurants,
-                            color: GlassTheme.primaryGreen,
+                            color: accentGreen,
                           ),
-                          title: const Text(
+                          title: Text(
                             'Restaurant Dashboard',
-                            style: TextStyle(
-                              color: Colors.white,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          trailing: const Icon(
+                          trailing: Icon(
                             AppIcons.chevronRight,
-                            color: Colors.white54,
+                            color: secondaryText,
                           ),
                           onTap: () => context.push('/restaurant-dashboard'),
                         ),
@@ -871,20 +855,17 @@ class ProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
-                          leading: const Icon(
-                            AppIcons.delivery,
-                            color: GlassTheme.primaryGreen,
-                          ),
-                          title: const Text(
+                          leading: Icon(AppIcons.delivery, color: accentGreen),
+                          title: Text(
                             'Driver Dashboard',
-                            style: TextStyle(
-                              color: Colors.white,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          trailing: const Icon(
+                          trailing: Icon(
                             AppIcons.chevronRight,
-                            color: Colors.white54,
+                            color: secondaryText,
                           ),
                           onTap: () => context.push('/driver-dashboard'),
                         ),
@@ -897,27 +878,23 @@ class ProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
-                          leading: const Icon(
-                            AppIcons.admin,
-                            color: GlassTheme.limeAccent,
-                          ),
-                          title: const Text(
+                          leading: Icon(AppIcons.admin, color: accentGreen),
+                          title: Text(
                             'Admin Console',
-                            style: TextStyle(
-                              color: Colors.white,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          subtitle: const Text(
+                          subtitle: Text(
                             'Platform analytics, orders, users & audit logs',
-                            style: TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 11,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: secondaryText,
                             ),
                           ),
-                          trailing: const Icon(
+                          trailing: Icon(
                             AppIcons.chevronRight,
-                            color: Colors.white54,
+                            color: secondaryText,
                           ),
                           onTap: () => context.push('/admin-dashboard'),
                         ),
@@ -930,10 +907,9 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Account',
-              style: TextStyle(
-                fontSize: 18,
+              style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF111827),
+                color: primaryText,
               ),
             ),
             const SizedBox(height: 12),
@@ -973,9 +949,8 @@ class ProfileScreen extends StatelessWidget {
                           (currentUser?['role'] ?? 'customer')
                               .toString()
                               .toUpperCase(),
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 10,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: accentGreen,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1019,11 +994,8 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         child: Text(
                           isVerified ? 'Verified' : 'Unverified',
-                          style: TextStyle(
-                            color: isVerified
-                                ? GlassTheme.primaryGreen
-                                : Colors.amber,
-                            fontSize: 11,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: isVerified ? accentGreen : accentAmber,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1068,10 +1040,9 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Settings & Preferences',
-              style: TextStyle(
-                fontSize: 18,
+              style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF111827),
+                color: primaryText,
               ),
             ),
             const SizedBox(height: 12),
@@ -1093,23 +1064,27 @@ class ProfileScreen extends StatelessWidget {
                   context: context,
                   backgroundColor: Colors.transparent,
                   builder: (ctx) {
-                    final isDark = Theme.of(ctx).brightness == Brightness.dark;
-                    final primaryText = AppTypography.primaryTextColor(
-                      isDark ? Brightness.dark : Brightness.light,
+                    final sheetDark =
+                        Theme.of(ctx).brightness == Brightness.dark;
+                    final sheetTextTheme = Theme.of(ctx).textTheme;
+                    final sheetPrimaryText = AppTypography.primaryTextColor(
+                      sheetDark ? Brightness.dark : Brightness.light,
                     );
-                    final accentGreen = isDark
-                        ? GlassTheme.primaryGreen
-                        : GlassTheme.primaryGreenDark;
+                    final sheetAccentGreen = sheetDark
+                        ? GlassTheme.primaryGreenAccent
+                        : const Color(0xFF15803D);
                     return ResponsiveBottomSheet(
                       child: Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: isDark ? GlassTheme.dialogDark : Colors.white,
+                          color: sheetDark
+                              ? GlassTheme.dialogDark
+                              : Colors.white,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(28),
                           ),
                           border: Border.all(
-                            color: isDark
+                            color: sheetDark
                                 ? Colors.white.withValues(alpha: 0.1)
                                 : Colors.black.withValues(alpha: 0.08),
                           ),
@@ -1120,31 +1095,36 @@ class ProfileScreen extends StatelessWidget {
                           children: [
                             Text(
                               'Select Language / ជ្រើសរើសភាសា',
-                              style: TextStyle(
-                                color: primaryText,
-                                fontSize: 18,
+                              style: sheetTextTheme.titleLarge?.copyWith(
+                                color: sheetPrimaryText,
                                 fontWeight: FontWeight.bold,
+                                height: 1.5,
+                                letterSpacing: 0,
                               ),
                             ),
                             const SizedBox(height: 16),
                             ListTile(
                               title: Text(
                                 'English (US)',
-                                style: TextStyle(
-                                  color: primaryText,
+                                style: sheetTextTheme.bodyLarge?.copyWith(
+                                  color: sheetPrimaryText,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               trailing: Icon(
                                 AppIcons.check,
-                                color: accentGreen,
+                                color: sheetAccentGreen,
                               ),
                               onTap: () => Navigator.pop(ctx),
                             ),
                             ListTile(
                               title: Text(
                                 'ភាសាខ្មែរ (Khmer)',
-                                style: TextStyle(color: primaryText),
+                                style: sheetTextTheme.bodyLarge?.copyWith(
+                                  color: sheetPrimaryText,
+                                  height: 1.5,
+                                  letterSpacing: 0,
+                                ),
                               ),
                               onTap: () {
                                 Navigator.pop(ctx);
@@ -1159,7 +1139,9 @@ class ProfileScreen extends StatelessWidget {
                             ListTile(
                               title: Text(
                                 'Français (French)',
-                                style: TextStyle(color: primaryText),
+                                style: sheetTextTheme.bodyLarge?.copyWith(
+                                  color: sheetPrimaryText,
+                                ),
                               ),
                               onTap: () {
                                 Navigator.pop(ctx);
@@ -1189,26 +1171,30 @@ class ProfileScreen extends StatelessWidget {
                   context: context,
                   backgroundColor: Colors.transparent,
                   builder: (ctx) {
-                    final isDark = Theme.of(ctx).brightness == Brightness.dark;
-                    final primaryText = AppTypography.primaryTextColor(
-                      isDark ? Brightness.dark : Brightness.light,
+                    final sheetDark =
+                        Theme.of(ctx).brightness == Brightness.dark;
+                    final sheetTextTheme = Theme.of(ctx).textTheme;
+                    final sheetPrimaryText = AppTypography.primaryTextColor(
+                      sheetDark ? Brightness.dark : Brightness.light,
                     );
-                    final secondaryText = AppTypography.secondaryTextColor(
-                      isDark ? Brightness.dark : Brightness.light,
+                    final sheetSecondaryText = AppTypography.secondaryTextColor(
+                      sheetDark ? Brightness.dark : Brightness.light,
                     );
-                    final accentGreen = isDark
-                        ? GlassTheme.primaryGreen
-                        : GlassTheme.primaryGreenDark;
+                    final sheetAccentGreen = sheetDark
+                        ? GlassTheme.primaryGreenAccent
+                        : const Color(0xFF15803D);
                     return ResponsiveBottomSheet(
                       child: Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: isDark ? GlassTheme.dialogDark : Colors.white,
+                          color: sheetDark
+                              ? GlassTheme.dialogDark
+                              : Colors.white,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(28),
                           ),
                           border: Border.all(
-                            color: isDark
+                            color: sheetDark
                                 ? Colors.white.withValues(alpha: 0.1)
                                 : Colors.black.withValues(alpha: 0.08),
                           ),
@@ -1219,38 +1205,35 @@ class ProfileScreen extends StatelessWidget {
                           children: [
                             Text(
                               'FoodGo 24/7 Support',
-                              style: TextStyle(
-                                color: primaryText,
-                                fontSize: 18,
+                              style: sheetTextTheme.titleLarge?.copyWith(
+                                color: sheetPrimaryText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Get fast help with delivery, payments, or orders.',
-                              style: TextStyle(
-                                color: secondaryText,
-                                fontSize: 13,
+                              style: sheetTextTheme.bodySmall?.copyWith(
+                                color: sheetSecondaryText,
                               ),
                             ),
                             const SizedBox(height: 16),
                             ListTile(
                               leading: Icon(
                                 AppIcons.support,
-                                color: accentGreen,
+                                color: sheetAccentGreen,
                               ),
                               title: Text(
                                 'Chat with Support',
-                                style: TextStyle(
-                                  color: primaryText,
+                                style: sheetTextTheme.titleMedium?.copyWith(
+                                  color: sheetPrimaryText,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               subtitle: Text(
                                 'Average reply time: 2 mins',
-                                style: TextStyle(
-                                  color: secondaryText,
-                                  fontSize: 12,
+                                style: sheetTextTheme.bodySmall?.copyWith(
+                                  color: sheetSecondaryText,
                                 ),
                               ),
                               onTap: () => Navigator.pop(ctx),
@@ -1258,22 +1241,21 @@ class ProfileScreen extends StatelessWidget {
                             ListTile(
                               leading: Icon(
                                 AppIcons.phone,
-                                color: isDark
+                                color: sheetDark
                                     ? Colors.amber
                                     : const Color(0xFFB45309),
                               ),
                               title: Text(
                                 'Hotline: +855 23 999 888',
-                                style: TextStyle(
-                                  color: primaryText,
+                                style: sheetTextTheme.titleMedium?.copyWith(
+                                  color: sheetPrimaryText,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               subtitle: Text(
                                 'Toll-free customer care',
-                                style: TextStyle(
-                                  color: secondaryText,
-                                  fontSize: 12,
+                                style: sheetTextTheme.bodySmall?.copyWith(
+                                  color: sheetSecondaryText,
                                 ),
                               ),
                               onTap: () => Navigator.pop(ctx),
@@ -1297,16 +1279,16 @@ class ProfileScreen extends StatelessWidget {
                   return _ProfileOption(
                     icon: AppIcons.logout,
                     title: 'Logout',
-                    textColor: Colors.red,
-                    iconColor: Colors.red,
+                    textColor: dangerRed,
+                    iconColor: dangerRed,
                     onTap: () => _showLogoutDialog(context),
                   );
                 } else {
                   return _ProfileOption(
                     icon: AppIcons.login,
                     title: 'Login / Sign Up',
-                    textColor: GlassTheme.primaryGreen,
-                    iconColor: GlassTheme.primaryGreen,
+                    textColor: accentGreen,
+                    iconColor: accentGreen,
                     onTap: () => context.push('/login'),
                   );
                 }
@@ -1345,7 +1327,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'FoodGo Enterprise Delivery v2.0.0',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -1353,21 +1335,15 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       Text(
                         'Made with ',
-                        style: TextStyle(
-                          color: GlassTheme.textMuted.withValues(alpha: 0.6),
-                          fontSize: 11,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: secondaryText,
                         ),
                       ),
-                      const Icon(
-                        AppIcons.favorite,
-                        color: Colors.redAccent,
-                        size: 12,
-                      ),
+                      Icon(AppIcons.favorite, color: dangerRed, size: 12),
                       Text(
                         ' in Phnom Penh, Cambodia',
-                        style: TextStyle(
-                          color: GlassTheme.textMuted.withValues(alpha: 0.6),
-                          fontSize: 11,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: secondaryText,
                         ),
                       ),
                     ],
@@ -1407,12 +1383,21 @@ class _ProfileOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final dangerRed = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
     final effectiveColor = iconColor ?? GlassTheme.primaryGreen;
     final bool isDestructive =
         effectiveColor == Colors.red ||
+        effectiveColor == Colors.redAccent ||
+        effectiveColor == const Color(0xFFB91C1C) ||
+        effectiveColor == const Color(0xFFEF4444) ||
         textColor == Colors.red ||
-        effectiveColor == const Color(0xFFEF4444);
+        textColor == Colors.redAccent ||
+        textColor == const Color(0xFFB91C1C);
 
     return Padding(
           padding: const EdgeInsets.only(bottom: 10.0),
@@ -1463,7 +1448,7 @@ class _ProfileOption extends StatelessWidget {
                         Icon(
                           icon ?? AppIcons.info,
                           color: isDestructive
-                              ? const Color(0xFFEF4444)
+                              ? dangerRed
                               : Theme.of(context).colorScheme.primary,
                           size: 20,
                         ),
@@ -1472,12 +1457,9 @@ class _ProfileOption extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style: TextStyle(
+                      style: textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color:
-                            textColor ??
-                            (isDark ? Colors.white : const Color(0xFF111827)),
+                        color: textColor ?? primaryText,
                       ),
                     ),
                   ),
@@ -1485,11 +1467,7 @@ class _ProfileOption extends StatelessWidget {
                     trailing!,
                     const SizedBox(width: 8),
                   ],
-                  Icon(
-                    AppIcons.chevronRight,
-                    color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
-                    size: 20,
-                  ),
+                  Icon(AppIcons.chevronRight, color: secondaryText, size: 20),
                 ],
               ),
             ),

@@ -194,39 +194,52 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        RichText(
-          text: TextSpan(
-            style: TextStyle(
-              fontSize: 25,
-              fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white : GlassTheme.authTitleDark,
-              letterSpacing: -0.5,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
-                  offset: const Offset(0, 2),
-                  blurRadius: 4,
+        Builder(
+          builder: (context) {
+            final brightness = Theme.of(context).brightness;
+            final textTheme = Theme.of(context).textTheme;
+            final primaryText = AppTypography.primaryTextColor(brightness);
+            final secondaryText = AppTypography.secondaryTextColor(brightness);
+            final accentGreen = isDark
+                ? GlassTheme.primaryGreenAccent
+                : const Color(0xFF15803D);
+            return Column(
+              children: [
+                RichText(
+                  text: TextSpan(
+                    style: textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: primaryText,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.4 : 0.08,
+                          ),
+                          offset: const Offset(0, 2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    children: [
+                      const TextSpan(text: 'Food'),
+                      TextSpan(
+                        text: 'Go',
+                        style: TextStyle(color: accentGreen),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Fast Delivery • Fresh Meals',
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: secondaryText,
+                  ),
                 ),
               ],
-            ),
-            children: const [
-              TextSpan(text: 'Food'),
-              TextSpan(
-                text: 'Go',
-                style: TextStyle(color: GlassTheme.primaryGreen),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'Fast Delivery • Fresh Meals',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white60 : GlassTheme.authSubtitle,
-            letterSpacing: 0.4,
-          ),
+            );
+          },
         ),
       ],
     );
@@ -234,16 +247,67 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final dangerRed = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
+    final isKhmer = Localizations.localeOf(context).languageCode == 'km';
+
+    InputDecoration buildFieldDecoration({
+      required String labelText,
+      required String hintText,
+      required IconData prefixIcon,
+      Widget? suffixIcon,
+    }) {
+      return InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+        labelStyle: textTheme.bodyMedium?.copyWith(
+          color: secondaryText,
+          height: isKhmer ? 1.5 : null,
+          letterSpacing: isKhmer ? 0 : null,
+        ),
+        hintStyle: textTheme.bodyMedium?.copyWith(color: secondaryText),
+        prefixIcon: Icon(prefixIcon, color: secondaryText, size: 20),
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1E293B) : GlassTheme.authInputFill,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 15,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white12 : GlassTheme.authInputBorder,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(
+            color: GlassTheme.primaryGreen,
+            width: 1.5,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: dangerRed),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: dangerRed, width: 1.5),
+        ),
+      );
+    }
 
     return ThemedSkinBackdrop(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          toolbarHeight: 32,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
         body: Stack(
           children: [
             // Ambient soft glowing orbs in the background
@@ -313,7 +377,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20.0,
-                        vertical: 6.0,
+                        vertical: 12.0,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -378,13 +442,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     // Welcome Heading
                                     Text(
                                           context.tr('auth.welcomeBack'),
-                                          style: TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.w800,
-                                            color: isDark
-                                                ? Colors.white
-                                                : GlassTheme.authTitleDark,
-                                          ),
+                                          style: textTheme.headlineMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w800,
+                                                color: primaryText,
+                                                height: isKhmer ? 1.5 : null,
+                                                letterSpacing: isKhmer
+                                                    ? 0
+                                                    : null,
+                                              ),
                                           textAlign: TextAlign.center,
                                         )
                                         .animate()
@@ -400,12 +466,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     // Supporting Subtitle
                                     Text(
                                           context.tr('auth.loginSubtitle'),
-                                          style: TextStyle(
-                                            fontSize: 12.5,
-                                            color: isDark
-                                                ? Colors.grey[400]
-                                                : GlassTheme.authSubtitle,
-                                            fontWeight: FontWeight.w400,
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: secondaryText,
+                                            height: isKhmer ? 1.5 : null,
+                                            letterSpacing: isKhmer ? 0 : null,
                                           ),
                                           textAlign: TextAlign.center,
                                         )
@@ -427,26 +491,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                               vertical: 10,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: Colors.redAccent
-                                                  .withValues(alpha: 0.12),
+                                              color: dangerRed.withValues(
+                                                alpha: 0.12,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(12),
                                               border: Border.all(
-                                                color: Colors.redAccent
-                                                    .withValues(alpha: 0.35),
+                                                color: dangerRed.withValues(
+                                                  alpha: 0.35,
+                                                ),
                                               ),
                                             ),
                                             child: Row(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                const Padding(
-                                                  padding: EdgeInsets.only(
-                                                    top: 2,
-                                                  ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        top: 2,
+                                                      ),
                                                   child: Icon(
                                                     AppIcons.error,
-                                                    color: Colors.redAccent,
+                                                    color: dangerRed,
                                                     size: 18,
                                                   ),
                                                 ),
@@ -454,13 +521,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 Expanded(
                                                   child: Text(
                                                     _loginErrorMessage!,
-                                                    style: const TextStyle(
-                                                      color: Colors.redAccent,
-                                                      fontSize: 13,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      height: 1.3,
-                                                    ),
+                                                    style: textTheme.bodySmall
+                                                        ?.copyWith(
+                                                          color: dangerRed,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
                                                   ),
                                                 ),
                                               ],
@@ -481,82 +547,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                       controller: _usernameController,
                                       textInputAction: TextInputAction.next,
                                       keyboardType: TextInputType.emailAddress,
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                        fontSize: 14,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: primaryText,
                                       ),
-                                      decoration: InputDecoration(
+                                      decoration: buildFieldDecoration(
                                         labelText: context.tr(
                                           'auth.usernameOrEmail',
                                         ),
                                         hintText:
                                             'e.g. customer1 or user@foodgo.com',
-                                        labelStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white70
-                                              : const Color(0xFF64748B),
-                                          fontSize: 13,
-                                        ),
-                                        hintStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white38
-                                              : const Color(0xFF94A3B8),
-                                          fontSize: 13,
-                                        ),
-                                        prefixIcon: Icon(
-                                          AppIcons.profile,
-                                          color: isDark
-                                              ? Colors.white54
-                                              : GlassTheme.authSubtitle,
-                                          size: 20,
-                                        ),
-                                        filled: true,
-                                        fillColor: isDark
-                                            ? const Color(0xFF1E293B)
-                                            : GlassTheme.authInputFill,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 15,
-                                            ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : GlassTheme.authInputBorder,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: GlassTheme.primaryGreen,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                          ),
-                                        ),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                            width: 1.5,
-                                          ),
-                                        ),
+                                        prefixIcon: AppIcons.profile,
                                       ),
                                       validator: (value) {
                                         if (value == null ||
@@ -575,34 +575,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                       obscureText: _obscurePassword,
                                       textInputAction: TextInputAction.done,
                                       onFieldSubmitted: (_) => _login(),
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                        fontSize: 14,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: primaryText,
                                       ),
-                                      decoration: InputDecoration(
+                                      decoration: buildFieldDecoration(
                                         labelText: context.tr('auth.password'),
                                         hintText: 'Enter your password',
-                                        labelStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white70
-                                              : const Color(0xFF64748B),
-                                          fontSize: 13,
-                                        ),
-                                        hintStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white38
-                                              : const Color(0xFF94A3B8),
-                                          fontSize: 13,
-                                        ),
-                                        prefixIcon: Icon(
-                                          AppIcons.lock,
-                                          color: isDark
-                                              ? Colors.white54
-                                              : GlassTheme.authSubtitle,
-                                          size: 20,
-                                        ),
+                                        prefixIcon: AppIcons.lock,
                                         suffixIcon: IconButton(
                                           tooltip: _obscurePassword
                                               ? 'Show password'
@@ -611,9 +590,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             _obscurePassword
                                                 ? AppIcons.passwordHidden
                                                 : AppIcons.passwordVisible,
-                                            color: isDark
-                                                ? Colors.white54
-                                                : GlassTheme.authSubtitle,
+                                            color: secondaryText,
                                             size: 20,
                                           ),
                                           onPressed: () {
@@ -622,51 +599,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   !_obscurePassword,
                                             );
                                           },
-                                        ),
-                                        filled: true,
-                                        fillColor: isDark
-                                            ? const Color(0xFF1E293B)
-                                            : GlassTheme.authInputFill,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 15,
-                                            ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : GlassTheme.authInputBorder,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: GlassTheme.primaryGreen,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                          ),
-                                        ),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.redAccent,
-                                            width: 1.5,
-                                          ),
                                         ),
                                       ),
                                       validator: (value) {
@@ -726,18 +658,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     context.tr(
                                                       'auth.rememberMe',
                                                     ),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      color: isDark
-                                                          ? Colors.white70
-                                                          : const Color(
-                                                              0xFF475569,
-                                                            ),
-                                                      fontSize: 13,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
+                                                    style: textTheme.bodySmall
+                                                        ?.copyWith(
+                                                          color: primaryText,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          height: isKhmer
+                                                              ? 1.5
+                                                              : null,
+                                                          letterSpacing: isKhmer
+                                                              ? 0
+                                                              : null,
+                                                        ),
                                                   ),
                                                 ),
                                               ],
@@ -756,11 +688,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                           child: Text(
                                             context.tr('auth.forgotPassword'),
-                                            style: TextStyle(
-                                              color: GlassTheme.primaryGreen,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: accentGreen,
+                                                  fontWeight: FontWeight.w600,
+                                                  height: isKhmer ? 1.5 : null,
+                                                  letterSpacing: isKhmer
+                                                      ? 0
+                                                      : null,
+                                                ),
                                           ),
                                         ),
                                       ],
@@ -853,18 +789,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                                             size: 18,
                                                             color: Colors.white,
                                                           ),
-                                                          SizedBox(width: 8),
-                                                          Text(
-                                                            context.tr(
-                                                              'auth.login',
-                                                            ),
-                                                            style: TextStyle(
-                                                              fontSize: 15,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              letterSpacing:
-                                                                  0.3,
+                                                          const SizedBox(
+                                                            width: 8,
+                                                          ),
+                                                          Flexible(
+                                                            child: Text(
+                                                              context.tr(
+                                                                'auth.login',
+                                                              ),
+                                                              style: textTheme
+                                                                  .bodyLarge
+                                                                  ?.copyWith(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w700,
+                                                                    height:
+                                                                        isKhmer
+                                                                        ? 1.5
+                                                                        : null,
+                                                                    letterSpacing:
+                                                                        isKhmer
+                                                                        ? 0
+                                                                        : null,
+                                                                  ),
                                                             ),
                                                           ),
                                                         ],
@@ -900,13 +849,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                           child: Text(
                                             context.tr('auth.orContinueWith'),
-                                            style: TextStyle(
-                                              color: isDark
-                                                  ? Colors.grey[400]
-                                                  : const Color(0xFF94A3B8),
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                            style: textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: secondaryText,
+                                                  height: isKhmer ? 1.5 : null,
+                                                  letterSpacing: isKhmer
+                                                      ? 0
+                                                      : null,
+                                                ),
                                           ),
                                         ),
                                         Expanded(
@@ -951,19 +901,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                             horizontal: 14,
                                           ),
                                         ),
-                                        icon: const Icon(
+                                        icon: Icon(
                                           AppIcons.phone,
                                           size: 18,
-                                          color: GlassTheme.primaryGreen,
+                                          color: accentGreen,
                                         ),
                                         label: Text(
                                           context.tr('auth.phoneOtpLogin'),
-                                          style: TextStyle(
-                                            color: isDark
-                                                ? Colors.white
-                                                : const Color(0xFF1E293B),
-                                            fontSize: 13,
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: primaryText,
                                             fontWeight: FontWeight.w600,
+                                            height: isKhmer ? 1.5 : null,
+                                            letterSpacing: isKhmer ? 0 : null,
                                           ),
                                         ),
                                       ),
@@ -983,27 +932,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Text(
                                 'Don\'t have an account? ',
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.grey[400]
-                                      : GlassTheme.authSubtitle,
-                                  fontSize: 13,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: secondaryText,
                                 ),
                               ),
                               AnimatedPressable(
                                 pressedScale: 0.94,
                                 onTap: () => context.push('/register'),
                                 child: Padding(
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                     horizontal: 4,
                                     vertical: 2,
                                   ),
                                   child: Text(
                                     context.tr('auth.signUp'),
-                                    style: TextStyle(
-                                      color: GlassTheme.primaryGreen,
-                                      fontSize: 13,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: accentGreen,
                                       fontWeight: FontWeight.bold,
+                                      height: isKhmer ? 1.5 : null,
+                                      letterSpacing: isKhmer ? 0 : null,
                                     ),
                                   ),
                                 ),

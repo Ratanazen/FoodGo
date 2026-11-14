@@ -344,9 +344,8 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           child: Text(
             _wasAlreadyDelivered ? 'Already Delivered' : 'Delivery Confirmed',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: scheme.onSurface,
-              fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -358,7 +357,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                     'delivered.'
               : 'FoodGo verified the handover for order #${widget.orderId}.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: AppSpacing.md),
         Container(
@@ -405,9 +406,12 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
             ),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
+          child: Text(
             'Done',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: scheme.onPrimary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -422,18 +426,18 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
       children: [
         Text(
           label,
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
         ),
         const SizedBox(width: AppSpacing.sm),
         Flexible(
           child: Text(
             value,
             textAlign: TextAlign.end,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: valueColor ?? scheme.onSurface,
               fontWeight: FontWeight.bold,
-              fontSize: 14,
             ),
           ),
         ),
@@ -472,21 +476,19 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                 children: [
                   Text(
                     widget.isDriver ? 'Scan Customer QR' : 'Confirm Delivery',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    maxLines: 2,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: scheme.onSurface,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
                     widget.isDriver
                         ? 'Order #${widget.orderId} • Customer QR Verification'
                         : 'Order #${widget.orderId} • Customer Verification',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    maxLines: 2,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
-                      fontSize: 12,
                     ),
                   ),
                 ],
@@ -545,7 +547,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: TextStyle(color: scheme.error, fontSize: 12),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: scheme.error),
                     ),
                   ),
                 ],
@@ -585,9 +589,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                     _selectedTab == 0
                         ? 'Verify Scanned Code'
                         : 'Submit 6-Digit PIN',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.onPrimary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
           ),
@@ -614,15 +618,16 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           onTap: () => setState(() => _selectedTab = index),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: foreground,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -809,10 +814,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                       widget.isDriver
                           ? 'ALIGN CUSTOMER DELIVERY QR'
                           : 'ALIGN DRIVER QR',
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: scheme.primary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 1,
                       ),
                     ),
@@ -828,13 +832,13 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                       children: [
                         CircularProgressIndicator(color: scheme.primary),
                         const SizedBox(height: 12),
-                        const Text(
+                        Text(
                           'Verifying delivery with FoodGo…',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),
@@ -850,7 +854,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                     'customer\'s screen.'
               : 'Scan the delivery QR code displayed on your driver\'s '
                     'screen.',
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
@@ -860,9 +866,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: scheme.primary),
               icon: const Icon(Icons.paste, size: 16),
-              label: const Text(
+              label: Text(
                 'Paste / Enter QR Data',
-                style: TextStyle(fontSize: 12),
+                style: Theme.of(context).textTheme.labelMedium,
               ),
               onPressed: _pasteQrPayload,
             ),
@@ -886,10 +892,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
           const SizedBox(height: 8),
           Text(
             isPermission ? 'Camera Permission Denied' : 'Camera Unavailable',
-            style: const TextStyle(
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
               color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
@@ -899,7 +904,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                       'PIN instead.'
                 : 'Could not access the device camera '
                       '(${error.errorCode.name}).',
-            style: const TextStyle(color: Colors.white70, fontSize: 11),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
@@ -913,9 +920,11 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
               ),
             ),
             icon: const Icon(Icons.pin, size: 16),
-            label: const Text(
+            label: Text(
               'Enter PIN Instead',
-              style: TextStyle(fontSize: 12),
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: _scheme.onPrimary),
             ),
             onPressed: () => setState(() => _selectedTab = 1),
           ),
@@ -926,6 +935,12 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
 
   Widget _buildPinEntryView() {
     final scheme = _scheme;
+    final pinStyle = Theme.of(context).textTheme.displaySmall?.copyWith(
+      color: scheme.onSurface,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 10,
+      height: 1.2,
+    );
 
     return Column(
       children: [
@@ -936,9 +951,8 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
                     'their FoodGo order screen:'
               : 'Ask your driver for the 6-digit handover PIN shown in '
                     'their FoodGo driver app:',
-          style: TextStyle(
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: scheme.onSurfaceVariant,
-            fontSize: 13,
             height: 1.4,
           ),
           textAlign: TextAlign.center,
@@ -952,20 +966,14 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(6),
           ],
-          style: TextStyle(
-            color: scheme.onSurface,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 10,
-          ),
+          style: pinStyle,
           textAlign: TextAlign.center,
           decoration: InputDecoration(
             counterText: '',
             hintText: '• • • • • •',
-            hintStyle: TextStyle(
+            hintStyle: pinStyle?.copyWith(
               color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
               letterSpacing: 8,
-              fontSize: 24,
             ),
             filled: true,
             fillColor: scheme.onSurface.withValues(alpha: 0.05),
@@ -984,7 +992,9 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
         const SizedBox(height: AppSpacing.sm),
         Text(
           'The PIN is single-use and expires after 15 minutes.',
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
         ),
       ],
     );

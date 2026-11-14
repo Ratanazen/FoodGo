@@ -6,8 +6,7 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/theme/theme_styles.dart';
 import '../../../providers/theme_provider.dart';
-import '../../../widgets/glass/animated_pressable.dart';
-import '../../../widgets/glass/themed_skin_backdrop.dart';
+import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
 
 /// Dedicated Theme Center for switching appearance modes, selecting cultural
@@ -33,6 +32,17 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     _stagedPalette = themeProvider.currentPalette;
   }
 
+  Color _accessibleAccent(Color color, bool isDark) {
+    final hsl = HSLColor.fromColor(color);
+    if (!isDark && hsl.lightness > 0.38) {
+      return hsl.withLightness(0.32).toColor();
+    }
+    if (isDark && hsl.lightness < 0.52) {
+      return hsl.withLightness(0.62).toColor();
+    }
+    return color;
+  }
+
   void _stageTheme(AppColorPalette palette) {
     setState(() {
       _stagedPalette = palette;
@@ -44,14 +54,18 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
   void _applyTheme() {
     final themeProvider = context.read<ThemeProvider>();
     themeProvider.setPalette(_stagedPalette);
+    final staged = PaletteData.fromId(_stagedPalette);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Applied "${PaletteData.fromId(_stagedPalette).nameEn}" theme!',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          'Applied "${staged.nameEn}" theme!',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: staged.onPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: PaletteData.fromId(_stagedPalette).primary,
+        backgroundColor: staged.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 2),
@@ -75,11 +89,14 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text(
+        content: Text(
           'Restored default Modern FoodGo theme & system appearance mode.',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: const Color(0xFF10B981),
+        backgroundColor: const Color(0xFF15803D),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -91,7 +108,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     final themeProvider = context.watch<ThemeProvider>();
     final stagedData = PaletteData.fromId(_stagedPalette);
     final activeData = themeProvider.paletteData;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentColor = _accessibleAccent(stagedData.primary, isDark);
     final hasUnsavedChanges = _stagedPalette != themeProvider.currentPalette;
 
     final categories = [
@@ -112,87 +134,38 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      appBar: GlassAppBar(
+        title: 'Theme Center',
         leading: IconButton(
-          icon: Icon(
-            AppIcons.back,
-            color: isDark ? Colors.white : Colors.black87,
-            size: AppIconSizes.sm,
-          ),
+          icon: Icon(AppIcons.back, color: primaryText, size: AppIconSizes.sm),
           onPressed: () => context.pop(),
           tooltip: 'Back',
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Theme Center',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : const Color(0xFF111827),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: stagedData.primary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Appearance',
-                      style: TextStyle(
-                        color: stagedData.primary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Text(
-              'មជ្ឈមណ្ឌលរចនាបថ និងរូបរាង',
-              style: TextStyle(
-                fontFamily: AppTheme.khmerPrimaryFont,
-                fontFamilyFallback: AppTheme.khmerFontFallbacks,
-                color: Colors.grey,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                height: 1.35,
-              ),
-            ),
-          ],
         ),
         actions: [
           if (MediaQuery.sizeOf(context).width >= 420)
             TextButton.icon(
               onPressed: _restoreDefaults,
               icon: const Icon(AppIcons.reset, size: AppIconSizes.xs),
-              label: const Text('Reset All', style: TextStyle(fontSize: 12)),
-              style: TextButton.styleFrom(
-                foregroundColor: isDark ? Colors.white70 : Colors.black54,
+              label: Text(
+                'Reset All',
+                style: textTheme.bodySmall?.copyWith(
+                  color: secondaryText,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              style: TextButton.styleFrom(foregroundColor: secondaryText),
             )
           else
             IconButton(
               onPressed: _restoreDefaults,
-              icon: const Icon(AppIcons.reset, size: AppIconSizes.md),
+              icon: Icon(
+                AppIcons.reset,
+                size: AppIconSizes.md,
+                color: secondaryText,
+              ),
               tooltip: 'Reset all themes',
             ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: Align(
@@ -205,6 +178,45 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Khmer Subtitle & Appearance Mode Pill
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: stagedData.primary.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Appearance',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: accentColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'មជ្ឈមណ្ឌលរចនាបថ និងរូបរាង',
+                        style: textTheme.bodySmall?.copyWith(
+                          fontFamily: AppTheme.khmerPrimaryFont,
+                          fontFamilyFallback: AppTheme.khmerFontFallbacks,
+                          color: secondaryText,
+                          fontWeight: FontWeight.w500,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
                 // ── Top Pill Tab Bar (Themes | Settings) ───────────────────────
                 _buildTopTabBar(isDark, stagedData),
 
@@ -252,14 +264,13 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                             backgroundColor: isDark
                                 ? activeData.surfaceCardDark
                                 : Colors.grey.withValues(alpha: 0.12),
-                            labelStyle: TextStyle(
+                            labelStyle: textTheme.bodySmall?.copyWith(
                               color: isSelected
                                   ? stagedData.onPrimary
-                                  : (isDark ? Colors.white70 : Colors.black87),
+                                  : primaryText,
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.w500,
-                              fontSize: 12,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -389,6 +400,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     required PaletteData staged,
     required bool isDark,
   }) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return InkWell(
       onTap: () => setState(() => _selectedTopTab = index),
       borderRadius: BorderRadius.circular(12),
@@ -420,29 +436,29 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   size: 16,
                   color: isSelected
                       ? staged.onPrimary
-                      : (isDark ? Colors.white70 : Colors.black87),
+                      : (isDark ? Colors.white70 : primaryText),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     color: isSelected
                         ? staged.onPrimary
-                        : (isDark ? Colors.white70 : Colors.black87),
+                        : (isDark ? Colors.white70 : primaryText),
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    fontSize: 13,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '($labelKh)',
-                  style: TextStyle(
+                  style: textTheme.labelSmall?.copyWith(
                     fontFamily: AppTheme.khmerPrimaryFont,
                     fontFamilyFallback: AppTheme.khmerFontFallbacks,
+                    height: 1.5,
+                    letterSpacing: 0,
                     color: isSelected
-                        ? staged.onPrimary.withValues(alpha: 0.8)
-                        : Colors.grey,
-                    fontSize: 10,
+                        ? staged.onPrimary.withValues(alpha: 0.88)
+                        : secondaryText,
                   ),
                 ),
               ],
@@ -460,6 +476,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     bool hasUnsavedChanges,
   ) {
     final isStagedApplied = staged.id == active.id;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -509,18 +529,14 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
+                        Expanded(
                           child: Text(
                             'Active Style: ${staged.nameEn}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 15,
+                            style: textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF111827),
+                              color: primaryText,
                             ),
                           ),
                         ),
@@ -532,14 +548,14 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: isStagedApplied
-                                ? const Color(0xFF10B981)
+                                ? const Color(0xFF15803D)
                                 : staged.primary,
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
                                 color:
                                     (isStagedApplied
-                                            ? const Color(0xFF10B981)
+                                            ? const Color(0xFF15803D)
                                             : staged.primary)
                                         .withValues(alpha: 0.35),
                                 blurRadius: 6,
@@ -554,14 +570,17 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                                     ? Icons.check_rounded
                                     : Icons.visibility_rounded,
                                 size: 11,
-                                color: Colors.white,
+                                color: isStagedApplied
+                                    ? Colors.white
+                                    : staged.onPrimary,
                               ),
                               const SizedBox(width: 3),
                               Text(
                                 isStagedApplied ? 'Active' : 'Preview',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9.5,
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: isStagedApplied
+                                      ? Colors.white
+                                      : staged.onPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -573,13 +592,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     const SizedBox(height: 3),
                     Text(
                       staged.descriptionEn,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: isDark
-                            ? Colors.white60
-                            : const Color(0xFF6B7280),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -594,13 +610,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                         Expanded(
                           child: Text(
                             staged.nameKh,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: textTheme.labelSmall?.copyWith(
                               fontFamily: AppTheme.khmerPrimaryFont,
                               fontFamilyFallback: AppTheme.khmerFontFallbacks,
-                              fontSize: 11,
-                              color: Colors.grey,
+                              height: 1.5,
+                              letterSpacing: 0,
+                              color: secondaryText,
                             ),
                           ),
                         ),
@@ -655,26 +670,30 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
   }
 
   Widget _buildSubSectionTitle(String title, String subtitle, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
+          style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : const Color(0xFF111827),
+            color: primaryText,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: TextStyle(
+          style: textTheme.labelSmall?.copyWith(
             fontFamily: AppTheme.khmerPrimaryFont,
             fontFamilyFallback: AppTheme.khmerFontFallbacks,
-            fontSize: 11.5,
-            height: 1.35,
-            color: isDark ? Colors.white54 : const Color(0xFF6B7280),
+            height: 1.5,
+            letterSpacing: 0,
+            color: secondaryText,
           ),
         ),
       ],
@@ -741,27 +760,30 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
   }
 
   Widget _buildSectionHeader(String title, String subtitleKh) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
+          style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : const Color(0xFF111827),
+            color: primaryText,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           subtitleKh,
-          style: TextStyle(
+          style: textTheme.bodySmall?.copyWith(
             fontFamily: AppTheme.khmerPrimaryFont,
             fontFamilyFallback: AppTheme.khmerFontFallbacks,
-            fontSize: 12,
-            height: 1.35,
-            color: isDark ? Colors.white54 : const Color(0xFF6B7280),
+            height: 1.5,
+            letterSpacing: 0,
+            color: secondaryText,
           ),
         ),
       ],
@@ -772,6 +794,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     ThemeProvider themeProvider,
     bool isDark,
   ) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
     final modes = [
       {
         'mode': ThemeMode.system,
@@ -801,41 +826,42 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               borderRadius: BorderRadius.circular(12),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? activePalette.primary
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      m['icon'] as IconData,
-                      size: AppIconSizes.sm,
-                      color: isSelected
-                          ? activePalette.onPrimary
-                          : (isDark ? Colors.white60 : Colors.black54),
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        m['icon'] as IconData,
+                        size: AppIconSizes.sm,
+                        color: isSelected
+                            ? activePalette.onPrimary
+                            : (isDark ? Colors.white60 : Colors.black54),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
                         m['label'] as String,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: textTheme.bodyMedium?.copyWith(
                           color: isSelected
                               ? activePalette.onPrimary
-                              : (isDark ? Colors.white70 : Colors.black87),
+                              : (isDark ? Colors.white70 : primaryText),
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.w500,
-                          fontSize: 13,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -850,6 +876,22 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     bool isDark,
     PaletteData palette,
   ) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final titleStyle = textTheme.bodyMedium?.copyWith(
+      color: primaryText,
+      fontWeight: FontWeight.w600,
+    );
+    final subtitleStyle = textTheme.labelSmall?.copyWith(
+      fontFamily: AppTheme.khmerPrimaryFont,
+      fontFamilyFallback: AppTheme.khmerFontFallbacks,
+      height: 1.5,
+      letterSpacing: 0,
+      color: secondaryText,
+    );
+
     return Material(
       color: isDark ? palette.surfaceCardDark : Colors.white,
       borderRadius: BorderRadius.circular(18),
@@ -863,13 +905,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             SwitchListTile(
               value: provider.seasonalDecorationsEnabled,
               activeThumbColor: palette.primary,
-              title: const Text(
-                'Festive Decorations & Greetings',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text(
+              title: Text('Festive Decorations & Greetings', style: titleStyle),
+              subtitle: Text(
                 'បង្ហាញបដា និងពាក្យជូនពរពិធីបុណ្យជាតិនៅលើទំព័រដើម',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+                style: subtitleStyle,
               ),
               onChanged: (val) => provider.setSeasonalDecorationsEnabled(val),
             ),
@@ -877,13 +916,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             SwitchListTile(
               value: provider.reducedMotion,
               activeThumbColor: palette.primary,
-              title: const Text(
-                'Reduced Motion Transitions',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text(
+              title: Text('Reduced Motion Transitions', style: titleStyle),
+              subtitle: Text(
                 'កាត់បន្ថយចលនា សម្រាប់ដំណើរការរលូនលើទូរស័ព្ទកម្រិតទាប',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+                style: subtitleStyle,
               ),
               onChanged: (val) => provider.setReducedMotion(val),
             ),
@@ -891,13 +927,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             SwitchListTile(
               value: provider.snowfallEnabled,
               activeThumbColor: palette.primary,
-              title: const Text(
-                'Christmas Snowfall Animation',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text(
+              title: Text('Christmas Snowfall Animation', style: titleStyle),
+              subtitle: Text(
                 'ធ្លាក់ព្រិលបែបវេទមន្តសម្រាប់រដូវកាលណូអែល (Snowfall Effect)',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+                style: subtitleStyle,
               ),
               onChanged: (val) => provider.setSnowfallEnabled(val),
             ),
@@ -905,13 +938,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             SwitchListTile(
               value: provider.skinBackdropEnabled,
               activeThumbColor: palette.primary,
-              title: const Text(
-                'Themed Skin Backdrops & Meshes',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text(
+              title: Text('Themed Skin Backdrops & Meshes', style: titleStyle),
+              subtitle: Text(
                 'បង្ហាញផ្ទៃខាងក្រោយ និងក្បាច់លម្អតាមប្រធានបទនីមួយៗ (Built-in Skin Backdrops)',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+                style: subtitleStyle,
               ),
               onChanged: (val) => provider.setSkinBackdropEnabled(val),
             ),
@@ -919,13 +949,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             SwitchListTile(
               value: provider.skinAnimationEnabled,
               activeThumbColor: palette.primary,
-              title: const Text(
-                'Animated Theme Skins & Meshes',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text(
+              title: Text('Animated Theme Skins & Meshes', style: titleStyle),
+              subtitle: Text(
                 'ចលនារលក ពន្លឺ និងក្បាច់លម្អរស់រវើកនៅលើផ្ទៃខាងក្រោយ (Dynamic Harmonic Motion)',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+                style: subtitleStyle,
               ),
               onChanged: (val) => provider.setSkinAnimationEnabled(val),
             ),
@@ -940,6 +967,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     bool isDark,
     bool hasUnsavedChanges,
   ) {
+    final textTheme = Theme.of(context).textTheme;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final accentColor = _accessibleAccent(staged.primary, isDark);
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     return Container(
       decoration: BoxDecoration(
         color: isDark ? staged.surfaceCardDark : Colors.white,
@@ -978,26 +1011,25 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     children: [
                       Text(
                         ThemeStyles.getFestivalGreeting(staged),
-                        style: const TextStyle(
+                        style: textTheme.labelLarge?.copyWith(
                           color: Colors.white,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
                       Text(
                         ThemeStyles.getFestivalSubtitleKh(staged),
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 10.5,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          height: 1.5,
+                          letterSpacing: 0,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -1011,10 +1043,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     staged.badgeText.isNotEmpty
                         ? staged.badgeText
                         : 'LIVE PREVIEW',
-                    style: const TextStyle(
+                    style: textTheme.labelSmall?.copyWith(
                       color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -1093,7 +1124,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                           color: staged.primary.withValues(alpha: 0.3),
                         ),
                       ),
-                      child: Icon(staged.icon, color: staged.primary, size: 24),
+                      child: Icon(staged.icon, color: accentColor, size: 24),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -1102,11 +1133,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                         children: [
                           Text(
                             'Previewing: ${staged.nameEn}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black87,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: primaryText,
                             ),
+                            maxLines: 2,
                           ),
                           const SizedBox(height: 2),
                           Row(
@@ -1114,19 +1145,17 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                               Icon(
                                 Icons.auto_awesome,
                                 size: 12,
-                                color: staged.primary,
+                                color: accentColor,
                               ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   'Skin Backdrop: ${staged.backdropNameEn}',
-                                  style: TextStyle(
-                                    fontSize: 11,
+                                  style: textTheme.labelSmall?.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: staged.primary,
+                                    color: accentColor,
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
                                 ),
                               ),
                             ],
@@ -1134,11 +1163,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                           const SizedBox(height: 2),
                           Text(
                             staged.descriptionEn,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: isDark ? Colors.white60 : Colors.black54,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -1164,7 +1192,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          child: const Text('Revert'),
+                          child: Text(
+                            'Revert',
+                            style: textTheme.labelLarge?.copyWith(
+                              color: primaryText,
+                            ),
+                          ),
                         ),
                       ),
                     if (hasUnsavedChanges) const SizedBox(width: 10),
@@ -1189,7 +1222,10 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                         ),
                         child: Text(
                           hasUnsavedChanges ? 'Apply Theme' : 'Theme Applied',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: textTheme.labelLarge?.copyWith(
+                            color: staged.onPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
@@ -1210,13 +1246,17 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     PaletteData staged,
   ) {
     final isSelected = _previewTab == index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final accentColor = _accessibleAccent(staged.primary, isDark);
+
     return Expanded(
       child: InkWell(
         onTap: () => setState(() => _previewTab = index),
         borderRadius: BorderRadius.circular(10),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected
                 ? staged.primary
@@ -1234,18 +1274,21 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               Icon(
                 icon,
                 size: 13,
-                color: isSelected ? staged.onPrimary : staged.primary,
+                color: isSelected ? staged.onPrimary : accentColor,
               ),
               const SizedBox(width: 4),
               Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? staged.onPrimary : staged.primary,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    style: textTheme.labelSmall?.copyWith(
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: isSelected ? staged.onPrimary : accentColor,
+                    ),
                   ),
                 ),
               ),
@@ -1257,9 +1300,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
   }
 
   Widget _buildHomeMockup(PaletteData staged, bool isDark) {
+    final textTheme = Theme.of(context).textTheme;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     final cardBg = isDark ? staged.surfaceCardDark : Colors.white;
-    final textCol = isDark ? Colors.white : const Color(0xFF1F2937);
-    final mutedCol = isDark ? Colors.white60 : const Color(0xFF6B7280);
+    final textCol = AppTypography.primaryTextColor(brightness);
+    final mutedCol = AppTypography.secondaryTextColor(brightness);
+    final accentColor = _accessibleAccent(staged.primary, isDark);
 
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
@@ -1270,7 +1316,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
           // Top Mini Location & Notification Bar
           Row(
             children: [
-              Icon(AppIcons.location, size: 14, color: staged.primary),
+              Icon(AppIcons.location, size: 14, color: accentColor),
               const SizedBox(width: 4),
               Expanded(
                 child: Row(
@@ -1279,11 +1325,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     Flexible(
                       child: Text(
                         'Phnom Penh, Cambodia',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                        maxLines: 2,
+                        style: textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
                           color: textCol,
                         ),
                       ),
@@ -1331,12 +1375,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                 Expanded(
                   child: Text(
                     'Search burgers, pizza, drinks...',
-                    style: TextStyle(fontSize: 10, color: mutedCol),
+                    style: textTheme.bodySmall?.copyWith(color: mutedCol),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Icon(AppIcons.filter, size: 13, color: staged.primary),
+                Icon(AppIcons.filter, size: 13, color: accentColor),
               ],
             ),
           ),
@@ -1404,27 +1448,27 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                           color: Colors.white.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
+                        child: Text(
                           '20% OFF DEALS',
-                          style: TextStyle(
+                          style: textTheme.labelSmall?.copyWith(
                             color: Colors.white,
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
+                      Text(
                         'Summer Flavor Fest',
-                        style: TextStyle(
+                        style: textTheme.labelLarge?.copyWith(
                           color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Free delivery on orders \$15+',
-                        style: TextStyle(color: Colors.white70, fontSize: 9.5),
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
                       ),
                     ],
                   ),
@@ -1476,6 +1520,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     required PaletteData staged,
     bool isDark = false,
   }) {
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -1491,12 +1536,13 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 9.5,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+        style: textTheme.labelSmall?.copyWith(
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           color: isSelected
               ? staged.onPrimary
-              : (isDark ? Colors.white70 : Colors.black87),
+              : AppTypography.primaryTextColor(
+                  isDark ? Brightness.dark : Brightness.light,
+                ),
         ),
       ),
     );
@@ -1510,8 +1556,15 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     required PaletteData staged,
     required bool isDark,
   }) {
+    final textTheme = Theme.of(context).textTheme;
     final cardBg = isDark ? staged.surfaceCardDark : Colors.white;
-    final textCol = isDark ? Colors.white : const Color(0xFF1F2937);
+    final textCol = AppTypography.primaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final accentColor = _accessibleAccent(staged.primary, isDark);
+    final starColor = isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFB45309);
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -1531,7 +1584,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                 color: staged.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: staged.primary, size: 20),
+              child: Icon(icon, color: accentColor, size: 20),
             ),
           ),
           const SizedBox(height: 6),
@@ -1540,23 +1593,21 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               Expanded(
                 child: Text(
                   title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                  maxLines: 2,
+                  style: textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: textCol,
                   ),
                 ),
               ),
-              Icon(AppIcons.star, size: 9, color: const Color(0xFFF59E0B)),
-              const SizedBox(width: 1),
+              const SizedBox(width: 2),
+              Icon(AppIcons.star, size: 11, color: starColor),
+              const SizedBox(width: 2),
               Text(
                 rating,
-                style: const TextStyle(
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFF59E0B),
+                style: textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: starColor,
                 ),
               ),
             ],
@@ -1567,10 +1618,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             children: [
               Text(
                 price,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: staged.primary,
+                style: textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: accentColor,
                 ),
               ),
               Container(
@@ -1590,9 +1640,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
   }
 
   Widget _buildDetailsMockup(PaletteData staged, bool isDark) {
+    final textTheme = Theme.of(context).textTheme;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     final cardBg = isDark ? staged.surfaceCardDark : Colors.white;
-    final textCol = isDark ? Colors.white : const Color(0xFF1F2937);
-    final mutedCol = isDark ? Colors.white60 : const Color(0xFF6B7280);
+    final textCol = AppTypography.primaryTextColor(brightness);
+    final mutedCol = AppTypography.secondaryTextColor(brightness);
+    final accentColor = _accessibleAccent(staged.primary, isDark);
     final totalPrice = 6.50 * _detailsQuantity;
 
     return SingleChildScrollView(
@@ -1608,14 +1661,17 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               const SizedBox(width: 8),
               Text(
                 'Food Details',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
                   color: textCol,
                 ),
               ),
               const Spacer(),
-              Icon(AppIcons.favorite, size: 16, color: staged.accent),
+              Icon(
+                AppIcons.favorite,
+                size: 16,
+                color: _accessibleAccent(staged.accent, isDark),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1636,7 +1692,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Icon(AppIcons.burger, size: 44, color: staged.primary),
+                Icon(AppIcons.burger, size: 44, color: accentColor),
                 Positioned(
                   top: 6,
                   left: 8,
@@ -1651,10 +1707,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     ),
                     child: Text(
                       'BESTSELLER',
-                      style: TextStyle(
+                      style: textTheme.labelSmall?.copyWith(
                         color: staged.onPrimary,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -1674,15 +1729,14 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   children: [
                     Text(
                       'Cheeseburger Deluxe',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                         color: textCol,
                       ),
                     ),
                     Text(
                       'Angus beef patty, cheddar, brioche bun, house sauce',
-                      style: TextStyle(fontSize: 9.5, color: mutedCol),
+                      style: textTheme.labelSmall?.copyWith(color: mutedCol),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1691,10 +1745,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               ),
               Text(
                 '\$${totalPrice.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.bold,
-                  color: staged.primary,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: accentColor,
                 ),
               ),
             ],
@@ -1740,8 +1793,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               children: [
                 Text(
                   'Quantity Stepper:',
-                  style: TextStyle(
-                    fontSize: 10.5,
+                  style: textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: textCol,
                   ),
@@ -1760,20 +1812,15 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                       color: staged.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Icon(
-                      AppIcons.remove,
-                      size: 13,
-                      color: staged.primary,
-                    ),
+                    child: Icon(AppIcons.remove, size: 13, color: accentColor),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
                     '$_detailsQuantity',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                       color: textCol,
                     ),
                   ),
@@ -1816,10 +1863,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                 const SizedBox(width: 6),
                 Text(
                   'Add to Cart • \$${totalPrice.toStringAsFixed(2)}',
-                  style: TextStyle(
+                  style: textTheme.labelLarge?.copyWith(
                     color: staged.onPrimary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -1836,7 +1882,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     required bool isDark,
     required PaletteData staged,
   }) {
-    final textColor = isDark ? Colors.white70 : Colors.black87;
+    final textTheme = Theme.of(context).textTheme;
+    final textColor = AppTypography.primaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final accentColor = _accessibleAccent(staged.primary, isDark);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
@@ -1847,13 +1898,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 11, color: staged.primary),
+            Icon(icon, size: 11, color: accentColor),
             const SizedBox(width: 3),
           ],
           Text(
             label,
-            style: TextStyle(
-              fontSize: 9,
+            style: textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: textColor,
             ),
@@ -1864,9 +1914,15 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
   }
 
   Widget _buildCartMockup(PaletteData staged, bool isDark) {
+    final textTheme = Theme.of(context).textTheme;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     final cardBg = isDark ? staged.surfaceCardDark : Colors.white;
-    final textCol = isDark ? Colors.white : const Color(0xFF1F2937);
-    final mutedCol = isDark ? Colors.white60 : const Color(0xFF6B7280);
+    final textCol = AppTypography.primaryTextColor(brightness);
+    final mutedCol = AppTypography.secondaryTextColor(brightness);
+    final accentColor = _accessibleAccent(staged.primary, isDark);
+    final freeGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
 
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
@@ -1878,16 +1934,15 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             children: [
               Text(
                 'My Cart (2 items)',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
                   color: textCol,
                 ),
               ),
               const Spacer(),
               Text(
                 'Phnom Penh Delivery',
-                style: TextStyle(fontSize: 9.5, color: mutedCol),
+                style: textTheme.labelSmall?.copyWith(color: mutedCol),
               ),
             ],
           ),
@@ -1927,18 +1982,18 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
             ),
             child: Row(
               children: [
-                Icon(AppIcons.coupon, size: 13, color: staged.primary),
+                Icon(AppIcons.coupon, size: 13, color: accentColor),
                 const SizedBox(width: 6),
-                Text(
-                  'FOODGO20 Applied (-\$1.80)',
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.bold,
-                    color: staged.primary,
+                Expanded(
+                  child: Text(
+                    'FOODGO20 Applied (-\$1.80)',
+                    style: textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: accentColor,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                Icon(AppIcons.checkCircle, size: 13, color: Colors.green),
+                Icon(AppIcons.checkCircle, size: 13, color: freeGreen),
               ],
             ),
           ),
@@ -1959,11 +2014,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   children: [
                     Text(
                       'Subtotal',
-                      style: TextStyle(fontSize: 9.5, color: mutedCol),
+                      style: textTheme.labelSmall?.copyWith(color: mutedCol),
                     ),
                     Text(
                       '\$9.00',
-                      style: TextStyle(fontSize: 9.5, color: textCol),
+                      style: textTheme.labelSmall?.copyWith(color: textCol),
                     ),
                   ],
                 ),
@@ -1973,14 +2028,13 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   children: [
                     Text(
                       'Delivery Fee',
-                      style: TextStyle(fontSize: 9.5, color: mutedCol),
+                      style: textTheme.labelSmall?.copyWith(color: mutedCol),
                     ),
                     Text(
                       'FREE',
-                      style: const TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                      style: textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: freeGreen,
                       ),
                     ),
                   ],
@@ -1991,18 +2045,16 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   children: [
                     Text(
                       'Total',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                         color: textCol,
                       ),
                     ),
                     Text(
                       '\$7.20',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        color: staged.primary,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: accentColor,
                       ),
                     ),
                   ],
@@ -2025,10 +2077,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               children: [
                 Text(
                   'Proceed to Checkout',
-                  style: TextStyle(
+                  style: textTheme.labelLarge?.copyWith(
                     color: staged.onPrimary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -2050,9 +2101,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     required PaletteData staged,
     required bool isDark,
   }) {
+    final textTheme = Theme.of(context).textTheme;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     final cardBg = isDark ? staged.surfaceCardDark : Colors.white;
-    final textCol = isDark ? Colors.white : const Color(0xFF1F2937);
-    final mutedCol = isDark ? Colors.white60 : const Color(0xFF6B7280);
+    final textCol = AppTypography.primaryTextColor(brightness);
+    final mutedCol = AppTypography.secondaryTextColor(brightness);
+    final accentColor = _accessibleAccent(staged.primary, isDark);
 
     return Container(
       padding: const EdgeInsets.all(6),
@@ -2070,7 +2124,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               color: staged.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(icon, size: 15, color: staged.primary),
+            child: Icon(icon, size: 15, color: accentColor),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -2079,31 +2133,32 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
               children: [
                 Text(
                   name,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                  style: textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: textCol,
                   ),
                 ),
-                Text(options, style: TextStyle(fontSize: 8.5, color: mutedCol)),
+                Text(
+                  options,
+                  style: textTheme.labelSmall?.copyWith(color: mutedCol),
+                ),
               ],
             ),
           ),
-          Text('x$qty', style: TextStyle(fontSize: 9.5, color: mutedCol)),
+          Text('x$qty', style: textTheme.labelSmall?.copyWith(color: mutedCol)),
           const SizedBox(width: 6),
           Text(
             price,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: staged.primary,
+            style: textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: accentColor,
             ),
           ),
           const SizedBox(width: 4),
           Icon(
             AppIcons.delete,
             size: 12,
-            color: Colors.red.withValues(alpha: 0.7),
+            color: isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C),
           ),
         ],
       ),
@@ -2111,8 +2166,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
   }
 
   Widget _buildProfileMockup(PaletteData staged, bool isDark) {
+    final textTheme = Theme.of(context).textTheme;
     final cardBg = isDark ? staged.surfaceCardDark : Colors.white;
-    final mutedCol = isDark ? Colors.white60 : const Color(0xFF6B7280);
+    final mutedCol = AppTypography.secondaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final accentColor = _accessibleAccent(staged.primary, isDark);
 
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
@@ -2140,10 +2199,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   child: Center(
                     child: Text(
                       'RK',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: staged.primary,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: _accessibleAccent(staged.primary, false),
                       ),
                     ),
                   ),
@@ -2153,17 +2211,18 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Ratanak Keo',
-                        style: TextStyle(
+                        style: textTheme.bodySmall?.copyWith(
                           color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Keo.Ratanak@gmail.com',
-                        style: TextStyle(color: Colors.white70, fontSize: 9),
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
                       ),
                     ],
                   ),
@@ -2182,12 +2241,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     children: [
                       const Icon(AppIcons.star, size: 10, color: Colors.amber),
                       const SizedBox(width: 2),
-                      const Text(
+                      Text(
                         'VIP GOLD',
-                        style: TextStyle(
+                        style: textTheme.labelSmall?.copyWith(
                           color: Colors.white,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -2213,15 +2271,14 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     children: [
                       Text(
                         'FoodGo Balance',
-                        style: TextStyle(fontSize: 8.5, color: mutedCol),
+                        style: textTheme.labelSmall?.copyWith(color: mutedCol),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '\$48.50',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: staged.primary,
+                        style: textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
                         ),
                       ),
                     ],
@@ -2237,15 +2294,14 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     children: [
                       Text(
                         'Active Orders',
-                        style: TextStyle(fontSize: 8.5, color: mutedCol),
+                        style: textTheme.labelSmall?.copyWith(color: mutedCol),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '1 In Transit',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: staged.accent,
+                        style: textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: _accessibleAccent(staged.accent, isDark),
                         ),
                       ),
                     ],
@@ -2283,8 +2339,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     PaletteData staged,
     bool isDark,
   ) {
+    final textTheme = Theme.of(context).textTheme;
     final cardBg = isDark ? staged.surfaceCardDark : Colors.white;
-    final textCol = isDark ? Colors.white : const Color(0xFF1F2937);
+    final textCol = AppTypography.primaryTextColor(
+      isDark ? Brightness.dark : Brightness.light,
+    );
+    final accentColor = _accessibleAccent(staged.primary, isDark);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -2295,13 +2355,12 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: staged.primary),
+          Icon(icon, size: 14, color: accentColor),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               title,
-              style: TextStyle(
-                fontSize: 10.5,
+              style: textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: textCol,
               ),
@@ -2310,7 +2369,7 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
           Icon(
             AppIcons.chevronRight,
             size: 12,
-            color: staged.primary.withValues(alpha: 0.6),
+            color: accentColor.withValues(alpha: 0.7),
           ),
         ],
       ),
@@ -2324,6 +2383,11 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
     required bool isDark,
     required VoidCallback onTap,
   }) {
+    final textTheme = Theme.of(context).textTheme;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final accentColor = _accessibleAccent(palette.primary, isDark);
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final borderColor = isApplied
         ? palette.primary
         : (isStaged
@@ -2438,10 +2502,9 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                             ),
                             child: Text(
                               palette.badgeText,
-                              style: const TextStyle(
+                              style: textTheme.labelSmall?.copyWith(
                                 color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 letterSpacing: 0.4,
                               ),
                             ),
@@ -2459,32 +2522,31 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981),
+                                  color: const Color(0xFF15803D),
                                   borderRadius: BorderRadius.circular(10),
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(
-                                        0xFF10B981,
+                                        0xFF15803D,
                                       ).withValues(alpha: 0.4),
                                       blurRadius: 6,
                                     ),
                                   ],
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.check_rounded,
                                       size: 11,
                                       color: Colors.white,
                                     ),
-                                    SizedBox(width: 3),
+                                    const SizedBox(width: 3),
                                     Text(
                                       'Active',
-                                      style: TextStyle(
+                                      style: textTheme.labelSmall?.copyWith(
                                         color: Colors.white,
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ],
@@ -2497,15 +2559,14 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                                         vertical: 3,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF59E0B),
+                                        color: const Color(0xFFB45309),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'In Season',
-                                        style: TextStyle(
+                                        style: textTheme.labelSmall?.copyWith(
                                           color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                     )
@@ -2523,39 +2584,31 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                     children: [
                       Text(
                         palette.nameEn,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF111827),
+                        maxLines: 2,
+                        style: textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primaryText,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         palette.nameKh,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        maxLines: 2,
+                        style: textTheme.bodySmall?.copyWith(
                           fontFamily: AppTheme.khmerPrimaryFont,
                           fontFamilyFallback: AppTheme.khmerFontFallbacks,
-                          fontSize: 10.5,
-                          height: 1.3,
-                          color: Colors.grey,
+                          height: 1.5,
+                          letterSpacing: 0,
+                          color: secondaryText,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         palette.descriptionEn,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark
-                              ? Colors.white54
-                              : const Color(0xFF6B7280),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: secondaryText,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -2573,15 +2626,14 @@ class _ThemeCenterScreenState extends State<ThemeCenterScreen> {
                             Icon(
                               Icons.check_circle_rounded,
                               size: 18,
-                              color: palette.primary,
+                              color: accentColor,
                             )
                           else if (isStaged)
                             Text(
                               'Staged',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: palette.primary,
+                              style: textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: accentColor,
                               ),
                             )
                           else

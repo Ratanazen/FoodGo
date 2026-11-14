@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:foodgo_flutter/core/utils/location_helper.dart';
 import 'package:foodgo_flutter/features/search/presentation/search_screen.dart';
 import 'package:foodgo_flutter/providers/cart_provider.dart';
 import 'package:foodgo_flutter/providers/favorites_provider.dart';
@@ -16,6 +17,18 @@ void main() {
   });
 
   group('SearchScreen Widget Tests', () {
+    test(
+      'LocationHelper popularLandmarks and searchLocations resolve Phnom Penh landmarks',
+      () async {
+        final popular = LocationHelper.popularLandmarks;
+        expect(popular, isNotEmpty);
+        expect(popular.any((l) => l.title.contains('BKK1')), isTrue);
+
+        // Single-char query uses instant offline landmark matching
+        final matches = await LocationHelper.searchLocations('B');
+        expect(matches.any((l) => l.title.contains('BKK1')), isTrue);
+      },
+    );
     testWidgets('Renders SearchScreen header, search bar, and tune button', (
       tester,
     ) async {

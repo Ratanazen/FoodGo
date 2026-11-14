@@ -343,6 +343,13 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
   }
 
   Widget _buildStepRow(int step, String instruction) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -350,16 +357,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           width: 22,
           height: 22,
           decoration: BoxDecoration(
-            color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+            color: accentGreen.withValues(alpha: 0.18),
             shape: BoxShape.circle,
-            border: Border.all(color: GlassTheme.primaryGreen, width: 1.5),
+            border: Border.all(color: accentGreen, width: 1.5),
           ),
           alignment: Alignment.center,
           child: Text(
             '$step',
-            style: const TextStyle(
-              color: GlassTheme.primaryGreen,
-              fontSize: 12,
+            style: textTheme.bodySmall?.copyWith(
+              color: accentGreen,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -368,10 +374,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         Expanded(
           child: Text(
             instruction,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 13,
-              height: 1.3,
+            style: textTheme.bodyMedium?.copyWith(
+              color: primaryText.withValues(alpha: 0.9),
+              height: 1.4,
             ),
           ),
         ),
@@ -384,17 +389,21 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
     String value, {
     bool isHighlight = false,
   }) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Flexible(
           child: Text(
             label,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 13,
-            ),
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
           ),
         ),
         const SizedBox(width: 8),
@@ -402,11 +411,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           child: Text(
             value,
             textAlign: TextAlign.end,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: isHighlight ? GlassTheme.primaryGreen : Colors.white,
+            style: textTheme.bodyMedium?.copyWith(
+              color: isHighlight ? accentGreen : primaryText,
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w600,
-              fontSize: 13,
             ),
           ),
         ),
@@ -424,6 +431,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
 
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     switch (status) {
@@ -435,8 +443,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         subtext = 'Generating secure KHQR code...';
         break;
       case 'PAID':
-        badgeColor = GlassTheme.primaryGreen;
-        badgeBg = GlassTheme.primaryGreen.withValues(alpha: 0.18);
+        badgeColor = isDark
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
+        badgeBg = badgeColor.withValues(alpha: 0.16);
         badgeIcon = AppIcons.checkCircle;
         badgeText = 'PAID · CONFIRMED';
         subtext = 'Payment confirmed! Server verified.';
@@ -463,8 +473,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         subtext = 'Payment session has expired.';
         break;
       case 'CANCELLED':
-        badgeColor = Colors.grey;
-        badgeBg = Colors.grey.withValues(alpha: 0.15);
+        badgeColor = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF4B5563);
+        badgeBg = badgeColor.withValues(alpha: 0.15);
         badgeIcon = AppIcons.close;
         badgeText = 'CANCELLED';
         subtext = 'This payment session was cancelled.';
@@ -496,11 +506,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
               Flexible(
                 child: Text(
                   badgeText,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: textTheme.bodySmall?.copyWith(
                     color: badgeColor,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -512,9 +520,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         Text(
           subtext,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: textTheme.bodySmall?.copyWith(
             color: secondaryText,
-            fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -530,8 +537,18 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
   ) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final providerTextColor = isDark
+        ? Colors.white
+        : HSLColor.fromColor(brandColor).withLightness(0.32).toColor();
+    final providerIconColor = brandColor == GlassTheme.bakongRed
+        ? (isDark ? Colors.redAccent : const Color(0xFFB91C1C))
+        : providerTextColor;
     final orderSummary = payment.orderSummary;
     final restaurant =
         payment.restaurantName ??
@@ -557,9 +574,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   payment.orderReference != null
                       ? 'Order #${payment.orderReference}'
                       : 'Order #${payment.orderId}',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
+                  style: textTheme.titleMedium?.copyWith(
                     color: primaryText,
                     fontWeight: FontWeight.w600,
                   ),
@@ -570,8 +585,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           const SizedBox(height: 4),
           Text(
             restaurant,
-            style: TextStyle(
-              fontSize: 13,
+            style: textTheme.bodyMedium?.copyWith(
               color: secondaryText,
               fontWeight: FontWeight.w500,
             ),
@@ -579,19 +593,19 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           const SizedBox(height: 10),
           Text(
             '${payment.currency} ${payment.amount.toStringAsFixed(2)}',
-            style: const TextStyle(
-              fontSize: 34,
+            style: textTheme.displayLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: GlassTheme.primaryGreen,
+              color: accentGreen,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             '≈ ${KhmerCurrency.formatKhr(payment.amount)} KHR (អត្រា ៤,១០០)',
-            style: TextStyle(
-              fontSize: 14,
+            style: textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: primaryText,
+              height: 1.5,
+              letterSpacing: 0,
             ),
           ),
           const SizedBox(height: 12),
@@ -605,22 +619,14 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  AppIcons.qrCode,
-                  size: 16,
-                  color: brandColor == GlassTheme.bakongRed
-                      ? (isDark ? Colors.redAccent : GlassTheme.bakongRed)
-                      : primaryText,
-                ),
+                Icon(AppIcons.qrCode, size: 16, color: providerIconColor),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
                     providerTitle,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : brandColor,
-                      fontSize: 13,
+                      color: providerTextColor,
                     ),
                   ),
                 ),
@@ -644,7 +650,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           ? Icons.keyboard_arrow_up
                           : Icons.keyboard_arrow_down,
                       size: 16,
-                      color: GlassTheme.primaryGreen,
+                      color: accentGreen,
                     ),
                     const SizedBox(width: 4),
                     Flexible(
@@ -652,10 +658,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         _showOrderDetails
                             ? 'Hide Order Items (${items.length})'
                             : 'View Order Items (${items.length})',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: GlassTheme.primaryGreen,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: accentGreen,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -669,9 +673,13 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.black26,
+                  color: isDark
+                      ? Colors.black26
+                      : Colors.black.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(
+                    color: isDark ? Colors.white10 : Colors.black12,
+                  ),
                 ),
                 child: Column(
                   children: items.map<Widget>((item) {
@@ -686,17 +694,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           Flexible(
                             child: Text(
                               '$itemName x$qty',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: secondaryText,
                               ),
                             ),
                           ),
                           Text(
                             '\$${(double.tryParse(price.toString()) ?? 0.0).toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -716,8 +722,13 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
   Widget _buildLiveTimeCard() {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
     final isLowTime = _secondsRemaining < 120;
     final progress = (_secondsRemaining / 900.0).clamp(0.0, 1.0);
 
@@ -725,13 +736,13 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isLowTime
-            ? Colors.redAccent.withValues(alpha: 0.12)
-            : GlassTheme.primaryGreen.withValues(alpha: 0.1),
+            ? dangerColor.withValues(alpha: 0.12)
+            : accentGreen.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isLowTime
-              ? Colors.redAccent.withValues(alpha: 0.45)
-              : GlassTheme.primaryGreen.withValues(alpha: 0.35),
+              ? dangerColor.withValues(alpha: 0.45)
+              : accentGreen.withValues(alpha: 0.35),
         ),
       ),
       child: Column(
@@ -747,17 +758,12 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                       width: 9,
                       height: 9,
                       decoration: BoxDecoration(
-                        color: isLowTime
-                            ? Colors.redAccent
-                            : GlassTheme.primaryGreen,
+                        color: isLowTime ? dangerColor : accentGreen,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color:
-                                (isLowTime
-                                        ? Colors.redAccent
-                                        : GlassTheme.primaryGreen)
-                                    .withValues(alpha: 0.6),
+                            color: (isLowTime ? dangerColor : accentGreen)
+                                .withValues(alpha: 0.6),
                             blurRadius: 6,
                             spreadRadius: 1,
                           ),
@@ -768,13 +774,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                     Flexible(
                       child: Text(
                         'LIVE TIME',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isLowTime
-                              ? Colors.redAccent
-                              : GlassTheme.primaryGreen,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isLowTime ? dangerColor : accentGreen,
                           fontWeight: FontWeight.w900,
-                          fontSize: 12,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -794,17 +796,12 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.sensors,
-                      size: 13,
-                      color: GlassTheme.primaryGreen,
-                    ),
+                    Icon(Icons.sensors, size: 13, color: accentGreen),
                     const SizedBox(width: 4),
                     Text(
                       'Live WebSocket',
-                      style: TextStyle(
+                      style: textTheme.labelSmall?.copyWith(
                         color: secondaryText,
-                        fontSize: 10,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -819,17 +816,21 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             children: [
               Icon(
                 Icons.timer_outlined,
-                color: isLowTime ? Colors.redAccent : primaryText,
+                color: isLowTime ? dangerColor : primaryText,
                 size: 26,
               ),
               const SizedBox(width: 8),
-              Text(
-                _formatTimer(_secondsRemaining),
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  color: isLowTime ? Colors.redAccent : primaryText,
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _formatTimer(_secondsRemaining),
+                    style: textTheme.displayLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                      color: isLowTime ? dangerColor : primaryText,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -844,7 +845,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                   ? Colors.white.withValues(alpha: 0.1)
                   : Colors.black.withValues(alpha: 0.08),
               valueColor: AlwaysStoppedAnimation<Color>(
-                isLowTime ? Colors.redAccent : GlassTheme.primaryGreen,
+                isLowTime ? dangerColor : accentGreen,
               ),
             ),
           ),
@@ -854,9 +855,8 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                 ? 'Session expiring soon. Please confirm in your mobile banking app.'
                 : 'Scanned payment is verified automatically in real time.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isLowTime ? Colors.redAccent : secondaryText,
-              fontSize: 11,
+            style: textTheme.labelSmall?.copyWith(
+              color: isLowTime ? dangerColor : secondaryText,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -917,6 +917,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
       },
     ];
 
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: GlassTheme.borderRadiusSmall,
@@ -924,30 +933,26 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(
-                Icons.account_balance_rounded,
-                size: 18,
-                color: GlassTheme.primaryGreen,
-              ),
-              SizedBox(width: 8),
+            children: [
+              Icon(Icons.account_balance_rounded, size: 18, color: accentGreen),
+              const SizedBox(width: 8),
               Flexible(
                 child: Text(
                   'Supported Banks & Apps (ធនាគារស្កេនបាន)',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white,
+                  style: textTheme.titleSmall?.copyWith(
+                    color: primaryText,
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    height: 1.5,
+                    letterSpacing: 0,
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Scan this KHQR with any Cambodian mobile banking app:',
-            style: TextStyle(color: Colors.white70, fontSize: 11),
+            style: textTheme.labelSmall?.copyWith(color: secondaryText),
           ),
           const SizedBox(height: 12),
           SingleChildScrollView(
@@ -955,6 +960,9 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             child: Row(
               children: banks.map((b) {
                 final Color bColor = b['color'] as Color;
+                final Color chipAccent = isDark
+                    ? HSLColor.fromColor(bColor).withLightness(0.68).toColor()
+                    : HSLColor.fromColor(bColor).withLightness(0.32).toColor();
                 return Container(
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(
@@ -962,14 +970,16 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: bColor.withValues(alpha: 0.15),
+                    color: chipAccent.withValues(alpha: isDark ? 0.16 : 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: bColor.withValues(alpha: 0.45)),
+                    border: Border.all(
+                      color: chipAccent.withValues(alpha: 0.45),
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(b['icon'] as IconData, size: 16, color: bColor),
+                      Icon(b['icon'] as IconData, size: 16, color: chipAccent),
                       const SizedBox(width: 6),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -977,17 +987,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                         children: [
                           Text(
                             b['name'] as String,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
                             b['sub'] as String,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 9,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: secondaryText,
                             ),
                           ),
                         ],
@@ -1004,6 +1012,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
   }
 
   Widget _buildSuccessCard(PaymentModel payment) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+
     final paidCard = GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: GlassTheme.borderRadiusSmall,
@@ -1013,51 +1030,50 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             width: 76,
             height: 76,
             decoration: BoxDecoration(
-              color: GlassTheme.primaryGreen.withValues(alpha: 0.18),
+              color: accentGreen.withValues(alpha: 0.18),
               shape: BoxShape.circle,
-              border: Border.all(color: GlassTheme.primaryGreen, width: 2.5),
+              border: Border.all(color: accentGreen, width: 2.5),
             ),
-            child: const Icon(
-              AppIcons.checkCircle,
-              size: 50,
-              color: GlassTheme.primaryGreen,
-            ),
+            child: Icon(AppIcons.checkCircle, size: 50, color: accentGreen),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Payment Confirmed!',
-            style: TextStyle(
-              fontSize: 22,
+            style: textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: primaryText,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'ការទូទាត់ទទួលបានជោគជ័យ!',
-            style: TextStyle(
-              fontSize: 14,
+            style: textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: GlassTheme.primaryGreen,
+              color: accentGreen,
+              height: 1.5,
+              letterSpacing: 0,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             'Your payment has been successfully confirmed. Order has been sent to the kitchen.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.white.withValues(alpha: 0.8),
-              height: 1.3,
+            style: textTheme.bodyMedium?.copyWith(
+              color: secondaryText,
+              height: 1.4,
             ),
           ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.black38,
+              color: isDark
+                  ? Colors.black38
+                  : Colors.black.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white12),
+              border: Border.all(
+                color: isDark ? Colors.white12 : Colors.black12,
+              ),
             ),
             child: Column(
               children: [
@@ -1067,26 +1083,38 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                       ? '#${payment.orderReference}'
                       : '#${payment.orderId}',
                 ),
-                const Divider(color: Colors.white12, height: 16),
+                Divider(
+                  color: isDark ? Colors.white12 : Colors.black12,
+                  height: 16,
+                ),
                 _buildReceiptRow(
                   'Transaction ID',
                   payment.transactionId ??
                       payment.merchantReference ??
                       'CONFIRMED',
                 ),
-                const Divider(color: Colors.white12, height: 16),
+                Divider(
+                  color: isDark ? Colors.white12 : Colors.black12,
+                  height: 16,
+                ),
                 _buildReceiptRow(
                   'Amount Paid',
                   '${payment.currency} ${payment.amount.toStringAsFixed(2)}',
                   isHighlight: true,
                 ),
-                const Divider(color: Colors.white12, height: 16),
+                Divider(
+                  color: isDark ? Colors.white12 : Colors.black12,
+                  height: 16,
+                ),
                 _buildReceiptRow(
                   'Payment Rail',
                   '${payment.provider.toUpperCase()} KHQR',
                 ),
                 if (payment.paidAt != null) ...[
-                  const Divider(color: Colors.white12, height: 16),
+                  Divider(
+                    color: isDark ? Colors.white12 : Colors.black12,
+                    height: 16,
+                  ),
                   _buildReceiptRow(
                     'Paid Timestamp',
                     _formatTimestamp(payment.paidAt!),
@@ -1110,15 +1138,13 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             width: double.infinity,
             height: 44,
             child: OutlinedButton.icon(
-              icon: const Icon(
-                Icons.copy_rounded,
-                size: 17,
-                color: GlassTheme.primaryGreen,
-              ),
+              icon: Icon(Icons.copy_rounded, size: 17, color: accentGreen),
               label: const Text('Copy Payment Receipt TXT'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white24),
+                foregroundColor: primaryText,
+                side: BorderSide(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -1155,8 +1181,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
               icon: const Icon(AppIcons.receipt, size: 18),
               label: const Text('View All Orders'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white24),
+                foregroundColor: primaryText,
+                side: BorderSide(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -1166,10 +1194,10 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
           ),
           const SizedBox(height: 6),
           TextButton.icon(
-            icon: const Icon(AppIcons.home, size: 18, color: Colors.white70),
-            label: const Text(
+            icon: Icon(AppIcons.home, size: 18, color: secondaryText),
+            label: Text(
               'Return to Home',
-              style: TextStyle(color: Colors.white70),
+              style: textTheme.labelLarge?.copyWith(color: secondaryText),
             ),
             onPressed: () => context.go('/home'),
           ),
@@ -1193,13 +1221,22 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
+    final warningAmber = isDark ? Colors.orangeAccent : const Color(0xFFB45309);
+
     if (_isLoadingInitial) {
       return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(title: context.tr('payment.qrTitle')),
-        body: const Center(
-          child: CircularProgressIndicator(color: GlassTheme.primaryGreen),
-        ),
+        body: Center(child: CircularProgressIndicator(color: accentGreen)),
       );
     }
 
@@ -1214,16 +1251,12 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.error_outline_rounded,
-                  size: 64,
-                  color: Colors.redAccent,
-                ),
+                Icon(Icons.error_outline_rounded, size: 64, color: dangerColor),
                 const SizedBox(height: 16),
                 Text(
                   _initialError ?? 'Payment session not found.',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: textTheme.titleMedium?.copyWith(color: primaryText),
                 ),
                 const SizedBox(height: 24),
                 GlassButton(
@@ -1299,7 +1332,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
         appBar: GlassAppBar(
           title: context.tr('payment.qrTitle'),
           leading: IconButton(
-            icon: const Icon(AppIcons.back, color: Colors.white),
+            icon: Icon(AppIcons.back, color: primaryText),
             onPressed: isSessionPaid
                 ? () {
                     if (context.canPop()) {
@@ -1362,27 +1395,25 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                           child: Column(
                             children: [
                               if (isSessionFailed) ...[
-                                const Icon(
+                                Icon(
                                   AppIcons.error,
                                   size: 72,
-                                  color: Colors.redAccent,
+                                  color: dangerColor,
                                 ),
                                 const SizedBox(height: 14),
-                                const Text(
+                                Text(
                                   'Payment Failed',
-                                  style: TextStyle(
-                                    fontSize: 20,
+                                  style: textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.redAccent,
+                                    color: dangerColor,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'The transaction could not be completed. Please check your bank balance or retry.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: GlassTheme.textMuted,
-                                    fontSize: 13,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: secondaryText,
                                   ),
                                 ),
                                 const SizedBox(height: 20),
@@ -1399,33 +1430,29 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                       : context.go('/orders'),
                                   child: Text(
                                     'Back to Checkout',
-                                    style: TextStyle(
-                                      color: GlassTheme.textMuted,
-                                    ),
+                                    style: TextStyle(color: secondaryText),
                                   ),
                                 ),
                               ] else if (isSessionCancelled) ...[
-                                const Icon(
+                                Icon(
                                   AppIcons.close,
                                   size: 72,
-                                  color: Colors.orangeAccent,
+                                  color: warningAmber,
                                 ),
                                 const SizedBox(height: 14),
-                                const Text(
+                                Text(
                                   'Payment Cancelled',
-                                  style: TextStyle(
-                                    fontSize: 20,
+                                  style: textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.orangeAccent,
+                                    color: warningAmber,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'This payment session has been cancelled.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: GlassTheme.textMuted,
-                                    fontSize: 13,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: secondaryText,
                                   ),
                                 ),
                                 const SizedBox(height: 20),
@@ -1435,27 +1462,25 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                   onPressed: () => context.go('/orders'),
                                 ),
                               ] else if (isSessionExpired) ...[
-                                const Icon(
+                                Icon(
                                   AppIcons.loading,
                                   size: 72,
-                                  color: Colors.redAccent,
+                                  color: dangerColor,
                                 ),
                                 const SizedBox(height: 14),
-                                const Text(
+                                Text(
                                   'Payment QR Expired',
-                                  style: TextStyle(
-                                    fontSize: 20,
+                                  style: textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.redAccent,
+                                    color: dangerColor,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'This payment code has expired. Generate a new code to complete your order.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: GlassTheme.textMuted,
-                                    fontSize: 13,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: secondaryText,
                                   ),
                                 ),
                                 const SizedBox(height: 20),
@@ -1472,9 +1497,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                       : context.go('/orders'),
                                   child: Text(
                                     'Back to Checkout',
-                                    style: TextStyle(
-                                      color: GlassTheme.textMuted,
-                                    ),
+                                    style: TextStyle(color: secondaryText),
                                   ),
                                 ),
                               ] else if (!hasValidQr) ...[
@@ -1482,41 +1505,35 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    color: Colors.redAccent.withValues(
-                                      alpha: 0.1,
-                                    ),
+                                    color: dangerColor.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: Colors.redAccent.withValues(
+                                      color: dangerColor.withValues(
                                         alpha: 0.35,
                                       ),
                                     ),
                                   ),
                                   child: Column(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.qr_code_2_rounded,
                                         size: 64,
-                                        color: Colors.redAccent,
+                                        color: dangerColor,
                                       ),
                                       const SizedBox(height: 12),
-                                      const Text(
+                                      Text(
                                         'KHQR Code Unavailable',
-                                        style: TextStyle(
-                                          fontSize: 18,
+                                        style: textTheme.titleLarge?.copyWith(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                          color: primaryText,
                                         ),
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
                                         'The payment gateway did not return a valid payable KHQR payload for this order. Please retry generating a code or choose a different payment option.',
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.75,
-                                          ),
-                                          fontSize: 12,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: secondaryText,
                                         ),
                                       ),
                                       const SizedBox(height: 18),
@@ -1542,13 +1559,12 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                       top: Radius.circular(16),
                                     ),
                                   ),
-                                  child: const Center(
+                                  child: Center(
                                     child: Text(
                                       'KHQR · SCAN TO PAY',
-                                      style: TextStyle(
+                                      style: textTheme.bodySmall?.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w900,
-                                        fontSize: 13,
                                         letterSpacing: 2,
                                       ),
                                     ),
@@ -1593,18 +1609,16 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                       const SizedBox(height: 8),
                                       Text(
                                         '${payment.currency} ${payment.amount.toStringAsFixed(2)} • ${KhmerCurrency.formatKhr(payment.amount)}',
-                                        style: const TextStyle(
+                                        style: textTheme.titleMedium?.copyWith(
                                           color: GlassTheme.textDark,
                                           fontWeight: FontWeight.w900,
-                                          fontSize: 15,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
                                         '${payment.restaurantName ?? 'FoodGo Restaurant'} · Phnom Penh',
-                                        style: const TextStyle(
-                                          color: Colors.black54,
-                                          fontSize: 11,
+                                        style: textTheme.labelSmall?.copyWith(
+                                          color: const Color(0xFF4B5563),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -1620,11 +1634,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                 // Copy KHQR Payload Button
                                 OutlinedButton.icon(
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.white,
+                                    foregroundColor: primaryText,
                                     side: BorderSide(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.25,
-                                      ),
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.25)
+                                          : Colors.black26,
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -1634,14 +1648,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                       vertical: 10,
                                     ),
                                   ),
-                                  icon: const Icon(
+                                  icon: Icon(
                                     AppIcons.copy,
                                     size: 16,
-                                    color: GlassTheme.primaryGreen,
+                                    color: accentGreen,
                                   ),
-                                  label: const Text(
+                                  label: Text(
                                     'Copy KHQR Payload',
-                                    style: TextStyle(
+                                    style: textTheme.labelLarge?.copyWith(
+                                      color: primaryText,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -1685,7 +1700,7 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                               ? Icons.keyboard_arrow_up
                                               : Icons.keyboard_arrow_down,
                                           size: 18,
-                                          color: GlassTheme.textMuted,
+                                          color: secondaryText,
                                         ),
                                         const SizedBox(width: 4),
                                         Flexible(
@@ -1693,12 +1708,11 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                             _showRawPayload
                                                 ? 'Hide QR Payload Details'
                                                 : 'Show All QR Payload Details',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: GlassTheme.textMuted,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: secondaryText,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                           ),
                                         ),
                                       ],
@@ -1719,25 +1733,31 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                         width: double.infinity,
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: Colors.black45,
+                                          color: isDark
+                                              ? Colors.black45
+                                              : Colors.black.withValues(
+                                                  alpha: 0.04,
+                                                ),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
                                           border: Border.all(
-                                            color: Colors.white12,
+                                            color: isDark
+                                                ? Colors.white12
+                                                : Colors.black12,
                                           ),
                                         ),
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            const Text(
+                                            Text(
                                               'Structured EMVCo KHQR Summary:',
-                                              style: TextStyle(
-                                                color: GlassTheme.primaryGreen,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: accentGreen,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                             const SizedBox(height: 6),
                                             ...parsedTlv.entries.map(
@@ -1755,11 +1775,12 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                                       flex: 2,
                                                       child: Text(
                                                         entry.key,
-                                                        style: TextStyle(
-                                                          color: GlassTheme
-                                                              .textMuted,
-                                                          fontSize: 11,
-                                                        ),
+                                                        style: textTheme
+                                                            .labelSmall
+                                                            ?.copyWith(
+                                                              color:
+                                                                  secondaryText,
+                                                            ),
                                                       ),
                                                     ),
                                                     const SizedBox(width: 8),
@@ -1769,20 +1790,25 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                                         entry.value,
                                                         textAlign:
                                                             TextAlign.right,
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 11,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
+                                                        style: textTheme
+                                                            .labelSmall
+                                                            ?.copyWith(
+                                                              color:
+                                                                  primaryText,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                               ),
                                             ),
-                                            const Divider(
-                                              color: Colors.white12,
+                                            Divider(
+                                              color: isDark
+                                                  ? Colors.white12
+                                                  : Colors.black12,
                                               height: 16,
                                             ),
                                             Row(
@@ -1790,48 +1816,48 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                                   MainAxisAlignment
                                                       .spaceBetween,
                                               children: [
-                                                const Flexible(
+                                                Flexible(
                                                   child: Text(
                                                     'EMVCo KHQR Payload:',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      color: Colors.white70,
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
+                                                    style: textTheme.bodySmall
+                                                        ?.copyWith(
+                                                          color: primaryText
+                                                              .withValues(
+                                                                alpha: 0.85,
+                                                              ),
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
                                                   ),
                                                 ),
                                                 const SizedBox(width: 8),
                                                 Text(
                                                   '${qrString.length} chars',
-                                                  style: TextStyle(
-                                                    color: GlassTheme.textMuted,
-                                                    fontSize: 11,
-                                                  ),
+                                                  style: textTheme.labelSmall
+                                                      ?.copyWith(
+                                                        color: secondaryText,
+                                                      ),
                                                 ),
                                               ],
                                             ),
                                             const SizedBox(height: 6),
                                             SelectableText(
                                               qrString,
-                                              style: const TextStyle(
-                                                fontFamily: 'monospace',
-                                                fontSize: 11,
-                                                color: GlassTheme
-                                                    .primaryGreenAccent,
-                                              ),
+                                              style: textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    fontFamily: 'monospace',
+                                                    color: accentGreen,
+                                                  ),
                                             ),
                                             if (payment.merchantReference !=
                                                 null) ...[
                                               const SizedBox(height: 6),
                                               Text(
                                                 'Merchant Ref: ${payment.merchantReference}',
-                                                style: TextStyle(
-                                                  color: GlassTheme.textMuted,
-                                                  fontSize: 11,
-                                                ),
+                                                style: textTheme.labelSmall
+                                                    ?.copyWith(
+                                                      color: secondaryText,
+                                                    ),
                                               ),
                                             ],
                                           ],
@@ -1864,19 +1890,18 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  children: const [
+                                  children: [
                                     Icon(
                                       AppIcons.info,
                                       size: 18,
-                                      color: GlassTheme.primaryGreen,
+                                      color: accentGreen,
                                     ),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 8),
                                     Text(
                                       'How to pay with KHQR',
-                                      style: TextStyle(
-                                        color: Colors.white,
+                                      style: textTheme.titleSmall?.copyWith(
+                                        color: primaryText,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 14,
                                       ),
                                     ),
                                   ],
@@ -1920,15 +1945,15 @@ class _QRPaymentScreenState extends State<QRPaymentScreen> {
                                   : () => _checkStatus(isBackground: false),
                             ),
                           ),
-                          const SizedBox(height: 12),
-
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 22),
 
                           TextButton(
                             onPressed: _cancelPayment,
                             child: Text(
                               'Cancel Payment',
-                              style: TextStyle(color: GlassTheme.textMuted),
+                              style: textTheme.labelLarge?.copyWith(
+                                color: secondaryText,
+                              ),
                             ),
                           ),
                         ],

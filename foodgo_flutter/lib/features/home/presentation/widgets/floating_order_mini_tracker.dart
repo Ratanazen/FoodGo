@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_icons.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../widgets/glass/animated_pressable.dart';
 
@@ -106,12 +107,32 @@ class _FloatingOrderMiniTrackerState extends State<FloatingOrderMiniTracker> {
     }
   }
 
+  Color _statusTextColor(bool isDark) {
+    if (isDark) return _statusColor;
+    switch (widget.status) {
+      case MiniTrackerDeliveryStatus.confirmed:
+        return const Color(0xFF1D4ED8);
+      case MiniTrackerDeliveryStatus.preparing:
+        return const Color(0xFFB45309);
+      case MiniTrackerDeliveryStatus.onTheWay:
+      case MiniTrackerDeliveryStatus.arrived:
+        return const Color(0xFF15803D);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isDismissed) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primary = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final statusTextColor = _statusTextColor(isDark);
+    final primary = theme.colorScheme.primary;
+    final actionColor = isDark ? primary : const Color(0xFF15803D);
 
     return Dismissible(
       key: ValueKey('order_mini_tracker_${widget.orderId}'),
@@ -241,14 +262,10 @@ class _FloatingOrderMiniTrackerState extends State<FloatingOrderMiniTracker> {
                                   Flexible(
                                     child: Text(
                                       _statusTitle,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF0F172A),
+                                      maxLines: 2,
+                                      style: textTheme.labelLarge?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: primaryText,
                                       ),
                                     ),
                                   ),
@@ -266,10 +283,9 @@ class _FloatingOrderMiniTrackerState extends State<FloatingOrderMiniTracker> {
                                     ),
                                     child: Text(
                                       '#${widget.orderId}',
-                                      style: TextStyle(
-                                        fontSize: 10,
+                                      style: textTheme.labelSmall?.copyWith(
                                         fontWeight: FontWeight.w800,
-                                        color: _statusColor,
+                                        color: statusTextColor,
                                       ),
                                     ),
                                   ),
@@ -281,24 +297,19 @@ class _FloatingOrderMiniTrackerState extends State<FloatingOrderMiniTracker> {
                                   Flexible(
                                     child: Text(
                                       widget.restaurantName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDark
-                                            ? GlassTheme.textMuted
-                                            : const Color(0xFF64748B),
+                                      maxLines: 2,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: secondaryText,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
                                   Text(
                                     ' • \$${widget.totalAmount.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 12,
+                                    style: textTheme.bodySmall?.copyWith(
                                       color: isDark
                                           ? Colors.white70
-                                          : const Color(0xFF475569),
+                                          : primaryText,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -333,15 +344,14 @@ class _FloatingOrderMiniTrackerState extends State<FloatingOrderMiniTracker> {
                                   Icon(
                                     AppIcons.eta,
                                     size: 11,
-                                    color: _statusColor,
+                                    color: statusTextColor,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${widget.etaMinutes} min',
-                                    style: TextStyle(
-                                      fontSize: 11,
+                                    style: textTheme.labelSmall?.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      color: _statusColor,
+                                      color: statusTextColor,
                                     ),
                                   ),
                                 ],
@@ -353,17 +363,16 @@ class _FloatingOrderMiniTrackerState extends State<FloatingOrderMiniTracker> {
                               children: [
                                 Text(
                                   'Live Map',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: primary,
+                                  style: textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: actionColor,
                                   ),
                                 ),
                                 const SizedBox(width: 2),
                                 Icon(
                                   Icons.chevron_right_rounded,
                                   size: 16,
-                                  color: primary,
+                                  color: actionColor,
                                 ),
                               ],
                             ),

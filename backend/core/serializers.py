@@ -165,10 +165,17 @@ class DriverSerializer(serializers.ModelSerializer):
             data.pop('license_plate', None)
             data.pop('total_earnings', None)
             data.pop('today_earnings', None)
-            # Coordinates are only visible to staff, the driver themselves, or customers with an active in-transit delivery
+            # Coordinates are only visible to staff, the driver themselves, or customers with an active delivery
             is_active_customer = bool(
                 request and request.user and request.user.is_authenticated and
-                instance.deliveries.filter(order__customer=request.user, status__in=('assigned', 'picked_up', 'in_transit')).exists()
+                instance.deliveries.filter(
+                    order__customer=request.user,
+                    status__in=(
+                        'assigned', 'accepted', 'arrived_at_restaurant',
+                        'preparing', 'ready_for_pickup', 'picked_up',
+                        'on_the_way', 'out_for_delivery', 'in_transit', 'arrived',
+                    ),
+                ).exists()
             )
             if not is_active_customer:
                 data.pop('current_lat', None)
@@ -272,6 +279,11 @@ class OrderSerializer(serializers.ModelSerializer):
         delivery = getattr(obj, 'delivery', None)
         if delivery and delivery.driver:
             driver = delivery.driver
+            picked_up_statuses = ('picked_up', 'on_the_way', 'out_for_delivery', 'arrived', 'delivered')
+            is_picked_up = (
+                obj.status in ('picked_up', 'on_the_way', 'out_for_delivery', 'on_delivery', 'driver_arrived', 'arrived', 'delivered')
+                or delivery.status in picked_up_statuses
+            )
             return {
                 'id': driver.id,
                 'name': driver.user.get_full_name() or driver.user.username,
@@ -280,6 +292,8 @@ class OrderSerializer(serializers.ModelSerializer):
                 'license_plate': driver.license_plate,
                 'is_online': driver.is_online,
                 'status': delivery.status,
+                'is_picked_up': is_picked_up,
+                'last_location_update': driver.last_location_update.isoformat() if driver.last_location_update else None,
                 'current_lat': float(driver.current_lat) if driver.current_lat else None,
                 'current_lng': float(driver.current_lng) if driver.current_lng else None,
             }

@@ -138,9 +138,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 Text(
                   'Voucher "$code" has been copied to your clipboard. Apply it during checkout to save big!',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: isDark ? Colors.white70 : const Color(0xFF64748B),
-                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -161,21 +160,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.discount_outlined,
-                        color: GlassTheme.royalSmalt,
+                        color: isDark
+                            ? GlassTheme.paleSmalt
+                            : GlassTheme.royalSmalt,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        code,
-                        style: TextStyle(
-                          color: isDark
-                              ? GlassTheme.limeAccentBright
-                              : GlassTheme.royalSmalt,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
-                          letterSpacing: 1.2,
+                      Flexible(
+                        child: Text(
+                          code,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: isDark
+                                    ? GlassTheme.limeAccentBright
+                                    : GlassTheme.royalSmalt,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                              ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -276,9 +279,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 Text(
                   notif.message,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: isDark ? Colors.white70 : const Color(0xFF64748B),
-                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -299,14 +301,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        restName,
-                        style: TextStyle(
-                          color: isDark ? Colors.white : GlassTheme.textDark,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                      Expanded(
+                        child: Text(
+                          restName,
+                          maxLines: 2,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? Colors.white
+                                    : GlassTheme.textDark,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -318,11 +326,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         child: Text(
                           statusStr.toUpperCase(),
-                          style: const TextStyle(
-                            color: GlassTheme.royalSmalt,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? GlassTheme.paleSmalt
+                                    : GlassTheme.royalSmalt,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
                     ],
@@ -349,9 +359,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_outlined,
-                          color: GlassTheme.primaryGreen,
+                          color: isDark
+                              ? GlassTheme.primaryGreenAccent
+                              : const Color(0xFF15803D),
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -359,14 +371,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           child: Text(
                             notif.deliveryAddress ?? notif.locationName!,
                             maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.white
-                                  : GlassTheme.textDark,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: isDark
+                                      ? Colors.white
+                                      : GlassTheme.textDark,
+                                  fontWeight: FontWeight.w500,
+                                ),
                           ),
                         ),
                       ],
@@ -483,388 +494,433 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       color: GlassTheme.royalSmalt,
                     ),
                   )
-                : Column(
-                    children: [
-                      // Segmented Filter Bar
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                        child: Row(
-                          children: [
-                            _buildFilterChip(
-                              label: 'All',
-                              count: allItems.length,
-                              isSelected: _activeFilter == 'All',
-                              onTap: () =>
-                                  setState(() => _activeFilter = 'All'),
-                              isDark: isDark,
-                            ),
-                            const SizedBox(width: 8),
-                            _buildFilterChip(
-                              label: 'Orders',
-                              count: notifProvider.orderNotifications.length,
-                              isSelected: _activeFilter == 'Orders',
-                              onTap: () =>
-                                  setState(() => _activeFilter = 'Orders'),
-                              isDark: isDark,
-                            ),
-                            const SizedBox(width: 8),
-                            _buildFilterChip(
-                              label: 'Promos',
-                              count: notifProvider.promoNotifications.length,
-                              isSelected: _activeFilter == 'Promos',
-                              onTap: () =>
-                                  setState(() => _activeFilter = 'Promos'),
-                              isDark: isDark,
-                            ),
-                          ],
-                        ),
-                      ),
+                : Builder(
+                    builder: (bodyCtx) {
+                      final theme = Theme.of(bodyCtx);
+                      final textTheme = theme.textTheme;
+                      final brightness = theme.brightness;
+                      final primaryText = AppTypography.primaryTextColor(
+                        brightness,
+                      );
+                      final secondaryText = AppTypography.secondaryTextColor(
+                        brightness,
+                      );
+                      final greenAccent = isDark
+                          ? GlassTheme.primaryGreenAccent
+                          : const Color(0xFF15803D);
+                      final smaltAccent = isDark
+                          ? const Color(0xFF60A5FA)
+                          : GlassTheme.royalSmalt;
 
-                      // Unread banner
-                      if (unread > 0)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                          child: GlassContainer(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            borderRadius: GlassTheme.borderRadiusSmall,
-                            customColor: GlassTheme.royalSmalt.withValues(
-                              alpha: isDark ? 0.12 : 0.08,
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.circle_notifications,
-                                  color: GlassTheme.royalSmalt,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  '$unread unread notification${unread > 1 ? 's' : ''}',
-                                  style: const TextStyle(
-                                    color: GlassTheme.royalSmalt,
-                                    fontWeight: FontWeight.w600,
+                      return Column(
+                        children: [
+                          // Segmented Filter Bar
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  _buildFilterChip(
+                                    label: 'All',
+                                    count: allItems.length,
+                                    isSelected: _activeFilter == 'All',
+                                    onTap: () =>
+                                        setState(() => _activeFilter = 'All'),
+                                    isDark: isDark,
                                   ),
-                                ),
-                                const Spacer(),
-                                TextButton(
-                                  onPressed: () {
-                                    notifProvider.markAllAsRead();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.done_all,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              'All notifications marked as read',
-                                            ),
-                                          ],
-                                        ),
-                                        backgroundColor: GlassTheme.royalSmalt,
-                                        behavior: SnackBarBehavior.floating,
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                    'Mark all read',
-                                    style: TextStyle(
-                                      color: GlassTheme.royalSmalt,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                                  const SizedBox(width: 8),
+                                  _buildFilterChip(
+                                    label: 'Orders',
+                                    count:
+                                        notifProvider.orderNotifications.length,
+                                    isSelected: _activeFilter == 'Orders',
+                                    onTap: () => setState(
+                                      () => _activeFilter = 'Orders',
                                     ),
+                                    isDark: isDark,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  _buildFilterChip(
+                                    label: 'Promos',
+                                    count:
+                                        notifProvider.promoNotifications.length,
+                                    isSelected: _activeFilter == 'Promos',
+                                    onTap: () => setState(
+                                      () => _activeFilter = 'Promos',
+                                    ),
+                                    isDark: isDark,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
 
-                      // Notifications list or empty state
-                      Expanded(
-                        child: displayedItems.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                          // Unread banner
+                          if (unread > 0)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                              child: GlassContainer(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                borderRadius: GlassTheme.borderRadiusSmall,
+                                customColor: smaltAccent.withValues(
+                                  alpha: isDark ? 0.12 : 0.08,
+                                ),
+                                child: Row(
                                   children: [
                                     Icon(
-                                      Icons.notifications_off_outlined,
-                                      size: 72,
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.3)
-                                          : const Color(0xFF94A3B8),
+                                      Icons.circle_notifications,
+                                      color: smaltAccent,
                                     ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      _activeFilter == 'All'
-                                          ? 'No notifications yet'
-                                          : 'No ${_activeFilter.toLowerCase()} notifications',
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : GlassTheme.textDark,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        '$unread unread notification${unread > 1 ? 's' : ''}',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: smaltAccent,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "You're completely caught up!",
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white54
-                                            : const Color(0xFF64748B),
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : RefreshIndicator(
-                                onRefresh: () =>
-                                    notifProvider.fetchNotifications(),
-                                color: GlassTheme.royalSmalt,
-                                backgroundColor: isDark
-                                    ? GlassTheme.dialogDark
-                                    : Colors.white,
-                                child: ListView.builder(
-                                  padding: const EdgeInsets.all(16),
-                                  itemCount: displayedItems.length,
-                                  itemBuilder: (context, index) {
-                                    final n = displayedItems[index];
-                                    return Dismissible(
-                                      key: Key('notif_${n.id}'),
-                                      direction: DismissDirection.endToStart,
-                                      background: Container(
-                                        alignment: Alignment.centerRight,
-                                        padding: const EdgeInsets.only(
-                                          right: 20,
-                                        ),
-                                        margin: const EdgeInsets.only(
-                                          bottom: 12,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.redAccent.withValues(
-                                            alpha: 0.8,
-                                          ),
-                                          borderRadius:
-                                              GlassTheme.borderRadiusSmall,
-                                        ),
-                                        child: const Icon(
-                                          Icons.delete,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      onDismissed: (_) {
-                                        notifProvider.dismiss(n.id);
+                                    TextButton(
+                                      onPressed: () {
+                                        notifProvider.markAllAsRead();
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
                                           SnackBar(
-                                            content: Text(
-                                              'Dismissed: "${n.title}"',
-                                            ),
-                                            duration: const Duration(
-                                              seconds: 2,
-                                            ),
-                                            behavior: SnackBarBehavior.floating,
-                                          ),
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 12,
-                                        ),
-                                        child: AnimatedPressable(
-                                          onTap: () =>
-                                              _handleNotificationTap(n),
-                                          pressedScale: 0.98,
-                                          child: GlassContainer(
-                                            borderRadius:
-                                                GlassTheme.borderRadiusSmall,
-                                            padding: const EdgeInsets.all(16),
-                                            customColor: n.isRead
-                                                ? (isDark ? null : Colors.white)
-                                                : (isDark
-                                                      ? n.color.withValues(
-                                                          alpha: 0.08,
-                                                        )
-                                                      : Colors.white),
-                                            customBorder: Border.all(
-                                              color: isDark
-                                                  ? (n.isRead
-                                                        ? Colors.white12
-                                                        : n.color.withValues(
-                                                            alpha: 0.25,
-                                                          ))
-                                                  : const Color(0xFFE2E8F0),
-                                              width: 1.2,
-                                            ),
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                            content: Row(
                                               children: [
-                                                Container(
-                                                  width: 44,
-                                                  height: 44,
-                                                  decoration: BoxDecoration(
-                                                    color: n.color.withValues(
-                                                      alpha: 0.15,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  child: Icon(
-                                                    n.icon,
-                                                    color: n.color,
-                                                    size: 22,
-                                                  ),
+                                                const Icon(
+                                                  Icons.done_all,
+                                                  color: Colors.white,
+                                                  size: 20,
                                                 ),
-                                                const SizedBox(width: 12),
+                                                const SizedBox(width: 8),
                                                 Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Row(
-                                                        children: [
-                                                          Expanded(
-                                                            child: Text(
-                                                              n.title,
-                                                              style: TextStyle(
-                                                                fontWeight:
-                                                                    n.isRead
-                                                                    ? FontWeight
-                                                                          .w500
-                                                                    : FontWeight
-                                                                          .w700,
-                                                                fontSize: 14,
-                                                                color: isDark
-                                                                    ? Colors
-                                                                          .white
-                                                                    : GlassTheme
-                                                                          .textDark,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          if (!n.isRead)
-                                                            Container(
-                                                              width: 8,
-                                                              height: 8,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                    color:
-                                                                        n.color,
-                                                                    shape: BoxShape
-                                                                        .circle,
-                                                                  ),
-                                                            ),
-                                                        ],
-                                                      ),
-                                                      const SizedBox(height: 4),
-                                                      Text(
-                                                        n.message,
-                                                        style: TextStyle(
-                                                          color: isDark
-                                                              ? Colors.white70
-                                                              : const Color(
-                                                                  0xFF64748B,
-                                                                ),
-                                                          fontSize: 13,
-                                                          height: 1.4,
+                                                  child: Text(
+                                                    'All notifications marked as read',
+                                                    style: textTheme.bodyMedium
+                                                        ?.copyWith(
+                                                          color: Colors.white,
                                                         ),
-                                                      ),
-                                                      if (n.locationName !=
-                                                              null ||
-                                                          n.deliveryAddress !=
-                                                              null) ...[
-                                                        const SizedBox(
-                                                          height: 4,
-                                                        ),
-                                                        Row(
-                                                          children: [
-                                                            const Icon(
-                                                              Icons
-                                                                  .location_on_outlined,
-                                                              size: 13,
-                                                              color: GlassTheme
-                                                                  .primaryGreen,
-                                                            ),
-                                                            const SizedBox(
-                                                              width: 4,
-                                                            ),
-                                                            Expanded(
-                                                              child: Text(
-                                                                n.deliveryAddress ??
-                                                                    n.locationName!,
-                                                                maxLines: 1,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                style: const TextStyle(
-                                                                  color: GlassTheme
-                                                                      .primaryGreen,
-                                                                  fontSize: 11,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                      const SizedBox(height: 6),
-                                                      Row(
-                                                        children: [
-                                                          Text(
-                                                            n.timeAgo,
-                                                            style: TextStyle(
-                                                              color: isDark
-                                                                  ? Colors
-                                                                        .white38
-                                                                  : const Color(
-                                                                      0xFF94A3B8,
-                                                                    ),
-                                                              fontSize: 11,
-                                                            ),
-                                                          ),
-                                                          const Spacer(),
-                                                          Text(
-                                                            'Tap to view',
-                                                            style: TextStyle(
-                                                              color: n.color,
-                                                              fontSize: 11,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
                                                   ),
                                                 ),
                                               ],
                                             ),
+                                            backgroundColor:
+                                                GlassTheme.royalSmalt,
+                                            behavior: SnackBarBehavior.floating,
+                                            duration: const Duration(
+                                              seconds: 2,
+                                            ),
                                           ),
+                                        );
+                                      },
+                                      child: Text(
+                                        'Mark all read',
+                                        style: textTheme.labelLarge?.copyWith(
+                                          color: smaltAccent,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ).animate().fade(delay: (30 * index).ms).slideY(begin: 0.06);
-                                  },
+                                    ),
+                                  ],
                                 ),
                               ),
-                      ),
-                    ],
+                            ),
+
+                          // Notifications list or empty state
+                          Expanded(
+                            child: displayedItems.isEmpty
+                                ? Center(
+                                    child: SingleChildScrollView(
+                                      padding: const EdgeInsets.all(24),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.notifications_off_outlined,
+                                            size: 72,
+                                            color: secondaryText,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            _activeFilter == 'All'
+                                                ? 'No notifications yet'
+                                                : 'No ${_activeFilter.toLowerCase()} notifications',
+                                            textAlign: TextAlign.center,
+                                            style: textTheme.titleLarge
+                                                ?.copyWith(
+                                                  color: primaryText,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            "You're completely caught up!",
+                                            textAlign: TextAlign.center,
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: secondaryText,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : RefreshIndicator(
+                                    onRefresh: () =>
+                                        notifProvider.fetchNotifications(),
+                                    color: smaltAccent,
+                                    backgroundColor: isDark
+                                        ? GlassTheme.dialogDark
+                                        : Colors.white,
+                                    child: ListView.builder(
+                                      padding: const EdgeInsets.all(16),
+                                      itemCount: displayedItems.length,
+                                      itemBuilder: (context, index) {
+                                        final n = displayedItems[index];
+                                        final badgeColor = isDark
+                                            ? n.color
+                                            : HSLColor.fromColor(
+                                                n.color,
+                                              ).withLightness(0.32).toColor();
+                                        return Dismissible(
+                                          key: Key('notif_${n.id}'),
+                                          direction:
+                                              DismissDirection.endToStart,
+                                          background: Container(
+                                            alignment: Alignment.centerRight,
+                                            padding: const EdgeInsets.only(
+                                              right: 20,
+                                            ),
+                                            margin: const EdgeInsets.only(
+                                              bottom: 12,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(
+                                                0xFFB91C1C,
+                                              ).withValues(alpha: 0.9),
+                                              borderRadius:
+                                                  GlassTheme.borderRadiusSmall,
+                                            ),
+                                            child: const Icon(
+                                              Icons.delete,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          onDismissed: (_) {
+                                            notifProvider.dismiss(n.id);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Dismissed: "${n.title}"',
+                                                ),
+                                                duration: const Duration(
+                                                  seconds: 2,
+                                                ),
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 12,
+                                            ),
+                                            child: AnimatedPressable(
+                                              onTap: () =>
+                                                  _handleNotificationTap(n),
+                                              pressedScale: 0.98,
+                                              child: GlassContainer(
+                                                borderRadius: GlassTheme
+                                                    .borderRadiusSmall,
+                                                padding: const EdgeInsets.all(
+                                                  16,
+                                                ),
+                                                customColor: n.isRead
+                                                    ? (isDark
+                                                          ? null
+                                                          : Colors.white)
+                                                    : (isDark
+                                                          ? n.color.withValues(
+                                                              alpha: 0.08,
+                                                            )
+                                                          : Colors.white),
+                                                customBorder: Border.all(
+                                                  color: isDark
+                                                      ? (n.isRead
+                                                            ? Colors.white12
+                                                            : n.color
+                                                                  .withValues(
+                                                                    alpha: 0.25,
+                                                                  ))
+                                                      : const Color(0xFFE2E8F0),
+                                                  width: 1.2,
+                                                ),
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      width: 44,
+                                                      height: 44,
+                                                      decoration: BoxDecoration(
+                                                        color: n.color
+                                                            .withValues(
+                                                              alpha: 0.15,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                      ),
+                                                      child: Icon(
+                                                        n.icon,
+                                                        color: badgeColor,
+                                                        size: 22,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Expanded(
+                                                                child: Text(
+                                                                  n.title,
+                                                                  style: textTheme.bodyMedium?.copyWith(
+                                                                    fontWeight:
+                                                                        n.isRead
+                                                                        ? FontWeight
+                                                                              .w500
+                                                                        : FontWeight
+                                                                              .w700,
+                                                                    color:
+                                                                        primaryText,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              if (!n.isRead)
+                                                                Container(
+                                                                  width: 8,
+                                                                  height: 8,
+                                                                  decoration: BoxDecoration(
+                                                                    color:
+                                                                        badgeColor,
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                  ),
+                                                                ),
+                                                            ],
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 4,
+                                                          ),
+                                                          Text(
+                                                            n.message,
+                                                            style: textTheme
+                                                                .bodySmall
+                                                                ?.copyWith(
+                                                                  color:
+                                                                      secondaryText,
+                                                                  height: 1.4,
+                                                                ),
+                                                          ),
+                                                          if (n.locationName !=
+                                                                  null ||
+                                                              n.deliveryAddress !=
+                                                                  null) ...[
+                                                            const SizedBox(
+                                                              height: 4,
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                Icon(
+                                                                  Icons
+                                                                      .location_on_outlined,
+                                                                  size: 13,
+                                                                  color:
+                                                                      greenAccent,
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 4,
+                                                                ),
+                                                                Expanded(
+                                                                  child: Text(
+                                                                    n.deliveryAddress ??
+                                                                        n.locationName!,
+                                                                    maxLines: 2,
+                                                                    style: textTheme
+                                                                        .labelSmall
+                                                                        ?.copyWith(
+                                                                          color:
+                                                                              greenAccent,
+                                                                          fontWeight:
+                                                                              FontWeight.w600,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                          const SizedBox(
+                                                            height: 6,
+                                                          ),
+                                                          Row(
+                                                            children: [
+                                                              Expanded(
+                                                                child: Text(
+                                                                  n.timeAgo,
+                                                                  style: textTheme
+                                                                      .labelSmall
+                                                                      ?.copyWith(
+                                                                        color:
+                                                                            secondaryText,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                              Text(
+                                                                'Tap to view',
+                                                                style: textTheme
+                                                                    .labelSmall
+                                                                    ?.copyWith(
+                                                                      color:
+                                                                          badgeColor,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                    ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ).animate().fade(delay: (30 * index).ms).slideY(begin: 0.06);
+                                      },
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
           ),
         );
@@ -921,40 +977,49 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                 ],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? selectedTextColor : unselectedTextColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-            if (count > 0) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.white.withValues(alpha: 0.25)
-                      : (isDark
-                            ? Colors.white.withValues(alpha: 0.15)
-                            : const Color(0xFFEEF2F6)),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$count',
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF64748B),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+        child: Builder(
+          builder: (chipCtx) {
+            final chipTextTheme = Theme.of(chipCtx).textTheme;
+            final secondaryText = AppTypography.secondaryTextColor(
+              isDark ? Brightness.dark : Brightness.light,
+            );
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: chipTextTheme.bodySmall?.copyWith(
+                    color: isSelected ? selectedTextColor : unselectedTextColor,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   ),
                 ),
-              ),
-            ],
-          ],
+                if (count > 0) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.25)
+                          : (isDark
+                                ? Colors.white.withValues(alpha: 0.15)
+                                : const Color(0xFFEEF2F6)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$count',
+                      style: chipTextTheme.labelSmall?.copyWith(
+                        color: isSelected ? Colors.white : secondaryText,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
       ),
     );
@@ -980,58 +1045,66 @@ class _RateExperienceDialogState extends State<_RateExperienceDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final starColor = isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFB45309);
+
     return AlertDialog(
       backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
         'Rate Your Experience',
-        style: TextStyle(
-          color: isDark ? Colors.white : GlassTheme.textDark,
+        style: textTheme.titleLarge?.copyWith(
+          color: primaryText,
           fontWeight: FontWeight.bold,
         ),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'How was your recent meal?',
-            style: TextStyle(
-              color: isDark ? Colors.white70 : const Color(0xFF64748B),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'How was your recent meal?',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(color: secondaryText),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) {
-              return IconButton(
-                icon: Icon(
-                  index < _rating ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
-                  size: 32,
-                ),
-                onPressed: () {
-                  setState(() => _rating = index + 1);
-                },
-              );
-            }),
-          ),
-          const SizedBox(height: 12),
-          GlassTextField(
-            controller: _feedbackController,
-            maxLines: 2,
-            hintText: 'Share your feedback (optional)...',
-          ),
-        ],
+            const SizedBox(height: 16),
+            Wrap(
+              alignment: WrapAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  icon: Icon(
+                    index < _rating ? Icons.star : Icons.star_border,
+                    color: starColor,
+                    size: 32,
+                  ),
+                  onPressed: () {
+                    setState(() => _rating = index + 1);
+                  },
+                );
+              }),
+            ),
+            const SizedBox(height: 12),
+            GlassTextField(
+              controller: _feedbackController,
+              maxLines: 2,
+              hintText: 'Share your feedback (optional)...',
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: TextStyle(
-              color: isDark ? Colors.white60 : const Color(0xFF64748B),
-            ),
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
           ),
         ),
         GlassButton(

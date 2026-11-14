@@ -69,10 +69,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        final primaryText = AppTypography.primaryTextColor(
-          isDark ? Brightness.dark : Brightness.light,
-        );
+        final brightness = Theme.of(ctx).brightness;
+        final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(ctx).textTheme;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final accentGreen = isDark
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
+        final isKhmer = Localizations.localeOf(ctx).languageCode == 'km';
         return ResponsiveBottomSheet(
           child: Container(
             padding: const EdgeInsets.all(24),
@@ -93,10 +97,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Text(
                   context.tr('settings.selectLanguage'),
-                  style: TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     color: primaryText,
-                    fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    height: isKhmer ? 1.5 : null,
+                    letterSpacing: isKhmer ? 0 : null,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -106,25 +111,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ].map((item) {
                   final lang = item['lang'] as AppLanguage;
                   final isSel = localeProvider.language == lang;
+                  final itemIsKhmer = lang == AppLanguage.khmer;
                   return Material(
                     color: Colors.transparent,
                     child: ListTile(
                       title: Text(
                         item['label'] as String,
-                        style: TextStyle(
+                        style: textTheme.bodyLarge?.copyWith(
                           color: primaryText,
                           fontWeight: isSel
                               ? FontWeight.bold
                               : FontWeight.normal,
+                          height: itemIsKhmer ? 1.5 : null,
+                          letterSpacing: itemIsKhmer ? 0 : null,
                         ),
                       ),
                       trailing: isSel
-                          ? Icon(
-                              Icons.check,
-                              color: isDark
-                                  ? GlassTheme.primaryGreen
-                                  : GlassTheme.primaryGreenDark,
-                            )
+                          ? Icon(Icons.check, color: accentGreen)
                           : null,
                       onTap: () async {
                         await localeProvider.setLanguage(lang);
@@ -136,7 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 'Language switched to ${item['label']}',
                               ),
                               duration: const Duration(seconds: 1),
-                              backgroundColor: GlassTheme.primaryGreen,
+                              backgroundColor: const Color(0xFF15803D),
                             ),
                           );
                         }
@@ -182,99 +185,113 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : Colors.black.withValues(alpha: 0.08),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Display Currency',
-                      style: TextStyle(
-                        color: primaryText,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '1 USD = ${currencyProvider.khrPerUsd.toInt()} KHR',
-                        style: TextStyle(
-                          color: accentGreen,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                ...[
-                  {
-                    'mode': DisplayCurrency.usd,
-                    'title': r'USD ($)',
-                    'subtitle': 'US Dollar (Default international standard)',
-                  },
-                  {
-                    'mode': DisplayCurrency.khr,
-                    'title': 'KHR (៛)',
-                    'subtitle': 'Cambodian Riel (NBC customary retail rate)',
-                  },
-                  {
-                    'mode': DisplayCurrency.dual,
-                    'title': r'Dual Currency ($ / ៛)',
-                    'subtitle':
-                        'Shows both USD and estimated Riel simultaneously',
-                  },
-                ].map((opt) {
-                  final mode = opt['mode'] as DisplayCurrency;
-                  final isSel = currencyProvider.currency == mode;
-                  return Material(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      title: Text(
-                        opt['title'] as String,
-                        style: TextStyle(
-                          color: primaryText,
-                          fontWeight: isSel
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                      subtitle: Text(
-                        opt['subtitle'] as String,
-                        style: TextStyle(color: secondaryText, fontSize: 12),
-                      ),
-                      trailing: isSel
-                          ? Icon(Icons.check_circle, color: accentGreen)
-                          : null,
-                      onTap: () {
-                        currencyProvider.setCurrency(mode);
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Display currency set to ${opt['title']}',
+            child: Builder(
+              builder: (sheetCtx) {
+                final textTheme = Theme.of(sheetCtx).textTheme;
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Display Currency',
+                              style: textTheme.titleLarge?.copyWith(
+                                color: primaryText,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            duration: const Duration(seconds: 1),
-                            backgroundColor: GlassTheme.primaryGreen,
-                            behavior: SnackBarBehavior.floating,
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: GlassTheme.primaryGreen.withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '1 USD = ${currencyProvider.khrPerUsd.toInt()} KHR',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: accentGreen,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      ...[
+                        {
+                          'mode': DisplayCurrency.usd,
+                          'title': r'USD ($)',
+                          'subtitle':
+                              'US Dollar (Default international standard)',
+                        },
+                        {
+                          'mode': DisplayCurrency.khr,
+                          'title': 'KHR (៛)',
+                          'subtitle':
+                              'Cambodian Riel (NBC customary retail rate)',
+                        },
+                        {
+                          'mode': DisplayCurrency.dual,
+                          'title': r'Dual Currency ($ / ៛)',
+                          'subtitle':
+                              'Shows both USD and estimated Riel simultaneously',
+                        },
+                      ].map((opt) {
+                        final mode = opt['mode'] as DisplayCurrency;
+                        final isSel = currencyProvider.currency == mode;
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            title: Text(
+                              opt['title'] as String,
+                              style: textTheme.bodyLarge?.copyWith(
+                                color: primaryText,
+                                fontWeight: isSel
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                            subtitle: Text(
+                              opt['subtitle'] as String,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: secondaryText,
+                              ),
+                            ),
+                            trailing: isSel
+                                ? Icon(Icons.check_circle, color: accentGreen)
+                                : null,
+                            onTap: () {
+                              currencyProvider.setCurrency(mode);
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Display currency set to ${opt['title']}',
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                  backgroundColor: GlassTheme.primaryGreen,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
                           ),
                         );
-                      },
-                    ),
-                  );
-                }),
-              ],
+                      }),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         );
@@ -296,155 +313,171 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final secondaryText = AppTypography.secondaryTextColor(
           isDark ? Brightness.dark : Brightness.light,
         );
-        return AlertDialog(
-          backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: themeProvider.paletteData.primary.withValues(
-                    alpha: 0.15,
+        return Builder(
+          builder: (dialogCtx) {
+            final textTheme = Theme.of(dialogCtx).textTheme;
+            return AlertDialog(
+              backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: themeProvider.paletteData.primary.withValues(
+                        alpha: 0.15,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.palette,
+                      color: themeProvider.paletteData.primary,
+                      size: 22,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.palette,
-                  color: themeProvider.paletteData.primary,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Theme & Festivals',
-                      style: TextStyle(
-                        color: primaryText,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'រចនាបថ និងពិធីបុណ្យជាតិ',
-                      style: TextStyle(color: secondaryText, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: 380,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height * 0.72,
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Section 1: Khmer & Seasonal Festivals
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 4,
-                        bottom: 8,
-                        top: 4,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.celebration,
-                            color: isDark
-                                ? const Color(0xFFFBBF24)
-                                : const Color(0xFFB45309),
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Khmer & Seasonal Festivals / ពិធីបុណ្យជាតិ',
-                            style: TextStyle(
-                              color: primaryText,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ...PaletteData.allPalettes
-                        .where((p) => p.isFestive)
-                        .map(
-                          (palette) => _buildPaletteCard(
-                            ctx,
-                            palette,
-                            current,
-                            themeProvider,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Theme & Festivals',
+                          style: textTheme.titleLarge?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-
-                    const SizedBox(height: 12),
-
-                    // Section 2: Classic Signature Themes
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4, bottom: 8),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.auto_awesome,
-                            color: isDark
-                                ? const Color(0xFF86EFAC)
-                                : GlassTheme.primaryGreenDark,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Classic Signature Themes / រចនាបថដើម',
-                            style: TextStyle(
-                              color: primaryText,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ...PaletteData.allPalettes
-                        .where((p) => !p.isFestive)
-                        .map(
-                          (palette) => _buildPaletteCard(
-                            ctx,
-                            palette,
-                            current,
-                            themeProvider,
+                        Text(
+                          'រចនាបថ និងពិធីបុណ្យជាតិ',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: secondaryText,
+                            height: 1.5,
+                            letterSpacing: 0,
                           ),
                         ),
-                  ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 380,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(ctx).size.height * 0.72,
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Section 1: Khmer & Seasonal Festivals
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 4,
+                            bottom: 8,
+                            top: 4,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.celebration,
+                                color: isDark
+                                    ? const Color(0xFFFBBF24)
+                                    : const Color(0xFFB45309),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  'Khmer & Seasonal Festivals / ពិធីបុណ្យជាតិ',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: primaryText,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.5,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ...PaletteData.allPalettes
+                            .where((p) => p.isFestive)
+                            .map(
+                              (palette) => _buildPaletteCard(
+                                ctx,
+                                palette,
+                                current,
+                                themeProvider,
+                              ),
+                            ),
+
+                        const SizedBox(height: 12),
+
+                        // Section 2: Classic Signature Themes
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4, bottom: 8),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.auto_awesome,
+                                color: isDark
+                                    ? const Color(0xFF86EFAC)
+                                    : const Color(0xFF15803D),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  'Classic Signature Themes / រចនាបថដើម',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: primaryText,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.5,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ...PaletteData.allPalettes
+                            .where((p) => !p.isFestive)
+                            .map(
+                              (palette) => _buildPaletteCard(
+                                ctx,
+                                palette,
+                                current,
+                                themeProvider,
+                              ),
+                            ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'Close / បិទ',
-                style: TextStyle(color: secondaryText),
-              ),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'Close / បិទ',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: secondaryText,
+                      height: 1.5,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -457,6 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ThemeProvider themeProvider,
   ) {
     final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    final textTheme = Theme.of(ctx).textTheme;
     final primaryText = AppTypography.primaryTextColor(
       isDark ? Brightness.dark : Brightness.light,
     );
@@ -464,9 +498,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       isDark ? Brightness.dark : Brightness.light,
     );
     final isSelected = palette.id == current;
-    final badgeFg = palette.primary.computeLuminance() > 0.45
-        ? Colors.black87
-        : palette.primaryAccent;
+    final badgeFg = isDark
+        ? (palette.primaryAccent.computeLuminance() < 0.25
+              ? Colors.white
+              : palette.primaryAccent)
+        : HSLColor.fromColor(palette.primary).withLightness(0.30).toColor();
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -512,13 +548,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Expanded(
               child: Text(
                 palette.nameEn,
-                style: TextStyle(
+                style: textTheme.bodyMedium?.copyWith(
                   color: primaryText,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                  fontSize: 13.5,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (palette.badgeText.isNotEmpty) ...[
@@ -535,9 +568,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: Text(
                   palette.badgeText,
-                  style: TextStyle(
-                    color: isDark ? palette.primaryAccent : badgeFg,
-                    fontSize: 9.5,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: badgeFg,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -552,21 +584,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Text(
                 palette.nameKh,
-                style: TextStyle(
+                style: textTheme.labelSmall?.copyWith(
                   color: secondaryText,
-                  fontSize: 11.5,
                   fontWeight: FontWeight.w500,
+                  height: 1.5,
+                  letterSpacing: 0,
                 ),
               ),
               Text(
                 palette.descriptionEn,
-                style: TextStyle(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.5)
-                      : Colors.black54,
-                  fontSize: 10.5,
-                ),
-                maxLines: 1,
+                style: textTheme.labelSmall?.copyWith(color: secondaryText),
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -609,9 +637,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Expanded(
                     child: Text(
                       'Theme updated to ${palette.nameEn} (${palette.nameKh})',
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: snackFg,
                         fontWeight: FontWeight.w600,
+                        height: 1.5,
+                        letterSpacing: 0,
                       ),
                     ),
                   ),
@@ -641,6 +671,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final textTheme = Theme.of(ctx).textTheme;
         final primaryText = AppTypography.primaryTextColor(
           isDark ? Brightness.dark : Brightness.light,
         );
@@ -648,8 +679,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           isDark ? Brightness.dark : Brightness.light,
         );
         final accentGreen = isDark
-            ? GlassTheme.primaryGreen
-            : GlassTheme.primaryGreenDark;
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
         return AlertDialog(
           backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
           shape: RoundedRectangleBorder(
@@ -661,9 +692,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Expanded(
                 child: Text(
                   context.tr('settings.textSize'),
-                  style: TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     color: primaryText,
                     fontWeight: FontWeight.bold,
+                    height: 1.5,
+                    letterSpacing: 0,
                   ),
                 ),
               ),
@@ -674,12 +707,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 child: Text(
                   context.tr('common.reset'),
-                  style: TextStyle(
-                    color: isDark
-                        ? GlassTheme.primaryGreenAccent
-                        : GlassTheme.primaryGreenDark,
-                    fontSize: 13,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: accentGreen,
                     fontWeight: FontWeight.w600,
+                    height: 1.5,
+                    letterSpacing: 0,
                   ),
                 ),
               ),
@@ -692,18 +724,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               return ListTile(
                 title: Text(
                   scale.label(localeProvider.isKhmer),
-                  style: TextStyle(
+                  style: textTheme.bodyLarge?.copyWith(
                     color: isSelected ? accentGreen : primaryText,
                     fontWeight: isSelected
                         ? FontWeight.bold
                         : FontWeight.normal,
+                    height: 1.5,
+                    letterSpacing: 0,
                   ),
                 ),
-                subtitle: Text(
-                  'Sample text • អក្សរគំរូ',
-                  style: TextStyle(
-                    fontSize: 12 * scale.factor,
-                    color: secondaryText,
+                subtitle: MediaQuery(
+                  data: MediaQuery.of(
+                    ctx,
+                  ).copyWith(textScaler: TextScaler.linear(scale.factor)),
+                  child: Text(
+                    'Sample text • អក្សរគំរូ',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: secondaryText,
+                      height: 1.5,
+                      letterSpacing: 0,
+                    ),
                   ),
                 ),
                 trailing: isSelected
@@ -766,16 +806,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (dialogCtx, setDialogState) {
-          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-          final primaryText = AppTypography.primaryTextColor(
-            isDark ? Brightness.dark : Brightness.light,
-          );
-          final secondaryText = AppTypography.secondaryTextColor(
-            isDark ? Brightness.dark : Brightness.light,
-          );
+          final theme = Theme.of(dialogCtx);
+          final textTheme = theme.textTheme;
+          final colorScheme = theme.colorScheme;
+          final isDark = theme.brightness == Brightness.dark;
+          final brightness = isDark ? Brightness.dark : Brightness.light;
+          final primaryText = AppTypography.primaryTextColor(brightness);
+          final secondaryText = AppTypography.secondaryTextColor(brightness);
           final accentGreen = isDark
-              ? GlassTheme.primaryGreen
-              : GlassTheme.primaryGreenDark;
+              ? GlassTheme.primaryGreenAccent
+              : const Color(0xFF15803D);
+          final starColor = isDark
+              ? const Color(0xFFFBBF24)
+              : const Color(0xFFB45309);
           return AlertDialog(
             backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
             shape: RoundedRectangleBorder(
@@ -784,77 +827,95 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text(
               'Rate FoodGo Experience',
               textAlign: TextAlign.center,
-              style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+              style: textTheme.titleLarge?.copyWith(
+                color: primaryText,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'How would you rate your delivery experience?',
-                  style: TextStyle(color: secondaryText, fontSize: 13),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    return IconButton(
-                      icon: Icon(
-                        index < rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
-                        size: 32,
-                      ),
-                      onPressed: () => setDialogState(() => rating = index + 1),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  rating == 5
-                      ? 'Outstanding! Highly Recommended'
-                      : rating >= 4
-                      ? 'Great food & fast delivery'
-                      : 'Thanks for your feedback!',
-                  style: TextStyle(
-                    color: accentGreen,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'How would you rate your delivery experience?',
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        icon: Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: starColor,
+                          size: 32,
+                        ),
+                        onPressed: () =>
+                            setDialogState(() => rating = index + 1),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    rating == 5
+                        ? 'Outstanding! Highly Recommended'
+                        : rating >= 4
+                        ? 'Great food & fast delivery'
+                        : 'Thanks for your feedback!',
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelLarge?.copyWith(
+                      color: accentGreen,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: Text('Cancel', style: TextStyle(color: secondaryText)),
+                child: Text(
+                  'Cancel',
+                  style: textTheme.labelLarge?.copyWith(color: secondaryText),
+                ),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.primaryGreen,
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
                 ),
                 onPressed: () {
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.favorite,
-                            color: Colors.redAccent,
+                            color: Colors.white,
                             size: 18,
                           ),
-                          SizedBox(width: 8),
-                          Text('Thank you for rating FoodGo!'),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Thank you for rating FoodGo!',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: Colors.white),
+                            ),
+                          ),
                         ],
                       ),
-                      backgroundColor: GlassTheme.primaryGreen,
+                      backgroundColor: isDark
+                          ? GlassTheme.cardDark
+                          : const Color(0xFF15803D),
                     ),
                   );
                 },
-                child: const Text(
+                child: Text(
                   'Submit Rating',
-                  style: TextStyle(
-                    color: Colors.white,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1189,14 +1250,16 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.title});
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 10),
       child: Text(
         title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11,
+        style: textTheme.labelSmall?.copyWith(
           fontWeight: FontWeight.w700,
-          color: GlassTheme.textMuted,
+          color: secondaryText,
           letterSpacing: 1.2,
         ),
       ),
@@ -1206,12 +1269,17 @@ class _SectionHeader extends StatelessWidget {
 
 class _Divider extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Divider(
-    height: 1,
-    indent: 56,
-    endIndent: 0,
-    color: GlassTheme.textMuted.withValues(alpha: 0.15),
-  );
+  Widget build(BuildContext context) {
+    final secondaryText = AppTypography.secondaryTextColor(
+      Theme.of(context).brightness,
+    );
+    return Divider(
+      height: 1,
+      indent: 56,
+      endIndent: 0,
+      color: secondaryText.withValues(alpha: 0.18),
+    );
+  }
 }
 
 class _SettingsTile extends StatelessWidget {
@@ -1238,6 +1306,14 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final resolvedIconColor = (!isDark && iconColor == GlassTheme.primaryGreen)
+        ? const Color(0xFF15803D)
+        : iconColor;
     return Material(
       color: Colors.transparent,
       child: ListTile(
@@ -1247,28 +1323,31 @@ class _SettingsTile extends StatelessWidget {
           height: 36,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.15),
+            color: resolvedIconColor.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(10),
           ),
           child:
               leadingWidget ??
-              Icon(icon ?? Icons.circle, color: iconColor, size: 20),
+              Icon(icon ?? Icons.circle, color: resolvedIconColor, size: 20),
         ),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+          style: textTheme.bodyLarge?.copyWith(
+            color: primaryText,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         subtitle: subtitle != null
             ? Text(
                 subtitle!,
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                style: textTheme.bodySmall?.copyWith(color: secondaryText),
               )
             : null,
         trailing: trailing != null
             ? DefaultTextStyle(
-                style: TextStyle(color: GlassTheme.textMuted),
+                style: TextStyle(color: secondaryText),
                 child: IconTheme(
-                  data: IconThemeData(color: GlassTheme.textMuted, size: 20),
+                  data: IconThemeData(color: secondaryText, size: 20),
                   child: trailing!,
                 ),
               )
@@ -1365,91 +1444,103 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                   : Colors.black.withValues(alpha: 0.08),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Change Account Password',
-                style: TextStyle(
-                  color: primaryText,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _currentPw,
-                obscureText: true,
-                style: TextStyle(color: primaryText),
-                decoration: InputDecoration(
-                  labelText: 'Current Password',
-                  labelStyle: TextStyle(color: secondaryText),
-                  filled: true,
-                  fillColor: fieldFill,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+          child: Builder(
+            builder: (ctx) {
+              final textTheme = Theme.of(ctx).textTheme;
+              final colorScheme = Theme.of(ctx).colorScheme;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Change Account Password',
+                    style: textTheme.titleLarge?.copyWith(
+                      color: primaryText,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _newPw,
-                obscureText: true,
-                style: TextStyle(color: primaryText),
-                decoration: InputDecoration(
-                  labelText: 'New Password',
-                  labelStyle: TextStyle(color: secondaryText),
-                  filled: true,
-                  fillColor: fieldFill,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _confirmPw,
-                obscureText: true,
-                style: TextStyle(color: primaryText),
-                decoration: InputDecoration(
-                  labelText: 'Confirm New Password',
-                  labelStyle: TextStyle(color: secondaryText),
-                  filled: true,
-                  fillColor: fieldFill,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.primaryGreen,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: _isSubmitting ? null : _submit,
-                child: _isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Save New Password',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _currentPw,
+                    obscureText: true,
+                    style: textTheme.bodyLarge?.copyWith(color: primaryText),
+                    decoration: InputDecoration(
+                      labelText: 'Current Password',
+                      labelStyle: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
                       ),
-              ),
-            ],
+                      filled: true,
+                      fillColor: fieldFill,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _newPw,
+                    obscureText: true,
+                    style: textTheme.bodyLarge?.copyWith(color: primaryText),
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      labelStyle: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
+                      ),
+                      filled: true,
+                      fillColor: fieldFill,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _confirmPw,
+                    obscureText: true,
+                    style: textTheme.bodyLarge?.copyWith(color: primaryText),
+                    decoration: InputDecoration(
+                      labelText: 'Confirm New Password',
+                      labelStyle: textTheme.bodyMedium?.copyWith(
+                        color: secondaryText,
+                      ),
+                      filled: true,
+                      fillColor: fieldFill,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: _isSubmitting ? null : _submit,
+                    child: _isSubmitting
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: colorScheme.onPrimary,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Save New Password',
+                            style: textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -1484,12 +1575,15 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isDeleting = false);
+      final dangerColor = Theme.of(context).brightness == Brightness.dark
+          ? Colors.redAccent
+          : const Color(0xFFB91C1C);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Failed to delete account: ${ApiService.formatError(e)}',
           ),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: dangerColor,
         ),
       );
     }
@@ -1498,23 +1592,30 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(
       isDark ? Brightness.dark : Brightness.light,
     );
     final secondaryText = AppTypography.secondaryTextColor(
       isDark ? Brightness.dark : Brightness.light,
     );
+    final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
 
     return AlertDialog(
       backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+          Icon(Icons.warning_amber_rounded, color: dangerColor),
           const SizedBox(width: 8),
-          Text(
-            'Delete Account',
-            style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+          Flexible(
+            child: Text(
+              'Delete Account',
+              style: textTheme.titleLarge?.copyWith(
+                color: primaryText,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -1524,24 +1625,23 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
         children: [
           Text(
             'This action is irreversible. All your order history, saved addresses, and profile data will be permanently deleted.',
-            style: TextStyle(color: secondaryText, fontSize: 13, height: 1.4),
+            style: textTheme.bodySmall?.copyWith(color: secondaryText),
           ),
           const SizedBox(height: 16),
           Text(
             'Type "DELETE" to confirm:',
-            style: TextStyle(
+            style: textTheme.bodySmall?.copyWith(
               color: primaryText,
               fontWeight: FontWeight.bold,
-              fontSize: 13,
             ),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _confirmController,
-            style: TextStyle(color: primaryText),
+            style: textTheme.bodyLarge?.copyWith(color: primaryText),
             decoration: InputDecoration(
               hintText: 'DELETE',
-              hintStyle: TextStyle(
+              hintStyle: textTheme.bodyMedium?.copyWith(
                 color: isDark ? Colors.white38 : Colors.black38,
               ),
               filled: true,
@@ -1559,11 +1659,15 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: Text('Cancel', style: TextStyle(color: secondaryText)),
+          child: Text(
+            'Cancel',
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent,
+            backgroundColor: dangerColor,
+            foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -1580,9 +1684,9 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text(
+              : Text(
                   'Delete Permanently',
-                  style: TextStyle(
+                  style: textTheme.labelLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),

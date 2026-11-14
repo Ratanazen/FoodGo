@@ -210,9 +210,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     const titleColor = Colors.white;
     const subtitleColor = Colors.white70;
-    const mutedColor = Color(0xFF94A3B8);
-    const captionColor = Color(0xFF64748B);
-    const versionColor = Color(0xFF475569);
 
     return Scaffold(
       backgroundColor: bgDark,
@@ -400,16 +397,21 @@ class _SplashScreenState extends State<SplashScreen>
                                       color: brandOrange,
                                     ),
                                     const SizedBox(width: 6),
-                                    Text(
-                                      palette.isFestive &&
-                                              palette.badgeText.isNotEmpty
-                                          ? '100% FRESH & ORGANIC • ${palette.badgeText}'
-                                          : '100% FRESH & ORGANIC',
-                                      style: const TextStyle(
-                                        color: brandOrange,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 1.1,
+                                    Flexible(
+                                      child: Text(
+                                        palette.isFestive &&
+                                                palette.badgeText.isNotEmpty
+                                            ? '100% FRESH & ORGANIC • ${palette.badgeText}'
+                                            : '100% FRESH & ORGANIC',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: brandOrange,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 1.1,
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -429,24 +431,24 @@ class _SplashScreenState extends State<SplashScreen>
                           // Keeps exact text 'FoodGo' for screen reader & test discovery
                           Text(
                                 'FoodGo',
-                                style: const TextStyle(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.6,
-                                  color: titleColor,
-                                  shadows: [
-                                    Shadow(
-                                      color: Color(0x60000000),
-                                      blurRadius: 16,
-                                      offset: Offset(0, 4),
+                                style: Theme.of(context).textTheme.displayLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.6,
+                                      color: titleColor,
+                                      shadows: const [
+                                        Shadow(
+                                          color: Color(0x60000000),
+                                          blurRadius: 16,
+                                          offset: Offset(0, 4),
+                                        ),
+                                        Shadow(
+                                          color: Color(0x40FF5722),
+                                          blurRadius: 28,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
-                                    Shadow(
-                                      color: Color(0x40FF5722),
-                                      blurRadius: 28,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
                               )
                               .animate()
                               .fade(delay: 350.ms, duration: 600.ms)
@@ -461,12 +463,13 @@ class _SplashScreenState extends State<SplashScreen>
                           // ── Tagline & Slogan ────────────────────────────────
                           Text(
                                 'Healthy Food Delivery • Phnom Penh',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: mutedColor,
-                                  letterSpacing: 0.2,
-                                ),
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0xFFCBD5E1),
+                                      letterSpacing: 0.2,
+                                    ),
                               )
                               .animate()
                               .fade(delay: 450.ms, duration: 600.ms)
@@ -480,12 +483,13 @@ class _SplashScreenState extends State<SplashScreen>
 
                           Text(
                             'Good Food • Fast Delivery • Happy Life',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w500,
-                              color: brandOrange.withValues(alpha: 0.85),
-                              letterSpacing: 0.3,
-                            ),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: brandOrangeLight,
+                                  letterSpacing: 0.3,
+                                ),
                           ).animate().fade(delay: 550.ms, duration: 500.ms),
 
                           const SizedBox(height: 36),
@@ -521,15 +525,18 @@ class _SplashScreenState extends State<SplashScreen>
                                   color: brandOrange,
                                 ),
                                 const SizedBox(width: 6),
-                                const Flexible(
+                                Flexible(
                                   child: Text(
                                     'Powered by NBC Bakong KHQR • Real-time Delivery',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: captionColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: const Color(0xFF94A3B8),
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -538,9 +545,10 @@ class _SplashScreenState extends State<SplashScreen>
 
                           const SizedBox(height: 6),
 
-                          const Text(
+                          Text(
                             'FoodGo Organic Delivery v2.0.0 (Build 20)',
-                            style: TextStyle(fontSize: 10, color: versionColor),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: const Color(0xFF94A3B8)),
                           ),
 
                           const SizedBox(height: 18),
@@ -682,6 +690,10 @@ class _SplashScreenState extends State<SplashScreen>
     required Color brandOrangeLight,
     required Color brandOrangeDark,
   }) {
+    final goBaseStyle = Theme.of(context).textTheme.displayLarge?.copyWith(
+      fontWeight: FontWeight.w900,
+      letterSpacing: 3.5,
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Stack(
@@ -692,10 +704,7 @@ class _SplashScreenState extends State<SplashScreen>
             offset: const Offset(0, 5),
             child: Text(
               'GO',
-              style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 3.5,
+              style: goBaseStyle?.copyWith(
                 color: Colors.black.withValues(alpha: 0.65),
               ),
             ),
@@ -706,12 +715,7 @@ class _SplashScreenState extends State<SplashScreen>
             offset: const Offset(1.5, 3),
             child: Text(
               'GO',
-              style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 3.5,
-                color: const Color(0xFF7C2D12),
-              ),
+              style: goBaseStyle?.copyWith(color: const Color(0xFF7C2D12)),
             ),
           ),
 
@@ -720,12 +724,7 @@ class _SplashScreenState extends State<SplashScreen>
             offset: const Offset(1, 1.5),
             child: Text(
               'GO',
-              style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 3.5,
-                color: brandOrangeDark,
-              ),
+              style: goBaseStyle?.copyWith(color: brandOrangeDark),
             ),
           ),
 
@@ -743,14 +742,11 @@ class _SplashScreenState extends State<SplashScreen>
                 stops: const [0.0, 0.45, 1.0],
               ).createShader(bounds);
             },
-            child: const Text(
+            child: Text(
               'GO',
-              style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 3.5,
+              style: goBaseStyle?.copyWith(
                 color: Colors.white,
-                shadows: [
+                shadows: const [
                   Shadow(
                     color: Color(0x80FF5722),
                     blurRadius: 18,
@@ -807,10 +803,8 @@ class _SplashScreenState extends State<SplashScreen>
                   Expanded(
                     child: Text(
                       status,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11.5,
+                      maxLines: 2,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w500,
                         color: subtitleColor,
                       ),
@@ -819,8 +813,7 @@ class _SplashScreenState extends State<SplashScreen>
                   const SizedBox(width: 8),
                   Text(
                     '$percentage%',
-                    style: TextStyle(
-                      fontSize: 12.5,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: brandOrangeLight,
                       fontFeatures: const [FontFeature.tabularFigures()],
@@ -882,6 +875,7 @@ class _SplashScreenState extends State<SplashScreen>
     required Color subtitleColor,
     required Color brandOrange,
   }) {
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       width: 300,
       padding: const EdgeInsets.all(16),
@@ -901,14 +895,13 @@ class _SplashScreenState extends State<SplashScreen>
         children: [
           Row(
             children: [
-              const Icon(AppIcons.warning, color: Colors.amber, size: 20),
+              const Icon(AppIcons.warning, color: Color(0xFFFBBF24), size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Connection Notice',
-                  style: TextStyle(
+                  style: textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
                     color: titleColor,
                   ),
                 ),
@@ -918,7 +911,7 @@ class _SplashScreenState extends State<SplashScreen>
           const SizedBox(height: 6),
           Text(
             _errorMessage ?? 'Unable to connect to FoodGo servers.',
-            style: TextStyle(fontSize: 11.5, color: subtitleColor),
+            style: textTheme.bodySmall?.copyWith(color: subtitleColor),
           ),
           const SizedBox(height: 14),
           Row(
@@ -929,14 +922,22 @@ class _SplashScreenState extends State<SplashScreen>
                     if (mounted) context.go('/login');
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white70,
+                    foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white24),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                   ),
-                  child: const Text('Continue', style: TextStyle(fontSize: 11)),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'Continue',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -944,12 +945,18 @@ class _SplashScreenState extends State<SplashScreen>
                 child: ElevatedButton.icon(
                   onPressed: _startInitialization,
                   icon: const Icon(AppIcons.refresh, size: 14),
-                  label: const Text(
-                    'Retry',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'Retry',
+                      style: textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: brandOrange,
+                    backgroundColor: const Color(0xFFC2410C),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

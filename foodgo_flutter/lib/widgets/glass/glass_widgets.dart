@@ -362,52 +362,55 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     return GlassContainer(
       borderRadius: BorderRadius.zero,
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 4,
+        top: 4,
         bottom: bottom != null ? 0 : 4,
         left: 16,
         right: 16,
       ),
-      child: IconTheme.merge(
-        data: IconThemeData(color: fgColor),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  leading ?? const SizedBox(width: 40),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.center,
-                        child: Text(
-                          title,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          softWrap: false,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: fgColor,
-                                fontWeight: FontWeight.w700,
-                              ),
+      child: SafeArea(
+        bottom: false,
+        child: IconTheme.merge(
+          data: IconThemeData(color: fgColor),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 44),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    leading ?? const SizedBox(width: 40),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: fgColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: actions ?? [const SizedBox(width: 40)],
-                  ),
-                ],
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: actions ?? [const SizedBox(width: 40)],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            ?bottom,
-          ],
+              ?bottom,
+            ],
+          ),
         ),
       ),
     );

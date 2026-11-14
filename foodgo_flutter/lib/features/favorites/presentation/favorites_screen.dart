@@ -226,7 +226,7 @@ class FavoritesScreen extends StatelessWidget {
                                       style: textTheme.titleMedium?.copyWith(
                                         color: isDark
                                             ? GlassTheme.limeAccentBright
-                                            : GlassTheme.primaryGreenDark,
+                                            : const Color(0xFF15803D),
                                         fontWeight: FontWeight.w800,
                                       ),
                                     ),

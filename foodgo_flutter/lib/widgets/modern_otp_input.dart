@@ -140,8 +140,14 @@ class _ModernOtpInputState extends State<ModernOtpInput>
                   final isCurrent = index == currentText.length && isFocused;
                   final digit = isFilled ? currentText[index] : '';
 
-                  Color boxColor = Colors.white.withValues(alpha: 0.04);
-                  Color borderColor = Colors.white.withValues(alpha: 0.12);
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+                  Color boxColor = isDark
+                      ? Colors.white.withValues(alpha: 0.04)
+                      : Colors.black.withValues(alpha: 0.04);
+                  Color borderColor = isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.12);
                   List<BoxShadow> shadows = [];
 
                   if (isCurrent) {
@@ -193,12 +199,18 @@ class _ModernOtpInputState extends State<ModernOtpInput>
                             )
                           : Text(
                               digit,
-                              style: TextStyle(
-                                color: isFilled ? Colors.white : Colors.white38,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0,
-                              ),
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(
+                                    color: isFilled
+                                        ? (isDark
+                                              ? Colors.white
+                                              : const Color(0xFF1F2937))
+                                        : (isDark
+                                              ? Colors.white38
+                                              : const Color(0xFF9CA3AF)),
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0,
+                                  ),
                             ),
                     ),
                   );
@@ -222,20 +234,23 @@ class _ModernOtpInputState extends State<ModernOtpInput>
                   color: GlassTheme.primaryGreen.withValues(alpha: 0.3),
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.content_paste_rounded,
                     size: 14,
-                    color: GlassTheme.primaryGreen,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF4ADE80)
+                        : const Color(0xFF15803D),
                   ),
-                  SizedBox(width: 6),
+                  const SizedBox(width: 6),
                   Text(
                     'Paste Code from Clipboard',
-                    style: TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontSize: 12,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF4ADE80)
+                          : const Color(0xFF15803D),
                       fontWeight: FontWeight.w600,
                     ),
                   ),

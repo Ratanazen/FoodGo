@@ -116,7 +116,7 @@ class AppTheme {
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: textTheme.labelLarge?.copyWith(fontSize: 15),
+          textStyle: textTheme.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -223,7 +223,7 @@ class AppTheme {
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: textTheme.labelLarge?.copyWith(fontSize: 15),
+          textStyle: textTheme.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(

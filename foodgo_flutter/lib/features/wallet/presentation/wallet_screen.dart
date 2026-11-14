@@ -139,8 +139,12 @@ class _WalletScreenState extends State<WalletScreen> {
 
       final brightness = Theme.of(context).brightness;
       final isDark = brightness == Brightness.dark;
+      final textTheme = Theme.of(context).textTheme;
       final primaryText = AppTypography.primaryTextColor(brightness);
       final secondaryText = AppTypography.secondaryTextColor(brightness);
+      final accentGreen = isDark
+          ? GlassTheme.primaryGreenAccent
+          : const Color(0xFF15803D);
 
       showDialog(
         context: context,
@@ -169,9 +173,8 @@ class _WalletScreenState extends State<WalletScreen> {
                 Flexible(
                   child: Text(
                     'KHQR Top-Up',
-                    style: TextStyle(
+                    style: textTheme.titleLarge?.copyWith(
                       color: primaryText,
-                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -184,7 +187,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 children: [
                   Text(
                     'Scan with ABA Mobile, Bakong, or any Cambodian App',
-                    style: TextStyle(color: secondaryText, fontSize: 13),
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -199,13 +202,12 @@ class _WalletScreenState extends State<WalletScreen> {
                         top: Radius.circular(16),
                       ),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         'KHQR · SCAN TO PAY',
-                        style: TextStyle(
+                        style: textTheme.bodySmall?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
-                          fontSize: 13,
                           letterSpacing: 1.5,
                         ),
                       ),
@@ -236,25 +238,23 @@ class _WalletScreenState extends State<WalletScreen> {
 
                   Text(
                     '\$${amount.toStringAsFixed(2)} USD',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontSize: 26,
+                    style: textTheme.displayLarge?.copyWith(
+                      color: accentGreen,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '≈ ${KhmerCurrency.formatKhr(amount)} KHR',
-                    style: TextStyle(
+                    style: textTheme.bodySmall?.copyWith(
                       color: primaryText.withValues(alpha: 0.85),
-                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Ref: $merchantRef',
-                    style: TextStyle(color: secondaryText, fontSize: 11),
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                   const SizedBox(height: 14),
 
@@ -275,15 +275,15 @@ class _WalletScreenState extends State<WalletScreen> {
                         vertical: 8,
                       ),
                     ),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.copy_rounded,
                       size: 16,
-                      color: GlassTheme.primaryGreen,
+                      color: accentGreen,
                     ),
-                    label: const Text(
+                    label: Text(
                       'Copy KHQR Payload',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: primaryText,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -326,9 +326,8 @@ class _WalletScreenState extends State<WalletScreen> {
                             showRawPayload
                                 ? 'Hide QR Payload'
                                 : 'Show All QR Payload Details',
-                            style: TextStyle(
+                            style: textTheme.labelSmall?.copyWith(
                               color: secondaryText,
-                              fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -360,17 +359,15 @@ class _WalletScreenState extends State<WalletScreen> {
                             children: [
                               Text(
                                 'KHQR Payload:',
-                                style: TextStyle(
+                                style: textTheme.labelSmall?.copyWith(
                                   color: secondaryText,
-                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Text(
                                 '${effectivePayload.length} chars',
-                                style: TextStyle(
+                                style: textTheme.labelSmall?.copyWith(
                                   color: secondaryText,
-                                  fontSize: 10,
                                 ),
                               ),
                             ],
@@ -378,12 +375,9 @@ class _WalletScreenState extends State<WalletScreen> {
                           const SizedBox(height: 4),
                           SelectableText(
                             effectivePayload,
-                            style: TextStyle(
+                            style: textTheme.labelSmall?.copyWith(
                               fontFamily: 'monospace',
-                              fontSize: 10,
-                              color: isDark
-                                  ? GlassTheme.primaryGreenAccent
-                                  : GlassTheme.primaryGreen,
+                              color: accentGreen,
                             ),
                           ),
                         ],
@@ -501,8 +495,13 @@ class _WalletScreenState extends State<WalletScreen> {
     final List transactions = _wallet?['transactions'] ?? [];
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final accentAmber = isDark ? Colors.orangeAccent : const Color(0xFFB45309);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -518,14 +517,10 @@ class _WalletScreenState extends State<WalletScreen> {
         color: Colors.transparent,
         child: SafeArea(
           child: _isLoading && _wallet == null
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: GlassTheme.primaryGreen,
-                  ),
-                )
+              ? Center(child: CircularProgressIndicator(color: accentGreen))
               : RefreshIndicator(
                   onRefresh: _fetchWallet,
-                  color: GlassTheme.primaryGreen,
+                  color: accentGreen,
                   child: ListView(
                     padding: const EdgeInsets.all(16.0),
                     children: [
@@ -541,17 +536,16 @@ class _WalletScreenState extends State<WalletScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.account_balance_wallet_outlined,
-                                      color: GlassTheme.primaryGreen,
+                                      color: accentGreen,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       'Total Available Balance',
-                                      style: TextStyle(
+                                      style: textTheme.bodyMedium?.copyWith(
                                         color: secondaryText,
-                                        fontSize: 14,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -560,28 +554,26 @@ class _WalletScreenState extends State<WalletScreen> {
                                 const SizedBox(height: 10),
                                 Text(
                                   '\$$balance',
-                                  style: TextStyle(
+                                  style: textTheme.displayLarge?.copyWith(
                                     color: primaryText,
-                                    fontSize: 38,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '≈ ${KhmerCurrency.formatKhr(double.tryParse(balance.toString()) ?? 0.0)} KHR',
-                                  style: const TextStyle(
-                                    color: GlassTheme.primaryGreen,
-                                    fontSize: 16,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    color: accentGreen,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Live Dual Balance · អត្រា ៤,១០០ ៛/USD',
-                                  style: TextStyle(
+                                  style: textTheme.bodySmall?.copyWith(
                                     color: secondaryText,
-                                    fontSize: 12,
+                                    height: 1.5,
+                                    letterSpacing: 0,
                                   ),
                                 ),
                               ],
@@ -600,8 +592,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       // Quick Top Up Section
                       Text(
                         'Add Money to Account',
-                        style: TextStyle(
-                          fontSize: 18,
+                        style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: primaryText,
                         ),
@@ -639,7 +630,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isSelected
-                                      ? GlassTheme.primaryGreen
+                                      ? accentGreen
                                       : (isDark
                                             ? Colors.white.withValues(
                                                 alpha: 0.1,
@@ -651,12 +642,9 @@ class _WalletScreenState extends State<WalletScreen> {
                               ),
                               child: Text(
                                 '+\$${amt.toStringAsFixed(0)} (${KhmerCurrency.formatKhr(amt)})',
-                                style: TextStyle(
+                                style: textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                  color: isSelected
-                                      ? GlassTheme.primaryGreen
-                                      : primaryText,
+                                  color: isSelected ? accentGreen : primaryText,
                                 ),
                               ),
                             ),
@@ -668,9 +656,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       // Custom Amount TextField
                       TextField(
                         controller: _amountController,
-                        style: TextStyle(
+                        style: textTheme.titleLarge?.copyWith(
                           color: primaryText,
-                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
@@ -678,10 +665,12 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                         decoration: InputDecoration(
                           labelText: 'Custom Amount',
-                          labelStyle: TextStyle(color: secondaryText),
-                          prefixIcon: const Icon(
+                          labelStyle: textTheme.bodyMedium?.copyWith(
+                            color: secondaryText,
+                          ),
+                          prefixIcon: Icon(
                             Icons.attach_money,
-                            color: GlassTheme.primaryGreen,
+                            color: accentGreen,
                           ),
                           filled: true,
                           fillColor: isDark
@@ -697,8 +686,8 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(
-                              color: GlassTheme.primaryGreen,
+                            borderSide: BorderSide(
+                              color: accentGreen,
                               width: 1.5,
                             ),
                           ),
@@ -726,9 +715,12 @@ class _WalletScreenState extends State<WalletScreen> {
                                   ),
                                 ),
                                 icon: const Icon(Icons.qr_code_2, size: 22),
-                                label: const Text(
+                                label: Text(
                                   'KHQR Top Up',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: textTheme.labelLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 onPressed: _isProcessing
                                     ? null
@@ -748,8 +740,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                               content: Text(
                                                 'Please enter a valid amount greater than \$0.00.',
                                               ),
-                                              backgroundColor:
-                                                  Colors.orangeAccent,
+                                              backgroundColor: Color(
+                                                0xFFB45309,
+                                              ),
                                               behavior:
                                                   SnackBarBehavior.floating,
                                             ),
@@ -787,8 +780,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                               content: Text(
                                                 'Please enter a valid amount greater than \$0.00.',
                                               ),
-                                              backgroundColor:
-                                                  Colors.orangeAccent,
+                                              backgroundColor: Color(
+                                                0xFFB45309,
+                                              ),
                                               behavior:
                                                   SnackBarBehavior.floating,
                                             ),
@@ -808,17 +802,15 @@ class _WalletScreenState extends State<WalletScreen> {
                         children: [
                           Text(
                             'Transaction History',
-                            style: TextStyle(
-                              fontSize: 18,
+                            style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: primaryText,
                             ),
                           ),
                           Text(
                             '${transactions.length} total',
-                            style: TextStyle(
+                            style: textTheme.bodySmall?.copyWith(
                               color: secondaryText,
-                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -887,7 +879,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                     _txFilter == 'all'
                                         ? 'No transactions yet'
                                         : 'No ${_txFilter == 'deposit' ? 'top-up' : 'payment'} transactions found',
-                                    style: TextStyle(color: secondaryText),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: secondaryText,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -916,8 +910,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                             ? Icons.arrow_downward
                                             : Icons.arrow_upward,
                                         color: isDeposit
-                                            ? GlassTheme.primaryGreen
-                                            : Colors.orangeAccent,
+                                            ? accentGreen
+                                            : accentAmber,
                                         size: 18,
                                       ),
                                     ),
@@ -932,29 +926,34 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 (isDeposit
                                                     ? 'Deposit (បញ្ចូលប្រាក់)'
                                                     : 'Payment (ទូទាត់ប្រាក់)'),
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: primaryText,
-                                            ),
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: primaryText,
+                                                  height: 1.5,
+                                                  letterSpacing: 0,
+                                                ),
                                           ),
                                           Text(
                                             '${tx['transaction_type'].toString().toUpperCase()} • ${KhmerCurrency.formatKhr(double.tryParse(tx['amount']?.toString() ?? '0') ?? 0.0)}',
-                                            style: TextStyle(
-                                              color: secondaryText,
-                                              fontSize: 11,
-                                            ),
+                                            style: textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: secondaryText,
+                                                  height: 1.5,
+                                                  letterSpacing: 0,
+                                                ),
                                           ),
                                         ],
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
                                     Text(
                                       '${isDeposit ? '+' : '-'}\$${tx['amount']}',
-                                      style: TextStyle(
+                                      style: textTheme.titleMedium?.copyWith(
                                         color: isDeposit
-                                            ? GlassTheme.primaryGreen
-                                            : Colors.orangeAccent,
+                                            ? accentGreen
+                                            : accentAmber,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
                                       ),
                                     ),
                                   ],
@@ -977,7 +976,11 @@ class _WalletScreenState extends State<WalletScreen> {
     final isSelected = _txFilter == value;
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     return InkWell(
       onTap: () => setState(() => _txFilter = value),
       borderRadius: BorderRadius.circular(10),
@@ -992,7 +995,7 @@ class _WalletScreenState extends State<WalletScreen> {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
-                ? GlassTheme.primaryGreen
+                ? accentGreen
                 : (isDark
                       ? Colors.white.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.12)),
@@ -1000,10 +1003,9 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
         child: Text(
           '$label ($count)',
-          style: TextStyle(
-            fontSize: 12,
+          style: textTheme.bodySmall?.copyWith(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? GlassTheme.primaryGreen : secondaryText,
+            color: isSelected ? accentGreen : secondaryText,
           ),
         ),
       ),

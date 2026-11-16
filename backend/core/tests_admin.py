@@ -612,6 +612,46 @@ class AdminFeatureTestCase(APITestCase):
         client.post('/admin/', {'quick_action': 'purge_micro_items'})
         self.assertEqual(FoodItem.objects.filter(price__lte=Decimal('0.05')).count(), 0)
 
+    def test_wallet_and_registered_admin_changelists_render(self):
+        """Regression guard: WalletAdmin and all core changelist views render without SafeString format ValueError."""
+        from django.contrib import admin as django_admin
+        from django.test import Client
+        from django.urls import reverse
+        from .models import Wallet, WalletTransaction
+
+        wallet, _ = Wallet.objects.get_or_create(user=self.customer, defaults={'balance': Decimal('100.00')})
+        wallet.balance = Decimal('100.00')
+        wallet.save(update_fields=['balance'])
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            amount=Decimal('25.50'),
+            transaction_type='deposit',
+            description='Changelist render verification',
+        )
+        cat = FoodCategory.objects.create(restaurant=self.restaurant, name='Admin Changelist Burgers')
+        FoodItem.objects.create(
+            category=cat,
+            name='Admin Changelist Burger',
+            price=Decimal('0.01'),
+            original_price=Decimal('2.50'),
+        )
+
+        client = Client()
+        client.force_login(self.admin)
+
+        wallet_resp = client.get('/admin/core/wallet/')
+        self.assertEqual(wallet_resp.status_code, 200)
+        wallet_html = wallet_resp.content.decode('utf-8')
+        self.assertIn('$100.00', wallet_html)
+        self.assertIn('410,000 KHR', wallet_html)
+
+        for model in django_admin.site._registry:
+            if model._meta.app_label != 'core':
+                continue
+            url = reverse(f'admin:{model._meta.app_label}_{model._meta.model_name}_changelist')
+            resp = client.get(url)
+            self.assertEqual(resp.status_code, 200, f'Admin changelist {url} failed with {resp.status_code}')
+
 
 
 

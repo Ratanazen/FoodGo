@@ -7,12 +7,6 @@
       "excludeFiles": "{foodgo_flutter/**,public/**,output/**,APK/**,Database/**,Figma/**,Slide/**,docs/**,scripts/**,artifacts/**,whatif-2d-studio/**,backend/venv/**,**/*.mp4,**/*.sqlite3}"
     }
   },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.py"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",

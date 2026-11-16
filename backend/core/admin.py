@@ -1,8 +1,15 @@
+from decimal import Decimal, ROUND_HALF_UP
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.db.models import Sum, Count
 from django.urls import reverse
+
+
+def _fmt_usd(value):
+    """Format a numeric or None amount safely before passing to format_html."""
+    amount = Decimal(str(value if value is not None else '0'))
+    return f"{amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):.2f}"
 
 # ─────────────────────────────────────────────
 # Custom App Grouping (sidebar organisation)
@@ -715,14 +722,14 @@ class FoodItemAdmin(admin.ModelAdmin):
 
     @admin.display(description='Price', ordering='price')
     def price_display(self, obj):
-        if obj.original_price and obj.original_price > obj.price:
+        if obj.original_price and obj.original_price > (obj.price or 0):
             return format_html(
                 '<span style="font-weight:700;color:#27ae60;">${}</span> '
                 '<span style="text-decoration:line-through;color:#868e96;font-size:11px;">${}</span>',
-                f"{float(obj.price):.2f}",
-                f"{float(obj.original_price):.2f}"
+                _fmt_usd(obj.price),
+                _fmt_usd(obj.original_price),
             )
-        return format_html('<span style="font-weight:700;color:#27ae60;">${}</span>', f"{float(obj.price):.2f}")
+        return format_html('<span style="font-weight:700;color:#27ae60;">${}</span>', _fmt_usd(obj.price))
 
 
 
@@ -1020,7 +1027,7 @@ class DriverAdmin(admin.ModelAdmin):
 
     @admin.display(description='Earnings', ordering='total_earnings')
     def earnings_display(self, obj):
-        return format_html('<span style="font-weight:700;color:#27ae60;">${}</span>', f"{float(obj.total_earnings):.2f}")
+        return format_html('<span style="font-weight:700;color:#27ae60;">${}</span>', _fmt_usd(obj.total_earnings))
 
     @admin.action(description='Approve Selected Drivers')
     def approve_drivers(self, request, queryset):
@@ -1174,8 +1181,10 @@ class WalletAdmin(admin.ModelAdmin):
 
     @admin.display(description='Balance (USD & KHR)')
     def balance_display(self, obj):
-        usd_str = f"${float(obj.balance):.2f}"
-        khr_str = f"៛{int(float(obj.balance) * 4100):,} KHR"
+        bal = Decimal(str(obj.balance if obj.balance is not None else '0'))
+        usd_str = f"${_fmt_usd(bal)}"
+        khr_amount = int((bal * Decimal('4100')).to_integral_value(rounding=ROUND_HALF_UP))
+        khr_str = f"៛{khr_amount:,} KHR"
         return format_html(
             '<strong style="color:#27ae60;font-size:14px;">{}</strong> <span style="color:#888;font-size:11px;">(≈ {})</span>',
             usd_str, khr_str
@@ -1221,8 +1230,7 @@ class WalletTransactionAdmin(admin.ModelAdmin):
         is_pos = obj.transaction_type in ('deposit', 'refund')
         sign = '+' if is_pos else '-'
         color = '#27ae60' if is_pos else '#e74c3c'
-        amt_str = f"{float(obj.amount):.2f}"
-        return format_html('<strong style="color:{};">{}${}</strong>', color, sign, amt_str)
+        return format_html('<strong style="color:{};">{}${}</strong>', color, sign, _fmt_usd(obj.amount))
 
 
 @admin.register(DeliveryConfirmationToken)

@@ -301,8 +301,9 @@ if 'VERCEL' in os.environ:
             CSRF_TRUSTED_ORIGINS.append(_vercel_origin)
 
 IS_TESTING = 'test' in sys.argv
+IS_BUILD_COMMAND = any(cmd in sys.argv for cmd in ('collectstatic', 'makemigrations', 'check'))
 
-if not DEBUG and not IS_TESTING:
+if not DEBUG and not IS_TESTING and not IS_BUILD_COMMAND:
     if SECRET_KEY == _DEV_INSECURE_SECRET_KEY or len(SECRET_KEY) < 32:
         from django.core.exceptions import ImproperlyConfigured
         raise ImproperlyConfigured('SECRET_KEY environment variable must be explicitly configured with >=32 chars when DEBUG=False.')

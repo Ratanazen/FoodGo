@@ -17,8 +17,8 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 
 | Package | Contents |
 | :--- | :--- |
-| **[`Slide/video/FoodGo_v2_Showcase.mp4`](./Slide/video/FoodGo_v2_Showcase.mp4)** | Full HD (`1920×1080`, 30 FPS) FoodGo v2.0 Showcase Video with Khmer neural voiceover (`km-KH-SreymomNeural`), bilingual subtitles, and ambient soundtrack |
-| **[`APK/`](./APK/)** | Android Release APK download guide, SHA-1 checksum, API host setup, and instant QR login passcodes |
+| **[`Slide/video/FoodGo_v2_Showcase.mp4`](./Slide/video/FoodGo_v2_Showcase.mp4)** | Full HD (`1920×1080`, 30 FPS, `8m 41s`) ACLEDA University Capstone Presentation Video with Khmer neural voiceover (`km-KH-PisethNeural`), bilingual Khmer/English subtitles ([`.srt`](./Slide/video/foodgo-presentation.srt) / [`.vtt`](./Slide/video/foodgo-presentation.vtt)), live 4-portal Flutter demo recordings, and custom D-major soundtrack |
+| **[`APK/`](./APK/)** | Universal Android Release APK ([`FoodGo-v2.0-release.apk`](./APK/FoodGo-v2.0-release.apk), 89.0 MB `arm64-v8a` / `armeabi-v7a` / `x86_64`), SHA-1 & SHA-256 checksums, installation guide, and demo accounts |
 | **[`Database/`](./Database/)** | Pre-seeded `db.sqlite3`, full SQL schema/seed dump (`foodgo_schema_and_seed.sql`), and Entity-Relationship Diagram |
 | **[`Figma/`](./Figma/)** | Interactive Figma Design System & Multi-Screen Canvas (`FoodGo_v2_Figma_Design_Showcase.html`) and handoff specs |
 | **[`Slide/`](./Slide/)** | Interactive HTML Presentation Deck (`FoodGo_v2_Presentation_Slide.html`), Markdown Slide Deck, and QA Report |

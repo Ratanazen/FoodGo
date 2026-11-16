@@ -1,16 +1,11 @@
-# FoodGo v2.0 Showcase Video — Technical Fact Check
+# FoodGo v2.0 Presentation Video — Technical Fact Check
 
-All technical claims presented in the storyboard, script, and documentation have been verified against the actual codebase:
+All architectural counts, payment workflows, and QA test figures presented in the video were verified against the repository:
 
-1. **Claim**: *Non-blocking splash screen with instant startup.*
-   - **Fact Check**: **VERIFIED**. `SecureStorage` runs with an 800ms timeout and `SharedPreferences` fallback; `SplashScreen` includes a post-frame callback fallback timer (2600ms) and tap-to-continue gesture detector.
-2. **Claim**: *Bilingual support in Khmer and English.*
-   - **Fact Check**: **VERIFIED**. `LanguageProvider` handles `en` and `km` with persistent storage and dynamic translation in `AppLocalizationContext`.
-3. **Claim**: *Authentic NBC Bakong KHQR scan-to-pay.*
-   - **Fact Check**: **VERIFIED**. `GlassQrPayModal` implements custom QR painting, USD/KHR toggle (`1 USD = 4,100 ៛`), live countdown timer, and bank badges (*ABA, Bakong, ACLEDA, Wing*).
-4. **Claim**: *Driver Delivery Portal with duty toggle and radar.*
-   - **Fact Check**: **VERIFIED**. `DriverDashboardScreen` (`/driver`) implements online/offline duty status, 30s incoming order radar, and trip progression.
-5. **Claim**: *Restaurant Kitchen Display System (KDS).*
-   - **Fact Check**: **VERIFIED**. `AdminDashboardScreen` (`/admin`) implements live orders Kanban board (Pending, Preparing, Ready, Dispatched) and instant menu item stock availability toggle.
-6. **Claim**: *Comprehensive automated testing.*
-   - **Fact Check**: **VERIFIED**. 9/9 Flutter unit tests passed (`flutter test`), `flutter analyze` has 0 issues, and 5/5 Django REST API tests passed (`python manage.py test core`).
+1. **Multi-Role Architecture (`Customer`, `Driver`, `Restaurant Owner`, `Admin`)**: **VERIFIED** across `foodgo_flutter/` screens and `backend/core/` views, including JWT authentication (`SafeJWTAuthentication`) and SMS OTP verification (`tests_phone_otp.py`).
+2. **Bilingual Khmer/English UX & 16 `GlassTheme` Palettes**: **VERIFIED** via `LanguageProvider`, `AppTranslations`, `ThemeProvider`, and Flutter localization/contrast test suites.
+3. **NBC Bakong KHQR (`EMVCo CRC16-CCITT`) & `1 USD = 4,100 KHR` Dual Currency**: **VERIFIED** across `backend/core/payment_views.py`, `backend/core/tests_payment.py`, and Flutter `GlassQrPayModal`.
+4. **Concurrency-Safe Driver Dispatch & WebSocket Live Tracking**: **VERIFIED** via `select_for_update()` database row locking and Django Channels `OrderTrackingConsumer` (`backend/core/tests_tracking_ws.py`).
+5. **Cryptographic 6-Digit PIN & QR Delivery Handover**: **VERIFIED** via `/api/orders/<id>/delivery_qr/` and `/api/orders/<id>/confirm_delivery/`.
+6. **Automated Test Verification (`474` Application Tests)**: **VERIFIED** (`225` Django core tests via `backend/manage.py test core` + `249` Flutter tests via `foodgo_flutter` `flutter test`, with `dart format` and `flutter analyze --no-fatal-infos` passing).
+7. **Media Integrity (`ffprobe` + `ffmpeg` Decode)**: **VERIFIED** (`1920×1080`, `30 FPS`, H.264 + AAC stereo, `520.70s`, `0` decode errors).

@@ -64,5 +64,6 @@ output/scripts/studio_master/qa_frames/
 output/previews/styles/
 *.wav
 *.mp4
+!Slide/video/*.mp4
 
 

@@ -1,42 +1,16 @@
-# FoodGo v2.0 Showcase Video — Khmer Voiceover Script & Subtitles
-## អត្ថបទសម្លេងអានជាភាសាខ្មែរ (Khmer Voiceover Script)
+# FoodGo v2.0 Presentation Video — Khmer Narration & Bilingual Subtitles
+
+- **Voice Engine**: `edge-tts` (`km-KH-PisethNeural`, rate `+0%`)
+- **Total Cues**: `48` bilingual Khmer + English cues (also exported in [`foodgo-presentation.srt`](./foodgo-presentation.srt) and [`foodgo-presentation.vtt`](./foodgo-presentation.vtt))
 
 ---
 
-### Scene 1: ការណែនាំអំពី FoodGo v2.0 (Introduction)
-- **សម្លេងអាន (Voiceover - KM)**:  
-  "សូមស្វាគមន៍មកកាន់ FoodGo កំណែទម្រង់ថ្មី 2.0! កម្មវិធីកុម្ម៉ង់អាហារឈានមុខគេនៅកម្ពុជា ដែលត្រូវបានរចនាឡើងវិញយ៉ាងប្រណិត ជាមួយរចនាបថ Emerald Glass និងដំណើរការលឿនរហ័ស គ្មានការរអាក់រអួលឡើយ។"
-- **Subtitle (EN)**:  
-  "Welcome to FoodGo v2.0! Cambodia's premier food delivery experience, fully redesigned with the Emerald Glass aesthetic and lightning-fast responsiveness."
+## Key Script Segments
 
----
+- **01 · Introduction (`00:00 – 00:45`)**: Introduces the 5-member ACLEDA University capstone team (`01 Em Ratana`, `02 Hen Yaungkuy`, `03 Than Sombath Borarat`, `04 Cheang borin`, `05 Ly KimChhun`) and the multi-role Phnom Penh food delivery platform.
+- **02–04 · Problem, Objectives & Solution (`00:45 – 02:51`)**: Contrasts manual USD/KHR calculation, screenshot payment slips, and HTTP polling against FoodGo's 1-tap bilingual UI, `1 USD = 4,100 KHR` pricing, dynamic Bakong KHQR, JWT/OTP security, and WebSocket event push.
+- **05A–07 · Features, Tech Stack & Architecture (`02:51 – 05:21`)**: Covers `16` `GlassTheme` palettes, `FOODGO30` promo logic, EMVCo CRC16-CCITT KHQR (`Bakong`, `ABA`, `ACLEDA`, `Wing`), `31` Flutter screens, `59` Django REST/WebSocket API routes, `26` ORM models, PostgreSQL + Redis, and OpenStreetMap OSRM routing.
+- **08A–08D · Real App Walkthroughs (`05:21 – 07:33`)**: Demonstrates end-to-end Flutter checkout, live Phnom Penh courier tracking, atomic driver job claims (`select_for_update()`), 6-digit PIN / QR handover confirmation, and Owner/Admin Console telemetry + `AuditLog`.
+- **09–10 · Verified Results & Conclusion (`07:33 – 08:41`)**: Summarizes `474` verified automated software checks (`225` Django core + `249` Flutter tests), race-condition/WebSocket engineering fixes, production roadmap, and Capstone Q&A closing.
 
-### Scene 2: រសជាតិម្ហូបខ្មែរពិតៗ និងការកំណត់ចំណូលចិត្ត (Culinary Discovery)
-- **សម្លេងអាន (Voiceover - KM)**:  
-  "នៅកំណែទម្រង់ថ្មីនេះ FoodGo បាននាំមកជូននូវមុខម្ហូបខ្មែរល្បីៗជាច្រើន ដូចជា អាម៉ុកត្រីរាជធានី, ឡុកឡាក់សាច់គោសៀមរាប, គុយទាវភ្នំពេញ និងបាយសាច់ជ្រូក។ លោកអ្នកអាចកំណត់កម្រិតហិរ, ទំហំចំណែក និងបន្ថែមគ្រឿងផ្សំបានយ៉ាងងាយស្រួល តាមរយៈផ្ទាំង Food Customizer។"
-- **Subtitle (EN)**:  
-  "In this new release, FoodGo brings authentic Cambodian delicacies: Royal Fish Amok, Siem Reap Beef Lok Lak, Phnom Penh Kuy Teav, and Bai Sach Chrouk with full portion, spice, and topping customization."
-
----
-
-### Scene 3: ការទូទាត់ប្រាក់រហ័សតាម KHQR (Instant KHQR Pay)
-- **សម្លេងអាន (Voiceover - KM)**:  
-  "ការទូទាត់ប្រាក់កាន់តែមានភាពងាយស្រួល និងសុវត្ថិភាពខ្ពស់ ជាមួយប្រព័ន្ធ KHQR របស់ធនាគារជាតិនៃកម្ពុជា។ លោកអ្នកអាចស្កេនទូទាត់ប្រាក់ភ្លាមៗ ជាប្រាក់ដុល្លារ ឬប្រាក់រៀល តាមរយៈ ABA, Bakong, ធនាគារអេស៊ីលីដា និង Wing។"
-- **Subtitle (EN)**:  
-  "Payments are seamless and secure with NBC's KHQR standard. Scan and pay instantly in USD or KHR via ABA, Bakong, ACLEDA, and Wing."
-
----
-
-### Scene 4: ផ្ទាំងការងារអ្នកដឹក និងភោជនីយដ្ឋាន (Driver & Kitchen Portals)
-- **សម្លេងអាន (Voiceover - KM)**:  
-  "មិនត្រឹមតែសម្រាប់អតិថិជនប៉ុណ្ណោះទេ FoodGo v2.0 បានបំពាក់នូវផ្ទាំងគ្រប់គ្រងសម្រាប់អ្នកដឹកជញ្ជូន និងផ្ទាំងគ្រប់គ្រងផ្ទះបាយ KDS សម្រាប់ភោជនីយដ្ឋាន ដែលជួយសម្រួលដល់ការចម្អិន និងការដឹកជញ្ជូនទាន់ពេលវេលា។"
-- **Subtitle (EN)**:  
-  "Beyond consumers, FoodGo v2.0 features dedicated portals for delivery drivers and a live Kitchen Display System (KDS) for restaurant managers."
-
----
-
-### Scene 5: សេចក្តីសន្និដ្ឋាន (Conclusion)
-- **សម្លេងអាន (Voiceover - KM)**:  
-  "FoodGo v2.0 — ស្រស់ថ្មី លឿនរហ័ស និងឈានមុខគេលើគ្រប់ឧបករណ៍ ទាំង iOS, Android និង Web!"
-- **Subtitle (EN)**:  
-  "FoodGo v2.0 — Fresh, fast, and premier on iOS, Android, and Web!"
+Full line-by-line timecoded Khmer and English cues are stored in [`foodgo-presentation.srt`](./foodgo-presentation.srt) and [`foodgo-presentation.vtt`](./foodgo-presentation.vtt).

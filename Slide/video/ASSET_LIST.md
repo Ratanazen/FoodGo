@@ -1,12 +1,10 @@
-# FoodGo v2.0 Showcase Video — Media Asset List
+# FoodGo v2.0 Presentation Video — Media Asset List
 
-| Asset Name | Type | Specifications | Location / Source |
-|---|---|---|---|
-| `logo_anim` | Vector Motion Graphic | 1080p 60fps, Transparent | FoodGo emerald brand identity |
-| `phnom_penh_skyline` | B-Roll Footage / Photo | 4K / 1080p Stock | Phnom Penh urban landscape |
-| `food_fish_amok` | High-Res Photography | 1200×800 Unsplash Commercial | Royal Fish Amok in banana leaf |
-| `food_beef_loklak` | High-Res Photography | 1200×800 Unsplash Commercial | Wok-seared beef with Kampot pepper |
-| `food_kuy_teav` | High-Res Photography | 1200×800 Unsplash Commercial | Traditional clear bone broth noodle soup |
-| `khqr_frame` | Custom Painted Vector UI | Authentic NBC standard | `GlassQrPayModal` CustomPainter |
-| `map_osm_tiles` | Vector Tile Layer | Standard OpenStreetMap | Flutter Map TileLayer |
-| `bg_audio_khmer` | Audio Track (320kbps MP3) | Royalty-Free Electronic + Roneat | Production Audio Library |
+| Asset | Type | Specifications | Source |
+| :--- | :--- | :--- | :--- |
+| `FoodGo_v2_Showcase.mp4` | Final Master Video | `1920×1080`, `30 FPS`, H.264 + Stereo AAC, `520.70s` (`86.8 MiB`) | `output/final/foodgo-presentation.mp4` |
+| `foodgo-presentation.srt/.vtt` | Synchronized Captions | `48` bilingual Khmer + English cues | `output/subtitles/foodgo-presentation.{srt,vtt}` |
+| `ch01_intro.mp4` – `ch12_qa_outro.mp4` | Live App Captures | Real Flutter Mobile/Web screen recordings embedded across phone mockups | `output/capcut-pack/media/01_raw_mobile_clips/` |
+| `acleda_logo` | University Crest | ACLEDA University emblem pill (`សាកលវិទ្យាល័យ ពាណិជ្ជសាស្រ្ត អេស៊ីលីដា`) | `output/scripts/studio_master/assets/` |
+| `minato_avatar` | Presenter Sprites | Multi-pose transparent PNG presenter sprites | `artifacts/avatar/` |
+| `master_mix.wav` | Stereo Audio Master | `km-KH-PisethNeural` Khmer VO + D-major ambient soundtrack + transition SFX | `output/scripts/studio_master/build_master_audio.py` |

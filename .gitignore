@@ -56,6 +56,13 @@ frontend/.eslintcache
 # Local Video / Studio Render Artifacts & Large Media
 artifacts/
 whatif-2d-studio/
-output/final/*.mp4
+output/final/
+output/capcut-pack/FoodGo_CapCut_Draft/
+output/capcut-pack/media/
+output/scripts/studio_master/assets/
+output/scripts/studio_master/qa_frames/
+output/previews/styles/
+*.wav
+*.mp4
 
 

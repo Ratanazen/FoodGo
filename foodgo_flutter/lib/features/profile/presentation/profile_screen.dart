@@ -31,9 +31,14 @@ class ProfileScreen extends StatelessWidget {
         final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
         final isKhmer = Localizations.localeOf(dialogCtx).languageCode == 'km';
         return AlertDialog(
-          backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+          backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : GlassTheme.borderLight,
+            ),
           ),
           title: Text(
             context.tr('settings.logoutConfirmTitle'),
@@ -149,13 +154,13 @@ class ProfileScreen extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: isDark ? GlassTheme.dialogDark : Colors.white,
+                color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(28),
                 ),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
+                      ? GlassTheme.dynamicBorderDark
                       : Colors.black.withValues(alpha: 0.08),
                 ),
               ),
@@ -346,23 +351,17 @@ class ProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? GlassTheme.surfaceCardDark
+                                ? GlassTheme.dynamicSurfaceCardDark
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(28),
                             border: Border.all(
                               color: isDark
-                                  ? Colors.white.withValues(alpha: 0.1)
+                                  ? GlassTheme.dynamicBorderDark
                                   : const Color(0xFFE5E7EB),
                               width: 1.0,
                             ),
                             boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: isDark ? 0.25 : 0.04,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
+                              GlassTheme.dynamicSoftShadow(isDark: isDark),
                             ],
                           ),
                           child: Column(
@@ -1078,14 +1077,14 @@ class ProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: sheetDark
-                              ? GlassTheme.dialogDark
+                              ? GlassTheme.dynamicDialogDark
                               : Colors.white,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(28),
                           ),
                           border: Border.all(
                             color: sheetDark
-                                ? Colors.white.withValues(alpha: 0.1)
+                                ? GlassTheme.dynamicBorderDark
                                 : Colors.black.withValues(alpha: 0.08),
                           ),
                         ),
@@ -1188,14 +1187,14 @@ class ProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: sheetDark
-                              ? GlassTheme.dialogDark
+                              ? GlassTheme.dynamicDialogDark
                               : Colors.white,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(28),
                           ),
                           border: Border.all(
                             color: sheetDark
-                                ? Colors.white.withValues(alpha: 0.1)
+                                ? GlassTheme.dynamicBorderDark
                                 : Colors.black.withValues(alpha: 0.08),
                           ),
                         ),
@@ -1411,23 +1410,19 @@ class _ProfileOption extends StatelessWidget {
                     ? (isDark
                           ? const Color(0xFF2D1214)
                           : const Color(0xFFFEF2F2))
-                    : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
+                    : (isDark
+                          ? GlassTheme.dynamicSurfaceCardDark
+                          : Colors.white),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isDestructive
                       ? const Color(0xFFFCA5A5)
                       : (isDark
-                            ? Colors.white.withValues(alpha: 0.1)
+                            ? GlassTheme.dynamicBorderDark
                             : const Color(0xFFE5E7EB)),
                   width: 1.0,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
               ),
               child: Row(
                 children: [

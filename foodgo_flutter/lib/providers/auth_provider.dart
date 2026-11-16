@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../core/network/api_client.dart';
@@ -90,11 +89,10 @@ class AuthProvider with ChangeNotifier {
       });
       return true;
     } catch (e) {
-      if (e is DioException && e.response?.data is Map) {
-        _lastAuthError = e.response!.data['error']?.toString();
-      } else {
-        _lastAuthError = 'Unable to dispatch SMS verification code.';
-      }
+      _lastAuthError = ApiService.formatError(
+        e,
+        fallback: 'Unable to dispatch SMS verification code.',
+      );
       notifyListeners();
       return false;
     }
@@ -123,11 +121,10 @@ class AuthProvider with ChangeNotifier {
       }
       return false;
     } catch (e) {
-      if (e is DioException && e.response?.data is Map) {
-        _lastAuthError = e.response!.data['error']?.toString();
-      } else {
-        _lastAuthError = 'Invalid or expired verification code.';
-      }
+      _lastAuthError = ApiService.formatError(
+        e,
+        fallback: 'Invalid or expired verification code.',
+      );
       notifyListeners();
       return false;
     }

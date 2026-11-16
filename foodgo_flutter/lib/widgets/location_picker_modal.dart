@@ -161,7 +161,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
     return Container(
       height: size.height * 0.88,
       decoration: BoxDecoration(
-        color: isDark ? GlassTheme.dialogDark : Colors.white,
+        color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: ClipRRect(
@@ -424,7 +424,9 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
                       margin: const EdgeInsets.only(top: 6),
                       constraints: const BoxConstraints(maxHeight: 210),
                       decoration: BoxDecoration(
-                        color: isDark ? GlassTheme.dialogDark : Colors.white,
+                        color: isDark
+                            ? GlassTheme.dynamicDialogDark
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
@@ -434,7 +436,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
                         ],
                         border: Border.all(
                           color: isDark
-                              ? Colors.white12
+                              ? GlassTheme.dynamicBorderDark
                               : const Color(0xFFE2E8F0),
                         ),
                       ),
@@ -544,7 +546,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
               child: Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: isDark ? GlassTheme.dialogDark : Colors.white,
+                  color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -554,7 +556,9 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
                     ),
                   ],
                   border: Border.all(
-                    color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? GlassTheme.dynamicBorderDark
+                        : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: Column(

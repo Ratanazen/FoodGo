@@ -7,6 +7,7 @@ import '../core/theme/app_typography.dart';
 import '../core/theme/glass_theme.dart';
 import '../core/utils/khmer_currency.dart';
 import '../providers/favorites_provider.dart';
+import 'glass/animated_pressable.dart';
 import 'shimmer_widgets.dart';
 
 class FoodDeliveryCard extends StatefulWidget {
@@ -53,29 +54,24 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
         ? banner
         : fallbackBanner;
 
-    return InkWell(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedPressable(
       onTap: widget.onTap,
-      borderRadius: BorderRadius.circular(18),
+      pressedScale: 0.985,
+      hoverScale: 1.01,
       child: Container(
         width: width,
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? GlassTheme.surfaceCardDark
-              : Colors.white,
+          color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.08)
+            color: isDark
+                ? GlassTheme.dynamicBorderDark
                 : GlassTheme.borderLight,
-            width: 1,
+            width: 1.1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,7 +175,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                             ),
                             duration: const Duration(seconds: 1),
                             behavior: SnackBarBehavior.floating,
-                            backgroundColor: GlassTheme.surfaceDark,
+                            backgroundColor: GlassTheme.dynamicSurfaceDark,
                           ),
                         );
                       },
@@ -266,20 +262,24 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                          horizontal: 7,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: GlassTheme.ratingAmber.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
+                          color: isDark
+                              ? GlassTheme.ratingAmber.withValues(alpha: 0.16)
+                              : const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               AppIcons.star,
                               size: 12,
-                              color: GlassTheme.ratingAmber,
+                              color: isDark
+                                  ? GlassTheme.ratingAmber
+                                  : const Color(0xFFB45309),
                             ),
                             const SizedBox(width: 3),
                             Text(
@@ -287,9 +287,7 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     fontWeight: FontWeight.w700,
-                                    color:
-                                        Theme.of(context).brightness ==
-                                            Brightness.dark
+                                    color: isDark
                                         ? GlassTheme.ratingAmber
                                         : const Color(0xFFB45309),
                                   ),
@@ -352,7 +350,9 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                         '15% OFF \$10+',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: GlassTheme.foodpandaPink,
+                          color: isDark
+                              ? GlassTheme.foodpandaPink
+                              : const Color(0xFFBE185D),
                         ),
                       ),
                     ],

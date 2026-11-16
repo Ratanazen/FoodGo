@@ -63,46 +63,63 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: BorderSide(
-            color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
-          ),
-        ),
-        title: Text(
-          'Admin Log Out',
-          style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'Are you sure you want to log out of the Admin Console?',
-          style: TextStyle(color: secondaryText),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text('Cancel', style: TextStyle(color: secondaryText)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              await context.read<AuthProvider>().logout();
-              if (!context.mounted) return;
-              context.read<UserProvider>().clearUser();
-              context.go('/login');
-            },
-            child: const Text(
-              'Log Out',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+      builder: (dialogCtx) {
+        final textTheme = Theme.of(dialogCtx).textTheme;
+        return AlertDialog(
+          backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : const Color(0xFFE5E7EB),
             ),
           ),
-        ],
-      ),
+          title: Text(
+            'Admin Log Out',
+            style: textTheme.titleLarge?.copyWith(
+              color: primaryText,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to log out of the Admin Console?',
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(
+                'Cancel',
+                style: textTheme.labelLarge?.copyWith(color: secondaryText),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                await context.read<AuthProvider>().logout();
+                if (!context.mounted) return;
+                context.read<UserProvider>().clearUser();
+                context.go('/login');
+              },
+              child: Text(
+                'Log Out',
+                style: textTheme.labelLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

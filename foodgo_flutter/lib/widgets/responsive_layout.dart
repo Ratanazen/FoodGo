@@ -173,22 +173,16 @@ class WebHeaderNavBar extends StatelessWidget {
       height: 72,
       padding: const EdgeInsets.symmetric(horizontal: 28.0),
       decoration: BoxDecoration(
-        color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+        color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
         border: Border(
           bottom: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.08),
+                ? GlassTheme.dynamicBorderDark
+                : GlassTheme.borderLight,
             width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
       ),
       child: Center(
         child: ConstrainedBox(

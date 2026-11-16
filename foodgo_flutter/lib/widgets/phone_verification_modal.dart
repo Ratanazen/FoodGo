@@ -188,13 +188,13 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
       _startCooldown(cooldown);
     } catch (e) {
       if (!mounted) return;
-      String err =
-          'Unable to send verification SMS. Please check your number and retry.';
+      final err = ApiService.formatError(
+        e,
+        fallback:
+            'Unable to send verification SMS. Please check your number and retry.',
+      );
       if (e is DioException && e.response?.data is Map) {
         final data = e.response!.data as Map;
-        if (data['error'] != null) {
-          err = data['error'].toString();
-        }
         final waitSec = (data['cooldown_seconds'] as num?)?.toInt();
         if (waitSec != null && waitSec > 0) {
           _startCooldown(waitSec);
@@ -251,13 +251,10 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
       }
     } catch (e) {
       if (!mounted) return;
-      String err = 'Invalid verification code. Please check and retry.';
-      if (e is DioException && e.response?.data is Map) {
-        final data = e.response!.data as Map;
-        if (data['error'] != null) {
-          err = data['error'].toString();
-        }
-      }
+      final err = ApiService.formatError(
+        e,
+        fallback: 'Invalid verification code. Please check and retry.',
+      );
       setState(() {
         _isLoading = false;
         _errorMessage = err;
@@ -292,12 +289,12 @@ class _PhoneVerificationSheetState extends State<_PhoneVerificationSheet> {
         child: Container(
           decoration: BoxDecoration(
             color: isDark
-                ? GlassTheme.dialogDark
+                ? GlassTheme.dynamicDialogDark
                 : Colors.white.withValues(alpha: 0.96),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? GlassTheme.dynamicBorderDark
                   : Colors.black.withValues(alpha: 0.08),
             ),
           ),

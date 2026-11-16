@@ -28,6 +28,7 @@ class _WalletScreenState extends State<WalletScreen> {
   bool _isLoading = true;
   bool _isProcessing = false;
   Map<String, dynamic>? _wallet;
+  String? _walletError;
   final TextEditingController _amountController = TextEditingController(
     text: '10.00',
   );
@@ -52,7 +53,10 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<void> _fetchWallet() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _walletError = null;
+    });
     try {
       final hasToken = await SecureStorage().hasAccessToken();
       if (!hasToken) {
@@ -63,11 +67,20 @@ class _WalletScreenState extends State<WalletScreen> {
       final data = await _api.get('wallets/my_wallet/');
       if (!mounted) return;
       setState(() {
-        _wallet = data;
+        _wallet = data is Map<String, dynamic> ? data : null;
+        _walletError = null;
         _isLoading = false;
       });
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _walletError = ApiService.formatError(
+            e,
+            fallback: 'Unable to load wallet balance. Pull down to retry.',
+          );
+        });
+      }
     }
   }
 
@@ -150,13 +163,15 @@ class _WalletScreenState extends State<WalletScreen> {
         context: context,
         builder: (dialogCtx) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+            backgroundColor: isDark
+                ? GlassTheme.dynamicDialogDark
+                : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
               side: BorderSide(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.08),
+                    ? GlassTheme.dynamicBorderDark
+                    : GlassTheme.borderLight,
               ),
             ),
             title: Row(
@@ -467,7 +482,12 @@ class _WalletScreenState extends State<WalletScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogCtx).pop(),
-                child: Text('Close', style: TextStyle(color: secondaryText)),
+                child: Text(
+                  'Close',
+                  style: Theme.of(
+                    dialogCtx,
+                  ).textTheme.labelLarge?.copyWith(color: secondaryText),
+                ),
               ),
             ],
           ),
@@ -524,6 +544,50 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(16.0),
                     children: [
+                      if (_walletError != null) ...[
+                        GlassContainer(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          customColor: Colors.redAccent.withValues(
+                            alpha: isDark ? 0.16 : 0.1,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: isDark
+                                    ? const Color(0xFFFCA5A5)
+                                    : const Color(0xFFB91C1C),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _walletError!,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: primaryText,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: _fetchWallet,
+                                child: Text(
+                                  'Retry',
+                                  style: textTheme.labelLarge?.copyWith(
+                                    color: accentGreen,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       // Balance Card
                       GlassContainer(
                             padding: const EdgeInsets.all(24),

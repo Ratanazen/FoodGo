@@ -81,13 +81,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark ? GlassTheme.dialogDark : Colors.white,
+              color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(28),
               ),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
+                    ? GlassTheme.dynamicBorderDark
                     : Colors.black.withValues(alpha: 0.08),
               ),
             ),
@@ -175,13 +175,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark ? GlassTheme.dialogDark : Colors.white,
+              color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(28),
               ),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
+                    ? GlassTheme.dynamicBorderDark
                     : Colors.black.withValues(alpha: 0.08),
               ),
             ),
@@ -317,9 +317,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (dialogCtx) {
             final textTheme = Theme.of(dialogCtx).textTheme;
             return AlertDialog(
-              backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+              backgroundColor: isDark
+                  ? GlassTheme.dynamicDialogDark
+                  : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
+                side: BorderSide(
+                  color: isDark
+                      ? GlassTheme.dynamicBorderDark
+                      : GlassTheme.borderLight,
+                ),
               ),
               titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -682,9 +689,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ? GlassTheme.primaryGreenAccent
             : const Color(0xFF15803D);
         return AlertDialog(
-          backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+          backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : GlassTheme.borderLight,
+            ),
           ),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -820,9 +832,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ? const Color(0xFFFBBF24)
               : const Color(0xFFB45309);
           return AlertDialog(
-            backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+            backgroundColor: isDark
+                ? GlassTheme.dynamicDialogDark
+                : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
+              side: BorderSide(
+                color: isDark
+                    ? GlassTheme.dynamicBorderDark
+                    : GlassTheme.borderLight,
+              ),
             ),
             title: Text(
               'Rate FoodGo Experience',
@@ -907,7 +926,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ],
                       ),
                       backgroundColor: isDark
-                          ? GlassTheme.cardDark
+                          ? GlassTheme.dynamicCardDark
                           : const Color(0xFF15803D),
                     ),
                   );
@@ -1436,7 +1455,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.dialogDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(
               color: isDark
@@ -1602,8 +1621,13 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
     final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
 
     return AlertDialog(
-      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isDark ? GlassTheme.dynamicBorderDark : GlassTheme.borderLight,
+        ),
+      ),
       title: Row(
         children: [
           Icon(Icons.warning_amber_rounded, color: dangerColor),

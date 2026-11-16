@@ -258,7 +258,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ? GlassTheme.primaryGreen
               : GlassTheme.primaryGreenDark;
           final sectionBorder = isDark
-              ? Colors.white.withValues(alpha: 0.12)
+              ? GlassTheme.dynamicBorderDark
               : Colors.black.withValues(alpha: 0.08);
           final surfaceFill = isDark
               ? Colors.white.withValues(alpha: 0.05)
@@ -267,7 +267,7 @@ class _SearchScreenState extends State<SearchScreen> {
           return ResponsiveBottomSheet(
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? GlassTheme.dialogDark : Colors.white,
+                color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(28),
                 ),
@@ -651,13 +651,13 @@ class _SearchScreenState extends State<SearchScreen> {
           return ResponsiveBottomSheet(
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? GlassTheme.dialogDark : Colors.white,
+                color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(28),
                 ),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
+                      ? GlassTheme.dynamicBorderDark
                       : Colors.black.withValues(alpha: 0.08),
                 ),
               ),
@@ -866,10 +866,11 @@ class _SearchScreenState extends State<SearchScreen> {
                           SnackBar(
                             content: Text(
                               'Added $qty "$name" to your cart!',
-                              style: const TextStyle(color: Colors.white),
+                              style: Theme.of(sheetCtx).textTheme.bodyMedium
+                                  ?.copyWith(color: Colors.white),
                             ),
                             duration: const Duration(seconds: 2),
-                            backgroundColor: GlassTheme.surfaceDark,
+                            backgroundColor: GlassTheme.dynamicSurfaceDark,
                             behavior: SnackBarBehavior.floating,
                             action: SnackBarAction(
                               label: 'View Cart',

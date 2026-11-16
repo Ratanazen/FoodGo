@@ -220,9 +220,12 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
       if (!mounted || requestId != _requestId) return;
       setState(() {
         _isLoading = false;
-        _errorMessage =
-            'Could not reach FoodGo to issue a verified delivery code. '
-            'No handover can be confirmed until the code loads.';
+        _errorMessage = ApiService.formatError(
+          error,
+          fallback:
+              'Could not reach FoodGo to issue a verified delivery code. '
+              'No handover can be confirmed until the code loads.',
+        );
       });
     }
   }

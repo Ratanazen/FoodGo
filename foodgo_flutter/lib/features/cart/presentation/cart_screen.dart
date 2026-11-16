@@ -178,12 +178,17 @@ class _CartScreenState extends State<CartScreen> {
           ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${removedItem.name} removed from cart'),
-              backgroundColor: GlassTheme.dialogDark,
+              content: Text(
+                '${removedItem.name} removed from cart',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              ),
+              backgroundColor: GlassTheme.dynamicDialogDark,
               behavior: SnackBarBehavior.floating,
               action: SnackBarAction(
                 label: 'UNDO',
-                textColor: GlassTheme.primaryGreen,
+                textColor: GlassTheme.limeAccent,
                 onPressed: () {
                   for (int i = 0; i < qty; i++) {
                     cart.addItem(
@@ -201,23 +206,17 @@ class _CartScreenState extends State<CartScreen> {
           );
         },
         child: Container(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(14.0),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? GlassTheme.dynamicBorderDark
                   : const Color(0xFFE5E7EB),
               width: 1.0,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
           ),
           child: Row(
             children: [
@@ -930,10 +929,15 @@ class _CartScreenState extends State<CartScreen> {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           backgroundColor: isDark
-                              ? GlassTheme.dialogDark
+                              ? GlassTheme.dynamicDialogDark
                               : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
+                            side: BorderSide(
+                              color: isDark
+                                  ? GlassTheme.dynamicBorderDark
+                                  : GlassTheme.borderLight,
+                            ),
                           ),
                           title: Text(
                             'Clear Cart?',

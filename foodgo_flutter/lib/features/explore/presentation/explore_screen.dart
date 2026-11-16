@@ -95,6 +95,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         color: surfaceFill,
                         borderRadius: BorderRadius.circular(28),
                         border: Border.all(color: surfaceBorder),
+                        boxShadow: [
+                          GlassTheme.dynamicSoftShadow(isDark: isDark),
+                        ],
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
@@ -147,6 +150,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         children: List.generate(_filters.length, (index) {
                           final isSelected = _activeFilterIndex == index;
                           final filter = _filters[index];
+                          final primaryColor = Theme.of(
+                            context,
+                          ).colorScheme.primary;
+                          final onPrimaryColor = Theme.of(
+                            context,
+                          ).colorScheme.onPrimary;
                           return Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: InkWell(
@@ -157,22 +166,34 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               borderRadius: BorderRadius.circular(20),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
+                                constraints: const BoxConstraints(
+                                  minHeight: 40,
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 14,
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? GlassTheme.limeAccent
+                                      ? primaryColor
                                       : surfaceFill,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
                                     color: isSelected
-                                        ? (isDark
-                                              ? GlassTheme.limeAccent
-                                              : Colors.black12)
+                                        ? primaryColor
                                         : surfaceBorder,
                                   ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: primaryColor.withValues(
+                                              alpha: 0.25,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -182,7 +203,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         assetName: filter['svg'] as String,
                                         size: 14,
                                         color: isSelected
-                                            ? Colors.black
+                                            ? onPrimaryColor
                                             : secondaryText,
                                       ),
                                       const SizedBox(width: 6),
@@ -191,10 +212,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       filter['label'] as String,
                                       style: textTheme.bodySmall?.copyWith(
                                         fontWeight: isSelected
-                                            ? FontWeight.w900
+                                            ? FontWeight.w800
                                             : FontWeight.w600,
                                         color: isSelected
-                                            ? Colors.black
+                                            ? onPrimaryColor
                                             : primaryText,
                                       ),
                                     ),

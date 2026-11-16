@@ -117,7 +117,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Could not access ${source == ImageSource.camera ? "camera" : "gallery"}: $e',
+              'Could not access ${source == ImageSource.camera ? "camera" : "gallery"}. Please check app permissions and try again.',
             ),
             backgroundColor: Colors.redAccent,
           ),

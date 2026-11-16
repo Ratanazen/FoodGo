@@ -2240,13 +2240,31 @@ class ForgotPasswordView(APIView):
         is_phone = bool(re.match(r'^\+?[0-9\s\-()]{7,20}$', target) and '@' not in target)
 
         if is_phone:
-            try:
-                from .phone_views import dispatch_phone_otp
-                dispatch_phone_otp(request, target, purpose='password_reset')
-            except Exception:
-                pass
+            from .phone_views import dispatch_phone_otp, normalize_cambodia_phone
+
+            phone_normalized, is_valid, err_msg = normalize_cambodia_phone(target)
+            if not is_valid:
+                return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+            ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+            if ip and ',' in ip:
+                ip = ip.split(',')[0].strip()
+
+            ok, res_data, code = dispatch_phone_otp(
+                user=request.user,
+                phone_normalized=phone_normalized,
+                raw_phone=target,
+                purpose='password_reset',
+                ip_address=ip,
+            )
+            if not ok:
+                return Response(res_data, status=code)
+
             return Response({
-                'message': 'If an account with that phone number exists, an OTP reset code has been sent via SMS.'
+                'message': 'If an account with that phone number exists, an OTP reset code has been sent via SMS.',
+                'phone_masked': res_data.get('phone_masked'),
+                'cooldown_seconds': res_data.get('cooldown_seconds'),
+                'expires_in_seconds': res_data.get('expires_in_seconds'),
             }, status=status.HTTP_200_OK)
 
         return Response({

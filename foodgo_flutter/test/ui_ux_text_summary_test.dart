@@ -198,6 +198,29 @@ void main() {
         );
       },
     );
+
+    test(
+      'formatError suppresses raw HTML error pages and returns clean user guidance',
+      () {
+        final reqOptions = RequestOptions(path: '/api/health/');
+        final html404 = DioException(
+          requestOptions: reqOptions,
+          response: Response(
+            requestOptions: reqOptions,
+            statusCode: 404,
+            data:
+                '<!DOCTYPE html><html><body>Page not found (404)</body></html>',
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        final formatted = ApiService.formatError(html404);
+        expect(formatted.toLowerCase().contains('<html'), isFalse);
+        expect(formatted.toLowerCase().contains('<!doctype'), isFalse);
+        expect(formatted.contains('DioException'), isFalse);
+        expect(formatted.isNotEmpty, isTrue);
+      },
+    );
   });
 
   group('Upgraded Application Screens Widget Tests', () {

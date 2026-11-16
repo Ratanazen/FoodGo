@@ -224,11 +224,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.dialogDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? GlassTheme.dynamicBorderDark
                   : const Color(0xFFE5E7EB),
             ),
           ),
@@ -421,8 +421,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isDark
+                ? GlassTheme.dynamicBorderDark
+                : GlassTheme.borderLight,
+          ),
+        ),
         title: Row(
           children: [
             Icon(AppIcons.warning, color: warningColor, size: 24),
@@ -494,8 +501,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isDark
+                ? GlassTheme.dynamicBorderDark
+                : GlassTheme.borderLight,
+          ),
+        ),
         title: Row(
           children: [
             Container(

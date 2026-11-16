@@ -338,12 +338,12 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? GlassTheme.surfaceCardDark
+                                  ? GlassTheme.dynamicSurfaceCardDark
                                   : const Color(0xFFF7F8F9),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isDark
-                                    ? Colors.white.withValues(alpha: 0.18)
+                                    ? GlassTheme.dynamicBorderDark
                                     : const Color(0xFFEDEDED),
                                 width: 1.2,
                               ),
@@ -576,10 +576,12 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                 AnimatedIconButton(
                   icon: AppIcons.back,
                   iconSize: 26,
-                  size: 44,
-                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  size: 48,
+                  color: isDark
+                      ? GlassTheme.dynamicSurfaceCardDark
+                      : Colors.white,
                   borderColor: isDark
-                      ? Colors.white.withValues(alpha: 0.22)
+                      ? GlassTheme.dynamicBorderDark
                       : Colors.black.withValues(alpha: 0.1),
                   iconColor: isDark ? Colors.white : Colors.black87,
                   onPressed: () => context.pop(),
@@ -601,12 +603,14 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                     return AnimatedIconButton(
                       icon: isFav ? AppIcons.favorite : AppIcons.favoriteBorder,
                       iconSize: 20,
-                      size: 44,
-                      color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                      size: 48,
+                      color: isDark
+                          ? GlassTheme.dynamicSurfaceCardDark
+                          : Colors.white,
                       borderColor: isDark
                           ? (isFav
                                 ? const Color(0xFFE53935).withValues(alpha: 0.4)
-                                : Colors.white.withValues(alpha: 0.22))
+                                : GlassTheme.dynamicBorderDark)
                           : (isFav
                                 ? const Color(0xFFE53935).withValues(alpha: 0.3)
                                 : Colors.black.withValues(alpha: 0.1)),
@@ -635,11 +639,13 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         bottom: bottomPadding + 14,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark ? GlassTheme.surfaceDark : Colors.white,
+                        color: isDark
+                            ? GlassTheme.dynamicSurfaceDark
+                            : Colors.white,
                         border: Border(
                           top: BorderSide(
                             color: isDark
-                                ? Colors.white.withValues(alpha: 0.15)
+                                ? GlassTheme.dynamicBorderDark
                                 : const Color(0xFFE2E4E6),
                             width: 1.2,
                           ),

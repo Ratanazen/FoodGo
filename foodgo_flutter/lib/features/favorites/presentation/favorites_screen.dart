@@ -140,28 +140,20 @@ class FavoritesScreen extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? GlassTheme.surfaceCardDark
+                                ? GlassTheme.dynamicSurfaceCardDark
                                 : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(18),
                             border: Border.all(
                               color: isDark
-                                  ? Colors.white.withValues(alpha: 0.08)
-                                  : Colors.black.withValues(alpha: 0.08),
+                                  ? GlassTheme.dynamicBorderDark
+                                  : GlassTheme.borderLight,
                             ),
-                            boxShadow: isDark
-                                ? null
-                                : [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.04,
-                                      ),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
+                            boxShadow: [
+                              GlassTheme.dynamicSoftShadow(isDark: isDark),
+                            ],
                           ),
                           child: Row(
                             children: [
@@ -249,7 +241,8 @@ class FavoritesScreen extends StatelessWidget {
                                       ),
                                       duration: const Duration(seconds: 1),
                                       behavior: SnackBarBehavior.floating,
-                                      backgroundColor: GlassTheme.surfaceDark,
+                                      backgroundColor:
+                                          GlassTheme.dynamicSurfaceDark,
                                     ),
                                   );
                                 },
@@ -293,33 +286,47 @@ class FavoritesScreen extends StatelessWidget {
                                       content: Text('Added $name to cart!'),
                                       duration: const Duration(seconds: 1),
                                       behavior: SnackBarBehavior.floating,
+                                      backgroundColor:
+                                          GlassTheme.dynamicSurfaceDark,
                                       action: SnackBarAction(
                                         label: 'View Cart',
-                                        textColor: isDark
-                                            ? GlassTheme.limeAccent
-                                            : Colors.white,
+                                        textColor: GlassTheme.limeAccent,
                                         onPressed: () => context.push('/cart'),
                                       ),
                                     ),
                                   );
                                 },
-                                child: Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: GlassTheme.limeAccent,
-                                    border: Border.all(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.4,
+                                child: SizedBox(
+                                  width: 48,
+                                  height: 48,
+                                  child: Center(
+                                    child: Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                                .withValues(alpha: 0.28),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
                                       ),
-                                      width: 1.0,
+                                      child: Icon(
+                                        Icons.add,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimary,
+                                        size: 20,
+                                      ),
                                     ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    color: Colors.black,
-                                    size: 18,
                                   ),
                                 ),
                               ),

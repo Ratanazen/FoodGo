@@ -59,6 +59,47 @@ class GlassTheme {
   static LinearGradient get dynamicLiquidGlassBorderDark =>
       _activePalette.liquidGlassBorderDark;
   static Color get dynamicPillShadow => _activePalette.pillCardShadowColor;
+
+  static Color get dynamicGlassDark =>
+      _activePalette.surfaceDark.withValues(alpha: 0.86);
+  static Color get dynamicGlassDarkLight =>
+      _activePalette.surfaceCardDark.withValues(alpha: 0.74);
+  static const Color dynamicGlassWhiteLight = Color(0xF2FFFFFF);
+
+  static LinearGradient get dynamicLiquidSurfaceDark => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      _activePalette.cardDark.withValues(alpha: 0.90),
+      _activePalette.surfaceDark.withValues(alpha: 0.82),
+      _activePalette.surfaceCardDark.withValues(alpha: 0.86),
+    ],
+  );
+
+  static LinearGradient get dynamicLiquidSurfaceLight => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      const Color(0xFFFFFFFF),
+      Color.lerp(const Color(0xFFFAFCF9), _activePalette.primary, 0.025) ??
+          const Color(0xFFFAFCF9),
+      Color.lerp(const Color(0xFFF5F8F6), _activePalette.primary, 0.045) ??
+          const Color(0xFFF5F8F6),
+    ],
+  );
+
+  static BoxShadow dynamicSoftShadow({bool isDark = true}) => BoxShadow(
+    color: isDark
+        ? Colors.black.withValues(alpha: 0.28)
+        : Colors.black.withValues(alpha: 0.07),
+    blurRadius: isDark ? 18 : 14,
+    offset: const Offset(0, 6),
+  );
+
+  static Color get dynamicShimmerBaseDark => _activePalette.surfaceCardDark;
+  static Color get dynamicShimmerHighlightDark =>
+      Color.lerp(_activePalette.cardDark, Colors.white, 0.14) ??
+      _activePalette.cardDark;
   static bool get isFestive => _activePalette.isFestive;
   static IconData get festivalIcon => _activePalette.icon;
   static String get festivalBadge => _activePalette.badgeText;

@@ -11,6 +11,44 @@ class AppConfig {
 
   static String _customApiUrl = '';
   static String _customWsUrl = '';
+  static bool _useEdgeFallback = false;
+
+  static String get edgeApiBaseUrl => '$cloudflareEdgeUrl/api/';
+  static String get primaryLiveApiBaseUrl => '$defaultLiveUrl/api/';
+  static bool get isUsingEdgeFallback => _useEdgeFallback;
+
+  static bool canFallbackToEdge(String currentBaseUrl) {
+    if (_customApiUrl.isNotEmpty) return false;
+    const envUrl = String.fromEnvironment('FOODGO_API_URL');
+    if (envUrl.isNotEmpty) return false;
+    return currentBaseUrl.startsWith(defaultLiveUrl);
+  }
+
+  static void activateEdgeFallback() {
+    _useEdgeFallback = true;
+  }
+
+  static void resetEdgeFallback() {
+    _useEdgeFallback = false;
+  }
+
+  /// Returns true only for public auth endpoints where attaching an existing
+  /// Bearer token or attempting a 401 refresh loop should be skipped.
+  static bool isPublicAuthEndpoint(String path) {
+    final normalized = path.trim().replaceFirst(RegExp(r'^/+'), '');
+    return normalized == 'token/' ||
+        normalized == 'token/refresh/' ||
+        normalized == 'auth/token/' ||
+        normalized == 'auth/refresh/' ||
+        normalized == 'auth/login/' ||
+        normalized == 'auth/google/' ||
+        normalized == 'register/' ||
+        normalized == 'auth/register/' ||
+        normalized == 'drivers/register/' ||
+        normalized == 'forgot-password/' ||
+        normalized.startsWith('auth/phone-login/') ||
+        normalized.startsWith('auth/otp/');
+  }
 
   /// Primary REST API Base URL
   static String get apiBaseUrl {
@@ -30,7 +68,14 @@ class AppConfig {
         return '${Uri.base.origin}/api/';
       }
     }
-    return '$defaultLiveUrl/api/';
+    return _useEdgeFallback
+        ? '$cloudflareEdgeUrl/api/'
+        : '$defaultLiveUrl/api/';
+  }
+
+  static String _effectiveConfiguredApiUrl() {
+    if (_customApiUrl.isNotEmpty) return _customApiUrl;
+    return const String.fromEnvironment('FOODGO_API_URL');
   }
 
   /// WebSocket URL for live driver & order delivery tracking (Render ASGI container)
@@ -38,11 +83,12 @@ class AppConfig {
     if (_customWsUrl.isNotEmpty) {
       return _customWsUrl;
     }
-    if (_customApiUrl.contains('10.0.2.2')) {
+    final configuredApi = _effectiveConfiguredApiUrl();
+    if (configuredApi.contains('10.0.2.2')) {
       return 'ws://10.0.2.2:8000/ws/tracking/';
     }
-    if (_customApiUrl.contains('127.0.0.1') ||
-        _customApiUrl.contains('localhost')) {
+    if (configuredApi.contains('127.0.0.1') ||
+        configuredApi.contains('localhost')) {
       return 'ws://127.0.0.1:8000/ws/tracking/';
     }
     if (kIsWeb) {
@@ -62,11 +108,12 @@ class AppConfig {
     if (_customWsUrl.isNotEmpty) {
       return _customWsUrl.replaceAll('/tracking/', '/payments/');
     }
-    if (_customApiUrl.contains('10.0.2.2')) {
+    final configuredApi = _effectiveConfiguredApiUrl();
+    if (configuredApi.contains('10.0.2.2')) {
       return 'ws://10.0.2.2:8000/ws/payments/';
     }
-    if (_customApiUrl.contains('127.0.0.1') ||
-        _customApiUrl.contains('localhost')) {
+    if (configuredApi.contains('127.0.0.1') ||
+        configuredApi.contains('localhost')) {
       return 'ws://127.0.0.1:8000/ws/payments/';
     }
     if (kIsWeb) {
@@ -100,6 +147,7 @@ class AppConfig {
   static Future<void> setCustomApiUrl(String url) async {
     final clean = url.trim();
     _customApiUrl = clean;
+    resetEdgeFallback();
     final prefs = await SharedPreferences.getInstance();
     if (clean.isEmpty) {
       await prefs.remove('custom_api_url');

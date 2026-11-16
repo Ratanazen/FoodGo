@@ -524,7 +524,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               Expanded(
                 child: Text(
                   'GPS Location: ${details.title}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -1642,7 +1645,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicSurfaceDark : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
@@ -1784,11 +1787,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? GlassTheme.surfaceCardDark
+                        ? GlassTheme.dynamicSurfaceCardDark
                         : const Color(0xFFF9FBF9),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                      color: isDark
+                          ? GlassTheme.dynamicBorderDark
+                          : const Color(0xFFEEEEEE),
                     ),
                   ),
                   child: Row(
@@ -2022,7 +2027,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     final isDark = brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
     final secondaryText = AppTypography.secondaryTextColor(brightness);
-    final stepAccent = isDark ? GlassTheme.paleSmalt : GlassTheme.royalSmalt;
+    final stepAccent = isDark
+        ? Theme.of(context).colorScheme.primary
+        : GlassTheme.dynamicPrimaryDark;
     final steps = [
       'Confirmed',
       'Preparing',
@@ -2124,10 +2131,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFFF9FBF9),
+        color: isDark
+            ? GlassTheme.dynamicSurfaceCardDark
+            : const Color(0xFFF9FBF9),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+          color: isDark
+              ? GlassTheme.dynamicBorderDark
+              : const Color(0xFFEEEEEE),
         ),
       ),
       child: Column(
@@ -2340,10 +2351,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFFF9FBF9),
+        color: isDark
+            ? GlassTheme.dynamicSurfaceCardDark
+            : const Color(0xFFF9FBF9),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+          color: isDark
+              ? GlassTheme.dynamicBorderDark
+              : const Color(0xFFEEEEEE),
         ),
       ),
       child: Column(
@@ -2662,8 +2677,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     style: textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: isDark
-                          ? GlassTheme.paleSmalt
-                          : GlassTheme.royalSmalt,
+                          ? Theme.of(context).colorScheme.primary
+                          : GlassTheme.dynamicPrimaryDark,
                     ),
                   ),
                 )
@@ -2692,10 +2707,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? GlassTheme.surfaceCardDark : const Color(0xFFF9FBF9),
+        color: isDark
+            ? GlassTheme.dynamicSurfaceCardDark
+            : const Color(0xFFF9FBF9),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+          color: isDark
+              ? GlassTheme.dynamicBorderDark
+              : const Color(0xFFEEEEEE),
         ),
       ),
       child: Column(
@@ -2917,11 +2936,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ? GlassTheme.primaryGreenAccent
             : const Color(0xFF15803D);
         return AlertDialog(
-          backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+          backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: GlassTheme.borderRadiusSmall,
             side: BorderSide(
-              color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : const Color(0xFFE5E7EB),
             ),
           ),
           title: Text(

@@ -407,14 +407,16 @@ class _SupportScreenState extends State<SupportScreen> {
                         Text(
                           'Need help with an order or Bakong KHQR payment? Send us a message and receive an instant copyable ticket summary.',
                           style: AppTypography.bodySmall(
-                            color: GlassTheme.textMuted,
+                            color: AppTypography.secondaryTextColor(
+                              Theme.of(context).brightness,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           initialValue: _selectedCategory,
                           dropdownColor: isDark
-                              ? GlassTheme.surfaceDark
+                              ? GlassTheme.dynamicSurfaceDark
                               : Colors.white,
                           decoration: const InputDecoration(
                             labelText: 'Category',

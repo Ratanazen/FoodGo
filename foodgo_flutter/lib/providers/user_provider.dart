@@ -227,36 +227,17 @@ class UserProvider with ChangeNotifier {
         if (avatarUrl != null) updatedUser['avatar_url'] = avatarUrl;
         _user = updatedUser;
       }
+      _persistCachedUser();
       _isLoading = false;
       _lastError = null;
       notifyListeners();
       return true;
     } catch (e) {
       debugPrint('Error updating profile: $e');
-      if (e is DioException) {
-        final data = e.response?.data;
-        if (data is Map) {
-          if (data.containsKey('detail') && data['detail'] != null) {
-            _lastError = data['detail'].toString();
-          } else if (data.containsKey('error') && data['error'] != null) {
-            _lastError = data['error'].toString();
-          } else if (data.isNotEmpty) {
-            final firstVal = data.values.first;
-            if (firstVal is List && firstVal.isNotEmpty) {
-              _lastError = firstVal.first.toString();
-            } else if (firstVal is String) {
-              _lastError = firstVal;
-            }
-          }
-        } else if (e.response?.statusCode == 401) {
-          _lastError = 'Session expired. Please log in again.';
-        } else if (e.type == DioExceptionType.connectionTimeout ||
-            e.type == DioExceptionType.connectionError) {
-          _lastError =
-              'Unable to connect to server. Please check your network connection.';
-        }
-      }
-      _lastError ??= 'Failed to update profile. Please try again.';
+      _lastError = ApiService.formatError(
+        e,
+        fallback: 'Failed to update profile. Please try again.',
+      );
       _isLoading = false;
       notifyListeners();
       return false;
@@ -278,17 +259,17 @@ class UserProvider with ChangeNotifier {
       } else if (_user != null) {
         _user!['role'] = newRole;
       }
+      _persistCachedUser();
       _isLoading = false;
       _lastError = null;
       notifyListeners();
       return true;
     } catch (e) {
       debugPrint('Error updating role: $e');
-      if (e is DioException && e.response?.data is Map) {
-        final data = e.response!.data as Map;
-        _lastError = data['detail']?.toString() ?? data['error']?.toString();
-      }
-      _lastError ??= 'Failed to update role. Please try again.';
+      _lastError = ApiService.formatError(
+        e,
+        fallback: 'Failed to update role. Please try again.',
+      );
       _isLoading = false;
       notifyListeners();
       return false;

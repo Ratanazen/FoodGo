@@ -157,7 +157,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         SnackBar(
           content: const Text('No items found in this order to re-order.'),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: GlassTheme.surfaceDark,
+          backgroundColor: GlassTheme.dynamicSurfaceDark,
         ),
       );
       return;
@@ -994,33 +994,48 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final orderId = order['id'];
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
     final primaryText = AppTypography.primaryTextColor(brightness);
     final secondaryText = AppTypography.secondaryTextColor(brightness);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+        backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: BorderSide(
-            color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+            color: isDark
+                ? GlassTheme.dynamicBorderDark
+                : GlassTheme.borderLight,
           ),
         ),
         title: Text(
           'Cancel Order #$orderId?',
-          style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+          style: textTheme.titleLarge?.copyWith(
+            color: primaryText,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         content: Text(
           'Are you sure you want to cancel this order? This action cannot be undone.',
-          style: TextStyle(color: secondaryText),
+          style: textTheme.bodyMedium?.copyWith(color: secondaryText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Keep Order', style: TextStyle(color: secondaryText)),
+            child: Text(
+              'Keep Order',
+              style: textTheme.labelLarge?.copyWith(color: secondaryText),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
               try {
@@ -1031,7 +1046,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Order #$orderId cancelled successfully.'),
-                    backgroundColor: GlassTheme.dialogDark,
+                    backgroundColor: GlassTheme.dynamicDialogDark,
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -1043,15 +1058,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     content: Text(
                       'Failed to cancel order: ${ApiService.formatError(e)}',
                     ),
-                    backgroundColor: Colors.redAccent,
+                    backgroundColor: const Color(0xFFDC2626),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
               }
             },
-            child: const Text(
+            child: Text(
               'Cancel Order',
-              style: TextStyle(color: Colors.white),
+              style: textTheme.labelLarge?.copyWith(color: Colors.white),
             ),
           ),
         ],
@@ -1076,10 +1091,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicSurfaceDark : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             border: Border.all(
-              color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : GlassTheme.borderLight,
             ),
           ),
           child: Column(
@@ -1288,11 +1305,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+        backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: BorderSide(
-            color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+            color: isDark
+                ? GlassTheme.dynamicBorderDark
+                : GlassTheme.borderLight,
           ),
         ),
         title: Text(
@@ -1414,10 +1433,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicSurfaceDark : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(
-              color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : GlassTheme.borderLight,
             ),
           ),
           child: SafeArea(
@@ -1966,11 +1987,11 @@ class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
         : const Color(0xFF15803D);
 
     return AlertDialog(
-      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: BorderSide(
-          color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+          color: isDark ? GlassTheme.dynamicBorderDark : GlassTheme.borderLight,
         ),
       ),
       title: Text(
@@ -2057,7 +2078,10 @@ class _OrderReportIssueDialogState extends State<_OrderReportIssueDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: secondaryText)),
+          child: Text(
+            'Cancel',
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -2106,11 +2130,11 @@ class _OrderRatingDialogState extends State<_OrderRatingDialog> {
     final starAmber = isDark ? Colors.amber : const Color(0xFFB45309);
 
     return AlertDialog(
-      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+          color: isDark ? GlassTheme.dynamicBorderDark : GlassTheme.borderLight,
         ),
       ),
       title: Text(
@@ -2177,7 +2201,10 @@ class _OrderRatingDialogState extends State<_OrderRatingDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Later', style: TextStyle(color: secondaryText)),
+          child: Text(
+            'Later',
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(

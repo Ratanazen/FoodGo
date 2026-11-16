@@ -508,7 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : 'Phnom Penh, Cambodia');
 
     return Container(
-      color: isDark ? GlassTheme.surfaceDark : Colors.white,
+      color: isDark ? GlassTheme.dynamicSurfaceDark : Colors.white,
       padding: EdgeInsets.only(
         top: topPadding + 10,
         left: 20,
@@ -974,21 +974,17 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 165,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                color: isDark
+                    ? GlassTheme.dynamicSurfaceCardDark
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
+                      ? GlassTheme.dynamicBorderDark
                       : const Color(0xFFE5E7EB),
                   width: 1.0,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1212,13 +1208,15 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? Theme.of(context).colorScheme.primary
-                    : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
+                    : (isDark
+                          ? GlassTheme.dynamicSurfaceCardDark
+                          : Colors.white),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: isSelected
                       ? Theme.of(context).colorScheme.primary
                       : (isDark
-                            ? Colors.white.withValues(alpha: 0.12)
+                            ? GlassTheme.dynamicBorderDark
                             : const Color(0xFFE5E7EB)),
                   width: isSelected ? 1.6 : 1.0,
                 ),
@@ -1344,23 +1342,17 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  color: isDark
+                      ? GlassTheme.dynamicSurfaceCardDark
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isDark
-                        ? Colors.white.withValues(alpha: 0.12)
+                        ? GlassTheme.dynamicBorderDark
                         : const Color(0xFFE5E7EB),
                     width: 1.0,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(
-                        alpha: isDark ? 0.25 : 0.05,
-                      ),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1567,20 +1559,16 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: isDark
-                  ? GlassTheme.surfaceCardDark
+                  ? GlassTheme.dynamicSurfaceCardDark
                   : const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.08),
+                color: isDark
+                    ? GlassTheme.dynamicBorderDark
+                    : Colors.white.withValues(alpha: 0.08),
                 width: 1.0,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.16),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
             ),
             child: Row(
               children: [
@@ -1717,18 +1705,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 175,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  color: isDark
+                      ? GlassTheme.dynamicSurfaceCardDark
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                    color: isDark
+                        ? GlassTheme.dynamicBorderDark
+                        : const Color(0xFFEEEEEE),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+                  boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1997,7 +1983,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Could not load restaurants.')
                           : 'No restaurants match this category.',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.grey),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextButton.icon(
@@ -2010,12 +1998,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       icon: Icon(
                         AppIcons.refresh,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: isDark
+                            ? Theme.of(context).colorScheme.primary
+                            : GlassTheme.dynamicPrimaryDark,
                       ),
                       label: Text(
                         provider.hasError ? 'Retry' : 'Reset Filter',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: isDark
+                              ? Theme.of(context).colorScheme.primary
+                              : GlassTheme.dynamicPrimaryDark,
                         ),
                       ),
                     ),
@@ -2082,21 +2074,15 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () => context.push('/restaurant/$id'),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+          color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.12)
+                ? GlassTheme.dynamicBorderDark
                 : const Color(0xFFE5E7EB),
             width: 1.0,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2371,7 +2357,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicSurfaceDark : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isDark

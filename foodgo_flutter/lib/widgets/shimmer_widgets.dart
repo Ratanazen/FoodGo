@@ -20,10 +20,10 @@ class ShimmerWrapper extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
       baseColor: isDark
-          ? GlassTheme.shimmerBaseDark
+          ? GlassTheme.dynamicShimmerBaseDark
           : GlassTheme.shimmerBaseLight,
       highlightColor: isDark
-          ? GlassTheme.shimmerHighlightDark
+          ? GlassTheme.dynamicShimmerHighlightDark
           : GlassTheme.shimmerHighlightLight,
       period: const Duration(milliseconds: 1400),
       child: child,

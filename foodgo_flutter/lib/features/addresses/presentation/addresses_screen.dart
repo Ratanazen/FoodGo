@@ -44,14 +44,14 @@ class _AddressesScreenState extends State<AddressesScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: isDark ? GlassTheme.dialogDark : Colors.white,
+                  color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(28),
                   ),
                   border: Border.all(
                     color: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.08),
+                        ? GlassTheme.dynamicBorderDark
+                        : GlassTheme.borderLight,
                   ),
                 ),
                 child: SingleChildScrollView(
@@ -276,21 +276,24 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                         Icons.map_outlined,
                                         size: 16,
                                         color: isDark
-                                            ? GlassTheme.paleSmalt
-                                            : GlassTheme.royalSmalt,
+                                            ? Theme.of(ctx).colorScheme.primary
+                                            : GlassTheme.dynamicPrimaryDark,
                                       ),
                                       const SizedBox(width: 6),
                                       Flexible(
                                         child: Text(
                                           'Show on Map',
                                           maxLines: 2,
-                                          style: Theme.of(context)
+                                          style: Theme.of(ctx)
                                               .textTheme
                                               .labelMedium
                                               ?.copyWith(
                                                 color: isDark
-                                                    ? GlassTheme.paleSmalt
-                                                    : GlassTheme.royalSmalt,
+                                                    ? Theme.of(
+                                                        ctx,
+                                                      ).colorScheme.primary
+                                                    : GlassTheme
+                                                          .dynamicPrimaryDark,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                         ),
@@ -357,16 +360,19 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         // Street address
                         TextFormField(
                           controller: streetController,
-                          style: TextStyle(
-                            color: isDark ? Colors.white : GlassTheme.textDark,
+                          style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                            color: AppTypography.primaryTextColor(
+                              Theme.of(ctx).brightness,
+                            ),
                           ),
                           decoration: InputDecoration(
                             labelText: 'Street Address, Apartment, or Building',
-                            labelStyle: TextStyle(
-                              color: isDark
-                                  ? GlassTheme.textMuted
-                                  : const Color(0xFF64748B),
-                            ),
+                            labelStyle: Theme.of(ctx).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: AppTypography.secondaryTextColor(
+                                    Theme.of(ctx).brightness,
+                                  ),
+                                ),
                             prefixIcon: const Icon(
                               Icons.location_on_outlined,
                               color: GlassTheme.primaryGreen,
@@ -408,19 +414,24 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         // City
                         TextFormField(
                           controller: cityController,
-                          style: TextStyle(
-                            color: isDark ? Colors.white : GlassTheme.textDark,
+                          style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                            color: AppTypography.primaryTextColor(
+                              Theme.of(ctx).brightness,
+                            ),
                           ),
                           decoration: InputDecoration(
                             labelText: 'City / District',
-                            labelStyle: TextStyle(
-                              color: isDark
-                                  ? GlassTheme.textMuted
-                                  : const Color(0xFF64748B),
-                            ),
-                            prefixIcon: const Icon(
+                            labelStyle: Theme.of(ctx).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: AppTypography.secondaryTextColor(
+                                    Theme.of(ctx).brightness,
+                                  ),
+                                ),
+                            prefixIcon: Icon(
                               Icons.location_city,
-                              color: GlassTheme.primaryGreen,
+                              color: isDark
+                                  ? Theme.of(ctx).colorScheme.primary
+                                  : GlassTheme.dynamicPrimaryDark,
                             ),
                             filled: true,
                             fillColor: isDark
@@ -459,19 +470,24 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         // Postal Code
                         TextFormField(
                           controller: zipController,
-                          style: TextStyle(
-                            color: isDark ? Colors.white : GlassTheme.textDark,
+                          style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                            color: AppTypography.primaryTextColor(
+                              Theme.of(ctx).brightness,
+                            ),
                           ),
                           decoration: InputDecoration(
                             labelText: 'Postal / Area Code',
-                            labelStyle: TextStyle(
-                              color: isDark
-                                  ? GlassTheme.textMuted
-                                  : const Color(0xFF64748B),
-                            ),
-                            prefixIcon: const Icon(
+                            labelStyle: Theme.of(ctx).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: AppTypography.secondaryTextColor(
+                                    Theme.of(ctx).brightness,
+                                  ),
+                                ),
+                            prefixIcon: Icon(
                               Icons.pin_drop_outlined,
-                              color: GlassTheme.primaryGreen,
+                              color: isDark
+                                  ? Theme.of(ctx).colorScheme.primary
+                                  : GlassTheme.dynamicPrimaryDark,
                             ),
                             filled: true,
                             fillColor: isDark
@@ -597,7 +613,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                                     backgroundColor:
                                                         sheetBrightness ==
                                                             Brightness.dark
-                                                        ? GlassTheme.cardDark
+                                                        ? GlassTheme
+                                                              .dynamicCardDark
                                                         : const Color(
                                                             0xFF15803D,
                                                           ),

@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -79,8 +78,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
-          backgroundColor: GlassTheme.royalSmalt,
+          content: Text(
+            message,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+          ),
+          backgroundColor: GlassTheme.dynamicPrimaryDark,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -94,17 +98,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      String errorMsg = 'Failed to send reset code. Please try again.';
-      if (e is DioException) {
-        final data = e.response?.data;
-        if (data is Map) {
-          if (data['error'] != null) {
-            errorMsg = data['error'].toString();
-          } else if (data['detail'] != null) {
-            errorMsg = data['detail'].toString();
-          }
-        }
-      }
+      final errorMsg = ApiService.formatError(
+        e,
+        fallback: 'Failed to send reset code. Please try again.',
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

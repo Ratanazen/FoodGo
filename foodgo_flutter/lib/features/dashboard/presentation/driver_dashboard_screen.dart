@@ -12,7 +12,6 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../screens/map_screen_location.dart';
-import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -240,10 +239,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         ),
       );
       _fetchDashboardData();
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() => _isOnline = !value);
         _syncAutoTracking();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              ApiService.formatError(
+                e,
+                fallback: 'Unable to update online status. Please retry.',
+              ),
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -380,19 +391,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      String errorMsg =
-          'Unable to accept order. It may have been claimed by another driver.';
-      bool needsVerification = false;
-      if (e is DioException && e.response?.data is Map) {
-        final data = e.response!.data as Map;
-        if (data['error'] != null) {
-          errorMsg = data['error'].toString();
-          if (errorMsg.toLowerCase().contains('phone') ||
-              errorMsg.toLowerCase().contains('verif')) {
-            needsVerification = true;
-          }
-        }
-      }
+      final errorMsg = ApiService.formatError(
+        e,
+        fallback:
+            'Unable to accept order. It may have been claimed by another driver.',
+      );
+      final lowerMsg = errorMsg.toLowerCase();
+      final bool needsVerification =
+          lowerMsg.contains('phone') || lowerMsg.contains('verif');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMsg),
@@ -477,11 +483,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       _fetchDashboardData();
     } catch (e) {
       if (!mounted) return;
-      String err = 'Status update failed. Please retry.';
-      if (e is DioException && e.response?.data is Map) {
-        final data = e.response!.data as Map;
-        err = (data['error'] ?? data['detail'] ?? err).toString();
-      }
+      final err = ApiService.formatError(
+        e,
+        fallback: 'Status update failed. Please retry.',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(err), backgroundColor: Colors.redAccent),
       );
@@ -818,7 +823,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       {'payment_collected': isCashDue},
                     );
                     if (!mounted) return;
-                    final fee = response['fee_earned'];
+                    final fee = response is Map ? response['fee_earned'] : null;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -834,10 +839,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   } catch (e) {
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text(
-                          'FoodGo did not confirm this delivery. '
-                          'Nothing was marked complete — please retry.',
+                          ApiService.formatError(
+                            e,
+                            fallback:
+                                'FoodGo did not confirm this delivery. '
+                                'Nothing was marked complete — please retry.',
+                          ),
                         ),
                         backgroundColor: Colors.redAccent,
                       ),
@@ -872,17 +881,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
           final canConfirm = !paymentDue || cashCollected;
+          final textTheme = Theme.of(ctx).textTheme;
           return AlertDialog(
-            backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+            backgroundColor: isDark
+                ? GlassTheme.dynamicDialogDark
+                : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
               side: BorderSide(
-                color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+                color: isDark
+                    ? GlassTheme.dynamicBorderDark
+                    : const Color(0xFFE5E7EB),
               ),
             ),
             title: Text(
               'Confirm delivery #$orderId',
-              style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
+              style: textTheme.titleLarge?.copyWith(
+                color: primaryText,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -892,13 +909,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   'This marks the order as delivered on FoodGo and cannot be '
                   'undone from the app. Only continue once the customer has '
                   'the package in hand.',
-                  style: TextStyle(color: secondaryText),
+                  style: textTheme.bodyMedium?.copyWith(color: secondaryText),
                 ),
                 if (paymentDue) ...[
                   const SizedBox(height: 12),
                   Text(
                     'Cash payment due: \$${amount ?? '—'}',
-                    style: TextStyle(
+                    style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: primaryText,
                     ),
@@ -912,9 +929,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     },
                     title: Text(
                       'I collected the cash payment from the customer',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: primaryText),
+                      style: textTheme.bodyMedium?.copyWith(color: primaryText),
                     ),
                   ),
                 ],
@@ -923,7 +938,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: Text('Cancel', style: TextStyle(color: secondaryText)),
+                child: Text(
+                  'Cancel',
+                  style: textTheme.labelLarge?.copyWith(color: secondaryText),
+                ),
               ),
               FilledButton(
                 onPressed: canConfirm ? () => Navigator.pop(ctx, true) : null,
@@ -1012,46 +1030,63 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: BorderSide(
-            color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
-          ),
-        ),
-        title: Text(
-          'Driver Log Out',
-          style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'Are you sure you want to log out of the Driver Portal?',
-          style: TextStyle(color: secondaryText),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text('Cancel', style: TextStyle(color: secondaryText)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              await context.read<AuthProvider>().logout();
-              if (!context.mounted) return;
-              context.read<UserProvider>().clearUser();
-              context.go('/login');
-            },
-            child: const Text(
-              'Log Out',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+      builder: (dialogCtx) {
+        final textTheme = Theme.of(dialogCtx).textTheme;
+        return AlertDialog(
+          backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : const Color(0xFFE5E7EB),
             ),
           ),
-        ],
-      ),
+          title: Text(
+            'Driver Log Out',
+            style: textTheme.titleLarge?.copyWith(
+              color: primaryText,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to log out of the Driver Portal?',
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(
+                'Cancel',
+                style: textTheme.labelLarge?.copyWith(color: secondaryText),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                await context.read<AuthProvider>().logout();
+                if (!context.mounted) return;
+                context.read<UserProvider>().clearUser();
+                context.go('/login');
+              },
+              child: Text(
+                'Log Out',
+                style: textTheme.labelLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -3435,11 +3470,13 @@ class _DriverFailedDeliveryDialogState
     final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     return AlertDialog(
-      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: BorderSide(
-          color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+          color: isDark
+              ? GlassTheme.dynamicBorderDark
+              : const Color(0xFFE5E7EB),
         ),
       ),
       title: Text(
@@ -3553,11 +3590,13 @@ class _DriverCancelOrderDialogState extends State<_DriverCancelOrderDialog> {
     final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     return AlertDialog(
-      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isDark ? Colors.white12 : const Color(0xFFE5E7EB),
+          color: isDark
+              ? GlassTheme.dynamicBorderDark
+              : const Color(0xFFE5E7EB),
         ),
       ),
       title: Text(
@@ -3719,11 +3758,11 @@ class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.dialogDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? GlassTheme.dynamicBorderDark
                   : const Color(0xFFE5E7EB),
             ),
           ),

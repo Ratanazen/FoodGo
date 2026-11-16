@@ -92,18 +92,17 @@ class Command(BaseCommand):
             wallet.save()
 
         # Ensure customer address
-        Address.objects.get_or_create(
-            user=cust_user,
-            defaults={
-                'street': 'Street 308, Tonle Bassac',
-                'city': 'Phnom Penh',
-                'state': 'Phnom Penh',
-                'zip_code': '120101',
-                'lat': Decimal('11.550500'),
-                'lng': Decimal('104.928000'),
-                'is_default': True
-            }
-        )
+        if not Address.objects.filter(user=cust_user).exists():
+            Address.objects.create(
+                user=cust_user,
+                street='Street 308, Tonle Bassac',
+                city='Phnom Penh',
+                state='Phnom Penh',
+                zip_code='120101',
+                lat=Decimal('11.550500'),
+                lng=Decimal('104.928000'),
+                is_default=True,
+            )
 
         # 2b. Ratana Account
         ratana_user = User.objects.filter(username__iexact='Ratana').first()

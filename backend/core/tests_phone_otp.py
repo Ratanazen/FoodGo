@@ -673,3 +673,24 @@ class StandardAuthRoutesTests(TestCase):
         self.assertEqual(patch_res3.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('phone', patch_res3.data)
 
+    def test_forgot_password_dispatches_real_phone_otp_challenge_and_rejects_invalid_phone(self):
+        # Valid Cambodian mobile triggers real OTP challenge creation & SMS dispatch
+        res = self.client.post('/api/forgot-password/', {
+            'identifier': '012 888 999',
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('phone_masked', res.data)
+        self.assertEqual(len(TestConsoleSMSProvider.delivered_messages), 1)
+        challenge = PhoneOTPChallenge.objects.filter(
+            phone_normalized='+85512888999',
+            purpose='password_reset',
+        ).first()
+        self.assertIsNotNone(challenge)
+
+        # Invalid phone-like identifier must return 400 rather than silently returning 200
+        bad_res = self.client.post('/api/forgot-password/', {
+            'identifier': '1234567',
+        })
+        self.assertEqual(bad_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', bad_res.data)
+

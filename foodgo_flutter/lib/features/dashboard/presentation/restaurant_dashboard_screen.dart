@@ -305,46 +305,65 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
 
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text(
-          'Restaurant Log Out',
-          style: TextStyle(color: primaryText, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'Are you sure you want to log out of the Restaurant Portal?',
-          style: TextStyle(color: secondaryText),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: isDark ? Colors.white60 : const Color(0xFF64748B),
-              ),
+      builder: (dialogCtx) {
+        final textTheme = Theme.of(dialogCtx).textTheme;
+        return AlertDialog(
+          backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : GlassTheme.borderLight,
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              await context.read<AuthProvider>().logout();
-              if (!context.mounted) return;
-              context.read<UserProvider>().clearUser();
-              context.go('/login');
-            },
-            child: const Text(
-              'Log Out',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+          title: Text(
+            'Restaurant Log Out',
+            style: textTheme.titleLarge?.copyWith(
+              color: primaryText,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ],
-      ),
+          content: Text(
+            'Are you sure you want to log out of the Restaurant Portal?',
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(
+                'Cancel',
+                style: textTheme.labelLarge?.copyWith(
+                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                await context.read<AuthProvider>().logout();
+                if (!context.mounted) return;
+                context.read<UserProvider>().clearUser();
+                context.go('/login');
+              },
+              child: Text(
+                'Log Out',
+                style: textTheme.labelLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1561,7 +1580,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen>
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicSurfaceDark : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: SafeArea(
@@ -2352,7 +2371,7 @@ class _AddFoodItemBottomSheetState extends State<AddFoodItemBottomSheet> {
       padding: EdgeInsets.only(bottom: bottomInset),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+          color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           border: Border.all(
             color: isDark
@@ -2697,7 +2716,7 @@ class _RestaurantRejectOrderDialogState
     final secondaryText = AppTypography.secondaryTextColor(brightness);
 
     return AlertDialog(
-      backgroundColor: isDark ? GlassTheme.dialogDark : Colors.white,
+      backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(

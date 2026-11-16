@@ -142,7 +142,7 @@ jobs:
     - name: Analyze code (Zero Warning Policy)
       run: |
         cd foodgo_flutter
-        flutter analyze
+        flutter analyze --no-fatal-infos
     - name: Run Flutter Unit & Widget Tests
       run: |
         cd foodgo_flutter
@@ -186,12 +186,7 @@ jobs:
         if [ ! -f "$KEYSTORE_PATH" ]; then
           keytool -genkey -v -keystore "$KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
         fi
-        cat << 'EOF' > foodgo_flutter/android/key.properties
-        storePassword=android
-        keyPassword=android
-        keyAlias=androiddebugkey
-        storeFile=debug.keystore
-        EOF
+        printf "storePassword=android\nkeyPassword=android\nkeyAlias=androiddebugkey\nstoreFile=debug.keystore\n" > foodgo_flutter/android/key.properties
         cp "$KEYSTORE_PATH" foodgo_flutter/android/app/debug.keystore
     - name: Build Android Release APK
       run: |

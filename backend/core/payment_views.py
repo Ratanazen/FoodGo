@@ -14,7 +14,10 @@ from .models import Order, Payment
 from .serializers import PaymentSerializer
 from .payments.service import payment_service
 from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
+try:
+    from channels.layers import get_channel_layer
+except ImportError:
+    get_channel_layer = None
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +25,8 @@ def broadcast_payment_status(payment):
     """
     Broadcasts real-time payment status transition to all connected WebSocket subscribers.
     """
+    if get_channel_layer is None:
+        return
     try:
         channel_layer = get_channel_layer()
         if channel_layer:

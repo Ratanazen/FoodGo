@@ -1,13 +1,19 @@
 import json
 from asgiref.sync import async_to_sync
 from channels.testing import WebsocketCommunicator
-from django.test import TestCase
+from django.db import close_old_connections, connections
+from django.test import TransactionTestCase
 from config.asgi import application
 from core.models import User, Restaurant, Driver, Delivery, Order, Address
 
 
-class OrderTrackingWebSocketTests(TestCase):
+class OrderTrackingWebSocketTests(TransactionTestCase):
+    def tearDown(self):
+        connections.close_all()
+        super().tearDown()
+
     def setUp(self):
+        close_old_connections()
         self.customer = User.objects.create_user(
             username='test_ws_customer',
             password='password123',

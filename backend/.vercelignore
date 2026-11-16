@@ -10,7 +10,10 @@ __pycache__/
 *.pyd
 *.sqlite3
 *.db
+*.mp4
+*.wav
 staticfiles/
 media/
+tests*.py
+core/tests*.py
 .tempmediaStorage/
-

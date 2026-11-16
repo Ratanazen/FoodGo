@@ -4,7 +4,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 60,
-      "excludeFiles": "{foodgo_flutter/**,android/**,ios/**,web/**,windows/**,macos/**,linux/**,build/**,docs/**,scripts/**,backups/**}"
+      "excludeFiles": "{foodgo_flutter/**,public/**,output/**,APK/**,Database/**,Figma/**,Slide/**,docs/**,scripts/**,artifacts/**,whatif-2d-studio/**,backend/venv/**,**/*.mp4,**/*.sqlite3}"
     }
   },
   "rewrites": [

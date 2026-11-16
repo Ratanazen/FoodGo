@@ -1,3 +1,4 @@
+import importlib.util
 from pathlib import Path
 from datetime import timedelta
 import os
@@ -46,8 +47,11 @@ USE_X_FORWARDED_PORT = True
 
 
 
+_HAS_DAPHNE = importlib.util.find_spec('daphne') is not None
+_HAS_CHANNELS = importlib.util.find_spec('channels') is not None
+
 INSTALLED_APPS = [
-    'daphne',
+    *(['daphne'] if _HAS_DAPHNE else []),
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -60,11 +64,12 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'django_filters',
-    'channels',
+    *(['channels'] if _HAS_CHANNELS else []),
     'core',
 ]
 
-ASGI_APPLICATION = 'config.asgi.application'
+if _HAS_CHANNELS:
+    ASGI_APPLICATION = 'config.asgi.application'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -520,21 +525,22 @@ JAZZMIN_UI_TWEAKS = {
 }
 
 redis_url = os.environ.get('REDIS_URL') or os.environ.get('CHANNEL_REDIS_URL')
-if redis_url:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                'hosts': [redis_url],
+if _HAS_CHANNELS:
+    if redis_url and importlib.util.find_spec('channels_redis') is not None:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    'hosts': [redis_url],
+                },
             },
-        },
-    }
-else:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels.layers.InMemoryChannelLayer',
-        },
-    }
+        }
+    else:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels.layers.InMemoryChannelLayer',
+            },
+        }
 
 # ==============================================================================
 # Cambodian SMS Gateway & Phone OTP Authentication Configuration (FoodGo v2.0)

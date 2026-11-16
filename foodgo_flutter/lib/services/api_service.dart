@@ -8,14 +8,16 @@ class AuthResult {
   final bool isSuccess;
   final String? errorMessage;
   final bool isNetworkError;
+  final Map<String, dynamic>? user;
 
-  const AuthResult.success()
+  const AuthResult.success({this.user})
     : isSuccess = true,
       errorMessage = null,
       isNetworkError = false;
 
   const AuthResult.failure(this.errorMessage, {this.isNetworkError = false})
-    : isSuccess = false;
+    : isSuccess = false,
+      user = null;
 }
 
 class ApiService {
@@ -89,7 +91,10 @@ class ApiService {
           accessToken: data['access'],
           refreshToken: data['refresh'],
         );
-        return const AuthResult.success();
+        final userData = data['user'] is Map<String, dynamic>
+            ? data['user'] as Map<String, dynamic>
+            : null;
+        return AuthResult.success(user: userData);
       }
       return const AuthResult.failure(
         'Authentication failed. Please check your credentials.',
@@ -187,19 +192,28 @@ class ApiService {
       return const AuthResult.failure('Registration failed. Please try again.');
     } on DioException catch (e) {
       if (kDebugMode) debugPrint('Registration error: ${e.message}');
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        return const AuthResult.failure(
+          'Unable to connect to server. Please check your network connection.',
+          isNetworkError: true,
+        );
+      }
       if (e.response?.data is Map) {
         final errMap = e.response!.data as Map;
         final firstKey = errMap.keys.firstOrNull;
         if (firstKey != null) {
           final val = errMap[firstKey];
           final msg = val is List ? val.firstOrNull : val;
-          return AuthResult.failure('$firstKey: $msg');
+          return AuthResult.failure(msg?.toString() ?? '$firstKey is invalid.');
         }
       }
       return const AuthResult.failure(
         'Registration failed. Please check your input.',
       );
     } catch (e) {
+      if (kDebugMode) debugPrint('Registration error: $e');
       return const AuthResult.failure(
         'An unexpected error occurred during registration.',
       );
@@ -208,5 +222,130 @@ class ApiService {
 
   Future<void> logout() async {
     await SecureStorage().clearTokens();
+  }
+
+  /// Normalizes an optional URL input (e.g., food item image URL) so that
+  /// placeholder strings like "no", "none", "n/a", "-", or non-URL strings
+  /// become empty string `""` instead of failing backend URLField validation.
+  static String normalizeOptionalUrl(String? raw) {
+    if (raw == null) return '';
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return '';
+    final lower = trimmed.toLowerCase();
+    if (const {
+      'no',
+      'none',
+      'null',
+      'n/a',
+      'na',
+      '-',
+      'skip',
+      'nil',
+    }.contains(lower)) {
+      return '';
+    }
+    if (lower.startsWith('javascript:') ||
+        lower.startsWith('data:') ||
+        lower.startsWith('vbscript:')) {
+      return '';
+    }
+    String candidate = trimmed;
+    if (!candidate.startsWith('http://') && !candidate.startsWith('https://')) {
+      if (candidate.contains('.') && !candidate.contains(' ')) {
+        candidate = 'https://$candidate';
+      } else {
+        return '';
+      }
+    }
+    final uri = Uri.tryParse(candidate);
+    if (uri == null ||
+        !uri.hasScheme ||
+        uri.host.isEmpty ||
+        !uri.host.contains('.')) {
+      return '';
+    }
+    return candidate;
+  }
+
+  /// Converts a [DioException] or generic error into a concise, user-friendly
+  /// message instead of exposing raw Dio stack/status boilerplate.
+  static String formatError(
+    Object? error, {
+    String fallback = 'Unable to complete request. Please try again.',
+  }) {
+    if (error == null) return fallback;
+    if (error is DioException) {
+      if (error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout ||
+          error.type == DioExceptionType.sendTimeout ||
+          error.type == DioExceptionType.connectionError) {
+        return 'Unable to connect to server. Please check your internet connection.';
+      }
+      final statusCode = error.response?.statusCode;
+      final data = error.response?.data;
+      if (data is Map) {
+        if (data['detail'] != null &&
+            data['detail'].toString().trim().isNotEmpty) {
+          return data['detail'].toString().trim();
+        }
+        if (data['error'] != null &&
+            data['error'].toString().trim().isNotEmpty) {
+          return data['error'].toString().trim();
+        }
+        if (data['message'] != null &&
+            data['message'].toString().trim().isNotEmpty) {
+          return data['message'].toString().trim();
+        }
+        final parts = <String>[];
+        for (final entry in data.entries) {
+          final key = entry.key.toString().replaceAll('_', ' ');
+          final label = key.isEmpty
+              ? 'Error'
+              : '${key[0].toUpperCase()}${key.substring(1)}';
+          final val = entry.value;
+          final msg = val is List
+              ? val.map((e) => e.toString()).join(', ')
+              : val?.toString() ?? '';
+          if (msg.isNotEmpty) {
+            if (key == 'non field errors') {
+              parts.add(msg);
+            } else {
+              parts.add('$label: $msg');
+            }
+          }
+        }
+        if (parts.isNotEmpty) {
+          return parts.join('\n');
+        }
+      } else if (data is String &&
+          data.trim().isNotEmpty &&
+          !data.contains('<html')) {
+        return data.trim();
+      }
+      if (statusCode == 400) {
+        return 'Invalid input data. Please review the form fields and try again.';
+      }
+      if (statusCode == 401) {
+        return 'Your session has expired. Please sign in again.';
+      }
+      if (statusCode == 403) {
+        return 'You do not have permission to perform this action.';
+      }
+      if (statusCode == 404) {
+        return 'The requested resource was not found.';
+      }
+      if (statusCode != null && statusCode >= 500) {
+        return 'Server error ($statusCode). Please try again in a moment.';
+      }
+      return fallback;
+    }
+    final raw = error.toString().trim();
+    if (raw.startsWith('Exception: ')) {
+      return raw.substring('Exception: '.length).trim();
+    }
+    if (raw.contains('DioException')) {
+      return fallback;
+    }
+    return raw.isEmpty ? fallback : raw;
   }
 }

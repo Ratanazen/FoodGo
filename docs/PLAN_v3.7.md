@@ -37,9 +37,10 @@ This plan documents the completed v2.0 - v3.7 milestones and the remaining targe
 - [x] Filter notifications by category (`All`, `Orders`, `Promos`).
 
 ### Phase 4.3: Real-Time Driver Route WebSocket Simulator
-- [ ] WebSocket consumer `OrderTrackingConsumer` coordinate broadcasting.
-- [ ] Update `scripts/simulate_driver.py` with real Phnom Penh delivery route.
-- [ ] Real-time polyline translation with rotating courier marker on `LiveTrackingScreen`.
+- [x] WebSocket consumer `OrderTrackingConsumer` coordinate broadcasting.
+- [x] Update `scripts/simulate_driver.py` with real Phnom Penh delivery route.
+- [x] Real-time polyline translation with rotating courier marker on `LiveTrackingScreen`.
+- [x] Automated test suite `backend/core/tests_tracking_ws.py` verifying GPS telemetry broadcast & token security.
 
 ### Phase 4.4: Dynamic Multi-Currency NBC Rate Engine & App Switcher
 - [ ] National Bank of Cambodia (NBC) customary rate caching engine (`4,100 KHR / USD`).

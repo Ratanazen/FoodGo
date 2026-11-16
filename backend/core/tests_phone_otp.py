@@ -650,3 +650,47 @@ class StandardAuthRoutesTests(TestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_me_profile_update_and_phone_normalization(self):
+        self.client.force_authenticate(user=self.user)
+        patch_res = self.client.patch('/api/me/', {
+            'first_name': 'NewFirst',
+            'last_name': 'NewLast',
+        })
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(patch_res.data['first_name'], 'NewFirst')
+        self.assertEqual(patch_res.data['last_name'], 'NewLast')
+
+        patch_res2 = self.client.patch('/api/me/', {
+            'phone': '098 765 432',
+        })
+        self.assertEqual(patch_res2.status_code, status.HTTP_200_OK)
+        self.assertEqual(patch_res2.data['phone_normalized'], '+85598765432')
+        self.assertFalse(patch_res2.data['is_phone_verified'])
+
+        patch_res3 = self.client.patch('/api/me/', {
+            'phone': 'invalid_phone_123',
+        })
+        self.assertEqual(patch_res3.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('phone', patch_res3.data)
+
+    def test_forgot_password_dispatches_real_phone_otp_challenge_and_rejects_invalid_phone(self):
+        # Valid Cambodian mobile triggers real OTP challenge creation & SMS dispatch
+        res = self.client.post('/api/forgot-password/', {
+            'identifier': '012 888 999',
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('phone_masked', res.data)
+        self.assertEqual(len(TestConsoleSMSProvider.delivered_messages), 1)
+        challenge = PhoneOTPChallenge.objects.filter(
+            phone_normalized='+85512888999',
+            purpose='password_reset',
+        ).first()
+        self.assertIsNotNone(challenge)
+
+        # Invalid phone-like identifier must return 400 rather than silently returning 200
+        bad_res = self.client.post('/api/forgot-password/', {
+            'identifier': '1234567',
+        })
+        self.assertEqual(bad_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', bad_res.data)
+

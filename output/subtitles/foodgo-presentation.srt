@@ -1,0 +1,240 @@
+1
+00:00:02,000 --> 00:00:07,262
+សួស្តីគណៈកម្មការ និងសាស្ត្រាចារ្យ សាកលវិទ្យាល័យពាណិជ្ជសាស្រ្ត អេស៊ីលីដា។
+Greetings faculty & committee of ACLEDA University of Business.
+
+2
+00:00:11,632 --> 00:00:19,034
+ក្រុមនិស្សិតទាំង ៥ នាក់ សូមបង្ហាញពីគម្រោង FoodGo ដឹកជញ្ជូនម្ហូបអាហារទំនើប។
+Our 5-member team presents FoodGo, a modern food delivery platform.
+
+3
+00:00:23,404 --> 00:00:28,764
+សមាជិក៖ ០១ អែម រតនា · ០២ ហេន យ៉ាងគុយ · ០៣ ថាន់ សម្បត្តិបររ័ត្ន · ០៤ ជាង បូរិន · ០៥ លី គឹមឈុន។
+Team: 01 Em Ratana, 02 Hen Yaungkuy, 03 Than Sombath Borarat, 04 Cheang borin, 05 Ly KimChhun.
+
+4
+00:00:33,134 --> 00:00:39,942
+គោលបំណងចម្បង៖ ភ្ជាប់អតិថិជន អ្នកដឹកជញ្ជូន ម្ចាស់ហាង និងអ្នកគ្រប់គ្រងនៅភ្នំពេញ។
+Core purpose: Uniting Customers, Couriers, Restaurants & Admins in Phnom Penh.
+
+5
+00:00:47,000 --> 00:00:52,964
+ទីផ្សារកុម្ម៉ង់ម្ហូបបច្ចុប្បន្ន ជួបប្រទះបញ្ហាប្រឈមសំខាន់ៗចំនួន ៤។
+Existing delivery platforms face four key operational pain points.
+
+6
+00:00:57,334 --> 00:01:02,981
+១. ឧបសគ្គភាសាខ្មែរ និងកំហុសក្នុងការគណនាតម្លៃ USD / KHR ដោយដៃ។
+1. Limited Khmer UX and error-prone manual USD/KHR calculations.
+
+7
+00:01:07,351 --> 00:01:11,268
+២. ការផ្ទៀងផ្ទាត់បង់ប្រាក់ដោយរូបភាពបង្កាន់ដៃ មានហានិភ័យ និងយឺតយ៉ាវ។
+2. Manual screenshot slips create verification delays & fraud risks.
+
+8
+00:01:15,638 --> 00:01:21,360
+៣. ការតាមដានទីតាំងដោយការ Refresh ទំព័រ ធ្វើឱ្យយឺត និងខាតបង់ធនធាន Server។
+3. HTTP polling lags real-time rider tracking & burdens servers.
+
+9
+00:01:28,433 --> 00:01:33,384
+ដើម្បីដោះស្រាយបញ្ហានេះ FoodGo កំណត់គោលបំណងច្បាស់លាស់ ៤ ចំណុច។
+To solve these issues, FoodGo targets four clear engineering objectives.
+
+10
+00:01:37,754 --> 00:01:42,400
+១. បង្កើតចំណុចប្រទាក់ ខ្មែរ / អង់គ្លេស ដែលប្ដូរបានភ្លាមៗក្នុង ១ ចុច។
+1. Build 1-tap seamless Khmer & English switching across mobile & web.
+
+11
+00:01:46,770 --> 00:01:53,775
+២. គណនា USD/KHR ស្វ័យប្រវត្តិ (1 USD = 4,100 ៛) លើគ្រប់ការកុម្ម៉ង់។
+2. Enforce exact automatic dual USD/KHR sync (4,100 KHR per USD).
+
+12
+00:01:58,145 --> 00:02:05,332
+៣. ទូទាត់ Bakong KHQR ឌីណាមិក និងតាមដានផែនទី OSRM ពេលវេលាពិត។
+3. Deliver dynamic Bakong KHQR settlement & live Phnom Penh GPS tracking.
+
+13
+00:02:12,400 --> 00:02:17,750
+ដំណោះស្រាយ៖ បង្រួបបង្រួមតួនាទីទាំង ៤ នៅក្នុងប្រព័ន្ធ FoodGo តែមួយ។
+Our solution unifies all 4 operational roles in one FoodGo platform.
+
+14
+00:02:22,120 --> 00:02:28,195
+គាំទ្រការចូលប្រើប្រាស់ ៤ តួនាទី ដោយសុវត្ថិភាព JWT និង OTP ទូរស័ព្ទ។
+Customers, Couriers, Owners & Admins authenticate securely via JWT & OTP.
+
+15
+00:02:32,565 --> 00:02:36,978
+រាល់ការបង់ប្រាក់ និងទីតាំងដឹកជញ្ជូន ត្រូវបានបញ្ជូនភ្លាមៗតាម WebSocket។
+Every payment, status update & courier coordinate pushes live via WebSocket.
+
+16
+00:02:41,348 --> 00:02:46,286
+លុបបំបាត់កំហុសគណនាដោយដៃ និងលើកកម្ពស់ទំនុកចិត្តពាណិជ្ជកម្មឌីជីថល។
+This eliminates manual errors and boosts trust across local food commerce.
+
+17
+00:02:53,367 --> 00:03:00,352
+មុខងារសំខាន់ៗ ៥A៖ ម៉ឺនុយរហ័ស ការស្វែងរក និងចំណាត់ថ្នាក់ម្ហូបអាហារ។
+Key Features 5A: Fast menu browsing, category filters & crisp dish previews.
+
+18
+00:03:04,722 --> 00:03:10,354
+ប្ដូរភាសា ខ្មែរ/អង់គ្លេស និងជ្រើសរើស Theme បង្ហាញបានដល់ទៅ ១៦ ប្រភេទ។
+Switch KH/EN languages anytime & customize from 16 GlassTheme palettes.
+
+19
+00:03:14,724 --> 00:03:20,176
+អនុវត្តប្រូម៉ូកូដបញ្ចុះតម្លៃ (FOODGO30) និងគណនាប្រាក់រៀលភ្លាមៗ។
+Apply voucher codes like FOODGO30 with instant live USD & KHR totals.
+
+20
+00:03:27,233 --> 00:03:32,220
+មុខងារសំខាន់ៗ ៥B៖ បង្កើតកូដ Bakong KHQR ឌីណាមិកតាមស្តង់ដារ EMVCo CRC16។
+Key Features 5B: Dynamic EMVCo CRC16-CCITT Bakong KHQR generation.
+
+21
+00:03:36,590 --> 00:03:40,990
+គាំទ្រ Bakong · ABA · ACLEDA · Wing ជាមួយនាឡិកាកំណត់ពេលជិត ៣០ នាទី។
+Compatible with Bakong, ABA, ACLEDA & Wing under a live countdown timer.
+
+22
+00:03:45,360 --> 00:03:52,504
+ផ្ទៀងផ្ទាត់ការបង់ប្រាក់តាម WebSocket និងបង្កើត Delivery Token សុវត្ថិភាព។
+Server pushes WebSocket receipt locks & generates Delivery Handover Tokens.
+
+23
+00:03:59,567 --> 00:04:05,241
+ប្រព័ន្ធបច្ចេកវិទ្យា FoodGo ត្រូវបានអភិវឌ្ឍលើស្ថាបត្យកម្មទំនើប និងរឹងមាំ។
+FoodGo is engineered on an industry-grade full-stack foundation.
+
+24
+00:04:09,611 --> 00:04:14,547
+Frontend៖ Dart 3 & Flutter 3 ដែលមានទំព័រកម្មវិធីចំនួន ៣១ សម្រាប់ Mobile & Web។
+Frontend: Dart 3 & Flutter 3 powering 31 clean screens across Mobile & Web.
+
+25
+00:04:18,917 --> 00:04:23,304
+Backend៖ Python, Django REST Framework, Daphne ASGI & Channels WebSockets។
+Backend: Python, Django REST Framework, Daphne ASGI & Channels.
+
+26
+00:04:27,674 --> 00:04:32,501
+មូលដ្ឋានទិន្នន័យ៖ PostgreSQL & Redis រួមជាមួយ OpenStreetMap & OSRM។
+Storage & Routing: PostgreSQL, Redis pub/sub & OpenStreetMap + OSRM.
+
+27
+00:04:39,567 --> 00:04:44,804
+ស្ថាបត្យកម្មប្រព័ន្ធ ៤ ស្រទាប់របស់ FoodGo ភ្ជាប់យ៉ាងរលូនពីអតិថិជនដល់ធនាគារ។
+Explore FoodGo's 4-tier architecture from Flutter clients to payment rails.
+
+28
+00:04:49,174 --> 00:04:56,515
+១. Flutter Portals ភ្ជាប់ទៅកាន់ផ្លូវ API ចំនួន ៥៩ នៅលើ Django Core។
+1. All 4 Flutter client portals communicate through 59 REST & WS routes.
+
+29
+00:05:00,885 --> 00:05:06,419
+២. ម៉ូដែលទិន្នន័យ ២៦ គ្រប់គ្រង Order, Payment, Delivery, Wallet & AuditLog។
+2. 26 ORM models govern Users, Orders, Payments, Deliveries & AuditLogs.
+
+30
+00:05:10,789 --> 00:05:15,551
+៣. Redis Channels បញ្ជូនទីតាំងផ្ទាល់ ខណៈ OSRM គណនាផ្លូវលឿនបំផុតក្នុងភ្នំពេញ។
+3. Redis pub/sub streams live sockets while OSRM computes Phnom Penh routes.
+
+31
+00:05:22,633 --> 00:05:27,320
+ការបង្ហាញកម្មវិធីពិត (Live Demo 8A)៖ ពីការជ្រើសរើសម្ហូបដល់បង្កាន់ដៃ។
+Live Demo 8A: Real end-to-end Flutter checkout experience.
+
+32
+00:05:31,690 --> 00:05:38,162
+អតិថិជនដាក់ម្ហូបក្នុងកន្ត្រក ប្រើប្រូម៉ូកូដ FOODGO30 និងពិនិត្យតម្លៃដុល្លារ/រៀល។
+Customer adds items, applies FOODGO30 voucher & confirms USD/KHR total.
+
+33
+00:05:42,532 --> 00:05:46,453
+ប្រព័ន្ធបង្កើតបង្កាន់ដៃ Order និងត្រៀម KHQR ភ្លាមៗសម្រាប់បង់ប្រាក់។
+Order ID & itemized dual-currency bill lock automatically for KHQR.
+
+34
+00:05:53,533 --> 00:05:58,806
+Live Demo 8B៖ តាមដានអ្នកដឹកជញ្ជូនលើផែនទីទីក្រុងភ្នំពេញពេលវេលាពិត។
+Live Demo 8B: Live Phnom Penh GPS courier radar on OpenStreetMap.
+
+35
+00:06:03,176 --> 00:06:10,012
+បង្ហាញចម្ងាយផ្លូវ ចលនាអ្នកដឹក Bob Rider និងម៉ោងមកដល់ ETA ផ្ទាល់។
+Map plots rider telemetry, route polyline & dynamic 3-min ETA countdown.
+
+36
+00:06:14,382 --> 00:06:20,221
+ស្ថានភាពទាំង ៤ ដំណាក់កាលប្ដូរដោយស្វ័យប្រវត្តិ ដោយមិនចាំបាច់ Refresh ទំព័រ។
+Status steps advance live without refreshing the app.
+
+37
+00:06:27,300 --> 00:06:33,892
+Live Demo 8C៖ ផ្នែកអ្នកដឹកជញ្ជូន (Driver Portal) និងការផ្ញើទីតាំង GPS។
+Live Demo 8C: Courier Portal online toggle, job claim & GPS broadcast.
+
+38
+00:06:38,262 --> 00:06:43,374
+ការទទួលការងារត្រូវបានការពារដោយ Atomic Lock មិនឱ្យទទួលការងារជាន់គ្នា។
+Order claims are protected atomically so two drivers never collide.
+
+39
+00:06:47,744 --> 00:06:52,636
+បញ្ចប់ការដឹកជញ្ជូនយ៉ាងត្រឹមត្រូវ ដោយបញ្ជាក់កូដ PIN ៦ ខ្ទង់ ឬ Delivery QR។
+Courier completes handover securely via 6-digit PIN or Delivery QR.
+
+40
+00:06:59,700 --> 00:07:06,710
+Live Demo 8D៖ ផ្ទាំងគ្រប់គ្រងម្ចាស់ហាង និង Admin Command Center។
+Live Demo 8D: Restaurant Owner workflow & Admin Console telemetry.
+
+41
+00:07:11,080 --> 00:07:17,694
+បង្ហាញចំណូល 487.49 ដុល្លារ · 49 ការកុម្ម៉ង់ · អ្នកដឹក 6 · អតិថិជន 13 នាក់។
+Live KPIs track Revenue ($487.49), Orders (49), Drivers (6) & Customers.
+
+42
+00:07:22,064 --> 00:07:28,211
+គ្រប់គ្រងតារាងប្រតិបត្តិការ Bakong/ABA/ACLEDA និង Audit Log ពេញលេញ។
+Inspect every KHQR settlement ledger, refund & AuditLog entry cleanly.
+
+43
+00:07:35,267 --> 00:07:40,591
+លទ្ធផលសម្រេចបាន៖ ការធ្វើតេស្តស្វ័យប្រវត្តិសរុប ៤៧៤ ករណី ជោគជ័យពេញលេញ។
+Verification Results: 474 automated software checks validated across stack.
+
+44
+00:07:44,961 --> 00:07:51,746
+រួមមាន 225 Backend Django Tests & 249 Flutter Unit/Widget Tests (26 Models · 59 APIs)។
+Includes 225 Django core test functions & 249 Flutter unit/widget tests.
+
+45
+00:07:56,116 --> 00:08:02,379
+ដោះស្រាយបញ្ហា Race Condition តាម select_for_update() & WebSocket Group Push។
+Key fixes: select_for_update() locking & clean alpha backdrop compositing.
+
+46
+00:08:09,433 --> 00:08:14,641
+សេចក្ដីសន្និដ្ឋាន៖ FoodGo សម្រេចបានប្រព័ន្ធដឹកជញ្ជូនម្ហូបពេញលេញសម្រាប់កម្ពុជា។
+Conclusion: FoodGo delivers a complete bilingual KHQR & OSRM ecosystem.
+
+47
+00:08:19,011 --> 00:08:24,011
+ទិសដៅអនាគត៖ Production Bakong Webhook, Push Alerts & Multi-Branch Dispatch។
+Roadmap: Production Bakong webhooks, Push Notifications & Cloud Scale.
+
+48
+00:08:28,381 --> 00:08:35,678
+សូមអរគុណ! ក្រុមនិស្សិត ACLEDA University សូមស្វាគមន៍សំណួរ និងមតិកែលម្អ (Q&A)។
+Thank you! The ACLEDA University Capstone Team welcomes your Q&A.
+

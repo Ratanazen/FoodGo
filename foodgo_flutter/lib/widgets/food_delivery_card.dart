@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../core/theme/app_icons.dart';
+import '../core/theme/app_typography.dart';
 import '../core/theme/glass_theme.dart';
+import '../core/utils/khmer_currency.dart';
 import '../providers/favorites_provider.dart';
+import 'glass/animated_pressable.dart';
+import 'shimmer_widgets.dart';
 
 class FoodDeliveryCard extends StatefulWidget {
   final Map<String, dynamic> restaurant;
@@ -49,27 +54,24 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
         ? banner
         : fallbackBanner;
 
-    return InkWell(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedPressable(
       onTap: widget.onTap,
-      borderRadius: BorderRadius.circular(18),
+      pressedScale: 0.985,
+      hoverScale: 1.01,
       child: Container(
         width: width,
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? GlassTheme.surfaceCardDark
-              : Colors.white,
+          color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
-            width: 1,
+            color: isDark
+                ? GlassTheme.dynamicBorderDark
+                : GlassTheme.borderLight,
+            width: 1.1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,32 +93,19 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       child: CachedNetworkImage(
                         imageUrl: effectiveBanner,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          child: const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: GlassTheme.primaryGreen,
-                              ),
-                            ),
+                        placeholder: (context, url) => ShimmerBox(
+                          width: double.infinity,
+                          height: imageHeight,
+                          borderRadius: 0,
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey.withValues(alpha: 0.15),
+                          child: const Icon(
+                            AppIcons.restaurants,
+                            color: GlassTheme.textMuted,
+                            size: 40,
                           ),
                         ),
-                        errorWidget: (context, url, error) =>
-                            CachedNetworkImage(
-                              imageUrl: fallbackBanner,
-                              fit: BoxFit.cover,
-                              errorWidget: (c, u, e) => Container(
-                                color: Colors.grey.withValues(alpha: 0.15),
-                                child: const Icon(
-                                  Icons.store,
-                                  color: GlassTheme.textMuted,
-                                  size: 40,
-                                ),
-                              ),
-                            ),
                       ),
                     ),
                   ),
@@ -144,20 +133,18 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          isFreeDelivery
-                              ? Icons.moped
-                              : Icons.local_fire_department,
+                          isFreeDelivery ? AppIcons.delivery : AppIcons.offers,
                           size: 13,
                           color: Colors.white,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           isFreeDelivery ? 'Free Delivery' : '20% OFF Deals',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
                         ),
                       ],
                     ),
@@ -188,14 +175,16 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                             ),
                             duration: const Duration(seconds: 1),
                             behavior: SnackBarBehavior.floating,
-                            backgroundColor: GlassTheme.surfaceDark,
+                            backgroundColor: GlassTheme.dynamicSurfaceDark,
                           ),
                         );
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(6.0),
                         child: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          isFavorite
+                              ? AppIcons.favorite
+                              : AppIcons.favoriteBorder,
                           size: 18,
                           color: isFavorite
                               ? GlassTheme.foodpandaPink
@@ -223,18 +212,18 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
-                          Icons.access_time,
+                          AppIcons.eta,
                           size: 12,
                           color: Colors.white70,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '$minTime-$maxTime min',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),
@@ -259,12 +248,13 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                             color: Colors.transparent,
                             child: Text(
                               name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: AppTypography.primaryTextColor(
+                                      Theme.of(context).brightness,
+                                    ),
+                                  ),
+                              maxLines: 2,
                             ),
                           ),
                         ),
@@ -272,29 +262,35 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                          horizontal: 7,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: GlassTheme.ratingAmber.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
+                          color: isDark
+                              ? GlassTheme.ratingAmber.withValues(alpha: 0.16)
+                              : const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.star,
+                            Icon(
+                              AppIcons.star,
                               size: 12,
-                              color: GlassTheme.ratingAmber,
+                              color: isDark
+                                  ? GlassTheme.ratingAmber
+                                  : const Color(0xFFB45309),
                             ),
                             const SizedBox(width: 3),
                             Text(
                               rating,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: GlassTheme.ratingAmber,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? GlassTheme.ratingAmber
+                                        : const Color(0xFFB45309),
+                                  ),
                             ),
                           ],
                         ),
@@ -306,9 +302,12 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                   // Cuisine & Distance Subtitle
                   Text(
                     '\$\$ • Burgers • Fast Food • 1.2 km',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTypography.secondaryTextColor(
+                        Theme.of(context).brightness,
+                      ),
+                    ),
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 6),
 
@@ -316,32 +315,44 @@ class _FoodDeliveryCardState extends State<FoodDeliveryCard> {
                   Row(
                     children: [
                       Icon(
-                        Icons.moped,
+                        AppIcons.delivery,
                         size: 14,
                         color: isFreeDelivery
-                            ? GlassTheme.primaryGreen
-                            : GlassTheme.textMuted,
+                            ? (Theme.of(context).brightness == Brightness.dark
+                                  ? GlassTheme.primaryGreen
+                                  : GlassTheme.primaryGreenDark)
+                            : AppTypography.secondaryTextColor(
+                                Theme.of(context).brightness,
+                              ),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        isFreeDelivery
-                            ? 'Free Delivery'
-                            : '\$${deliveryFee.toStringAsFixed(2)} delivery',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isFreeDelivery
-                              ? GlassTheme.primaryGreen
-                              : GlassTheme.textMuted,
+                      Expanded(
+                        child: Text(
+                          isFreeDelivery
+                              ? 'Free Delivery'
+                              : '${KhmerCurrency.formatDual(deliveryFee)} delivery',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isFreeDelivery
+                                    ? (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? GlassTheme.primaryGreen
+                                          : GlassTheme.primaryGreenDark)
+                                    : AppTypography.secondaryTextColor(
+                                        Theme.of(context).brightness,
+                                      ),
+                              ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 6),
                       Text(
                         '15% OFF \$10+',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: GlassTheme.foodpandaPink,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? GlassTheme.foodpandaPink
+                              : const Color(0xFFBE185D),
                         ),
                       ),
                     ],

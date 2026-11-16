@@ -1,3 +1,4 @@
+import importlib.util
 from pathlib import Path
 from datetime import timedelta
 import os
@@ -18,12 +19,13 @@ for _env_candidate in [BASE_DIR / '.env', BASE_DIR.parent / '.env']:
         except Exception:
             pass
 
-SECRET_KEY = os.environ.get('SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY', 'foodgo-django-insecure-secret-key-prod-ready-minimum-50-characters-xyz'))
+_DEV_INSECURE_SECRET_KEY = 'foodgo-django-insecure-secret-key-prod-ready-minimum-50-characters-xyz'
+SECRET_KEY = os.environ.get('SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY', _DEV_INSECURE_SECRET_KEY))
 _is_cloud_prod = 'VERCEL' in os.environ or 'RENDER' in os.environ or os.environ.get('ENVIRONMENT') == 'production'
 _default_debug = 'False' if _is_cloud_prod else 'True'
 DEBUG = os.environ.get('DJANGO_DEBUG', os.environ.get('DEBUG', _default_debug)).lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0,*')).split(',') if host.strip()]
-GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', 'AIzaSyC3asDbdqC77DpPZt8DSttWJ2r9hLGT2PA')
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 
 # Security hardening for production environments
 if not DEBUG:
@@ -45,8 +47,11 @@ USE_X_FORWARDED_PORT = True
 
 
 
+_HAS_DAPHNE = importlib.util.find_spec('daphne') is not None
+_HAS_CHANNELS = importlib.util.find_spec('channels') is not None
+
 INSTALLED_APPS = [
-    'daphne',
+    *(['daphne'] if _HAS_DAPHNE else []),
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -59,17 +64,18 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'django_filters',
-    'channels',
+    *(['channels'] if _HAS_CHANNELS else []),
     'core',
 ]
 
-ASGI_APPLICATION = 'config.asgi.application'
+if _HAS_CHANNELS:
+    ASGI_APPLICATION = 'config.asgi.application'
 
 MIDDLEWARE = [
-    'core.middleware.RequestTimingMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'core.middleware.RequestTimingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -201,12 +207,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOW_ALL_ORIGINS = os.environ.get(
+    'CORS_ALLOW_ALL_ORIGINS',
+    str(DEBUG)
+).lower() in ('true', '1', 'yes')
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
         'CORS_ALLOWED_ORIGINS',
-        'https://foodgo.rtnaeam611.workers.dev,https://food-go-app.vercel.app,https://foodgo-backend-a.vercel.app,https://foodgo-backend-b.vercel.app,http://localhost:3000,http://localhost:8080,http://localhost:5000,http://localhost:53538'
+        'https://foodgo.rtnaeam611.workers.dev,https://food-go-app.vercel.app,https://foodgo-backend-a.vercel.app,https://foodgo-backend-b.vercel.app,https://foodgo-53pl.onrender.com,http://localhost:3000,http://localhost:8080,http://localhost:5000,http://localhost:53538'
     ).split(',')
     if origin.strip()
 ]
@@ -214,6 +223,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.workers\.dev$",
     r"^https://.*\.vercel\.app$",
     r"^https://.*\.foodgo\.app$",
+    r"^https://.*\.onrender\.com$",
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://foodgo.rtnaeam611.workers.dev',
@@ -293,6 +303,9 @@ if 'VERCEL' in os.environ:
 IS_TESTING = 'test' in sys.argv
 
 if not DEBUG and not IS_TESTING:
+    if SECRET_KEY == _DEV_INSECURE_SECRET_KEY or len(SECRET_KEY) < 32:
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured('SECRET_KEY environment variable must be explicitly configured with >=32 chars when DEBUG=False.')
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True').lower() in ('true', '1')
     CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'True').lower() in ('true', '1')
     # Render, Vercel, and Cloudflare handle SSL termination & redirection at the edge.
@@ -361,8 +374,13 @@ LOGGING = {
     },
 }
 
-# MongoDB sync can be disabled for latency-sensitive deployments
-MONGO_SYNC_ENABLED = os.environ.get('MONGO_SYNC_ENABLED', 'true').lower() in ('true', '1', 'yes')
+# MongoDB sync can be disabled for latency-sensitive deployments or automated tests
+if IS_TESTING:
+    MONGO_SYNC_ENABLED = os.environ.get('MONGO_SYNC_ENABLED', 'false').lower() in ('true', '1', 'yes')
+    if not MONGO_SYNC_ENABLED:
+        os.environ['MONGO_SYNC_ENABLED'] = 'false'
+else:
+    MONGO_SYNC_ENABLED = os.environ.get('MONGO_SYNC_ENABLED', 'true').lower() in ('true', '1', 'yes')
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
@@ -397,6 +415,9 @@ JAZZMIN_SETTINGS = {
         {"name": "Users", "model": "core.User", "icon": "fas fa-users"},
         {"name": "Orders", "model": "core.Order", "icon": "fas fa-box"},
         {"name": "Restaurants", "model": "core.Restaurant", "icon": "fas fa-store"},
+        # Quick shortcuts (available on every admin page)
+        {"name": "Pending Orders", "url": "/admin/core/order/?status__exact=pending", "icon": "fas fa-clock"},
+        {"name": "+ Food Item", "url": "admin:core_fooditem_add", "icon": "fas fa-plus"},
     ],
 
     #############
@@ -504,18 +525,40 @@ JAZZMIN_UI_TWEAKS = {
 }
 
 redis_url = os.environ.get('REDIS_URL') or os.environ.get('CHANNEL_REDIS_URL')
-if redis_url:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                'hosts': [redis_url],
+if _HAS_CHANNELS:
+    if redis_url and importlib.util.find_spec('channels_redis') is not None:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    'hosts': [redis_url],
+                },
             },
-        },
-    }
-else:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels.layers.InMemoryChannelLayer',
-        },
-    }
+        }
+    else:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels.layers.InMemoryChannelLayer',
+            },
+        }
+
+# ==============================================================================
+# Cambodian SMS Gateway & Phone OTP Authentication Configuration (FoodGo v2.0)
+# ==============================================================================
+SMS_PROVIDER = os.environ.get('SMS_PROVIDER', 'simosms')
+SMS_API_KEY = os.environ.get('SMS_API_KEY', '')
+SMS_API_SECRET = os.environ.get('SMS_API_SECRET', '')
+SMS_SENDER_ID = os.environ.get('SMS_SENDER_ID', 'FoodGo')
+SMS_API_BASE_URL = os.environ.get('SMS_API_BASE_URL', 'https://smscambodia.com/smsapi')
+OTP_RESEND_COOLDOWN_SECONDS = int(os.environ.get('OTP_RESEND_COOLDOWN_SECONDS', '60'))
+OTP_EXPIRY_SECONDS = int(os.environ.get('OTP_EXPIRY_SECONDS', '300'))
+OTP_RATE_LIMIT_PER_HOUR = int(os.environ.get('OTP_RATE_LIMIT_PER_HOUR', '5'))
+
+# Payment environment and configuration
+PAYMENT_ENV = os.environ.get('PAYMENT_ENV', 'sandbox')
+PAYMENT_WEBHOOK_SECRET = os.environ.get('PAYMENT_WEBHOOK_SECRET', '')
+BAKONG_API_TOKEN = os.environ.get('BAKONG_API_TOKEN', os.environ.get('BAKONG_TOKEN', ''))
+BAKONG_ACCOUNT_ID = os.environ.get('BAKONG_ACCOUNT_ID', 'sonar_seang@bkrt')
+BAKONG_MERCHANT_NAME = os.environ.get('BAKONG_MERCHANT_NAME', 'FoodGo Restaurant')
+BAKONG_MERCHANT_CITY = os.environ.get('BAKONG_MERCHANT_CITY', 'Phnom Penh')
+

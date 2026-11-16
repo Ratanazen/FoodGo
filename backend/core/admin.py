@@ -131,6 +131,33 @@ def custom_admin_index(request, extra_context=None):
             status_counts[row['status']] = row['c']
     status_data = list(status_counts.values())
 
+    # ── Today & "needs attention" (business day in Phnom Penh time) ──
+    from zoneinfo import ZoneInfo
+    from django.db.models import Q
+    local_tz = ZoneInfo('Asia/Phnom_Penh')
+    local_now = timezone.now().astimezone(local_tz)
+    start_of_day = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    yesterday_start = start_of_day - timezone.timedelta(days=1)
+
+    closed_statuses = ['delivered', 'cancelled', 'failed_delivery']
+    todays_orders_qs = Order.objects.filter(created_at__gte=start_of_day)
+    today_orders = todays_orders_qs.count()
+    yesterday_orders = Order.objects.filter(created_at__gte=yesterday_start, created_at__lt=start_of_day).count()
+    today_revenue = todays_orders_qs.exclude(status__in=['cancelled', 'failed_delivery']).aggregate(
+        total=Sum('total_amount'))['total'] or 0
+    today_delivered = todays_orders_qs.filter(status='delivered').count()
+
+    active_orders_qs = Order.objects.exclude(status__in=closed_statuses)
+    active_orders = active_orders_qs.count()
+    unassigned_qs = active_orders_qs.filter(Q(delivery__isnull=True) | Q(delivery__driver__isnull=True))
+    unassigned_orders = unassigned_qs.count()
+    drivers_pending_approval = Driver.objects.filter(is_approved=False).count()
+    unavailable_items = FoodItem.objects.filter(is_available=False).count()
+
+    attention_orders = (
+        unassigned_qs.select_related('customer', 'restaurant').order_by('created_at')[:6]
+    )
+
     if extra_context is None:
         extra_context = {}
     extra_context.update({
@@ -153,6 +180,16 @@ def custom_admin_index(request, extra_context=None):
         'chart_labels': json.dumps(chart_labels),
         'chart_data': json.dumps(chart_data),
         'status_data': json.dumps(status_data),
+        'today_orders': today_orders,
+        'yesterday_orders': yesterday_orders,
+        'today_revenue': f'{today_revenue:,.2f}',
+        'today_delivered': today_delivered,
+        'active_orders': active_orders,
+        'unassigned_orders': unassigned_orders,
+        'drivers_pending_approval': drivers_pending_approval,
+        'unavailable_items': unavailable_items,
+        'attention_orders': attention_orders,
+        'dashboard_updated_at': local_now.strftime('%H:%M'),
     })
     return _original_index(request, extra_context)
 
@@ -320,6 +357,7 @@ class AddressAdmin(admin.ModelAdmin):
     list_display = ['user', 'street', 'city', 'state', 'zip_code', 'default_badge']
     list_filter = ['city', 'state', 'is_default']
     search_fields = ['user__username', 'street', 'city', 'zip_code']
+    autocomplete_fields = ['user']
 
     @admin.display(description='Default', boolean=True)
     def default_badge(self, obj):
@@ -351,6 +389,7 @@ class RestaurantAdmin(admin.ModelAdmin):
     list_display = ['restaurant_logo', 'name', 'owner', 'category', 'rating_stars', 'delivery_fee', 'is_active']
     list_filter = ['is_active', 'category']
     search_fields = ['name', 'owner__username', 'phone']
+    autocomplete_fields = ['owner', 'category']
     readonly_fields = ['rating']
     list_editable = ['is_active']
     inlines = [FoodCategoryInline]
@@ -386,8 +425,8 @@ class RestaurantAdmin(admin.ModelAdmin):
 
 class FoodItemInline(admin.TabularInline):
     model = FoodItem
-    extra = 3
-    fields = ['food_thumb', 'name', 'price', 'image_url', 'is_available']
+    extra = 1
+    fields = ['food_thumb', 'name', 'price', 'original_price', 'preparation_time_mins', 'is_vegetarian', 'is_spicy', 'image_url', 'is_available']
     readonly_fields = ['food_thumb']
     show_change_link = True
 
@@ -403,6 +442,7 @@ class FoodCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'restaurant', 'items_count']
     list_filter = ['restaurant']
     search_fields = ['name', 'restaurant__name']
+    autocomplete_fields = ['restaurant']
     inlines = [FoodItemInline]
     save_on_top = True
 
@@ -419,10 +459,11 @@ class FoodCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(FoodItem)
 class FoodItemAdmin(admin.ModelAdmin):
-    list_display = ['food_image', 'name', 'get_restaurant', 'category', 'price', 'is_available']
-    list_filter = ['is_available', 'category__restaurant', 'category']
+    list_display = ['food_image', 'name', 'get_restaurant', 'category', 'price', 'prep_time_badge', 'dietary_badges', 'is_available']
+    list_filter = ['is_available', 'is_vegetarian', 'is_halal', 'is_spicy', 'category__restaurant', 'category']
     search_fields = ['name', 'description', 'category__name', 'category__restaurant__name', 'ingredients']
     list_editable = ['price', 'is_available']
+    autocomplete_fields = ['category']
     list_per_page = 25
     save_on_top = True
     save_as = True
@@ -437,10 +478,15 @@ class FoodItemAdmin(admin.ModelAdmin):
                 name=f"{item.name} (Copy)",
                 description=item.description,
                 price=item.price,
+                original_price=item.original_price,
                 image=item.image,
                 image_url=item.image_url,
                 is_available=item.is_available,
                 ingredients=item.ingredients,
+                is_vegetarian=item.is_vegetarian,
+                is_halal=item.is_halal,
+                is_spicy=item.is_spicy,
+                preparation_time_mins=item.preparation_time_mins,
             )
             count += 1
         self.message_user(request, f'Successfully duplicated {count} item(s).')
@@ -457,12 +503,20 @@ class FoodItemAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'category', 'price', 'is_available'),
-            'description': 'Select the food category and enter the food item name and price in USD.',
+            'fields': (('name', 'category'), 'is_available'),
+            'description': 'Select the food category and enter the food item name.',
+        }),
+        ('Pricing & Preparation', {
+            'fields': (('price', 'original_price'), 'preparation_time_mins'),
+            'description': 'Enter price in USD, optional original strikethrough price for discounts, and preparation time in minutes.',
         }),
         ('Food Photo / Image', {
             'fields': ('image_url', 'image', 'food_image_large'),
             'description': 'Paste a direct web image link (e.g. Unsplash URL) OR upload an image file from your device.',
+        }),
+        ('Dietary & Preferences', {
+            'fields': (('is_vegetarian', 'is_halal', 'is_spicy'),),
+            'description': 'Select dietary tags to help customers filter menu items on mobile and web.',
         }),
         ('Description & Ingredients', {
             'fields': ('description', 'ingredients'),
@@ -484,8 +538,36 @@ class FoodItemAdmin(admin.ModelAdmin):
     def get_restaurant(self, obj):
         return obj.category.restaurant.name
 
+    @admin.display(description='Prep Time', ordering='preparation_time_mins')
+    def prep_time_badge(self, obj):
+        mins = obj.preparation_time_mins or 15
+        return format_html(
+            '<span style="background:#e8f4fd;color:#0b7285;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-clock"></i> {}m</span>',
+            mins
+        )
+
+    @admin.display(description='Dietary')
+    def dietary_badges(self, obj):
+        tags = []
+        if obj.is_vegetarian:
+            tags.append('<span style="background:#e6fcf5;color:#0ca678;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:600;">🌱 Veg</span>')
+        if obj.is_halal:
+            tags.append('<span style="background:#f3f0ff;color:#7950f2;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:600;">☪ Halal</span>')
+        if obj.is_spicy:
+            tags.append('<span style="background:#fff5f5;color:#fa5252;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:600;">🌶 Spicy</span>')
+        if not tags:
+            return mark_safe('<span style="color:#adb5bd;font-size:11px;">Standard</span>')
+        return mark_safe(' '.join(tags))
+
     @admin.display(description='Price', ordering='price')
     def price_display(self, obj):
+        if obj.original_price and obj.original_price > obj.price:
+            return format_html(
+                '<span style="font-weight:700;color:#27ae60;">${}</span> '
+                '<span style="text-decoration:line-through;color:#868e96;font-size:11px;">${}</span>',
+                f"{float(obj.price):.2f}",
+                f"{float(obj.original_price):.2f}"
+            )
         return format_html('<span style="font-weight:700;color:#27ae60;">${}</span>', f"{float(obj.price):.2f}")
 
 
@@ -520,6 +602,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'customer', 'restaurant', 'assigned_driver_badge', 'status_badge', 'payment_status', 'total_amount', 'bill_action', 'created_at']
     list_filter = ['status', 'payment_status', 'created_at', 'restaurant']
     search_fields = ['customer__username', 'id']
+    autocomplete_fields = ['customer', 'restaurant', 'address']
     inlines = [OrderItemInline, DeliveryInline, OrderStatusHistoryInline]
     readonly_fields = ['created_at', 'view_bill_link']
     date_hierarchy = 'created_at'
@@ -680,6 +763,7 @@ class CartItemInline(admin.TabularInline):
 class CartAdmin(admin.ModelAdmin):
     list_display = ['customer', 'restaurant', 'item_count']
     search_fields = ['customer__username']
+    autocomplete_fields = ['customer']
     inlines = [CartItemInline]
 
     @admin.display(description='Items')
@@ -691,6 +775,7 @@ class CartAdmin(admin.ModelAdmin):
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ['cart', 'food_item', 'quantity']
     search_fields = ['cart__customer__username', 'food_item__name']
+    autocomplete_fields = ['food_item', 'cart']
 
 
 @admin.register(Payment)
@@ -698,6 +783,7 @@ class PaymentAdmin(admin.ModelAdmin):
     list_display = ['id', 'order', 'provider', 'method', 'amount', 'currency', 'payment_status_badge', 'merchant_reference', 'transaction_id', 'created_at']
     list_filter = ['status', 'provider', 'method', 'currency', 'created_at']
     search_fields = ['order__id', 'transaction_id', 'merchant_reference']
+    autocomplete_fields = ['order']
     readonly_fields = ['order', 'amount', 'currency', 'merchant_reference', 'transaction_id', 'created_at', 'updated_at', 'paid_at', 'provider_response', 'qr_payload']
 
     @admin.display(description='Status')
@@ -808,6 +894,7 @@ class DeliveryAdmin(admin.ModelAdmin):
     list_display = ['id', 'order', 'driver', 'status_badge', 'pickup_time', 'delivery_time', 'created_at']
     list_filter = ['status', 'created_at']
     search_fields = ['order__id', 'order__order_reference', 'driver__user__username']
+    autocomplete_fields = ['order', 'driver']
     actions = ['release_assignment', 'mark_delivered']
 
     @admin.display(description='Status')
@@ -859,6 +946,7 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ['order', 'star_rating', 'created_at']
     list_filter = ['rating']
     search_fields = ['order__id']
+    autocomplete_fields = ['order']
     readonly_fields = ['created_at']
 
     @admin.display(description='Rating')
@@ -878,6 +966,7 @@ class ReviewAdmin(admin.ModelAdmin):
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ['customer', 'restaurant']
     search_fields = ['customer__username', 'restaurant__name']
+    autocomplete_fields = ['customer', 'restaurant']
 
 
 # ─────────────────────────────────────────────
@@ -897,6 +986,7 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ['user', 'title', 'read_badge', 'created_at']
     list_filter = ['is_read', 'created_at']
     search_fields = ['user__username', 'title', 'message']
+    autocomplete_fields = ['user']
     readonly_fields = ['created_at']
     date_hierarchy = 'created_at'
 
@@ -924,6 +1014,7 @@ class WalletTransactionInline(admin.TabularInline):
 class WalletAdmin(admin.ModelAdmin):
     list_display = ['user', 'balance_display', 'transactions_count']
     search_fields = ['user__username', 'user__email']
+    autocomplete_fields = ['user']
     readonly_fields = ['transactions_count']
     inlines = [WalletTransactionInline]
 

@@ -28,7 +28,7 @@ class GlassTheme {
   static const Color midnightSmalt = Color(0xFF1A2653);
 
   // Active dynamic color palette (managed by ThemeProvider)
-  static PaletteData _activePalette = PaletteData.emeraldGreen;
+  static PaletteData _activePalette = PaletteData.modernFoodGo;
 
   static PaletteData get activePalette => _activePalette;
 
@@ -48,18 +48,65 @@ class GlassTheme {
   static Color get dynamicPrimaryDark => _activePalette.primaryDark;
   static Color get dynamicPrimaryAccent => _activePalette.primaryAccent;
   static Color get dynamicSecondary => _activePalette.secondary;
-  static LinearGradient get dynamicHeaderGradient => _activePalette.headerGradient;
+  static LinearGradient get dynamicHeaderGradient =>
+      _activePalette.headerGradient;
   static Color get dynamicAuraColor => _activePalette.auraColor;
   static Color get dynamicSurfaceDark => _activePalette.surfaceDark;
   static Color get dynamicSurfaceCardDark => _activePalette.surfaceCardDark;
   static Color get dynamicCardDark => _activePalette.cardDark;
   static Color get dynamicDialogDark => _activePalette.dialogDark;
   static Color get dynamicBorderDark => _activePalette.borderDark;
-  static LinearGradient get dynamicLiquidGlassBorderDark => _activePalette.liquidGlassBorderDark;
+  static LinearGradient get dynamicLiquidGlassBorderDark =>
+      _activePalette.liquidGlassBorderDark;
   static Color get dynamicPillShadow => _activePalette.pillCardShadowColor;
+
+  static Color get dynamicGlassDark =>
+      _activePalette.surfaceDark.withValues(alpha: 0.86);
+  static Color get dynamicGlassDarkLight =>
+      _activePalette.surfaceCardDark.withValues(alpha: 0.74);
+  static const Color dynamicGlassWhiteLight = Color(0xF2FFFFFF);
+
+  static LinearGradient get dynamicLiquidSurfaceDark => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      _activePalette.cardDark.withValues(alpha: 0.90),
+      _activePalette.surfaceDark.withValues(alpha: 0.82),
+      _activePalette.surfaceCardDark.withValues(alpha: 0.86),
+    ],
+  );
+
+  static LinearGradient get dynamicLiquidSurfaceLight => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      const Color(0xFFFFFFFF),
+      Color.lerp(const Color(0xFFFAFCF9), _activePalette.primary, 0.025) ??
+          const Color(0xFFFAFCF9),
+      Color.lerp(const Color(0xFFF5F8F6), _activePalette.primary, 0.045) ??
+          const Color(0xFFF5F8F6),
+    ],
+  );
+
+  static BoxShadow dynamicSoftShadow({bool isDark = true}) => BoxShadow(
+    color: isDark
+        ? Colors.black.withValues(alpha: 0.28)
+        : Colors.black.withValues(alpha: 0.07),
+    blurRadius: isDark ? 18 : 14,
+    offset: const Offset(0, 6),
+  );
+
+  static Color get dynamicShimmerBaseDark => _activePalette.surfaceCardDark;
+  static Color get dynamicShimmerHighlightDark =>
+      Color.lerp(_activePalette.cardDark, Colors.white, 0.14) ??
+      _activePalette.cardDark;
   static bool get isFestive => _activePalette.isFestive;
   static IconData get festivalIcon => _activePalette.icon;
   static String get festivalBadge => _activePalette.badgeText;
+  static SkinBackdropStyle get dynamicBackdropStyle =>
+      _activePalette.backdropStyle;
+  static String get dynamicBackdropNameEn => _activePalette.backdropNameEn;
+  static String get dynamicBackdropNameKh => _activePalette.backdropNameKh;
 
   // App Backgrounds (Healthy Organic baseline)
   static const Color backgroundLight = Color(0xFFF8FAF8);
@@ -143,9 +190,11 @@ class GlassTheme {
 
   // Text Colors
   static const Color textDark = Color(0xFF17201B);
+  static const Color textInverseDark = Color(0xFF111827);
   static const Color textMuted = Color(0xFF7B857F);
   static const Color textLight = Color(0xFFF3F6F4);
   static const Color textMutedLight = Color(0xFFA5ACA7);
+  static const Color errorRed = Color(0xFFEF4444);
 
   // Liquid Glass Design System
   static const double radius = 24.0;
@@ -167,8 +216,8 @@ class GlassTheme {
   ); // ~60% opacity liquid smalt shadow
 
   static const Color borderLight = Color(
-    0x80FFFFFF,
-  ); // 50% opacity specular edge
+    0xFFE5E7EB,
+  ); // Subtle clean gray border for Figma card contrast
   static const Color borderDark = Color(
     0x40A9B7E1,
   ); // 25% opacity smalt tint specular edge
@@ -212,10 +261,12 @@ class GlassTheme {
   static const LinearGradient liquidSurfaceLight = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xF2FFFFFF), Color(0xD8F4F6FC), Color(0xE6E8EDF9)],
+    colors: [Color(0xFFFFFFFF), Color(0xF8FAFCF9), Color(0xF2F5F8F6)],
   );
 
   static BorderRadius get borderRadius => BorderRadius.circular(radius);
+  static BorderRadius get borderRadiusLarge =>
+      BorderRadius.circular(AppRadius.large);
   static BorderRadius get borderRadiusMedium =>
       BorderRadius.circular(AppRadius.medium);
   static BorderRadius get borderRadiusSmall => BorderRadius.circular(16.0);

@@ -43,6 +43,10 @@ def get_mongo_client():
     if _client is not None:
         return _client
 
+    sync_enabled = os.environ.get('MONGO_SYNC_ENABLED', 'true').lower() in ('true', '1', 'yes')
+    if not sync_enabled:
+        return None
+
     uri = get_mongo_uri()
     if not uri:
         logger.debug("MONGODB_URI is not configured in environment.")

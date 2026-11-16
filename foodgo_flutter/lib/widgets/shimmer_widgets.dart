@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../core/theme/app_motion.dart';
 import '../core/theme/glass_theme.dart';
 
-/// Theme-aware shimmer wrapper that applies dark or light skeleton tones.
+/// Theme-aware shimmer wrapper that applies dark or light skeleton tones,
+/// gracefully respecting reduced-motion accessibility settings.
 class ShimmerWrapper extends StatelessWidget {
   final Widget child;
 
@@ -11,13 +13,17 @@ class ShimmerWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (AppMotion.shouldReduceMotion(context)) {
+      return child;
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
       baseColor: isDark
-          ? GlassTheme.shimmerBaseDark
+          ? GlassTheme.dynamicShimmerBaseDark
           : GlassTheme.shimmerBaseLight,
       highlightColor: isDark
-          ? GlassTheme.shimmerHighlightDark
+          ? GlassTheme.dynamicShimmerHighlightDark
           : GlassTheme.shimmerHighlightLight,
       period: const Duration(milliseconds: 1400),
       child: child,

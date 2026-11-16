@@ -35,12 +35,15 @@ backups/
 foodgo_flutter/build/
 foodgo_flutter/android/build/
 foodgo_flutter/android/.gradle/
+foodgo_flutter/android/key.properties
 foodgo_flutter/.dart_tool/
 foodgo_flutter/.flutter-plugins
 foodgo_flutter/.flutter-plugins-dependencies
 foodgo_flutter/.packages
 foodgo_flutter/.pub-cache/
 foodgo_flutter/.pub/
+*.jks
+*.keystore
 
 # Node / React
 frontend/node_modules/
@@ -49,3 +52,17 @@ frontend/npm-debug.log
 frontend/.eslintcache
 .vscode/
 .idea/
+
+# Local Video / Studio Render Artifacts & Large Media
+artifacts/
+whatif-2d-studio/
+output/final/
+output/capcut-pack/FoodGo_CapCut_Draft/
+output/capcut-pack/media/
+output/scripts/studio_master/assets/
+output/scripts/studio_master/qa_frames/
+output/previews/styles/
+*.wav
+*.mp4
+
+

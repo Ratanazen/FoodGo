@@ -2,7 +2,7 @@ from decimal import Decimal
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from .models import User, Order, Restaurant, Driver, Delivery, AuditLog, Payment
+from .models import User, Order, Restaurant, Driver, Delivery, AuditLog, Payment, FoodCategory, FoodItem
 
 class AdminFeatureTestCase(APITestCase):
     def setUp(self):
@@ -422,6 +422,90 @@ class AdminFeatureTestCase(APITestCase):
         owner_user = User.objects.filter(username='new_admin_owner_test').first()
         self.assertIsNotNone(owner_user)
         self.assertEqual(owner_user.role, 'restaurant_owner')
+
+    def test_fooditem_admin_add_form_render(self):
+        """FoodItemAdmin add form renders all fieldsets including pricing, prep time, and dietary flags."""
+        from django.test import Client
+        client = Client()
+        client.force_login(self.admin)
+        resp = client.get('/admin/core/fooditem/add/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Pricing &amp; Preparation')
+        self.assertContains(resp, 'Dietary &amp; Preferences')
+        self.assertContains(resp, 'preparation_time_mins')
+        self.assertContains(resp, 'original_price')
+        self.assertContains(resp, 'is_vegetarian')
+        self.assertContains(resp, 'is_spicy')
+        self.assertContains(resp, 'is_halal')
+
+    def test_fooditem_admin_duplicate_copies_all_attributes(self):
+        """FoodItemAdmin duplicate_items action preserves dietary flags, prep time, and original price."""
+        from django.contrib.admin.sites import site
+        from core.admin import FoodItemAdmin
+        from django.test import RequestFactory
+        from django.contrib.messages.storage.fallback import FallbackStorage
+
+        category = FoodCategory.objects.create(restaurant=self.restaurant, name='Burgers')
+        item = FoodItem.objects.create(
+            category=category,
+            name='Spicy Veggie Special',
+            description='Delicious vegan burger',
+            price=Decimal('8.50'),
+            original_price=Decimal('10.00'),
+            is_available=True,
+            is_vegetarian=True,
+            is_halal=True,
+            is_spicy=True,
+            preparation_time_mins=20,
+            ingredients='Lentils, spices, lettuce'
+        )
+
+        fia = FoodItemAdmin(FoodItem, site)
+        rf = RequestFactory()
+        req = rf.post('/admin/core/fooditem/')
+        setattr(req, 'session', {})
+        setattr(req, '_messages', FallbackStorage(req))
+
+        fia.duplicate_items(req, FoodItem.objects.filter(id=item.id))
+
+        copy_item = FoodItem.objects.filter(name='Spicy Veggie Special (Copy)').first()
+        self.assertIsNotNone(copy_item)
+        self.assertEqual(copy_item.price, Decimal('8.50'))
+        self.assertEqual(copy_item.original_price, Decimal('10.00'))
+        self.assertTrue(copy_item.is_vegetarian)
+        self.assertTrue(copy_item.is_halal)
+        self.assertTrue(copy_item.is_spicy)
+        self.assertEqual(copy_item.preparation_time_mins, 20)
+
+    def test_fooditem_admin_badges_and_price_display(self):
+        """FoodItemAdmin helper methods render badges and discount pricing correctly."""
+        from django.contrib.admin.sites import site
+        from core.admin import FoodItemAdmin
+
+        category = FoodCategory.objects.create(restaurant=self.restaurant, name='Snacks')
+        item = FoodItem.objects.create(
+            category=category,
+            name='Crispy Fries',
+            price=Decimal('3.00'),
+            original_price=Decimal('4.50'),
+            is_available=True,
+            is_vegetarian=True,
+            is_spicy=True,
+            preparation_time_mins=10,
+        )
+
+        fia = FoodItemAdmin(FoodItem, site)
+        prep_badge = fia.prep_time_badge(item)
+        self.assertIn('10m', prep_badge)
+
+        dietary = fia.dietary_badges(item)
+        self.assertIn('🌱 Veg', dietary)
+        self.assertIn('🌶 Spicy', dietary)
+
+        price_html = fia.price_display(item)
+        self.assertIn('$3.00', price_html)
+        self.assertIn('$4.50', price_html)
+
 
 
 

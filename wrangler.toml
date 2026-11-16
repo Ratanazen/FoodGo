@@ -9,6 +9,6 @@ not_found_handling = "single-page-application"
 
 [vars]
 BACKEND_A_URL = "https://food-go-app.vercel.app"
-BACKEND_B_URL = "https://food-go-app.vercel.app"
+BACKEND_B_URL = "https://foodgo-53pl.onrender.com"
 BACKEND_URL = "https://food-go-app.vercel.app"
 TRAFFIC_SPLIT_RATIO = "50:50"

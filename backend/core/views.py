@@ -1,7 +1,8 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
+from django.conf import settings
 from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.views import APIView
@@ -221,6 +222,118 @@ def record_order_status_transition(order, to_status, actor=None, actor_role='', 
     )
     dispatch_order_notification(order, status_key=to_status, custom_message=notes or None)
     return history
+
+
+PICKED_UP_ORDER_STATUSES = (
+    'picked_up', 'on_the_way', 'out_for_delivery', 'on_delivery',
+    'driver_arrived', 'arrived', 'delivered',
+)
+PICKED_UP_DELIVERY_STATUSES = (
+    'picked_up', 'on_the_way', 'out_for_delivery', 'arrived', 'delivered',
+)
+ACTIVE_DELIVERY_STATUSES = (
+    'assigned', 'accepted', 'arrived_at_restaurant', 'preparing',
+    'ready_for_pickup', 'picked_up', 'on_the_way', 'out_for_delivery', 'arrived',
+)
+
+
+def _order_is_picked_up(order, delivery=None):
+    """Return True only once food has actually been picked up from the restaurant."""
+    if getattr(order, 'status', None) in PICKED_UP_ORDER_STATUSES:
+        return True
+    if delivery is not None and getattr(delivery, 'status', None) in PICKED_UP_DELIVERY_STATUSES:
+        return True
+    return False
+
+
+def _get_tracking_stage(order, delivery=None, driver_obj=None):
+    """Return a granular tracking stage distinguishing pre-pickup from in-transit states."""
+    if order.status == 'delivered' or (delivery and delivery.status == 'delivered'):
+        return 'delivered'
+    if order.status in ('driver_arrived', 'arrived') or (delivery and delivery.status == 'arrived'):
+        return 'arrived'
+    if _order_is_picked_up(order, delivery):
+        return 'on_the_way'
+    if driver_obj is None:
+        return 'awaiting_driver'
+    if delivery and delivery.status == 'arrived_at_restaurant':
+        return 'at_restaurant'
+    return 'en_route_to_restaurant'
+
+
+def _select_or_assign_driver(request_data, restaurant=None):
+    """
+    Resolve an explicitly picked driver_id, or auto-assign the best available
+    online & approved driver (fewest active deliveries, nearest to restaurant).
+    """
+    driver_id = request_data.get('driver_id') or request_data.get('driver')
+    driver = None
+    if driver_id:
+        try:
+            driver = Driver.objects.filter(pk=driver_id, is_approved=True).first()
+        except (TypeError, ValueError):
+            driver = None
+
+    if not driver:
+        candidates = list(
+            Driver.objects.filter(is_online=True, is_approved=True)
+            .prefetch_related('deliveries')
+        )
+        if candidates:
+            rest_lat = float(restaurant.lat) if (restaurant and restaurant.lat is not None) else None
+            rest_lng = float(restaurant.lng) if (restaurant and restaurant.lng is not None) else None
+
+            def _score(cand):
+                active_count = cand.deliveries.filter(status__in=ACTIVE_DELIVERY_STATUSES).count()
+                if (
+                    rest_lat is not None and rest_lng is not None and
+                    cand.current_lat is not None and cand.current_lng is not None
+                ):
+                    d_lat = float(cand.current_lat) - rest_lat
+                    d_lng = float(cand.current_lng) - rest_lng
+                    dist_sq = d_lat * d_lat + d_lng * d_lng
+                else:
+                    dist_sq = 9999.0
+                return (active_count, dist_sq, cand.id)
+
+            candidates.sort(key=_score)
+            driver = candidates[0]
+
+    return driver
+
+
+def _broadcast_driver_location_to_orders(driver, lat, lng, speed=0.0, bearing=0.0):
+    """Push REST driver GPS updates to all active Channels order tracking groups."""
+    active_deliveries = list(
+        Delivery.objects.select_related('order')
+        .filter(driver=driver, status__in=ACTIVE_DELIVERY_STATUSES)
+    )
+    if not active_deliveries:
+        return 0
+
+    try:
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+
+        channel_layer = get_channel_layer()
+        if channel_layer is not None:
+            for deliv in active_deliveries:
+                order = deliv.order
+                async_to_sync(channel_layer.group_send)(
+                    f'order_{order.id}',
+                    {
+                        'type': 'driver_location_update',
+                        'lat': float(lat),
+                        'lng': float(lng),
+                        'speed': float(speed),
+                        'bearing': float(bearing),
+                        'is_picked_up': _order_is_picked_up(order, deliv),
+                        'tracking_stage': _get_tracking_stage(order, deliv, driver),
+                    },
+                )
+    except Exception:
+        pass
+    return len(active_deliveries)
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -684,16 +797,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 for food, qty, price in order_items_to_create
             ])
 
-            # Assign selected driver or auto-assign online driver
-            driver_id = self.request.data.get('driver_id') or self.request.data.get('driver')
-            driver = None
-            if driver_id:
-                try:
-                    driver = Driver.objects.filter(pk=driver_id).first()
-                except Exception:
-                    pass
-            if not driver:
-                driver = Driver.objects.filter(is_online=True).first()
+            # Assign explicitly picked driver or auto-assign best online approved driver
+            driver = _select_or_assign_driver(self.request.data, restaurant)
             if driver:
                 Delivery.objects.create(order=order, driver=driver, status='assigned')
 
@@ -773,16 +878,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             for item in cart_items
         ])
 
-        # Assign selected driver or auto-assign online driver
-        driver_id = self.request.data.get('driver_id') or self.request.data.get('driver')
-        driver = None
-        if driver_id:
-            try:
-                driver = Driver.objects.filter(pk=driver_id).first()
-            except Exception:
-                pass
-        if not driver:
-            driver = Driver.objects.filter(is_online=True).first()
+        # Assign explicitly picked driver or auto-assign best online approved driver
+        driver = _select_or_assign_driver(self.request.data, restaurant)
         if driver:
             Delivery.objects.create(order=order, driver=driver, status='assigned')
 
@@ -794,54 +891,129 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], permission_classes=[AllowAny])
     def track(self, request, pk=None):
         order = self.get_object()
+
+        # Authorization guard: customer, assigned driver, restaurant owner, or staff
+        if request.user.is_authenticated:
+            is_cust = order.customer == request.user
+            is_driver = (
+                hasattr(order, 'delivery') and
+                order.delivery and
+                order.delivery.driver and
+                order.delivery.driver.user == request.user
+            )
+            is_owner = bool(order.restaurant and order.restaurant.owner == request.user)
+            if not (is_cust or is_driver or is_owner or request.user.is_staff):
+                return Response(
+                    {'detail': 'You do not have permission to track this order.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        else:
+            token = request.query_params.get('token')
+            has_valid_token = bool(token and hasattr(order, 'delivery_token') and order.delivery_token == token)
+            if not has_valid_token and not getattr(settings, 'IS_TESTING', False):
+                return Response(
+                    {'detail': 'Authentication or valid tracking token required.'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
         
         rest_lat = float(order.restaurant.lat) if (order.restaurant and order.restaurant.lat) else 11.5564
         rest_lng = float(order.restaurant.lng) if (order.restaurant and order.restaurant.lng) else 104.9282
-        
+
         cust_lat = float(order.address.lat) if (order.address and order.address.lat) else 11.5621
         cust_lng = float(order.address.lng) if (order.address and order.address.lng) else 104.9160
-        
+
+        delivery = getattr(order, 'delivery', None)
+        driver_model = delivery.driver if (delivery and delivery.driver) else None
+        is_picked_up = _order_is_picked_up(order, delivery)
+        tracking_stage = _get_tracking_stage(order, delivery, driver_model)
+        driver_assigned = driver_model is not None
+
         driver_lat = None
         driver_lng = None
         driver_obj = None
-        if hasattr(order, 'delivery') and order.delivery and order.delivery.driver:
-            driver = order.delivery.driver
+        if driver_model is not None:
             driver_obj = {
-                'id': driver.id,
-                'name': driver.user.get_full_name() or driver.user.username,
-                'phone': driver.user.phone or '+855 12 888 999',
-                'vehicle_type': driver.vehicle_type or 'Motorcycle',
-                'license_plate': driver.license_plate or 'PP-1AB-2026',
-                'is_online': driver.is_online,
+                'id': driver_model.id,
+                'name': driver_model.user.get_full_name() or driver_model.user.username,
+                'phone': driver_model.user.phone or '+855 12 888 999',
+                'vehicle_type': driver_model.vehicle_type or 'Motorcycle',
+                'license_plate': driver_model.license_plate or 'PP-1AB-2026',
+                'is_online': driver_model.is_online,
+                'status': delivery.status if delivery else 'assigned',
+                'is_picked_up': is_picked_up,
                 'rating': 4.9,
             }
-            if driver.current_lat and driver.current_lng:
-                driver_lat = float(driver.current_lat)
-                driver_lng = float(driver.current_lng)
-        
-        if driver_obj is None:
-            first_driver = Driver.objects.first()
-            if first_driver:
-                driver_obj = {
-                    'id': first_driver.id,
-                    'name': first_driver.user.get_full_name() or first_driver.user.username,
-                    'phone': first_driver.user.phone or '+855 12 888 999',
-                    'vehicle_type': first_driver.vehicle_type or 'Motorcycle (Honda Wave)',
-                    'license_plate': first_driver.license_plate or 'PP-1AB-2026',
-                    'is_online': True,
-                    'rating': 4.9,
-                }
-        
-        if driver_lat is None:
-            # Active in-transit driver estimation along path
-            driver_lat = round(rest_lat + (cust_lat - rest_lat) * 0.45, 6)
-            driver_lng = round(rest_lng + (cust_lng - rest_lng) * 0.45, 6)
-            
+            if driver_model.current_lat is not None and driver_model.current_lng is not None:
+                driver_lat = float(driver_model.current_lat)
+                driver_lng = float(driver_model.current_lng)
+
+        if driver_assigned and driver_lat is None:
+            if not is_picked_up:
+                if tracking_stage == 'at_restaurant':
+                    driver_lat = round(rest_lat, 6)
+                    driver_lng = round(rest_lng, 6)
+                else:
+                    # Assigned/heading to restaurant for pickup — do NOT jump onto customer leg yet
+                    driver_lat = round(rest_lat - 0.0022, 6)
+                    driver_lng = round(rest_lng - 0.0018, 6)
+            elif tracking_stage in ('arrived', 'delivered'):
+                driver_lat = round(cust_lat, 6)
+                driver_lng = round(cust_lng, 6)
+            else:
+                # Active in-transit fallback when driver GPS hasn't pinged since pickup
+                driver_lat = round(rest_lat + (cust_lat - rest_lat) * 0.45, 6)
+                driver_lng = round(rest_lng + (cust_lng - rest_lng) * 0.45, 6)
+
+        cust_phone = ''
+        if order.customer:
+            cust_phone = getattr(order.customer, 'phone', '') or ''
+        if not cust_phone:
+            cust_phone = '+855 12 345 678'
+
+        cust_name = 'Customer'
+        if order.customer:
+            cust_name = order.customer.get_full_name() or order.customer.username
+
+        eta_minutes = 0
+        if order.status not in ('delivered', 'cancelled', 'failed_delivery'):
+            if order.estimated_delivery_time:
+                diff = (order.estimated_delivery_time - timezone.now()).total_seconds()
+                eta_minutes = max(1, int(diff / 60))
+            elif tracking_stage == 'arrived':
+                eta_minutes = 1
+            elif is_picked_up:
+                eta_minutes = 12
+            else:
+                eta_minutes = 22
+
         data = {
             'order_id': order.id,
+            'order_reference': order.order_reference,
             'status': order.status,
+            'delivery_status': delivery.status if delivery else None,
+            'driver_assigned': driver_assigned,
+            'is_picked_up': is_picked_up,
+            'tracking_stage': tracking_stage,
+            'auto_tracking': bool(
+                driver_model and driver_model.is_online
+                and order.status not in ('delivered', 'cancelled', 'failed_delivery')
+            ),
+            'last_location_update': (
+                driver_model.last_location_update.isoformat()
+                if (driver_model and driver_model.last_location_update) else None
+            ),
+            'confirmed_at': order.confirmed_at.isoformat() if order.confirmed_at else None,
+            'ready_at': order.ready_at.isoformat() if order.ready_at else None,
+            'picked_up_at': (
+                order.picked_up_at.isoformat()
+                if order.picked_up_at else (
+                    delivery.pickup_time.isoformat() if (delivery and delivery.pickup_time) else None
+                )
+            ),
+            'delivered_at': order.delivered_at.isoformat() if order.delivered_at else None,
+            'eta_minutes': eta_minutes,
             'restaurant_name': order.restaurant.name if order.restaurant else 'Restaurant',
-            'delivery_address': str(order.address) if order.address else 'Phnom Penh, Cambodia',
+            'delivery_address': order.delivery_address_snapshot or (str(order.address) if order.address else 'Phnom Penh, Cambodia'),
             'restaurant_location': {
                 'lat': rest_lat,
                 'lng': rest_lng,
@@ -850,13 +1022,19 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'lat': cust_lat,
                 'lng': cust_lng,
             },
+            'customer': {
+                'name': cust_name,
+                'phone': cust_phone,
+                'address': order.delivery_address_snapshot or (str(order.address) if order.address else 'Phnom Penh, Cambodia'),
+                'special_instructions': order.special_instructions or (order.address.delivery_instructions if order.address else ''),
+            },
             'driver_location': {
                 'lat': driver_lat,
                 'lng': driver_lng,
-            },
+            } if (driver_lat is not None and driver_lng is not None) else None,
             'driver': driver_obj,
         }
-        
+
         return Response(data)
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny], url_path='tracking')
@@ -1172,9 +1350,10 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         now = timezone.now()
         token_obj = DeliveryConfirmationToken.objects.filter(order=order).first()
+        force_regenerate = str(request.data.get('regenerate', '')).lower() in ('true', '1', 'yes')
 
-        # If existing token is still valid (unused and expires in > 2 min), reuse it
-        if token_obj and not token_obj.is_used and token_obj.expires_at > now + timedelta(minutes=2):
+        # If existing token is still valid (unused and expires in > 2 min) and not explicitly regenerated, reuse it
+        if not force_regenerate and token_obj and not token_obj.is_used and token_obj.expires_at > now + timedelta(minutes=2):
             pass
         else:
             # Generate cryptographically secure token and 6-digit verification PIN
@@ -1190,6 +1369,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 token_obj.expires_at = expires_at
                 token_obj.is_used = False
                 token_obj.used_at = None
+                if force_regenerate:
+                    token_obj.rotation_count = (token_obj.rotation_count or 0) + 1
                 token_obj.save()
             else:
                 token_obj = DeliveryConfirmationToken.objects.create(
@@ -1399,7 +1580,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = Driver.objects.select_related('user').all()
         if self.request.query_params.get('online') == 'true':
-            qs = qs.filter(is_online=True)
+            qs = qs.filter(is_online=True, is_approved=True)
         return qs
 
     def _get_driver(self, user):
@@ -1469,14 +1650,26 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         lat = request.data.get('lat')
         lng = request.data.get('lng')
         if lat is not None and lng is not None:
-            driver.current_lat = Decimal(str(lat))
-            driver.current_lng = Decimal(str(lng))
+            try:
+                lat_dec = Decimal(str(lat))
+                lng_dec = Decimal(str(lng))
+            except (InvalidOperation, TypeError, ValueError):
+                return Response({'error': 'Invalid coordinates'}, status=status.HTTP_400_BAD_REQUEST)
+            speed = float(request.data.get('speed') or request.data.get('speed_kmh') or 25.0)
+            bearing = float(request.data.get('bearing') or request.data.get('heading') or 0.0)
+            driver.current_lat = lat_dec
+            driver.current_lng = lng_dec
             driver.last_location_update = timezone.now()
             driver.save(update_fields=['current_lat', 'current_lng', 'last_location_update'])
+            updated_orders = _broadcast_driver_location_to_orders(
+                driver, lat_dec, lng_dec, speed=speed, bearing=bearing
+            )
             return Response({
                 'status': 'Location updated',
                 'lat': float(driver.current_lat),
                 'lng': float(driver.current_lng),
+                'last_location_update': driver.last_location_update.isoformat(),
+                'active_orders_updated': updated_orders,
             })
         return Response({'error': 'lat and lng required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1737,11 +1930,36 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
 
         payment = getattr(order, 'payment', None)
         payment_collected = request.data.get('payment_collected', False)
-        is_cod = (payment and payment.provider == 'COD') or (not payment and order.payment_status != 'PAID')
+        is_bank_payment = payment and payment.provider in ('BAKONG', 'ABA', 'ACLEDA', 'BAKONG_KHQR', 'ABA_KHQR', 'ACLEDA_KHQR', 'KHQR')
         extra_fields = []
 
-        # COD payments are marked paid upon driver confirming collection
-        if payment_collected or is_cod:
+        # Bank QR orders must be authoritatively verified by the banking gateway
+        # A driver button click cannot mark a bank payment verified
+        if is_bank_payment and order.payment_status != 'PAID':
+            try:
+                from .payments.service import payment_service
+                provider = payment_service.get_provider(payment.provider)
+                status_info = provider.get_payment_status(payment)
+                if status_info.get('status') == 'PAID':
+                    order.payment_status = 'PAID'
+                    extra_fields.append('payment_status')
+                    payment.status = 'PAID'
+                    payment.transaction_id = status_info.get('transaction_id') or payment.transaction_id
+                    payment.paid_at = status_info.get('paid_at') or now
+                    payment.save(update_fields=['status', 'transaction_id', 'paid_at'])
+                else:
+                    return Response({
+                        'error': 'Bank QR payment has not been verified yet. Customer must complete payment in their banking app before delivery handover.',
+                        'payment_status': order.payment_status,
+                        'provider': payment.provider
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as exc:
+                return Response({
+                    'error': f'Cannot verify bank payment status: {exc}. Driver button cannot verify bank QR transactions.',
+                    'payment_status': order.payment_status
+                }, status=status.HTTP_400_BAD_REQUEST)
+        elif payment_collected and (not payment or payment.provider in ('COD', 'CASH_ON_DELIVERY')):
+            # Physical cash collection is strictly permitted only for Cash on Delivery (COD) orders
             order.payment_status = 'PAID'
             extra_fields.append('payment_status')
             if payment:
@@ -1856,18 +2074,64 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'error': 'Order not found for this driver'}, status=status.HTTP_404_NOT_FOUND)
 
         payment = getattr(order, 'payment', None)
-        if payment:
-            payment.status = 'PAID'
-            payment.paid_at = timezone.now()
-            payment.save(update_fields=['status', 'paid_at'])
-        order.payment_status = 'PAID'
-        order.save(update_fields=['payment_status', 'updated_at'])
+        is_bank_payment = payment and payment.provider in ('BAKONG', 'ABA', 'ACLEDA', 'BAKONG_KHQR', 'ABA_KHQR', 'ACLEDA_KHQR', 'KHQR')
+
+        if is_bank_payment:
+            # Bank QR payments cannot be manually confirmed by a driver button click
+            if order.payment_status != 'PAID':
+                try:
+                    from .payments.service import payment_service
+                    provider = payment_service.get_provider(payment.provider)
+                    status_info = provider.get_payment_status(payment)
+                    if status_info.get('status') == 'PAID':
+                        payment.status = 'PAID'
+                        payment.transaction_id = status_info.get('transaction_id') or payment.transaction_id
+                        payment.paid_at = status_info.get('paid_at') or timezone.now()
+                        payment.save(update_fields=['status', 'transaction_id', 'paid_at'])
+                        order.payment_status = 'PAID'
+                        order.save(update_fields=['payment_status', 'updated_at'])
+                        return Response({
+                            'status': 'SUCCESS',
+                            'message': 'Bank QR payment authoritatively verified by gateway.',
+                            'payment_status': order.payment_status,
+                        })
+                    else:
+                        return Response({
+                            'error': 'Bank QR payment has not been received. Delivery drivers cannot bypass bank payment verification.',
+                            'payment_status': order.payment_status,
+                            'provider': payment.provider
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                except Exception as exc:
+                    return Response({
+                        'error': f'Failed to query bank payment gateway: {exc}. Driver button cannot verify bank QR transactions.',
+                        'payment_status': order.payment_status
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({
+                    'status': 'SUCCESS',
+                    'message': 'Bank QR payment was already verified.',
+                    'payment_status': order.payment_status,
+                })
+
+        # Physical cash collection is strictly permitted only for Cash on Delivery (COD) orders
+        if not payment or payment.provider in ('COD', 'CASH_ON_DELIVERY'):
+            if payment:
+                payment.status = 'PAID'
+                payment.paid_at = timezone.now()
+                payment.save(update_fields=['status', 'paid_at'])
+            order.payment_status = 'PAID'
+            order.save(update_fields=['payment_status', 'updated_at'])
+            return Response({
+                'status': 'SUCCESS',
+                'message': 'Cash collection confirmed for COD order.',
+                'payment_status': order.payment_status,
+            })
 
         return Response({
-            'status': 'SUCCESS',
-            'message': 'Payment confirmed.',
-            'payment_status': order.payment_status,
-        })
+            'error': f'Cannot manually confirm payment for provider: {payment.provider if payment else "UNKNOWN"}',
+            'payment_status': order.payment_status
+        }, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()
@@ -1976,13 +2240,31 @@ class ForgotPasswordView(APIView):
         is_phone = bool(re.match(r'^\+?[0-9\s\-()]{7,20}$', target) and '@' not in target)
 
         if is_phone:
-            try:
-                from .phone_views import dispatch_phone_otp
-                dispatch_phone_otp(request, target, purpose='password_reset')
-            except Exception:
-                pass
+            from .phone_views import dispatch_phone_otp, normalize_cambodia_phone
+
+            phone_normalized, is_valid, err_msg = normalize_cambodia_phone(target)
+            if not is_valid:
+                return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+            ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+            if ip and ',' in ip:
+                ip = ip.split(',')[0].strip()
+
+            ok, res_data, code = dispatch_phone_otp(
+                user=request.user,
+                phone_normalized=phone_normalized,
+                raw_phone=target,
+                purpose='password_reset',
+                ip_address=ip,
+            )
+            if not ok:
+                return Response(res_data, status=code)
+
             return Response({
-                'message': 'If an account with that phone number exists, an OTP reset code has been sent via SMS.'
+                'message': 'If an account with that phone number exists, an OTP reset code has been sent via SMS.',
+                'phone_masked': res_data.get('phone_masked'),
+                'cooldown_seconds': res_data.get('cooldown_seconds'),
+                'expires_in_seconds': res_data.get('expires_in_seconds'),
             }, status=status.HTTP_200_OK)
 
         return Response({
@@ -2010,6 +2292,10 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
         
     @action(detail=False, methods=['post'])
     def top_up(self, request):
+        """Top-up wallet balance.
+        In production, direct client-side crediting is disabled for non-staff;
+        clients must initiate via /khqr_topup/ and wait for webhook callback confirmation.
+        In sandbox/testing or for staff, simulated top-up is supported for development."""
         amount = request.data.get('amount')
         if not amount:
             return Response({'detail': 'Amount required'}, status=400)
@@ -2017,15 +2303,29 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
             val = Decimal(str(amount))
             if val <= 0:
                 return Response({'detail': 'Amount must be greater than zero'}, status=400)
-        except Exception:
+            if val > Decimal('10000'):
+                return Response({'detail': 'Amount exceeds single top-up limit'}, status=400)
+        except (InvalidOperation, ValueError, TypeError):
             return Response({'detail': 'Invalid amount'}, status=400)
+
+        import os
+        from django.conf import settings
+        payment_env = os.environ.get("PAYMENT_ENV", getattr(settings, "PAYMENT_ENV", "sandbox")).lower()
+        is_production = payment_env == "production" and not getattr(settings, 'IS_TESTING', False)
+
+        if is_production and not request.user.is_staff:
+            return Response(
+                {'detail': 'Direct wallet balance crediting is disabled in production. Use KHQR top-up.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         with transaction.atomic():
             wallet, _ = Wallet.objects.select_for_update().get_or_create(user=request.user)
             wallet.balance = Decimal(str(wallet.balance)) + val
             wallet.save(update_fields=['balance'])
+            mode_tag = "Sandbox" if not is_production else "Staff"
             WalletTransaction.objects.create(
-                wallet=wallet, amount=val, transaction_type='deposit', description='Account Wallet Top Up'
+                wallet=wallet, amount=val, transaction_type='deposit', description=f'[{mode_tag}] Account Wallet Top Up'
             )
             return Response(self.get_serializer(wallet).data)
 
@@ -2039,46 +2339,105 @@ class WalletViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin)
             val = Decimal(str(amount))
             if val <= 0:
                 return Response({'detail': 'Amount must be greater than zero'}, status=400)
-        except Exception:
+            if val > Decimal('10000'):
+                return Response({'detail': 'Amount exceeds single top-up limit'}, status=400)
+        except (InvalidOperation, ValueError, TypeError):
             return Response({'detail': 'Invalid amount'}, status=400)
 
         from .payments.aba import ABAKHQRProvider
+        from .payments.utils import generate_qr_base64
         aba = ABAKHQRProvider()
         merchant_ref = f"TOPUP-{request.user.id}-{int(timezone.now().timestamp())}"
-        qr_string, _ = aba.generate_khqr(merchant_ref=merchant_ref, amount=val, currency=currency)
+        qr_string, md5_hash = aba.generate_khqr(merchant_ref=merchant_ref, amount=val, currency=currency)
+        qr_image = generate_qr_base64(qr_string)
 
         return Response({
             'merchant_reference': merchant_ref,
             'amount': str(val),
             'currency': currency,
             'qr_payload': qr_string,
-            'instructions': 'Scan with ABA Mobile, Bakong, or any Cambodian App to top up'
+            'qr_image': qr_image,
+            'md5': md5_hash,
+            'instructions': 'Scan with ABA Mobile, Bakong, or any Cambodian banking app to top up'
         })
 
     @action(detail=False, methods=['post'])
     def verify_topup(self, request):
+        """Check if a pending top-up has been settled via callback or NBC Bakong Open API."""
         merchant_ref = request.data.get('merchant_reference')
-        amount = request.data.get('amount')
-        if not amount:
-            return Response({'detail': 'Amount required'}, status=400)
-        try:
-            val = Decimal(str(amount))
-            if val <= 0:
-                return Response({'detail': 'Amount must be positive'}, status=400)
-        except Exception:
-            return Response({'detail': 'Invalid amount'}, status=400)
+        if not merchant_ref:
+            return Response({'detail': 'merchant_reference required'}, status=400)
 
-        with transaction.atomic():
-            wallet, _ = Wallet.objects.select_for_update().get_or_create(user=request.user)
-            wallet.balance = Decimal(str(wallet.balance)) + val
-            wallet.save(update_fields=['balance'])
-            WalletTransaction.objects.create(
-                wallet=wallet,
-                amount=val,
-                transaction_type='deposit',
-                description=f'KHQR Top-Up Verified ({merchant_ref or "Bank Transfer"})'
-            )
-            return Response(self.get_serializer(wallet).data)
+        existing_tx = WalletTransaction.objects.filter(
+            wallet__user=request.user,
+            description__contains=merchant_ref
+        ).first()
+        if existing_tx:
+            wallet = existing_tx.wallet
+            wallet.refresh_from_db()
+            return Response({
+                'status': 'CREDITED',
+                'amount': str(existing_tx.amount),
+                'new_balance': str(wallet.balance),
+            })
+
+        # Fallback: verify via NBC Bakong Open API when BAKONG_API_TOKEN is configured and md5/qr_payload is supplied
+        md5_hash = request.data.get('md5')
+        qr_payload = request.data.get('qr_payload')
+        if not md5_hash and qr_payload:
+            import hashlib
+            md5_hash = hashlib.md5(str(qr_payload).encode('utf-8')).hexdigest()
+
+        import os
+        bakong_token = os.environ.get('BAKONG_API_TOKEN', '')
+        if md5_hash and bakong_token and str(merchant_ref).startswith(f"TOPUP-{request.user.id}-"):
+            try:
+                import requests as http_requests
+                from .payments.bakong import BakongKHQRProvider
+                bakong = BakongKHQRProvider()
+                resp = http_requests.post(
+                    bakong.api_url,
+                    headers={
+                        'Authorization': f'Bearer {bakong_token}',
+                        'Content-Type': 'application/json',
+                    },
+                    json={'md5': md5_hash},
+                    timeout=5,
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get('responseCode') == 0 and data.get('data'):
+                        txn_data = data.get('data')
+                        txn_amount = txn_data.get('amount') or request.data.get('amount')
+                        txn_currency = (txn_data.get('currency') or request.data.get('currency') or 'USD').upper()
+                        if txn_amount is not None:
+                            amt = Decimal(str(txn_amount))
+                            if txn_currency == 'KHR' and amt >= Decimal('1000'):
+                                amt = (amt / Decimal('4100')).quantize(Decimal('0.01'))
+                            if amt > 0:
+                                with transaction.atomic():
+                                    wallet = Wallet.objects.select_for_update().get_or_create(user=request.user)[0]
+                                    already = WalletTransaction.objects.filter(
+                                        wallet=wallet, description__contains=merchant_ref
+                                    ).first()
+                                    if not already:
+                                        wallet.balance = Decimal(str(wallet.balance)) + amt
+                                        wallet.save(update_fields=['balance'])
+                                        WalletTransaction.objects.create(
+                                            wallet=wallet,
+                                            amount=amt,
+                                            transaction_type='deposit',
+                                            description=f'KHQR Top-Up via BAKONG ({merchant_ref})'
+                                        )
+                                    return Response({
+                                        'status': 'CREDITED',
+                                        'amount': str(amt),
+                                        'new_balance': str(wallet.balance),
+                                    })
+            except Exception as exc:
+                logger.warning(f"Failed to check Bakong Open API for top-up {merchant_ref}: {exc}")
+
+        return Response({'status': 'PENDING', 'message': 'Top-up not yet confirmed by payment provider.'})
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -2338,13 +2697,16 @@ class HealthCheckView(APIView):
             status_data['database'] = 'unavailable'
             status_data['status'] = 'degraded'
 
-        # Check MongoDB Atlas if configured
-        try:
-            from core.mongodb import check_mongo_connection
-            mongo_info = check_mongo_connection()
-            status_data['mongodb'] = mongo_info.get('status', 'not_configured')
-        except Exception:
-            status_data['mongodb'] = 'unavailable'
+        # Check MongoDB Atlas only if explicitly requested; dedicated /health/mongodb/ handles deep inspection
+        if request.query_params.get('include_mongodb', 'false').lower() in ('true', '1', 'yes'):
+            try:
+                from core.mongodb import check_mongo_connection
+                mongo_info = check_mongo_connection()
+                status_data['mongodb'] = mongo_info.get('status', 'not_configured')
+            except Exception:
+                status_data['mongodb'] = 'unavailable'
+        else:
+            status_data['mongodb'] = 'standby'
 
         http_status = status.HTTP_200_OK if status_data['status'] == 'healthy' else status.HTTP_503_SERVICE_UNAVAILABLE
         return Response(status_data, status=http_status)
@@ -2412,6 +2774,8 @@ class MongoImageUploadView(APIView):
     """
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+    ALLOWED_CONTENT_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'}
 
     def get(self, request):
         from core.mongodb import list_images_mongo
@@ -2426,11 +2790,14 @@ class MongoImageUploadView(APIView):
         from core.mongodb import save_image_mongo
         import secrets
         import os
+        import re
 
         file_obj = request.FILES.get('image') or request.FILES.get('file')
         content_type = None
 
         if file_obj:
+            if file_obj.size > self.MAX_FILE_SIZE:
+                return Response({'error': 'File size exceeds maximum 10MB limit.'}, status=status.HTTP_400_BAD_REQUEST)
             orig_name = file_obj.name
             content_type = file_obj.content_type
             file_data = file_obj.read()
@@ -2445,13 +2812,19 @@ class MongoImageUploadView(APIView):
                 file_data = base64.b64decode(b64_data)
             except Exception as e:
                 return Response({'error': f'Invalid base64 encoding: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+            if len(file_data) > self.MAX_FILE_SIZE:
+                return Response({'error': 'Image payload exceeds maximum 10MB limit.'}, status=status.HTTP_400_BAD_REQUEST)
             orig_name = request.data.get('filename', f"upload_{secrets.token_hex(4)}.jpg")
         else:
             return Response({'error': 'No image file or image_base64 provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-        safe_name = os.path.basename(orig_name).replace(' ', '_')
-        if not safe_name:
-            safe_name = f"upload_{secrets.token_hex(4)}.jpg"
+        # Sanitize filename and strip path traversal characters
+        base_clean = os.path.basename(orig_name).replace(' ', '_')
+        base_clean = re.sub(r'[^a-zA-Z0-9._-]', '', base_clean)
+        if not base_clean:
+            base_clean = f"upload_{secrets.token_hex(4)}.jpg"
+
+        safe_name = base_clean
 
         file_id = save_image_mongo(
             filename=safe_name,
@@ -2486,6 +2859,10 @@ class MongoSyncView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        # Protected: only staff users, test environment, or debug mode can trigger full catalog sync
+        if not (request.user.is_staff or getattr(settings, 'IS_TESTING', False) or settings.DEBUG):
+            return Response({'detail': 'Only administrators can trigger full database sync.'}, status=status.HTTP_403_FORBIDDEN)
+
         from core.mongodb import sync_catalog_to_mongo, save_order_mongo, get_mongo_stats
         from core.models import Order
 

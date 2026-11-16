@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -6,8 +8,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/glass_theme.dart';
+import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_motion.dart';
 import '../../../core/utils/khmer_currency.dart';
-import 'package:dio/dio.dart';
+import '../../../screens/map_screen_location.dart';
 import 'package:provider/provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
@@ -39,8 +43,7 @@ class DriverDashboardScreen extends StatefulWidget {
   State<DriverDashboardScreen> createState() => _DriverDashboardScreenState();
 }
 
-class _DriverDashboardScreenState extends State<DriverDashboardScreen>
-    with SingleTickerProviderStateMixin {
+class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   final ApiService _api = ApiService();
 
   int _selectedTab =
@@ -57,6 +60,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   int _completedDeliveries = 0;
   double _todayEarningsUsd = 0.0;
   double _totalEarningsUsd = 0.0;
+
+  Timer? _autoTrackTimer;
+  bool _autoTrackEnabled = true;
+  bool _isBroadcastingLocation = false;
+  DateTime? _lastLocationBroadcastAt;
+  double _simulatedLegProgress = 0.15;
 
   @override
   void initState() {
@@ -79,6 +88,27 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     }
     if (widget.initialLoading) {
       _fetchDashboardData();
+    }
+  }
+
+  @override
+  void dispose() {
+    _autoTrackTimer?.cancel();
+    super.dispose();
+  }
+
+  void _syncAutoTracking() {
+    if (!widget.initialLoading || !_isOnline || !_autoTrackEnabled) {
+      _autoTrackTimer?.cancel();
+      _autoTrackTimer = null;
+      return;
+    }
+    _autoTrackTimer ??= Timer.periodic(const Duration(seconds: 8), (_) {
+      if (!mounted) return;
+      _broadcastLocation(silent: true);
+    });
+    if (_activeOrders.isNotEmpty && _lastLocationBroadcastAt == null) {
+      _broadcastLocation(silent: true);
     }
   }
 
@@ -124,11 +154,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         final earningsRes = await _api.get('drivers/earnings/');
         if (earningsRes is Map<String, dynamic>) {
           _todayEarningsUsd =
-              (earningsRes['today_earnings_usd'] as num?)?.toDouble() ?? 0.0;
+              double.tryParse(
+                earningsRes['today_earnings_usd']?.toString() ?? '',
+              ) ??
+              0.0;
           _totalEarningsUsd =
-              (earningsRes['total_earnings_usd'] as num?)?.toDouble() ?? 0.0;
+              double.tryParse(
+                earningsRes['total_earnings_usd']?.toString() ?? '',
+              ) ??
+              0.0;
           _completedDeliveries =
-              (earningsRes['completed_trips'] as num?)?.toInt() ?? 0;
+              int.tryParse(earningsRes['completed_trips']?.toString() ?? '') ??
+              0;
         }
       } catch (_) {}
 
@@ -176,9 +213,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
 
       if (mounted) {
         setState(() => _isLoading = false);
+        _syncAutoTracking();
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _syncAutoTracking();
+      }
     }
   }
 
@@ -187,6 +228,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     try {
       await _api.post('drivers/toggle-online/', {'is_online': value});
       if (!mounted) return;
+      _syncAutoTracking();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -197,23 +239,140 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         ),
       );
       _fetchDashboardData();
-    } catch (_) {
-      if (mounted) setState(() => _isOnline = !value);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isOnline = !value);
+        _syncAutoTracking();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              ApiService.formatError(
+                e,
+                fallback: 'Unable to update online status. Please retry.',
+              ),
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
-  Future<void> _broadcastLocation() async {
-    try {
-      await _api.post('drivers/location/', {'lat': 11.5580, 'lng': 104.9210});
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Live GPS location broadcast to active customers.'),
-          backgroundColor: GlassTheme.primaryGreen,
-          behavior: SnackBarBehavior.floating,
+  void _toggleAutoTrack() {
+    setState(() => _autoTrackEnabled = !_autoTrackEnabled);
+    _syncAutoTracking();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _autoTrackEnabled
+              ? 'Auto GPS tracking enabled for active orders.'
+              : 'Auto GPS tracking paused.',
         ),
-      );
-    } catch (_) {}
+        backgroundColor: _autoTrackEnabled
+            ? GlassTheme.primaryGreen
+            : Colors.orange,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Map<String, dynamic> _computeNextDriverTelemetry(dynamic deviceLoc) {
+    if (deviceLoc != null) {
+      return {
+        'lat': double.parse(deviceLoc.latitude.toStringAsFixed(6)),
+        'lng': double.parse(deviceLoc.longitude.toStringAsFixed(6)),
+        'speed': _activeOrders.isNotEmpty ? 28.0 : 0.0,
+        'bearing': 0.0,
+      };
+    }
+
+    if (_activeOrders.isNotEmpty) {
+      final order = _activeOrders.first;
+      final status = (order['status'] ?? 'assigned').toString();
+      final rest = order['restaurant'] is Map ? order['restaurant'] : {};
+      final addr = order['address'] is Map ? order['address'] : {};
+      final restLat = double.tryParse(rest['lat']?.toString() ?? '') ?? 11.5564;
+      final restLng =
+          double.tryParse(rest['lng']?.toString() ?? '') ?? 104.9282;
+      final custLat = double.tryParse(addr['lat']?.toString() ?? '') ?? 11.5621;
+      final custLng =
+          double.tryParse(addr['lng']?.toString() ?? '') ?? 104.9160;
+
+      const pickedUpStatuses = {
+        'picked_up',
+        'on_the_way',
+        'out_for_delivery',
+        'arrived',
+        'driver_arrived',
+      };
+
+      if (!pickedUpStatuses.contains(status)) {
+        // Not picked up yet: anchor at or approaching restaurant pickup, never ahead of pickup
+        if (status == 'arrived_at_restaurant') {
+          return {
+            'lat': double.parse(restLat.toStringAsFixed(6)),
+            'lng': double.parse(restLng.toStringAsFixed(6)),
+            'speed': 0.0,
+            'bearing': 0.0,
+          };
+        }
+        return {
+          'lat': double.parse((restLat - 0.0014).toStringAsFixed(6)),
+          'lng': double.parse((restLng - 0.0011).toStringAsFixed(6)),
+          'speed': 18.0,
+          'bearing': 45.0,
+        };
+      }
+
+      if (status == 'arrived' || status == 'driver_arrived') {
+        return {
+          'lat': double.parse(custLat.toStringAsFixed(6)),
+          'lng': double.parse(custLng.toStringAsFixed(6)),
+          'speed': 0.0,
+          'bearing': 0.0,
+        };
+      }
+
+      // Food is picked up: advance along restaurant -> customer route
+      _simulatedLegProgress = (_simulatedLegProgress + 0.08).clamp(0.10, 0.92);
+      final lat = restLat + (custLat - restLat) * _simulatedLegProgress;
+      final lng = restLng + (custLng - restLng) * _simulatedLegProgress;
+      return {
+        'lat': double.parse(lat.toStringAsFixed(6)),
+        'lng': double.parse(lng.toStringAsFixed(6)),
+        'speed': 32.0,
+        'bearing': 120.0,
+      };
+    }
+
+    return {'lat': 11.5580, 'lng': 104.9210, 'speed': 0.0, 'bearing': 0.0};
+  }
+
+  Future<void> _broadcastLocation({bool silent = false}) async {
+    if (_isBroadcastingLocation) return;
+    _isBroadcastingLocation = true;
+    try {
+      final deviceLoc = await getDeviceLocation();
+      final payload = _computeNextDriverTelemetry(deviceLoc);
+      await _api.post('drivers/location/', payload);
+      if (!mounted) return;
+      setState(() => _lastLocationBroadcastAt = DateTime.now());
+      if (!silent) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Live GPS location broadcast to active customers.'),
+            backgroundColor: GlassTheme.primaryGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (_) {
+    } finally {
+      _isBroadcastingLocation = false;
+    }
   }
 
   Future<void> _acceptOrder(String orderId) async {
@@ -232,19 +391,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      String errorMsg =
-          'Unable to accept order. It may have been claimed by another driver.';
-      bool needsVerification = false;
-      if (e is DioException && e.response?.data is Map) {
-        final data = e.response!.data as Map;
-        if (data['error'] != null) {
-          errorMsg = data['error'].toString();
-          if (errorMsg.toLowerCase().contains('phone') ||
-              errorMsg.toLowerCase().contains('verif')) {
-            needsVerification = true;
-          }
-        }
-      }
+      final errorMsg = ApiService.formatError(
+        e,
+        fallback:
+            'Unable to accept order. It may have been claimed by another driver.',
+      );
+      final lowerMsg = errorMsg.toLowerCase();
+      final bool needsVerification =
+          lowerMsg.contains('phone') || lowerMsg.contains('verif');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMsg),
@@ -329,71 +483,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       _fetchDashboardData();
     } catch (e) {
       if (!mounted) return;
+      final err = ApiService.formatError(
+        e,
+        fallback: 'Status update failed. Please retry.',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Status update failed. Please retry.'),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text(err), backgroundColor: Colors.redAccent),
       );
     }
   }
 
   Future<void> _reportFailedDelivery(Map<String, dynamic> order) async {
     final orderId = order['id'].toString();
-    final reasonController = TextEditingController();
-    final shouldReport = await showDialog<bool>(
+    final reason = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2C),
-        title: const Text(
-          'Report Delivery Issue',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Specify reason (e.g., Customer unreachable, wrong address, gate locked):',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: reasonController,
-              decoration: const InputDecoration(
-                hintText: 'Customer phone unreachable',
-                filled: true,
-                fillColor: Colors.black26,
-              ),
-              style: const TextStyle(color: Colors.white),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Submit Report',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+      builder: (ctx) => const _DriverFailedDeliveryDialog(),
     );
 
-    if (shouldReport == true) {
+    if (reason != null && mounted) {
       try {
-        final reason = reasonController.text.trim().isEmpty
-            ? 'Customer unreachable after multiple attempts'
-            : reasonController.text.trim();
         await _api.post('drivers/orders/$orderId/failed-delivery/', {
           'reason': reason,
         });
@@ -411,8 +519,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to log issue.'),
+          SnackBar(
+            content: Text(
+              ApiService.formatError(e, fallback: 'Failed to log issue.'),
+            ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -424,6 +534,36 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   void _showDeliveryCompletionSheet(Map<String, dynamic> order) {
     final orderId = order['id'].toString();
     final isUnpaid = order['payment_status'] != 'PAID';
+    final rawProvider =
+        (order['payment_info'] is Map
+            ? order['payment_info']['provider']
+            : null) ??
+        order['payment_provider'] ??
+        '';
+    final provider = rawProvider.toString().toUpperCase();
+    final isBankPayment = {
+      'BAKONG',
+      'ABA',
+      'ACLEDA',
+      'BAKONG_KHQR',
+      'ABA_KHQR',
+      'ACLEDA_KHQR',
+      'KHQR',
+    }.contains(provider);
+    final isCod =
+        provider == 'COD' ||
+        provider == 'CASH_ON_DELIVERY' ||
+        (!isBankPayment && provider.isEmpty);
+
+    final sheetBrightness = Theme.of(context).brightness;
+    final sheetIsDark = sheetBrightness == Brightness.dark;
+    final sheetPrimaryText = AppTypography.primaryTextColor(sheetBrightness);
+    final sheetSecondaryText = AppTypography.secondaryTextColor(
+      sheetBrightness,
+    );
+    final warningTextColor = sheetIsDark
+        ? Colors.amber
+        : const Color(0xFFB45309);
 
     showModalBottomSheet(
       context: context,
@@ -442,7 +582,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: sheetIsDark ? Colors.white24 : Colors.black12,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -450,45 +590,81 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               const SizedBox(height: 16),
               Text(
                 'Complete Delivery #$orderId',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: sheetPrimaryText,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 8),
-              if (isUnpaid) ...[
+              if (isUnpaid && isBankPayment) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.15),
+                    color: Colors.amber.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Colors.amber.withValues(alpha: 0.3),
+                      color: Colors.amber.withValues(alpha: 0.35),
                     ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.payments_outlined, color: Colors.amber),
+                      Icon(Icons.qr_code_2, color: warningTextColor),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
+                              'Bank QR Pending Verification',
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    color: warningTextColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Customer must complete payment in their banking app or scan the KHQR code before delivery.',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: sheetSecondaryText),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ] else if (isUnpaid && isCod) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.payments_outlined, color: warningTextColor),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
                               'Payment Due Upon Delivery',
-                              style: TextStyle(
-                                color: Colors.amber,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    color: warningTextColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
                             Text(
-                              'Collect \$${order['total_amount']} or scan Bakong KHQR',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
+                              'Collect \$${order['total_amount']} (≈ ${KhmerCurrency.formatKhr(double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0)}) cash from customer',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: sheetSecondaryText),
                             ),
                           ],
                         ),
@@ -500,7 +676,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               ],
               Text(
                 'Select delivery verification method:',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
               ),
               const SizedBox(height: 14),
               ListTile(
@@ -512,24 +690,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   ),
                 ),
                 leading: const Icon(
-                  Icons.qr_code_scanner,
+                  AppIcons.qrScan,
                   color: GlassTheme.primaryGreen,
                   size: 26,
                 ),
-                title: const Text(
+                title: Text(
                   'Scan Customer Delivery QR Code',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: sheetPrimaryText,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                subtitle: const Text(
+                subtitle: Text(
                   'Scan QR from customer\'s FoodGo app or enter PIN',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
                 ),
                 trailing: const Icon(
-                  Icons.chevron_right,
+                  AppIcons.chevronRight,
                   color: GlassTheme.primaryGreen,
                 ),
                 onTap: () {
@@ -544,22 +723,34 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               ),
               const SizedBox(height: 10),
               ListTile(
-                tileColor: Colors.white.withValues(alpha: 0.05),
+                tileColor: sheetIsDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.04),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: sheetIsDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.08),
+                  ),
                 ),
-                leading: const Icon(Icons.qr_code_2, color: Colors.white70),
-                title: const Text(
+                leading: Icon(AppIcons.qrCode, color: sheetSecondaryText),
+                title: Text(
                   'Show Driver Handover QR',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: sheetPrimaryText,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                subtitle: const Text(
+                subtitle: Text(
                   'Customer scans code displayed on your screen',
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
                 ),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  color: Colors.white30,
+                trailing: Icon(
+                  AppIcons.chevronRight,
+                  color: sheetSecondaryText,
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -573,36 +764,74 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               ),
               const SizedBox(height: 10),
               ListTile(
-                tileColor: Colors.white.withValues(alpha: 0.05),
+                tileColor: sheetIsDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.04),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: sheetIsDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.08),
+                  ),
                 ),
                 leading: const Icon(
-                  Icons.check_circle_outline,
+                  AppIcons.checkCircle,
                   color: GlassTheme.primaryGreen,
                 ),
-                title: const Text(
+                title: Text(
                   'Direct Handover Confirmation',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: sheetPrimaryText,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                subtitle: const Text(
+                subtitle: Text(
                   'Confirm package handed to customer directly',
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
                 ),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  color: Colors.white30,
+                trailing: Icon(
+                  AppIcons.chevronRight,
+                  color: sheetSecondaryText,
                 ),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  try {
-                    await _api.post('drivers/orders/$orderId/deliver/', {
-                      'payment_collected': true,
-                    });
-                    if (!mounted) return;
+                  if (isBankPayment && isUnpaid) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Delivery completed successfully.'),
+                        content: Text(
+                          'Bank QR payment is still pending. Customer must complete payment before handover.',
+                        ),
+                        backgroundColor: Colors.amber,
+                      ),
+                    );
+                    return;
+                  }
+                  final isCashDue = isUnpaid && isCod;
+                  final confirmed = await _confirmDirectHandover(
+                    orderId: orderId,
+                    paymentDue: isCashDue,
+                    amount: order['total_amount']?.toString(),
+                  );
+                  if (!confirmed || !mounted) return;
+
+                  try {
+                    final response = await _api.post(
+                      'drivers/orders/$orderId/deliver/',
+                      {'payment_collected': isCashDue},
+                    );
+                    if (!mounted) return;
+                    final fee = response is Map ? response['fee_earned'] : null;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          fee != null
+                              ? 'Delivery confirmed by FoodGo. '
+                                    'Fee earned: \$$fee'
+                              : 'Delivery confirmed by FoodGo.',
+                        ),
                         backgroundColor: GlassTheme.primaryGreen,
                       ),
                     );
@@ -610,8 +839,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   } catch (e) {
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Confirmation failed. Please retry.'),
+                      SnackBar(
+                        content: Text(
+                          ApiService.formatError(
+                            e,
+                            fallback:
+                                'FoodGo did not confirm this delivery. '
+                                'Nothing was marked complete — please retry.',
+                          ),
+                        ),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
@@ -626,83 +862,130 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     );
   }
 
-  void _showCancelOrderDialog(String orderId) {
-    final reasonController = TextEditingController(
-      text: 'Vehicle breakdown or emergency',
-    );
+  /// Asks the driver to explicitly confirm a direct handover before the
+  /// irreversible `deliver/` call. When cash is still due, the driver must
+  /// also confirm that the payment was collected.
+  Future<bool> _confirmDirectHandover({
+    required String orderId,
+    required bool paymentDue,
+    String? amount,
+  }) async {
+    var cashCollected = false;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
 
-    showDialog(
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1E242B),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            'Report Issue / Cancel',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Are you sure you want to release this delivery? If not picked up yet, it will be reassigned to another driver.',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final canConfirm = !paymentDue || cashCollected;
+          final textTheme = Theme.of(ctx).textTheme;
+          return AlertDialog(
+            backgroundColor: isDark
+                ? GlassTheme.dynamicDialogDark
+                : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(
+                color: isDark
+                    ? GlassTheme.dynamicBorderDark
+                    : const Color(0xFFE5E7EB),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: reasonController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Reason for cancellation',
-                  labelStyle: const TextStyle(color: Colors.white60),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+            ),
+            title: Text(
+              'Confirm delivery #$orderId',
+              style: textTheme.titleLarge?.copyWith(
+                color: primaryText,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'This marks the order as delivered on FoodGo and cannot be '
+                  'undone from the app. Only continue once the customer has '
+                  'the package in hand.',
+                  style: textTheme.bodyMedium?.copyWith(color: secondaryText),
+                ),
+                if (paymentDue) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Cash payment due: \$${amount ?? '—'}',
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: primaryText,
+                    ),
                   ),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: cashCollected,
+                    onChanged: (value) {
+                      setDialogState(() => cashCollected = value ?? false);
+                    },
+                    title: Text(
+                      'I collected the cash payment from the customer',
+                      style: textTheme.bodyMedium?.copyWith(color: primaryText),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(
+                  'Cancel',
+                  style: textTheme.labelLarge?.copyWith(color: secondaryText),
                 ),
               ),
+              FilledButton(
+                onPressed: canConfirm ? () => Navigator.pop(ctx, true) : null,
+                child: const Text('Confirm delivered'),
+              ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(
-                'Keep Delivery',
-                style: TextStyle(color: Colors.white60),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-              ),
-              onPressed: () async {
-                Navigator.pop(ctx);
-                try {
-                  await _api.post('drivers/orders/$orderId/cancel/', {
-                    'reason': reasonController.text.trim(),
-                  });
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Delivery cancelled and reported.'),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                  _fetchDashboardData();
-                } catch (_) {}
-              },
-              child: const Text(
-                'Confirm Cancel',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
+
+    return confirmed ?? false;
+  }
+
+  Future<void> _showCancelOrderDialog(String orderId) async {
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (ctx) => const _DriverCancelOrderDialog(),
+    );
+    if (reason == null || !mounted) return;
+    try {
+      await _api.post('drivers/orders/$orderId/cancel/', {'reason': reason});
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Delivery cancelled and reported.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      _fetchDashboardData();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ApiService.formatError(
+              e,
+              fallback: 'Failed to cancel delivery. Please try again.',
+            ),
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   Future<void> _launchMaps(double lat, double lng, String label) async {
@@ -740,68 +1023,93 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   }
 
   void _confirmLogout(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text(
-          'Driver Log Out',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Are you sure you want to log out of the Driver Portal?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white60),
+      builder: (dialogCtx) {
+        final textTheme = Theme.of(dialogCtx).textTheme;
+        return AlertDialog(
+          backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : const Color(0xFFE5E7EB),
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              await context.read<AuthProvider>().logout();
-              if (!context.mounted) return;
-              context.read<UserProvider>().clearUser();
-              context.go('/login');
-            },
-            child: const Text(
-              'Log Out',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+          title: Text(
+            'Driver Log Out',
+            style: textTheme.titleLarge?.copyWith(
+              color: primaryText,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to log out of the Driver Portal?',
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(
+                'Cancel',
+                style: textTheme.labelLarge?.copyWith(color: secondaryText),
               ),
             ),
-          ),
-        ],
-      ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                await context.read<AuthProvider>().logout();
+                if (!context.mounted) return;
+                context.read<UserProvider>().clearUser();
+                context.go('/login');
+              },
+              child: Text(
+                'Log Out',
+                style: textTheme.labelLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
-        title: 'Driver Portal',
+        title: context.tr('driver.dashboard'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(AppIcons.back),
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(AppIcons.refresh),
             tooltip: 'Refresh Dashboard',
             onPressed: _fetchDashboardData,
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            icon: const Icon(AppIcons.logout, color: Colors.redAccent),
             tooltip: 'Log Out',
             onPressed: () => _confirmLogout(context),
           ),
@@ -809,7 +1117,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       ),
       body: Container(
         decoration: const BoxDecoration(
-          color: GlassTheme.backgroundDark,
+          color: Colors.transparent,
           image: DecorationImage(
             image: CachedNetworkImageProvider(
               'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
@@ -821,44 +1129,49 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         child: SafeArea(
           child: ResponsiveWebContainer(
             maxWidth: 900,
-            child: Column(
-              children: [
-                // ── Status & Navigation Header ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: _buildHeaderCard(),
-                ),
-
-                // ── Segmented Tab Selector ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 4.0,
-                  ),
-                  child: _buildTabSelector(),
-                ),
-
-                const SizedBox(height: 8),
-
-                // ── Tab Content ──
-                Expanded(
-                  child: _isLoading
-                      ? Center(
-                          child: CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        )
-                      : RefreshIndicator(
-                          color: Theme.of(context).colorScheme.primary,
-                          backgroundColor: GlassTheme.backgroundDark,
-                          onRefresh: _fetchDashboardData,
-                          child: _buildSelectedTabContent(),
+            child: NestedScrollView(
+              headerSliverBuilder: (context, _) => [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      // ── Status & Navigation Header ──
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
                         ),
+                        child: _buildHeaderCard(),
+                      ),
+
+                      // ── Segmented Tab Selector ──
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 4.0,
+                        ),
+                        child: _buildTabSelector(),
+                      ),
+
+                      const SizedBox(height: 8),
+                    ],
+                  ),
                 ),
               ],
+              body: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
+                  : RefreshIndicator(
+                      color: Theme.of(context).colorScheme.primary,
+                      backgroundColor:
+                          Theme.of(context).brightness == Brightness.dark
+                          ? GlassTheme.backgroundDark
+                          : Colors.white,
+                      onRefresh: _fetchDashboardData,
+                      child: _buildSelectedTabContent(),
+                    ),
             ),
           ),
         ),
@@ -867,6 +1180,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   }
 
   Widget _buildHeaderCard() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF15803D);
+    final amberTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
+    final rating =
+        double.tryParse(_driverProfile?['rating']?.toString() ?? '') ?? 4.9;
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: GlassTheme.borderRadiusSmall,
@@ -874,34 +1198,75 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(
-                  Icons.two_wheeler,
-                  color: GlassTheme.primaryGreen,
-                  size: 22,
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                      GlassTheme.primaryGreen.withValues(alpha: 0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: accentGreen.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
                 ),
+                child: Icon(Icons.two_wheeler, color: accentGreen, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           _driverProfile?['full_name'] ??
                               _driverProfile?['username'] ??
                               'FoodGo Driver',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          style: textTheme.titleMedium?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 2,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: Colors.amber.withValues(alpha: 0.4),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.star, color: amberTextColor, size: 11),
+                              const SizedBox(width: 2),
+                              Text(
+                                rating.toStringAsFixed(1),
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: amberTextColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        if (!_isApproved) ...[
-                          const SizedBox(width: 8),
+                        if (!_isApproved)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -911,24 +1276,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                               color: Colors.amber.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Pending Approval',
-                              style: TextStyle(
-                                color: Colors.amber,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                              style: textTheme.labelSmall?.copyWith(
+                                color: amberTextColor,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${_driverProfile?['vehicle_type'] ?? 'Motorcycle'} · ${_driverProfile?['license_plate'] ?? 'PP-2026'}',
-                      style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
                       ),
                     ),
                   ],
@@ -942,47 +1304,146 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             ],
           ),
           if (_isOnline) ...[
-            const Divider(color: Colors.white12, height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: GlassTheme.primaryGreen,
-                        shape: BoxShape.circle,
+            Divider(
+              color: isDark
+                  ? Colors.white12
+                  : Colors.black.withValues(alpha: 0.08),
+              height: 20,
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: accentGreen,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: GlassTheme.primaryGreen.withValues(
+                                alpha: 0.6,
+                              ),
+                              blurRadius: 6,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'Online & Available',
-                      style: TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          context.tr('driver.onlineAvailable'),
+                          style: textTheme.labelMedium?.copyWith(
+                            color: accentGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    foregroundColor: GlassTheme.primaryGreen,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
+                    ],
                   ),
-                  icon: const Icon(Icons.my_location, size: 14),
-                  label: const Text(
-                    'Broadcast Location',
-                    style: TextStyle(fontSize: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: _toggleAutoTrack,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _autoTrackEnabled
+                                ? GlassTheme.primaryGreen.withValues(
+                                    alpha: 0.14,
+                                  )
+                                : Colors.orange.withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _autoTrackEnabled
+                                  ? accentGreen.withValues(alpha: 0.4)
+                                  : (isDark
+                                            ? Colors.orangeAccent
+                                            : const Color(0xFFB45309))
+                                        .withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _autoTrackEnabled
+                                    ? Icons.gps_fixed
+                                    : Icons.gps_off,
+                                size: 14,
+                                color: _autoTrackEnabled
+                                    ? accentGreen
+                                    : (isDark
+                                          ? Colors.orangeAccent
+                                          : const Color(0xFFB45309)),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                _autoTrackEnabled
+                                    ? (_activeOrders.isNotEmpty
+                                          ? 'Auto-Track: ON (${_activeOrders.length})'
+                                          : 'Auto-Track: Standby')
+                                    : 'Auto-Track: Paused',
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: _autoTrackEnabled
+                                      ? accentGreen
+                                      : (isDark
+                                            ? Colors.orangeAccent
+                                            : const Color(0xFFB45309)),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: accentGreen,
+                          backgroundColor: GlassTheme.primaryGreen.withValues(
+                            alpha: 0.1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: accentGreen.withValues(alpha: 0.35),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                        ),
+                        icon: const Icon(Icons.my_location, size: 14),
+                        label: Text(
+                          'Broadcast Location',
+                          style: textTheme.labelMedium?.copyWith(
+                            color: accentGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: _broadcastLocation,
+                      ),
+                    ],
                   ),
-                  onPressed: _broadcastLocation,
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ],
@@ -991,79 +1452,98 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   }
 
   Widget _buildTabSelector() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     final tabs = [
       {
-        'title': 'Active (${_activeOrders.length})',
-        'icon': Icons.delivery_dining,
+        'title':
+            '${context.tr('driver.activeDeliveries')} (${_activeOrders.length})',
+        'icon': AppIcons.delivery,
       },
       {
-        'title': 'Available (${_availableOrders.length})',
-        'icon': Icons.list_alt,
+        'title':
+            '${context.tr('driver.availableOrders')} (${_availableOrders.length})',
+        'icon': AppIcons.orders,
       },
-      {'title': 'Earnings', 'icon': Icons.payments_outlined},
-      {'title': 'Profile', 'icon': Icons.person_outline},
+      {'title': context.tr('driver.earnings'), 'icon': AppIcons.payment},
+      {'title': context.tr('nav.profile'), 'icon': AppIcons.profile},
     ];
 
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
+        color: isDark
+            ? Colors.black.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(
+          color: isDark ? Colors.white10 : GlassTheme.borderLight,
+        ),
       ),
-      child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isSelected = _selectedTab == index;
-          return Expanded(
-            child: InkWell(
-              onTap: () => setState(() => _selectedTab = index),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.25)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  border: isSelected
-                      ? Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.5),
-                        )
-                      : null,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      tabs[index]['icon'] as IconData,
-                      size: 16,
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.white60,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      tabs[index]['title'] as String,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isSelected ? Colors.white : Colors.white60,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: List.generate(tabs.length, (index) {
+            final isSelected = _selectedTab == index;
+            return Expanded(
+              child: InkWell(
+                onTap: () => setState(() => _selectedTab = index),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primary.withValues(
+                            alpha: isDark ? 0.25 : 0.12,
+                          )
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: isSelected
+                        ? Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.5),
+                          )
+                        : null,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        tabs[index]['icon'] as IconData,
+                        size: 16,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : secondaryText,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        tabs[index]['title'] as String,
+                        style: textTheme.labelSmall?.copyWith(
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected ? primaryText : secondaryText,
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        softWrap: true,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -1088,46 +1568,61 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   // ─────────────────────────────────────────────
   Widget _buildActiveDeliveriesTab() {
     if (_activeOrders.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.directions_bike,
-                size: 56,
-                color: GlassTheme.textMuted.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'No Active Deliveries',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.directions_bike,
+                  size: 48,
+                  color: GlassTheme.textMuted.withValues(alpha: 0.5),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Check available orders tab to accept an order assignment.',
-                style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 12),
+                Text(
+                  'No Active Deliveries',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTypography.primaryTextColor(
+                      Theme.of(context).brightness,
+                    ),
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                icon: const Icon(Icons.search, size: 18),
-                label: const Text('View Available Orders'),
-                onPressed: () => setState(() => _selectedTab = 1),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  'Check available orders tab to accept an order assignment.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTypography.secondaryTextColor(
+                      Theme.of(context).brightness,
+                    ),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).brightness == Brightness.dark
+                        ? GlassTheme.primaryGreen
+                        : const Color(0xFF15803D),
+                    foregroundColor:
+                        Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black
+                        : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.search, size: 18),
+                  label: const Text('View Available Orders'),
+                  onPressed: () => setState(() => _selectedTab = 1),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -1138,7 +1633,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
       itemCount: _activeOrders.length,
       itemBuilder: (context, index) {
         final order = _activeOrders[index];
-        return _buildActiveOrderCard(order);
+        return _buildActiveOrderCard(order).motionEntrance(staggerIndex: index);
       },
     );
   }
@@ -1151,15 +1646,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     final restName = rest['name'] ?? 'Restaurant';
     final restPhone = rest['phone'] ?? '+855 23 888 777';
     final restAddress = rest['address'] ?? 'Phnom Penh';
-    final restLat = (rest['lat'] as num?)?.toDouble() ?? 11.5564;
-    final restLng = (rest['lng'] as num?)?.toDouble() ?? 104.9282;
+    final restLat = double.tryParse(rest['lat']?.toString() ?? '') ?? 11.5564;
+    final restLng = double.tryParse(rest['lng']?.toString() ?? '') ?? 104.9282;
 
     final addr = order['address'] is Map
         ? order['address']
         : {'street': order['delivery_address_snapshot'] ?? 'Phnom Penh'};
     final custStreet = addr['street'] ?? 'Delivery Address, Phnom Penh';
-    final custLat = (addr['lat'] as num?)?.toDouble() ?? 11.5621;
-    final custLng = (addr['lng'] as num?)?.toDouble() ?? 104.9160;
+    final custLat = double.tryParse(addr['lat']?.toString() ?? '') ?? 11.5621;
+    final custLng = double.tryParse(addr['lng']?.toString() ?? '') ?? 104.9160;
 
     final cust = order['customer_info'] is Map ? order['customer_info'] : {};
     final custName = cust['name'] ?? 'Customer';
@@ -1168,6 +1663,28 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     final totalAmount = order['total_amount']?.toString() ?? '0.00';
     final deliveryFee = order['delivery_fee_charged']?.toString() ?? '2.00';
     final isPaid = order['payment_status'] == 'PAID';
+    final rawProvider =
+        (order['payment_info'] is Map
+            ? order['payment_info']['provider']
+            : null) ??
+        order['payment_provider'] ??
+        '';
+    final provider = rawProvider.toString().toUpperCase();
+    final isBankPayment = {
+      'BAKONG',
+      'ABA',
+      'ACLEDA',
+      'BAKONG_KHQR',
+      'ABA_KHQR',
+      'ACLEDA_KHQR',
+      'KHQR',
+    }.contains(provider);
+
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final amberTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
 
     return GlassCard(
       padding: const EdgeInsets.all(18),
@@ -1178,32 +1695,36 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Order #${order['id']}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(status).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _getStatusColor(status).withValues(alpha: 0.5),
+              Expanded(
+                child: Text(
+                  'Order #${order['id']}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: primaryText,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                child: Text(
-                  _getStatusLabel(status),
-                  style: TextStyle(
-                    color: _getStatusColor(status),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(status).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _getStatusColor(status).withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Text(
+                    _getStatusLabel(status),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: _getStatusColor(status),
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 2,
                   ),
                 ),
               ),
@@ -1213,10 +1734,66 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             const SizedBox(height: 2),
             Text(
               order['order_reference'],
-              style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: secondaryText),
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          Builder(
+            builder: (context) {
+              final pickedUp = const {
+                'picked_up',
+                'on_the_way',
+                'out_for_delivery',
+                'arrived',
+                'driver_arrived',
+                'delivered',
+              }.contains(status);
+              final trackAccent = pickedUp
+                  ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
+                  : amberTextColor;
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: trackAccent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: trackAccent.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      pickedUp
+                          ? Icons.gps_fixed
+                          : Icons.hourglass_bottom_rounded,
+                      size: 14,
+                      color: trackAccent,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        pickedUp
+                            ? (_autoTrackEnabled && _isOnline
+                                  ? 'Food Picked Up • Auto-Tracking to Customer'
+                                  : 'Food Picked Up • Proceeding to Customer')
+                            : (_autoTrackEnabled && _isOnline
+                                  ? 'Not Picked Up Yet • Auto-Tracking Approach'
+                                  : 'Not Picked Up Yet • Head to Restaurant'),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: trackAccent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 14),
 
           // Lifecycle Stepper
           _buildLifecycleStepper(status),
@@ -1226,28 +1803,35 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white10
+                    : Colors.black.withValues(alpha: 0.08),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.store,
-                      color: GlassTheme.primaryGreen,
+                      color: isDark
+                          ? const Color(0xFF4ADE80)
+                          : const Color(0xFF15803D),
                       size: 18,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Pickup: $restName',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: primaryText,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1256,15 +1840,53 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 const SizedBox(height: 6),
                 Text(
                   restAddress,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: secondaryText),
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: GlassTheme.primaryGreen,
-                        side: BorderSide(color: GlassTheme.primaryGreen),
+                        foregroundColor: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
+                        side: BorderSide(
+                          color: isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        minimumSize: Size.zero,
+                      ),
+                      icon: const Icon(Icons.map_outlined, size: 14),
+                      label: Text(
+                        'Map Route',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onPressed: () =>
+                          context.push('/map/${order['id']}?isDriver=true'),
+                    ),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: secondaryText,
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.white24
+                              : secondaryText.withValues(alpha: 0.35),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -1272,17 +1894,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.navigation, size: 14),
-                      label: const Text(
+                      label: Text(
                         'Directions',
-                        style: TextStyle(fontSize: 11),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: secondaryText),
                       ),
                       onPressed: () => _launchMaps(restLat, restLng, restName),
                     ),
-                    const SizedBox(width: 8),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        side: const BorderSide(color: Colors.white24),
+                        foregroundColor: secondaryText,
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.white24
+                              : secondaryText.withValues(alpha: 0.35),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -1290,7 +1917,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.phone, size: 14),
-                      label: const Text('Call', style: TextStyle(fontSize: 11)),
+                      label: Text(
+                        'Call',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: secondaryText),
+                      ),
                       onPressed: () =>
                           _copyToClipboard(restPhone, 'Restaurant Phone'),
                     ),
@@ -1305,9 +1937,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white10
+                    : Colors.black.withValues(alpha: 0.08),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1323,10 +1961,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                     Expanded(
                       child: Text(
                         'Deliver to: $custName',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: primaryText,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1335,7 +1972,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 const SizedBox(height: 6),
                 Text(
                   custStreet,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: secondaryText),
+                  maxLines: 2,
                 ),
                 if (order['special_instructions'] != null &&
                     order['special_instructions']
@@ -1345,16 +1985,47 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   const SizedBox(height: 6),
                   Text(
                     'Note: ${order['special_instructions']}',
-                    style: const TextStyle(color: Colors.amber, fontSize: 11),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelSmall?.copyWith(color: amberTextColor),
                   ),
                 ],
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: GlassTheme.primaryGreen,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        minimumSize: Size.zero,
+                      ),
+                      icon: const Icon(Icons.map_rounded, size: 15),
+                      label: Text(
+                        'Open Delivery Map',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onPressed: () =>
+                          context.push('/map/${order['id']}?isDriver=true'),
+                    ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.blueAccent,
-                        side: const BorderSide(color: Colors.blueAccent),
+                        foregroundColor: isDark
+                            ? Colors.blueAccent
+                            : const Color(0xFF1D4ED8),
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.blueAccent
+                              : const Color(0xFF1D4ED8),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -1362,18 +2033,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.navigation, size: 14),
-                      label: const Text(
+                      label: Text(
                         'Directions',
-                        style: TextStyle(fontSize: 11),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: isDark
+                              ? Colors.blueAccent
+                              : const Color(0xFF1D4ED8),
+                        ),
                       ),
                       onPressed: () =>
                           _launchMaps(custLat, custLng, custStreet),
                     ),
-                    const SizedBox(width: 8),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        side: const BorderSide(color: Colors.white24),
+                        foregroundColor: secondaryText,
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.white24
+                              : secondaryText.withValues(alpha: 0.35),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -1381,7 +2059,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         minimumSize: Size.zero,
                       ),
                       icon: const Icon(Icons.phone, size: 14),
-                      label: const Text('Call', style: TextStyle(fontSize: 11)),
+                      label: Text(
+                        'Call',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: secondaryText),
+                      ),
                       onPressed: () =>
                           _copyToClipboard(custPhone, 'Customer Phone'),
                     ),
@@ -1394,61 +2077,81 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
 
           // Payment Status & Delivery Fee Info
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Payment Status',
-                    style: TextStyle(color: Colors.white60, fontSize: 11),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment Status',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: secondaryText),
+                    ),
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isPaid
+                            ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
+                            : Colors.amber.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        isPaid
+                            ? 'PAID ONLINE'
+                            : (isBankPayment
+                                  ? 'KHQR PENDING VERIFICATION'
+                                  : 'CASH DUE ON DELIVERY'),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: isPaid
-                              ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
-                              : Colors.amber.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          isPaid ? 'PAID ONLINE' : 'CASH / KHQR ON DELIVERY',
-                          style: TextStyle(
-                            color: isPaid
-                                ? GlassTheme.primaryGreen
-                                : Colors.amber,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                              ? (isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF15803D))
+                              : amberTextColor,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    'Delivery Fee Earning',
-                    style: TextStyle(color: Colors.white60, fontSize: 11),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '+\$$deliveryFee (Total: \$$totalAmount)',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Delivery Fee Earning',
+                      textAlign: TextAlign.end,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: secondaryText),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '+\$$deliveryFee ≈ ${KhmerCurrency.formatKhr(double.tryParse(deliveryFee) ?? 2.0)}',
+                      textAlign: TextAlign.end,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      'Order Total: \$$totalAmount',
+                      textAlign: TextAlign.end,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: secondaryText),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -1461,9 +2164,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           // Secondary Action (Cancel / Report Issue)
           TextButton(
             onPressed: () => _showCancelOrderDialog(order['id'].toString()),
-            child: const Text(
+            child: Text(
               'Report Issue or Reassign',
-              style: TextStyle(color: Colors.white54, fontSize: 12),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: secondaryText),
             ),
           ),
         ],
@@ -1487,80 +2192,137 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     if (status == 'arrived' || status == 'driver_arrived') currentStepIndex = 3;
     if (status == 'delivered') currentStepIndex = 4;
 
-    return Row(
-      children: List.generate(steps.length, (i) {
-        final isCompleted = i <= currentStepIndex;
-        final isCurrent = i == currentStepIndex;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
 
-        return Expanded(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  if (i > 0)
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        color: i <= currentStepIndex
-                            ? GlassTheme.primaryGreen
-                            : Colors.white12,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.black.withValues(alpha: 0.25)
+            : Colors.black.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        children: List.generate(steps.length, (i) {
+          final isCompleted = i <= currentStepIndex;
+          final isCurrent = i == currentStepIndex;
+
+          return Expanded(
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    if (i > 0)
+                      Expanded(
+                        child: Container(
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: i <= currentStepIndex
+                                ? GlassTheme.primaryGreen
+                                : (isDark
+                                      ? Colors.white12
+                                      : Colors.black.withValues(alpha: 0.1)),
+                            borderRadius: BorderRadius.circular(1.5),
+                          ),
+                        ),
                       ),
-                    ),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: isCompleted
-                          ? GlassTheme.primaryGreen
-                          : Colors.white12,
-                      shape: BoxShape.circle,
-                      border: isCurrent
-                          ? Border.all(color: Colors.white, width: 2)
-                          : null,
-                    ),
-                    child: Center(
-                      child: isCompleted
-                          ? const Icon(
-                              Icons.check,
-                              size: 12,
-                              color: Colors.black,
-                            )
-                          : Text(
-                              '${i + 1}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.white60,
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? GlassTheme.primaryGreen
+                            : (isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.black.withValues(alpha: 0.06)),
+                        shape: BoxShape.circle,
+                        border: isCurrent
+                            ? Border.all(
+                                color: isDark
+                                    ? Colors.white
+                                    : GlassTheme.primaryGreenDark,
+                                width: 2,
+                              )
+                            : Border.all(
+                                color: isCompleted
+                                    ? GlassTheme.primaryGreen
+                                    : (isDark
+                                          ? Colors.white24
+                                          : Colors.black26),
+                                width: 1,
                               ),
-                            ),
-                    ),
-                  ),
-                  if (i < steps.length - 1)
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        color: i < currentStepIndex
-                            ? GlassTheme.primaryGreen
-                            : Colors.white12,
+                        boxShadow: isCurrent
+                            ? [
+                                BoxShadow(
+                                  color: GlassTheme.primaryGreen.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check,
+                                size: 14,
+                                color: Colors.black,
+                              )
+                            : Text(
+                                '${i + 1}',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: secondaryText,
+                                    ),
+                              ),
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                steps[i]['label']!,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                  color: isCurrent ? Colors.white : Colors.white54,
+                    if (i < steps.length - 1)
+                      Expanded(
+                        child: Container(
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: i < currentStepIndex
+                                ? GlassTheme.primaryGreen
+                                : (isDark
+                                      ? Colors.white12
+                                      : Colors.black.withValues(alpha: 0.1)),
+                            borderRadius: BorderRadius.circular(1.5),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        );
-      }),
+                const SizedBox(height: 6),
+                Text(
+                  steps[i]['label']!,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                    color: isCurrent
+                        ? primaryText
+                        : (isCompleted
+                              ? (isDark
+                                    ? GlassTheme.primaryGreen
+                                    : const Color(0xFF15803D))
+                              : secondaryText),
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 
@@ -1625,6 +2387,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   }
 
   Color _getStatusColor(String status) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     switch (status) {
       case 'accepted':
       case 'assigned':
@@ -1633,14 +2396,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         return Colors.purpleAccent;
       case 'picked_up':
       case 'on_the_way':
-        return Colors.orangeAccent;
+        return isDark ? Colors.orangeAccent : const Color(0xFFC2410C);
       case 'arrived':
       case 'driver_arrived':
-        return Colors.tealAccent;
+        return isDark ? Colors.tealAccent : const Color(0xFF0F766E);
       case 'delivered':
         return GlassTheme.primaryGreen;
       default:
-        return Colors.white70;
+        return AppTypography.secondaryTextColor(Theme.of(context).brightness);
     }
   }
 
@@ -1659,10 +2422,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     }
   }
 
+  String _availableOrderQuery = '';
+
   // ─────────────────────────────────────────────
   // TAB 1: AVAILABLE ORDERS
   // ─────────────────────────────────────────────
   Widget _buildAvailableOrdersTab() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+
     if (!_isOnline) {
       return Center(
         child: Padding(
@@ -1670,27 +2443,34 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.cloud_off, size: 56, color: Colors.white30),
+              Icon(
+                Icons.cloud_off,
+                size: 56,
+                color: secondaryText.withValues(alpha: 0.6),
+              ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'You are Currently Offline',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: primaryText,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Turn on your online status to receive live delivery requests.',
-                style: TextStyle(color: Colors.white60, fontSize: 13),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: secondaryText),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: GlassTheme.primaryGreen,
-                  foregroundColor: Colors.white,
+                  backgroundColor: isDark
+                      ? GlassTheme.primaryGreen
+                      : const Color(0xFF15803D),
+                  foregroundColor: isDark ? Colors.black : Colors.white,
                 ),
                 icon: const Icon(Icons.toggle_on),
                 label: const Text('Go Online Now'),
@@ -1709,20 +2489,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.inbox, size: 56, color: Colors.white30),
+              Icon(
+                Icons.inbox,
+                size: 56,
+                color: secondaryText.withValues(alpha: 0.6),
+              ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'No Available Orders',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: primaryText,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Waiting for incoming food orders from nearby restaurants.',
-                style: TextStyle(color: Colors.white60, fontSize: 13),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: secondaryText),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -1732,10 +2517,56 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     }
 
     final bool isPhoneVerified = _driverProfile?['is_phone_verified'] == true;
+    final warningTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
+    final query = _availableOrderQuery.trim().toLowerCase();
+    final filteredAvailable = query.isEmpty
+        ? _availableOrders
+        : _availableOrders.where((o) {
+            final idStr = o['id']?.toString().toLowerCase() ?? '';
+            final rest = o['restaurant'] is Map
+                ? (o['restaurant']['name']?.toString().toLowerCase() ?? '')
+                : (o['restaurant_name']?.toString().toLowerCase() ?? '');
+            final addr = o['address'] is Map
+                ? (o['address']['street']?.toString().toLowerCase() ?? '')
+                : (o['delivery_address_snapshot']?.toString().toLowerCase() ??
+                      '');
+            return idStr.contains(query) ||
+                rest.contains(query) ||
+                addr.contains(query);
+          }).toList();
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.black.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white12
+                  : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
+          child: TextField(
+            onChanged: (val) => setState(() => _availableOrderQuery = val),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: primaryText),
+            decoration: InputDecoration(
+              hintText: 'Find order by #ID, restaurant, or dropoff...',
+              hintStyle: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: secondaryText),
+              prefixIcon: Icon(Icons.search, color: accentGreen, size: 20),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
         if (!isPhoneVerified) ...[
           Container(
             margin: const EdgeInsets.only(bottom: 16),
@@ -1748,28 +2579,31 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(
                       Icons.warning_amber_rounded,
-                      color: Colors.amber,
+                      color: warningTextColor,
                       size: 20,
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Phone Verification Required',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Phone Verification Required',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: primaryText,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'You must verify your Cambodian phone number (+855) via SMS OTP before accepting delivery assignments.',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: secondaryText),
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton.icon(
@@ -1797,7 +2631,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
             ),
           ),
         ],
-        ..._availableOrders.map((o) => _buildAvailableOrderCard(o)),
+        ...filteredAvailable.asMap().entries.map(
+          (entry) => _buildAvailableOrderCard(
+            entry.value,
+          ).motionEntrance(staggerIndex: entry.key),
+        ),
       ],
     );
   }
@@ -1818,6 +2656,32 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     final deliveryFee = order['delivery_fee_charged']?.toString() ?? '2.00';
     final totalAmount = order['total_amount']?.toString() ?? '0.00';
     final isPaid = order['payment_status'] == 'PAID';
+    final rawProvider =
+        (order['payment_info'] is Map
+            ? order['payment_info']['provider']
+            : null) ??
+        order['payment_provider'] ??
+        '';
+    final provider = rawProvider.toString().toUpperCase();
+    final isBankPayment = {
+      'BAKONG',
+      'ABA',
+      'ACLEDA',
+      'BAKONG_KHQR',
+      'ABA_KHQR',
+      'ACLEDA_KHQR',
+      'KHQR',
+    }.contains(provider);
+
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final amberTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
+    final statusGreen = isDark
+        ? GlassTheme.primaryGreen
+        : const Color(0xFF15803D);
 
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -1826,29 +2690,38 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Order #$orderId',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  'Order #$orderId',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: primaryText,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isPaid
-                      ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
-                      : Colors.amber.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  isPaid ? 'PAID' : 'COD / KHQR',
-                  style: TextStyle(
-                    color: isPaid ? GlassTheme.primaryGreen : Colors.amber,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isPaid
+                        ? GlassTheme.primaryGreen.withValues(alpha: 0.2)
+                        : Colors.amber.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    isPaid
+                        ? 'PAID'
+                        : (isBankPayment ? 'KHQR PENDING' : 'COD DUE'),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: isPaid ? statusGreen : amberTextColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -1860,7 +2733,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.store, color: GlassTheme.primaryGreen, size: 16),
+              Icon(Icons.store, color: statusGreen, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -1868,20 +2741,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   children: [
                     Text(
                       restName,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: primaryText,
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
                       ),
                     ),
                     Text(
                       restAddress,
-                      style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: 11,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      softWrap: true,
                     ),
                   ],
                 ),
@@ -1900,57 +2771,91 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Delivery Destination',
-                      style: TextStyle(
-                        color: Colors.white,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: primaryText,
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
                       ),
                     ),
                     Text(
                       custStreet,
-                      style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: 11,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: secondaryText,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      softWrap: true,
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const Divider(color: Colors.white12, height: 20),
+          Divider(
+            color: isDark
+                ? Colors.white12
+                : Colors.black.withValues(alpha: 0.08),
+            height: 20,
+          ),
 
-          // Fee & Action Buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Fee & Action Buttons (responsive on 360px phones)
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Delivery Earning',
-                    style: TextStyle(color: Colors.white60, fontSize: 11),
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                   Text(
-                    '+\$$deliveryFee (Order: \$$totalAmount)',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
+                    '+\$$deliveryFee ≈ ${KhmerCurrency.formatKhr(double.tryParse(deliveryFee) ?? 2.0)}',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: statusGreen,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
                     ),
+                  ),
+                  Text(
+                    'Order: \$$totalAmount',
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                 ],
               ),
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      foregroundColor: statusGreen,
+                      side: BorderSide(
+                        color: statusGreen.withValues(alpha: 0.5),
+                        width: 1.2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                    ),
+                    icon: const Icon(Icons.map_outlined, size: 20),
+                    tooltip: 'Preview on Map',
+                    onPressed: () =>
+                        context.push('/map/$orderId?isDriver=true'),
+                  ),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white38, width: 1.2),
+                      foregroundColor: primaryText,
+                      side: BorderSide(
+                        color: isDark
+                            ? Colors.white38
+                            : secondaryText.withValues(alpha: 0.4),
+                        width: 1.2,
+                      ),
                       minimumSize: const Size(80, 48),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -1961,15 +2866,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                       ),
                     ),
                     onPressed: () => _declineOrder(orderId),
-                    child: const Text(
+                    child: Text(
                       'Decline',
-                      style: TextStyle(
-                        fontSize: 13,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: primaryText,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: GlassTheme.primaryGreen,
@@ -1985,11 +2889,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                       elevation: 2,
                     ),
                     icon: const Icon(Icons.check, size: 18),
-                    label: const Text(
+                    label: Text(
                       'Accept',
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.black,
                         fontWeight: FontWeight.w900,
-                        fontSize: 13,
                       ),
                     ),
                     onPressed: () => _acceptOrder(orderId),
@@ -2007,6 +2911,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   // TAB 2: TRIP HISTORY & EARNINGS
   // ─────────────────────────────────────────────
   Widget _buildEarningsTab() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final statusGreen = isDark
+        ? GlassTheme.primaryGreen
+        : const Color(0xFF15803D);
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -2020,82 +2933,112 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Today's Earnings",
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '\$${_todayEarningsUsd.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Today's Earnings",
+                          style: textTheme.bodySmall?.copyWith(
+                            color: secondaryText,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '≈ ${KhmerCurrency.formatKhr(_todayEarningsUsd)}',
-                        style: const TextStyle(
-                          color: GlassTheme.primaryGreen,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 2),
+                        Text(
+                          '\$${_todayEarningsUsd.toStringAsFixed(2)}',
+                          style: textTheme.displayLarge?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          '≈ ${KhmerCurrency.formatKhr(_todayEarningsUsd)}',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: statusGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 12),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.account_balance_wallet,
-                      color: GlassTheme.primaryGreen,
+                      color: statusGreen,
                       size: 32,
                     ),
                   ),
                 ],
               ),
-              const Divider(color: Colors.white12, height: 24),
+              Divider(
+                color: isDark
+                    ? Colors.white12
+                    : Colors.black.withValues(alpha: 0.08),
+                height: 24,
+              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Column(
-                    children: [
-                      Text(
-                        '$_completedDeliveries',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          '$_completedDeliveries',
+                          style: textTheme.titleLarge?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const Text(
-                        'Total Trips',
-                        style: TextStyle(color: Colors.white60, fontSize: 11),
-                      ),
-                    ],
+                        Text(
+                          'Total Trips',
+                          textAlign: TextAlign.center,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Container(width: 1, height: 28, color: Colors.white12),
-                  Column(
-                    children: [
-                      Text(
-                        '\$${_totalEarningsUsd.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  Container(
+                    width: 1,
+                    height: 28,
+                    color: isDark
+                        ? Colors.white12
+                        : Colors.black.withValues(alpha: 0.1),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          '\$${_totalEarningsUsd.toStringAsFixed(2)}',
+                          style: textTheme.titleLarge?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const Text(
-                        'Lifetime Earned',
-                        style: TextStyle(color: Colors.white60, fontSize: 11),
-                      ),
-                    ],
+                        Text(
+                          '≈ ${KhmerCurrency.formatKhr(_totalEarningsUsd)}',
+                          textAlign: TextAlign.center,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: statusGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Lifetime Earned',
+                          textAlign: TextAlign.center,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: secondaryText,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -2104,11 +3047,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         ),
         const SizedBox(height: 20),
 
-        const Text(
+        Text(
           'Completed Deliveries',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
+          style: textTheme.titleLarge?.copyWith(
+            color: primaryText,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -2120,7 +3062,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               padding: const EdgeInsets.all(32.0),
               child: Text(
                 'No completed deliveries yet.',
-                style: TextStyle(color: GlassTheme.textMuted),
+                style: textTheme.bodyMedium?.copyWith(color: secondaryText),
               ),
             ),
           )
@@ -2149,11 +3091,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
-                        Icons.check,
-                        color: GlassTheme.primaryGreen,
-                        size: 18,
-                      ),
+                      child: Icon(Icons.check, color: statusGreen, size: 18),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -2162,28 +3100,26 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                         children: [
                           Text(
                             'Order #${o['id']} · $restName',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.w600,
-                              fontSize: 13,
                             ),
                           ),
                           Text(
                             dateStr,
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 11,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: secondaryText,
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       '+\$$fee',
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: statusGreen,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
                       ),
                     ),
                   ],
@@ -2205,7 +3141,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     final vehicle =
         _driverProfile?['vehicle_type'] ?? 'Motorcycle (Honda Wave)';
     final plate = _driverProfile?['license_plate'] ?? 'PP-2026';
-    final rating = (_driverProfile?['rating'] as num?)?.toDouble() ?? 4.9;
+    final rating =
+        double.tryParse(_driverProfile?['rating']?.toString() ?? '') ?? 4.9;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final warningTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
+    final statusGreen = isDark
+        ? GlassTheme.primaryGreen
+        : const Color(0xFF15803D);
+    final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -2218,24 +3165,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
               CircleAvatar(
                 radius: 36,
                 backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-                child: const Icon(
-                  Icons.person,
-                  size: 40,
-                  color: GlassTheme.primaryGreen,
-                ),
+                child: Icon(Icons.person, size: 40, color: statusGreen),
               ),
               const SizedBox(height: 12),
               Text(
                 fullName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                textAlign: TextAlign.center,
+                style: textTheme.titleLarge?.copyWith(
+                  color: primaryText,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 '@$username',
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                style: textTheme.bodySmall?.copyWith(color: secondaryText),
               ),
               const SizedBox(height: 8),
               Container(
@@ -2244,19 +3187,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 14),
+                    Icon(Icons.star, color: warningTextColor, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       '$rating Rating',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: primaryText,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -2273,15 +3217,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Vehicle & Registration',
-                style: TextStyle(
-                  color: Colors.white,
+                style: textTheme.titleMedium?.copyWith(
+                  color: primaryText,
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
                 ),
               ),
-              const Divider(color: Colors.white12, height: 20),
+              Divider(
+                color: isDark
+                    ? Colors.white12
+                    : Colors.black.withValues(alpha: 0.08),
+                height: 20,
+              ),
               _buildProfileRow(Icons.two_wheeler, 'Vehicle Type', vehicle),
               _buildProfileRow(Icons.badge, 'License Plate', plate),
               _buildProfileRow(Icons.phone, 'Contact Phone', phone),
@@ -2289,17 +3237,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.phonelink_lock,
-                      size: 18,
-                      color: Colors.white60,
-                    ),
+                    Icon(Icons.phonelink_lock, size: 18, color: secondaryText),
                     const SizedBox(width: 12),
-                    const Text(
-                      'Phone Verification',
-                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    Expanded(
+                      child: Text(
+                        'Phone Verification',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: secondaryText,
+                        ),
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     if (_driverProfile?['is_phone_verified'] == true)
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -2312,25 +3260,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                           ),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: GlassTheme.primaryGreen.withValues(
-                              alpha: 0.3,
-                            ),
+                            color: statusGreen.withValues(alpha: 0.35),
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.check_circle,
                               size: 12,
-                              color: GlassTheme.primaryGreen,
+                              color: statusGreen,
                             ),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
                               'Verified (+855)',
-                              style: TextStyle(
-                                color: GlassTheme.primaryGreen,
-                                fontSize: 12,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: statusGreen,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -2360,20 +3305,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                               color: Colors.amber.withValues(alpha: 0.4),
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.warning_amber_rounded,
                                 size: 12,
-                                color: Colors.amber,
+                                color: warningTextColor,
                               ),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Text(
                                 'Verify Now',
-                                style: TextStyle(
-                                  color: Colors.amber,
-                                  fontSize: 12,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: warningTextColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -2388,9 +3332,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
                 Icons.verified_user,
                 'Account Approval',
                 _isApproved ? 'Approved & Active' : 'Pending Review',
-                valueColor: _isApproved
-                    ? GlassTheme.primaryGreen
-                    : Colors.amber,
+                valueColor: _isApproved ? statusGreen : warningTextColor,
               ),
             ],
           ),
@@ -2405,18 +3347,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
         const SizedBox(height: 14),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent.withValues(alpha: 0.15),
-            foregroundColor: Colors.redAccent,
-            side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.5)),
+            backgroundColor: dangerColor.withValues(alpha: 0.12),
+            foregroundColor: dangerColor,
+            elevation: 0,
+            side: BorderSide(color: dangerColor.withValues(alpha: 0.5)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           icon: const Icon(Icons.logout, size: 18),
-          label: const Text(
+          label: Text(
             'Log Out from Driver Portal',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: textTheme.labelLarge?.copyWith(
+              color: dangerColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           onPressed: () => _confirmLogout(context),
         ),
@@ -2430,23 +3376,33 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
     String value, {
     Color? valueColor,
   }) {
+    final brightness = Theme.of(context).brightness;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.white60),
+          Icon(icon, size: 18, color: secondaryText),
           const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          Flexible(
+            flex: 2,
+            child: Text(
+              label,
+              style: textTheme.bodyMedium?.copyWith(color: secondaryText),
+            ),
           ),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              color: valueColor ?? Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: textTheme.bodyMedium?.copyWith(
+                color: valueColor ?? primaryText,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -2455,401 +3411,650 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen>
   }
 
   void _showEditProfileDialog() {
-    final vehicleCtrl = TextEditingController(
-      text: _driverProfile?['vehicle_type'] ?? 'Motorcycle',
-    );
-    final plateCtrl = TextEditingController(
-      text: _driverProfile?['license_plate'] ?? 'PP-2026',
-    );
-    final phoneCtrl = TextEditingController(
-      text: _driverProfile?['phone'] ?? '+855 12 888 999',
-    );
-
-    final vehicleOptions = [
-      {'name': 'Motorcycle', 'icon': Icons.two_wheeler_rounded},
-      {'name': 'Scooter', 'icon': Icons.electric_moped_rounded},
-      {'name': 'Car', 'icon': Icons.directions_car_rounded},
-      {'name': 'Bicycle', 'icon': Icons.pedal_bike_rounded},
-    ];
-
-    String selectedVehicle = vehicleCtrl.text.trim();
-    bool isSaving = false;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (modalCtx, setModalState) {
-            return ResponsiveBottomSheet(
-              child: SafeArea(
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(modalCtx).size.height * 0.90,
-                  ),
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 16,
-                    bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 20,
-                  ),
-                  decoration: BoxDecoration(
-                    color: GlassTheme.dialogDark,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                    ),
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 44,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.white24,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: GlassTheme.limeAccent.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.badge_outlined,
-                                color: GlassTheme.limeAccent,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Edit Driver Profile',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    'Update vehicle specifications and contact info',
-                                    style: TextStyle(
-                                      color: GlassTheme.textMuted,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => Navigator.pop(modalCtx),
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white60,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Vehicle Type',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: vehicleOptions.map((opt) {
-                            final name = opt['name'] as String;
-                            final icon = opt['icon'] as IconData;
-                            final isSel =
-                                selectedVehicle.toLowerCase() ==
-                                name.toLowerCase();
-                            return ChoiceChip(
-                              avatar: Icon(
-                                icon,
-                                size: 16,
-                                color: isSel ? Colors.black : Colors.white70,
-                              ),
-                              label: Text(
-                                name,
-                                style: TextStyle(
-                                  color: isSel ? Colors.black : Colors.white70,
-                                  fontWeight: isSel
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              selected: isSel,
-                              selectedColor: GlassTheme.limeAccent,
-                              backgroundColor: Colors.white.withValues(
-                                alpha: 0.05,
-                              ),
-                              side: BorderSide(
-                                color: isSel
-                                    ? GlassTheme.limeAccent
-                                    : Colors.white.withValues(alpha: 0.12),
-                              ),
-                              onSelected: (val) {
-                                if (val) {
-                                  setModalState(() {
-                                    selectedVehicle = name;
-                                    vehicleCtrl.text = name;
-                                  });
-                                }
-                              },
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 14),
-                        TextField(
-                          controller: vehicleCtrl,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                          onChanged: (text) {
-                            setModalState(() {
-                              selectedVehicle = text.trim();
-                            });
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Vehicle Specification',
-                            labelStyle: const TextStyle(
-                              color: Colors.white60,
-                              fontSize: 13,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.directions_bike,
-                              color: GlassTheme.limeAccent,
-                              size: 20,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.1),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: GlassTheme.limeAccent,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        TextField(
-                          controller: plateCtrl,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: 'License Plate Number',
-                            labelStyle: const TextStyle(
-                              color: Colors.white60,
-                              fontSize: 13,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.pin,
-                              color: GlassTheme.limeAccent,
-                              size: 20,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.1),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: GlassTheme.limeAccent,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        TextField(
-                          controller: phoneCtrl,
-                          keyboardType: TextInputType.phone,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: 'Contact Phone Number',
-                            labelStyle: const TextStyle(
-                              color: Colors.white60,
-                              fontSize: 13,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.phone_outlined,
-                              color: GlassTheme.limeAccent,
-                              size: 20,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.1),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: GlassTheme.limeAccent,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: isSaving
-                                    ? null
-                                    : () => Navigator.pop(modalCtx),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Cancel',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed: isSaving
-                                    ? null
-                                    : () async {
-                                        setModalState(() {
-                                          isSaving = true;
-                                        });
-                                        try {
-                                          await _api.patch('drivers/me/', {
-                                            'vehicle_type': vehicleCtrl.text
-                                                .trim(),
-                                            'license_plate': plateCtrl.text
-                                                .trim(),
-                                            'phone': phoneCtrl.text.trim(),
-                                          });
-                                          if (!modalCtx.mounted) return;
-                                          Navigator.pop(modalCtx);
-                                          if (!mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Driver profile updated successfully.',
-                                              ),
-                                              backgroundColor:
-                                                  GlassTheme.primaryGreen,
-                                            ),
-                                          );
-                                          _fetchDashboardData();
-                                        } catch (e) {
-                                          if (modalCtx.mounted) {
-                                            setModalState(() {
-                                              isSaving = false;
-                                            });
-                                          }
-                                          if (!mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Failed to update driver profile: $e',
-                                              ),
-                                              backgroundColor: Colors.redAccent,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: GlassTheme.primaryGreen,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: isSaving
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Save Changes',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+      builder: (ctx) => _DriverEditProfileSheet(
+        api: _api,
+        initialVehicleType: (_driverProfile?['vehicle_type'] ?? 'Motorcycle')
+            .toString(),
+        initialPlate: (_driverProfile?['license_plate'] ?? 'PP-2026')
+            .toString(),
+        initialPhone: (_driverProfile?['phone'] ?? '+855 12 888 999')
+            .toString(),
+        onSaved: () {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Driver profile updated successfully.'),
+              backgroundColor: GlassTheme.primaryGreen,
+            ),
+          );
+          _fetchDashboardData();
+        },
+        onError: (err) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(err), backgroundColor: Colors.redAccent),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _DriverFailedDeliveryDialog extends StatefulWidget {
+  const _DriverFailedDeliveryDialog();
+
+  @override
+  State<_DriverFailedDeliveryDialog> createState() =>
+      _DriverFailedDeliveryDialogState();
+}
+
+class _DriverFailedDeliveryDialogState
+    extends State<_DriverFailedDeliveryDialog> {
+  final TextEditingController _reasonController = TextEditingController();
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
+    return AlertDialog(
+      backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: isDark
+              ? GlassTheme.dynamicBorderDark
+              : const Color(0xFFE5E7EB),
+        ),
+      ),
+      title: Text(
+        'Report Delivery Issue',
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: primaryText,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Specify reason (e.g., Customer unreachable, wrong address, gate locked):',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: secondaryText),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _reasonController,
+            decoration: InputDecoration(
+              hintText: 'Customer phone unreachable',
+              hintStyle: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: secondaryText),
+              filled: true,
+              fillColor: isDark
+                  ? Colors.black26
+                  : Colors.black.withValues(alpha: 0.04),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: isDark ? Colors.white12 : const Color(0xFFD1D5DB),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: isDark ? Colors.white12 : const Color(0xFFD1D5DB),
+                ),
+              ),
+            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: primaryText),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark
+                ? Colors.redAccent
+                : const Color(0xFFB91C1C),
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () {
+            final reason = _reasonController.text.trim().isEmpty
+                ? 'Customer unreachable after multiple attempts'
+                : _reasonController.text.trim();
+            Navigator.pop(context, reason);
+          },
+          child: Text(
+            'Submit Report',
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DriverCancelOrderDialog extends StatefulWidget {
+  const _DriverCancelOrderDialog();
+
+  @override
+  State<_DriverCancelOrderDialog> createState() =>
+      _DriverCancelOrderDialogState();
+}
+
+class _DriverCancelOrderDialogState extends State<_DriverCancelOrderDialog> {
+  final TextEditingController _reasonController = TextEditingController(
+    text: 'Vehicle breakdown or emergency',
+  );
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+
+    return AlertDialog(
+      backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isDark
+              ? GlassTheme.dynamicBorderDark
+              : const Color(0xFFE5E7EB),
+        ),
+      ),
+      title: Text(
+        'Report Issue / Cancel',
+        style: textTheme.titleLarge?.copyWith(
+          color: primaryText,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Are you sure you want to release this delivery? If not picked up yet, it will be reassigned to another driver.',
+            style: textTheme.bodyMedium?.copyWith(color: secondaryText),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _reasonController,
+            style: textTheme.bodyMedium?.copyWith(color: primaryText),
+            decoration: InputDecoration(
+              labelText: 'Reason for cancellation',
+              labelStyle: textTheme.bodyMedium?.copyWith(color: secondaryText),
+              filled: true,
+              fillColor: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.04),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Keep Delivery',
+            style: textTheme.labelLarge?.copyWith(color: secondaryText),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark
+                ? Colors.redAccent
+                : const Color(0xFFB91C1C),
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () =>
+              Navigator.pop(context, _reasonController.text.trim()),
+          child: Text(
+            'Confirm Cancel',
+            style: textTheme.labelLarge?.copyWith(color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DriverEditProfileSheet extends StatefulWidget {
+  final ApiService api;
+  final String initialVehicleType;
+  final String initialPlate;
+  final String initialPhone;
+  final VoidCallback onSaved;
+  final ValueChanged<String> onError;
+
+  const _DriverEditProfileSheet({
+    required this.api,
+    required this.initialVehicleType,
+    required this.initialPlate,
+    required this.initialPhone,
+    required this.onSaved,
+    required this.onError,
+  });
+
+  @override
+  State<_DriverEditProfileSheet> createState() =>
+      _DriverEditProfileSheetState();
+}
+
+class _DriverEditProfileSheetState extends State<_DriverEditProfileSheet> {
+  static const List<Map<String, Object>> _vehicleOptions = [
+    {'name': 'Motorcycle', 'icon': Icons.two_wheeler_rounded},
+    {'name': 'Scooter', 'icon': Icons.electric_moped_rounded},
+    {'name': 'Car', 'icon': Icons.directions_car_rounded},
+    {'name': 'Bicycle', 'icon': Icons.pedal_bike_rounded},
+  ];
+
+  late final TextEditingController _vehicleCtrl;
+  late final TextEditingController _plateCtrl;
+  late final TextEditingController _phoneCtrl;
+  late String _selectedVehicle;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _vehicleCtrl = TextEditingController(text: widget.initialVehicleType);
+    _plateCtrl = TextEditingController(text: widget.initialPlate);
+    _phoneCtrl = TextEditingController(text: widget.initialPhone);
+    _selectedVehicle = _vehicleCtrl.text.trim();
+  }
+
+  @override
+  void dispose() {
+    _vehicleCtrl.dispose();
+    _plateCtrl.dispose();
+    _phoneCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    setState(() => _isSaving = true);
+    try {
+      await widget.api.patch('drivers/me/', {
+        'vehicle_type': _vehicleCtrl.text.trim(),
+        'license_plate': _plateCtrl.text.trim(),
+        'phone': _phoneCtrl.text.trim(),
+      });
+      if (!mounted) return;
+      Navigator.pop(context);
+      widget.onSaved();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+      widget.onError(
+        ApiService.formatError(
+          e,
+          fallback: 'Failed to update driver profile. Please retry.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentColor = isDark
+        ? GlassTheme.limeAccent
+        : GlassTheme.primaryGreenDark;
+
+    return ResponsiveBottomSheet(
+      child: SafeArea(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.90,
+          ),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : const Color(0xFFE5E7EB),
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      },
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.badge_outlined,
+                        color: accentColor,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Edit Driver Profile',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: primaryText,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Update vehicle specifications and contact info',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: secondaryText),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.close, color: secondaryText),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Vehicle Type',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: primaryText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _vehicleOptions.map((opt) {
+                    final name = opt['name'] as String;
+                    final icon = opt['icon'] as IconData;
+                    final isSel =
+                        _selectedVehicle.toLowerCase() == name.toLowerCase();
+                    return ChoiceChip(
+                      avatar: Icon(
+                        icon,
+                        size: 16,
+                        color: isSel ? Colors.black : secondaryText,
+                      ),
+                      label: Text(
+                        name,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isSel ? Colors.black : secondaryText,
+                          fontWeight: isSel
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      selected: isSel,
+                      selectedColor: GlassTheme.limeAccent,
+                      backgroundColor: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.04),
+                      side: BorderSide(
+                        color: isSel
+                            ? GlassTheme.limeAccent
+                            : (isDark
+                                  ? Colors.white.withValues(alpha: 0.12)
+                                  : Colors.black.withValues(alpha: 0.12)),
+                      ),
+                      onSelected: (val) {
+                        if (val) {
+                          setState(() {
+                            _selectedVehicle = name;
+                            _vehicleCtrl.text = name;
+                          });
+                        }
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _vehicleCtrl,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: primaryText),
+                  onChanged: (text) {
+                    setState(() {
+                      _selectedVehicle = text.trim();
+                    });
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Vehicle Specification',
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: secondaryText),
+                    prefixIcon: Icon(
+                      Icons.directions_bike,
+                      color: accentColor,
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.04),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : const Color(0xFFD1D5DB),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: accentColor),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _plateCtrl,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: primaryText),
+                  decoration: InputDecoration(
+                    labelText: 'License Plate Number',
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: secondaryText),
+                    prefixIcon: Icon(Icons.pin, color: accentColor, size: 20),
+                    filled: true,
+                    fillColor: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.04),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : const Color(0xFFD1D5DB),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: accentColor),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: primaryText),
+                  decoration: InputDecoration(
+                    labelText: 'Contact Phone Number',
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: secondaryText),
+                    prefixIcon: Icon(
+                      Icons.phone_outlined,
+                      color: accentColor,
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.04),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : const Color(0xFFD1D5DB),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: accentColor),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isSaving
+                            ? null
+                            : () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.2)
+                                : const Color(0xFFD1D5DB),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: secondaryText,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: _isSaving ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDark
+                              ? GlassTheme.primaryGreen
+                              : const Color(0xFF15803D),
+                          foregroundColor: isDark ? Colors.black : Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isSaving
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: isDark ? Colors.black : Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Save Changes',
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? Colors.black
+                                          : Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

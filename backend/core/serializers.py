@@ -3,14 +3,20 @@ from rest_framework import serializers
 from .models import *
 
 class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    def get_full_name(self, obj):
+        name = f"{obj.first_name or ''} {obj.last_name or ''}".strip()
+        return name or obj.username
+
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'role', 'phone', 'phone_normalized',
             'is_phone_verified', 'phone_verified_at', 'first_name', 'last_name',
-            'avatar', 'avatar_url'
+            'full_name', 'avatar', 'avatar_url'
         ]
-        read_only_fields = ['id', 'phone_normalized', 'is_phone_verified', 'phone_verified_at']
+        read_only_fields = ['id', 'phone_normalized', 'is_phone_verified', 'phone_verified_at', 'full_name']
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +25,13 @@ class AddressSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class FoodItemSerializer(serializers.ModelSerializer):
+    image_url = serializers.CharField(
+        max_length=500,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
+
     class Meta:
         model = FoodItem
         fields = [
@@ -27,6 +40,21 @@ class FoodItemSerializer(serializers.ModelSerializer):
             'is_vegetarian', 'is_halal', 'is_spicy', 'preparation_time_mins',
         ]
         read_only_fields = ['id']
+
+    def validate_image_url(self, value):
+        if not value:
+            return ''
+        cleaned = str(value).strip()
+        if cleaned.lower() in ('no', 'none', 'null', 'n/a', 'na', '-', 'skip', 'nil'):
+            return ''
+        if cleaned.lower().startswith(('javascript:', 'data:', 'vbscript:')):
+            return ''
+        if not cleaned.startswith(('http://', 'https://')):
+            if '.' in cleaned and ' ' not in cleaned:
+                cleaned = f'https://{cleaned}'
+            else:
+                return ''
+        return cleaned
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -133,9 +161,25 @@ class DriverSerializer(serializers.ModelSerializer):
         )
         if not is_staff_or_self:
             data.pop('phone', None)
+            data.pop('email', None)
             data.pop('license_plate', None)
             data.pop('total_earnings', None)
             data.pop('today_earnings', None)
+            # Coordinates are only visible to staff, the driver themselves, or customers with an active delivery
+            is_active_customer = bool(
+                request and request.user and request.user.is_authenticated and
+                instance.deliveries.filter(
+                    order__customer=request.user,
+                    status__in=(
+                        'assigned', 'accepted', 'arrived_at_restaurant',
+                        'preparing', 'ready_for_pickup', 'picked_up',
+                        'on_the_way', 'out_for_delivery', 'in_transit', 'arrived',
+                    ),
+                ).exists()
+            )
+            if not is_active_customer:
+                data.pop('current_lat', None)
+                data.pop('current_lng', None)
         return data
 
 
@@ -235,6 +279,11 @@ class OrderSerializer(serializers.ModelSerializer):
         delivery = getattr(obj, 'delivery', None)
         if delivery and delivery.driver:
             driver = delivery.driver
+            picked_up_statuses = ('picked_up', 'on_the_way', 'out_for_delivery', 'arrived', 'delivered')
+            is_picked_up = (
+                obj.status in ('picked_up', 'on_the_way', 'out_for_delivery', 'on_delivery', 'driver_arrived', 'arrived', 'delivered')
+                or delivery.status in picked_up_statuses
+            )
             return {
                 'id': driver.id,
                 'name': driver.user.get_full_name() or driver.user.username,
@@ -243,6 +292,8 @@ class OrderSerializer(serializers.ModelSerializer):
                 'license_plate': driver.license_plate,
                 'is_online': driver.is_online,
                 'status': delivery.status,
+                'is_picked_up': is_picked_up,
+                'last_location_update': driver.last_location_update.isoformat() if driver.last_location_update else None,
                 'current_lat': float(driver.current_lat) if driver.current_lat else None,
                 'current_lng': float(driver.current_lng) if driver.current_lng else None,
             }
@@ -595,6 +646,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
 class AdminUserSerializer(serializers.ModelSerializer):
     order_count = serializers.SerializerMethodField()
     wallet_balance = serializers.SerializerMethodField()
+    driver_info = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
@@ -602,9 +654,22 @@ class AdminUserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'password', 'role', 'phone', 'first_name', 'last_name',
             'is_active', 'is_staff', 'is_superuser', 'date_joined', 'last_login',
-            'avatar', 'avatar_url', 'order_count', 'wallet_balance'
+            'avatar', 'avatar_url', 'order_count', 'wallet_balance', 'driver_info'
         ]
-        read_only_fields = ['id', 'date_joined', 'last_login', 'order_count', 'wallet_balance']
+        read_only_fields = ['id', 'date_joined', 'last_login', 'order_count', 'wallet_balance', 'driver_info']
+
+    def get_driver_info(self, obj):
+        if hasattr(obj, 'driver_profile') and obj.driver_profile:
+            d = obj.driver_profile
+            return {
+                'driver_id': d.id,
+                'vehicle_type': d.vehicle_type,
+                'license_plate': d.license_plate,
+                'is_online': d.is_online,
+                'is_approved': d.is_approved,
+                'total_deliveries': d.total_deliveries,
+            }
+        return None
 
     def get_order_count(self, obj):
         return getattr(obj, 'orders', None).count() if hasattr(obj, 'orders') else 0

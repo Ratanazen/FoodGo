@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
 
 // Auth & Onboarding
 import '../../features/splash/presentation/splash_screen.dart';
@@ -42,6 +45,7 @@ import '../../features/tracking/presentation/public_tracking_screen.dart';
 import '../../widgets/glass/glass_bottom_navigation.dart';
 import '../../widgets/glass/liquid_glass_background.dart';
 import '../../widgets/responsive_layout.dart';
+import '../../core/theme/app_motion.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorKey =
@@ -57,26 +61,29 @@ Page<dynamic> _buildPage({
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 320),
-    reverseTransitionDuration: const Duration(milliseconds: 280),
+    transitionDuration: AppMotion.page,
+    reverseTransitionDuration: AppMotion.medium,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      if (AppMotion.shouldReduceMotion(context)) {
+        return child;
+      }
       switch (type) {
         case PageTransitionType.fade:
           return FadeTransition(
             opacity: CurvedAnimation(
               parent: animation,
-              curve: Curves.easeInOut,
+              curve: AppMotion.standard,
             ),
             child: child,
           );
         case PageTransitionType.slideRight:
           final curved = CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOutCubic,
+            curve: AppMotion.enter,
           );
           return SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0.2, 0.0),
+              begin: const Offset(0.12, 0.0),
               end: Offset.zero,
             ).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
@@ -84,11 +91,11 @@ Page<dynamic> _buildPage({
         case PageTransitionType.slideUp:
           final curved = CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOutCubic,
+            curve: AppMotion.enter,
           );
           return SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0.0, 0.2),
+              begin: const Offset(0.0, 0.10),
               end: Offset.zero,
             ).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
@@ -96,10 +103,10 @@ Page<dynamic> _buildPage({
         case PageTransitionType.fadeScale:
           final curved = CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOutCubic,
+            curve: AppMotion.enter,
           );
           return ScaleTransition(
-            scale: Tween<double>(begin: 0.94, end: 1.0).animate(curved),
+            scale: Tween<double>(begin: 0.96, end: 1.0).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
           );
       }
@@ -161,6 +168,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/restaurant-dashboard',
+      redirect: (context, state) {
+        final auth = context.read<AuthProvider>();
+        if (!auth.isAuthenticated) return '/login';
+        final role = context.read<UserProvider>().user?['role'];
+        if (role != 'restaurant_owner' && role != 'admin') return '/home';
+        return null;
+      },
       pageBuilder: (context, state) => _buildPage(
         state: state,
         child: const RestaurantDashboardScreen(),
@@ -169,6 +183,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/driver-dashboard',
+      redirect: (context, state) {
+        final auth = context.read<AuthProvider>();
+        if (!auth.isAuthenticated) return '/login';
+        final role = context.read<UserProvider>().user?['role'];
+        if (role != 'driver' && role != 'admin') return '/home';
+        return null;
+      },
       pageBuilder: (context, state) => _buildPage(
         state: state,
         child: const DriverDashboardScreen(),
@@ -177,6 +198,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/admin-dashboard',
+      redirect: (context, state) {
+        final auth = context.read<AuthProvider>();
+        if (!auth.isAuthenticated) return '/login';
+        final userProvider = context.read<UserProvider>();
+        if (!userProvider.isAdmin) return '/home';
+        return null;
+      },
       pageBuilder: (context, state) => _buildPage(
         state: state,
         child: const AdminDashboardScreen(),
@@ -208,7 +236,9 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/food/:id',
       pageBuilder: (context, state) {
-        final itemData = state.extra as Map<String, dynamic>?;
+        final rawId = state.pathParameters['id'];
+        final id = int.tryParse(rawId ?? '1') ?? 1;
+        final itemData = (state.extra as Map<String, dynamic>?) ?? {'id': id};
         return _buildPage(
           state: state,
           child: FoodItemDetailsScreen(itemData: itemData),
@@ -264,9 +294,15 @@ final GoRouter appRouter = GoRouter(
       path: '/map',
       pageBuilder: (context, state) {
         final queryId = state.uri.queryParameters['orderId'] ?? '';
+        final isDriver = state.uri.queryParameters['isDriver'] == 'true';
+        final status = state.uri.queryParameters['status'];
         return _buildPage(
           state: state,
-          child: MapScreen(orderId: queryId),
+          child: MapScreen(
+            orderId: queryId,
+            isDriver: isDriver,
+            initialStatus: status,
+          ),
           type: PageTransitionType.slideRight,
         );
       },
@@ -275,9 +311,15 @@ final GoRouter appRouter = GoRouter(
       path: '/map/:id',
       pageBuilder: (context, state) {
         final id = state.pathParameters['id'] ?? '';
+        final isDriver = state.uri.queryParameters['isDriver'] == 'true';
+        final status = state.uri.queryParameters['status'];
         return _buildPage(
           state: state,
-          child: MapScreen(orderId: id),
+          child: MapScreen(
+            orderId: id,
+            isDriver: isDriver,
+            initialStatus: status,
+          ),
           type: PageTransitionType.slideRight,
         );
       },
@@ -454,6 +496,7 @@ class MainScreenShell extends StatelessWidget {
 
     if (isWide) {
       return Scaffold(
+        backgroundColor: Colors.transparent,
         body: LiquidGlassBackground(
           child: Column(
             children: [
@@ -469,6 +512,7 @@ class MainScreenShell extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBody: true,
       body: LiquidGlassBackground(child: child),
       bottomNavigationBar: GlassBottomNavigation(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// Renders the official FoodGo brand logo as a high-definition vector SVG.
+/// Renders the official FoodGo brand logo.
 class FoodGoLogo extends StatelessWidget {
   final double size;
 
@@ -9,10 +9,11 @@ class FoodGoLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'assets/svg/foodgo_logo.svg',
+    return Image.asset(
+      'assets/scooter_logo.png',
       width: size,
       height: size,
+      fit: BoxFit.contain,
     );
   }
 }
@@ -61,37 +62,27 @@ class GoogleLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.string(
-      _svgString,
-      width: size,
-      height: size,
-    );
+    return SvgPicture.string(_svgString, width: size, height: size);
   }
 }
 
-/// Renders the official FoodGo app icon vector.
+/// Renders the official FoodGo app icon.
 class FoodGoAppIcon extends StatelessWidget {
   final double size;
   final double borderRadius;
 
-  const FoodGoAppIcon({
-    super.key,
-    this.size = 64.0,
-    this.borderRadius = 16.0,
-  });
+  const FoodGoAppIcon({super.key, this.size = 64.0, this.borderRadius = 16.0});
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
-      child: SvgPicture.asset(
-        'assets/svg/foodgo_app_icon.svg',
+      child: Image.asset(
+        'assets/icon.png',
         width: size,
         height: size,
+        fit: BoxFit.cover,
       ),
     );
   }
 }
-
-
-

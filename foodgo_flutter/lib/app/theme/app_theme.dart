@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_typography.dart';
 
 import '../../core/theme/app_palette.dart';
 import '../../core/theme/glass_theme.dart';
@@ -9,119 +9,87 @@ class AppTheme {
   static Color get primaryDark => GlassTheme.primaryGreenDark;
   static const Color accentColor = GlassTheme.ratingAmber;
 
-  // Standard font family fallbacks for Khmer script support
-  static const List<String> khmerFontFallbacks = [
-    'Kantumruy Pro',
-    'Battambang',
-    'Noto Sans Khmer',
-    'sans-serif',
-  ];
+  // Standard font families for Khmer script support
+  static const String khmerPrimaryFont = 'Kantumruy Pro';
+  static const String khmerClassicFont = 'Battambang';
+  static const String khmerDisplayFont = 'Moul';
+  static const String khmerBannerFont = 'Koulen';
 
-  static TextTheme _buildTextTheme(Brightness brightness) {
-    final base = brightness == Brightness.dark
-        ? ThemeData.dark().textTheme
-        : ThemeData.light().textTheme;
+  static const List<String> khmerFontFallbacks =
+      AppTypography.khmerFontFallbacks;
 
-    final primaryTextColor = brightness == Brightness.dark
-        ? GlassTheme.textLight
-        : GlassTheme.textDark;
-
-    final secondaryTextColor = brightness == Brightness.dark
-        ? GlassTheme.textMutedLight
-        : GlassTheme.textMuted;
-
-    return GoogleFonts.interTextTheme(base).copyWith(
-      displayLarge: TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.8,
-        height: 1.2,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      displayMedium: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.6,
-        height: 1.25,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      titleLarge: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.4,
-        height: 1.3,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.2,
-        height: 1.35,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      titleSmall: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        height: 1.4,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: 15,
-        fontWeight: FontWeight.w400,
-        height: 1.5,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 13.5,
-        fontWeight: FontWeight.w400,
-        height: 1.5,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      bodySmall: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        height: 1.45,
-        color: secondaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      labelLarge: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.2,
-        height: 1.2,
-        color: primaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.4,
-        height: 1.2,
-        color: secondaryTextColor,
-        fontFamilyFallback: khmerFontFallbacks,
-      ),
+  /// Traditional Khmer display font style (Moul) for festive titles and headers
+  static TextStyle khmerMoulStyle({
+    double fontSize = 20,
+    Color? color,
+    FontWeight fontWeight = FontWeight.normal,
+    double height = 1.5,
+  }) {
+    return TextStyle(
+      fontFamily: khmerDisplayFont,
+      fontFamilyFallback: khmerFontFallbacks,
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+      height: height,
     );
+  }
+
+  /// Tall Khmer banner font style (Koulen) for promotional tags and badges
+  static TextStyle khmerKoulenStyle({
+    double fontSize = 16,
+    Color? color,
+    FontWeight fontWeight = FontWeight.normal,
+    double height = 1.35,
+    double letterSpacing = 0.5,
+  }) {
+    return TextStyle(
+      fontFamily: khmerBannerFont,
+      fontFamilyFallback: khmerFontFallbacks,
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+      height: height,
+      letterSpacing: letterSpacing,
+    );
+  }
+
+  /// Modern, highly readable Khmer body font style (Kantumruy Pro)
+  static TextStyle khmerBodyStyle({
+    double fontSize = 14,
+    Color? color,
+    FontWeight fontWeight = FontWeight.normal,
+    double height = 1.45,
+  }) {
+    return TextStyle(
+      fontFamily: khmerPrimaryFont,
+      fontFamilyFallback: khmerFontFallbacks,
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+      height: height,
+    );
+  }
+
+  /// App-wide text theme. Delegates to the centralized [AppTypography] scale
+  /// (Plus Jakarta Sans headings, Inter body, Khmer fallbacks).
+  static TextTheme _buildTextTheme(Brightness brightness, [Locale? locale]) {
+    return AppTypography.textTheme(brightness, locale: locale);
   }
 
   static ThemeData get lightTheme => getLightTheme();
   static ThemeData get darkTheme => getDarkTheme();
 
-  static ThemeData getLightTheme([AppColorPalette? palette]) {
+  static ThemeData getLightTheme([AppColorPalette? palette, Locale? locale]) {
     final active = palette != null
         ? PaletteData.fromId(palette)
         : GlassTheme.activePalette;
     final primary = active.primary;
-    final textTheme = _buildTextTheme(Brightness.light);
+    final textTheme = _buildTextTheme(Brightness.light, locale);
 
     return ThemeData(
       useMaterial3: true,
+      fontFamilyFallback: khmerFontFallbacks,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         primary: primary,
@@ -129,30 +97,26 @@ class AppTheme {
         error: GlassTheme.discountRed,
         brightness: Brightness.light,
         surface: active.backgroundLight,
-      ),
+      ).copyWith(onPrimary: active.onPrimary),
       scaffoldBackgroundColor: active.backgroundLight,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: GlassTheme.textDark,
+        foregroundColor: AppTypography.textPrimaryLight,
       ),
       textTheme: textTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: Colors.white,
+          foregroundColor: active.onPrimary,
           elevation: 0,
           minimumSize: const Size(88, 48),
           shape: RoundedRectangleBorder(
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
+          textStyle: textTheme.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -184,7 +148,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: active.surfaceDark,
-        contentTextStyle: const TextStyle(
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
@@ -223,15 +187,16 @@ class AppTheme {
     );
   }
 
-  static ThemeData getDarkTheme([AppColorPalette? palette]) {
+  static ThemeData getDarkTheme([AppColorPalette? palette, Locale? locale]) {
     final active = palette != null
         ? PaletteData.fromId(palette)
         : GlassTheme.activePalette;
     final primary = active.primary;
-    final textTheme = _buildTextTheme(Brightness.dark);
+    final textTheme = _buildTextTheme(Brightness.dark, locale);
 
     return ThemeData(
       useMaterial3: true,
+      fontFamilyFallback: khmerFontFallbacks,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         primary: primary,
@@ -239,7 +204,7 @@ class AppTheme {
         error: GlassTheme.discountRed,
         brightness: Brightness.dark,
         surface: active.backgroundDark,
-      ),
+      ).copyWith(onPrimary: active.onPrimary),
       scaffoldBackgroundColor: active.backgroundDark,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
@@ -251,18 +216,14 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: Colors.white,
+          foregroundColor: active.onPrimary,
           elevation: 0,
           minimumSize: const Size(88, 48),
           shape: RoundedRectangleBorder(
             borderRadius: GlassTheme.borderRadiusSmall,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
+          textStyle: textTheme.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -297,7 +258,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: active.surfaceDark,
-        contentTextStyle: const TextStyle(
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),

@@ -3,7 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/theme/app_icons.dart';
 import '../../core/theme/glass_theme.dart';
+import '../../core/localization/localization.dart';
 import '../../providers/cart_provider.dart';
 
 class GlassBottomNavigation extends StatelessWidget {
@@ -20,8 +22,6 @@ class GlassBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartCount = context.watch<CartProvider>().itemCount;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final borderColor = isDark ? GlassTheme.borderDark : GlassTheme.borderLight;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -42,20 +42,21 @@ class GlassBottomNavigation extends StatelessWidget {
                 child: Container(
                   height: 68,
                   decoration: BoxDecoration(
-                    gradient: isDark
-                        ? GlassTheme.liquidSurfaceDark
-                        : GlassTheme.liquidSurfaceLight,
+                    color: isDark ? null : Colors.white.withValues(alpha: 0.96),
+                    gradient: isDark ? GlassTheme.liquidSurfaceDark : null,
                     borderRadius: BorderRadius.circular(38),
-                    border: Border.all(color: borderColor, width: 1.2),
+                    border: Border.all(
+                      color: isDark
+                          ? GlassTheme.borderDark
+                          : const Color(0xFFE5E7EB),
+                      width: 1.2,
+                    ),
                     boxShadow: [
-                      GlassTheme.liquidShadow,
                       BoxShadow(
-                        color:
-                            (isDark
-                                    ? GlassTheme.deepSmalt
-                                    : GlassTheme.paleSmalt)
-                                .withValues(alpha: 0.18),
-                        blurRadius: 18,
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.35 : 0.08,
+                        ),
+                        blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),
                     ],
@@ -68,38 +69,38 @@ class GlassBottomNavigation extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _PillNavItem(
-                        icon: Icons.home_outlined,
-                        selectedIcon: Icons.home_rounded,
-                        label: 'Home',
+                        icon: AppIcons.home,
+                        selectedIcon: AppIcons.homeSelected,
+                        label: context.tr('nav.home'),
                         isSelected: selectedIndex == 0,
                         onTap: () => onDestinationSelected(0),
                       ),
                       _PillNavItem(
-                        icon: Icons.favorite_outline,
-                        selectedIcon: Icons.favorite_rounded,
-                        label: 'Saved',
+                        icon: AppIcons.saved,
+                        selectedIcon: AppIcons.savedSelected,
+                        label: context.tr('nav.saved'),
                         isSelected: selectedIndex == 1,
                         onTap: () => onDestinationSelected(1),
                       ),
                       _PillNavItem(
-                        icon: Icons.shopping_bag_outlined,
-                        selectedIcon: Icons.shopping_bag_rounded,
-                        label: 'Cart',
+                        icon: AppIcons.cart,
+                        selectedIcon: AppIcons.cartSelected,
+                        label: context.tr('nav.cart'),
                         badgeCount: cartCount,
                         isSelected: selectedIndex == 2,
                         onTap: () => onDestinationSelected(2),
                       ),
                       _PillNavItem(
-                        icon: Icons.local_offer_outlined,
-                        selectedIcon: Icons.local_offer_rounded,
-                        label: 'Offers',
+                        icon: AppIcons.offers,
+                        selectedIcon: AppIcons.offersSelected,
+                        label: context.tr('nav.offers'),
                         isSelected: selectedIndex == 3,
                         onTap: () => onDestinationSelected(3),
                       ),
                       _PillNavItem(
-                        icon: Icons.person_outline,
-                        selectedIcon: Icons.person_rounded,
-                        label: 'Profile',
+                        icon: AppIcons.profile,
+                        selectedIcon: AppIcons.profileSelected,
+                        label: context.tr('nav.profile'),
                         isSelected: selectedIndex == 4,
                         onTap: () => onDestinationSelected(4),
                       ),
@@ -168,6 +169,16 @@ class _PillNavItemState extends State<_PillNavItem>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    _bounceController.duration = reduceMotion
+        ? Duration.zero
+        : const Duration(milliseconds: 260);
+  }
+
+  @override
   void didUpdateWidget(covariant _PillNavItem oldWidget) {
     super.didUpdateWidget(oldWidget);
     if ((widget.isSelected && !oldWidget.isSelected) ||
@@ -187,124 +198,152 @@ class _PillNavItemState extends State<_PillNavItem>
   @override
   Widget build(BuildContext context) {
     final isSelected = widget.isSelected;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+    final onPrimary = theme.colorScheme.onPrimary;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final primaryDark = isDark
+        ? GlassTheme.dynamicPrimaryDark
+        : GlassTheme.activePalette.primaryDark;
 
     final activePillGradient = LinearGradient(
-      colors: isDark
-          ? [GlassTheme.primaryGreen, GlassTheme.primaryGreenDark]
-          : [GlassTheme.primaryGreen, GlassTheme.primaryGreenDark],
+      colors: [primary, primaryDark],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
-    final inactiveIconColor = isDark
-        ? GlassTheme.smaltTint.withValues(alpha: 0.70)
-        : GlassTheme.slateSmalt.withValues(alpha: 0.75);
-    final inactiveTextColor = isDark
-        ? GlassTheme.smaltTint.withValues(alpha: 0.70)
-        : GlassTheme.slateSmalt.withValues(alpha: 0.75);
+    final inactiveIconColor = isDark ? Colors.white60 : const Color(0xFF64748B);
+    final inactiveTextColor = isDark ? Colors.white60 : const Color(0xFF64748B);
 
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          _bounceController.forward(from: 0.0);
-          widget.onTap();
-        },
-        behavior: HitTestBehavior.opaque,
-        child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            padding: EdgeInsets.symmetric(
-              horizontal: isSelected ? 12 : 6,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              gradient: isSelected ? activePillGradient : null,
-              borderRadius: BorderRadius.circular(28),
-              border: isSelected
-                  ? Border.all(
-                      color: Colors.white.withValues(alpha: 0.35),
-                      width: 1.2,
-                    )
-                  : null,
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: GlassTheme.primaryGreen.withValues(
-                          alpha: isDark ? 0.45 : 0.30,
-                        ),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Stack(
-                    clipBehavior: Clip.none,
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: widget.badgeCount != null && widget.badgeCount! > 0
+            ? '${widget.label}, ${widget.badgeCount} items'
+            : widget.label,
+        child: ExcludeSemantics(
+          child: GestureDetector(
+            onTap: () {
+              _bounceController.forward(from: 0.0);
+              widget.onTap();
+            },
+            behavior: HitTestBehavior.opaque,
+            child: Center(
+              child: AnimatedContainer(
+                duration: reduceMotion
+                    ? Duration.zero
+                    : const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSelected ? 12 : 6,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  gradient: isSelected ? activePillGradient : null,
+                  borderRadius: BorderRadius.circular(28),
+                  border: isSelected
+                      ? Border.all(
+                          color: Colors.white.withValues(alpha: 0.35),
+                          width: 1.2,
+                        )
+                      : null,
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: primary.withValues(
+                              alpha: isDark ? 0.45 : 0.30,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        isSelected ? widget.selectedIcon : widget.icon,
-                        color: isSelected ? Colors.white : inactiveIconColor,
-                        size: 20,
-                      ),
-                      if (widget.badgeCount != null && widget.badgeCount! > 0)
-                        Positioned(
-                          top: -3,
-                          right: -7,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: GlassTheme.foodpandaPink,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black26, blurRadius: 3),
-                              ],
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 14,
-                              minHeight: 14,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${widget.badgeCount}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Icon(
+                            isSelected ? widget.selectedIcon : widget.icon,
+                            color: isSelected ? onPrimary : inactiveIconColor,
+                            size: 20,
+                          ),
+                          if (widget.badgeCount != null &&
+                              widget.badgeCount! > 0)
+                            Positioned(
+                              top: -3,
+                              right: -7,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: GlassTheme.foodpandaPink,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 3,
+                                    ),
+                                  ],
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Center(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '${widget.badgeCount}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      AnimatedDefaultTextStyle(
+                        duration: reduceMotion
+                            ? Duration.zero
+                            : const Duration(milliseconds: 180),
+                        style:
+                            (Theme.of(context).textTheme.labelSmall ??
+                                    const TextStyle())
+                                .copyWith(
+                                  color: isSelected
+                                      ? onPrimary
+                                      : inactiveTextColor,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  height: context.isKhmer ? 1.5 : 1.3,
+                                  letterSpacing: context.isKhmer ? 0.0 : -0.2,
+                                ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(widget.label, maxLines: 1),
                         ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 180),
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : inactiveTextColor,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                      fontSize: 10.5,
-                      letterSpacing: -0.2,
-                    ),
-                    child: Text(
-                      widget.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

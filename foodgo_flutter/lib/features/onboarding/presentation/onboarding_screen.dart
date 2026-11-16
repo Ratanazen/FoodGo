@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../widgets/glass_container.dart';
+import '../../../../widgets/onboarding_illustrations.dart';
 import '../../../../widgets/responsive_layout.dart';
+import '../../../../widgets/svg_icon.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -24,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ស្វែងរកអាហារឆ្ងាញ់ៗ',
       'description':
           'Find your favorite meals from top-rated restaurants across Phnom Penh and Cambodia.',
-      'icon': Icons.restaurant_menu_rounded,
+      'scene': OnboardingScene.culinaryDiscovery,
       'accent': GlassTheme.limeAccent,
       'glow': GlassTheme.royalSmalt,
     },
@@ -33,7 +36,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ដឹកជញ្ជូនរហ័សទាន់ចិត្ត',
       'description':
           'Real-time GPS tracking from the kitchen to your doorstep with instant milestone updates.',
-      'icon': Icons.delivery_dining_rounded,
+      'scene': OnboardingScene.liveDelivery,
       'accent': GlassTheme.primaryGreen,
       'glow': GlassTheme.cobaltSmalt,
     },
@@ -42,7 +45,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'titleKh': 'ទូទាត់ប្រាក់ងាយស្រួល និងសុវត្ថិភាព',
       'description':
           'Pay instantly via NBC Bakong KHQR, ABA Mobile, ACLEDA, or Cash on Delivery.',
-      'icon': Icons.qr_code_scanner_rounded,
+      'scene': OnboardingScene.securePayments,
       'accent': GlassTheme.limeAccent,
       'glow': GlassTheme.royalSmalt,
     },
@@ -73,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final Color currentGlow = page['glow'] as Color;
 
     return Scaffold(
-      backgroundColor: GlassTheme.backgroundDark,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Ambient Radial Light 1 (Top Left)
@@ -132,37 +135,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: GlassTheme.primaryGreen.withValues(
-                                  alpha: 0.2,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: GlassTheme.limeAccent.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                  width: 1.2,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Icon(
-                                Icons.fastfood_rounded,
-                                color: GlassTheme.limeAccent,
-                                size: 20,
-                              ),
-                            ),
+                            const FoodGoAppIcon(size: 38, borderRadius: 12),
                             const SizedBox(width: 10),
-                            const Text(
+                            Text(
                               'FoodGo',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 19,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.3,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.3,
+                                  ),
                             ),
                           ],
                         ),
@@ -181,20 +163,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 'Skip',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white70,
-                                ),
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white70,
+                                    ),
                               ),
                               SizedBox(width: 4),
                               Icon(
-                                Icons.chevron_right_rounded,
+                                AppIcons.chevronRight,
                                 size: 18,
                                 color: Colors.white60,
                               ),
@@ -215,22 +197,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       itemCount: _pages.length,
                       itemBuilder: (context, index) {
                         final item = _pages[index];
-                        final IconData iconData = item['icon'] as IconData;
+                        final OnboardingScene scene =
+                            item['scene'] as OnboardingScene;
                         final Color itemAccent = item['accent'] as Color;
                         final Color itemGlow = item['glow'] as Color;
 
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Hero Icon Illumination Card
+                              // Hero Vector Scene Illustration
                               Stack(
                                 alignment: Alignment.center,
                                 children: [
                                   // Back Glow Pulse
                                   Container(
-                                    width: 180,
+                                    width: 240,
                                     height: 180,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
@@ -246,12 +229,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     ),
                                   ),
                                   GlassContainer(
-                                    padding: const EdgeInsets.all(42),
-                                    borderRadius: BorderRadius.circular(36),
-                                    child: Icon(
-                                      iconData,
-                                      size: 88,
-                                      color: itemAccent,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    borderRadius: BorderRadius.circular(28),
+                                    child: OnboardingIllustration(
+                                      scene: scene,
+                                      width: 250,
+                                      height: 170,
+                                      primaryColor: itemAccent,
                                     ),
                                   ).animate().scale(
                                     duration: 500.ms,
@@ -259,7 +246,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 44),
+                              const SizedBox(height: 36),
 
                               // Khmer Subtitle Pill Badge
                               Container(
@@ -277,12 +264,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                                 child: Text(
                                   item['titleKh'] as String,
-                                  style: TextStyle(
-                                    color: itemAccent,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.3,
-                                  ),
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: itemAccent,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1.5,
+                                        letterSpacing: 0,
+                                      ),
                                 ),
                               ).animate().fadeIn(duration: 350.ms),
                               const SizedBox(height: 14),
@@ -291,13 +280,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               Text(
                                     item['title'] as String,
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 27,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                      letterSpacing: -0.5,
-                                      height: 1.25,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displayLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                        ),
                                   )
                                   .animate()
                                   .fadeIn(duration: 400.ms)
@@ -308,12 +297,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               Text(
                                 item['description'] as String,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  height: 1.5,
-                                  color: Colors.white.withValues(alpha: 0.72),
-                                  fontWeight: FontWeight.w400,
-                                ),
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.78,
+                                      ),
+                                    ),
                               ).animate().fadeIn(
                                 delay: 100.ms,
                                 duration: 400.ms,
@@ -386,17 +375,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   _currentPage == _pages.length - 1
                                       ? 'Get Started'
                                       : 'Next',
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.2,
-                                  ),
+                                  style: Theme.of(context).textTheme.labelLarge
+                                      ?.copyWith(fontWeight: FontWeight.w900),
                                 ),
                                 const SizedBox(width: 8),
                                 Icon(
                                   _currentPage == _pages.length - 1
-                                      ? Icons.check_circle_rounded
-                                      : Icons.arrow_forward_rounded,
+                                      ? AppIcons.checkCircle
+                                      : AppIcons.arrowForward,
                                   size: 18,
                                   color: Colors.black,
                                 ),

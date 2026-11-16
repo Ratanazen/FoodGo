@@ -36,10 +36,10 @@ class GlassContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final fallbackColor = isDark
-        ? GlassTheme.glassDarkLight
-        : GlassTheme.glassWhiteLight;
+        ? GlassTheme.dynamicGlassDarkLight
+        : GlassTheme.dynamicGlassWhiteLight;
     final fallbackBorderColor = isDark
-        ? GlassTheme.borderDark
+        ? GlassTheme.dynamicBorderDark
         : GlassTheme.borderLight;
 
     final radius = borderRadius ?? GlassTheme.borderRadius;
@@ -50,7 +50,8 @@ class GlassContainer extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         borderRadius: radius,
-        boxShadow: customShadow ?? [GlassTheme.softShadow],
+        boxShadow:
+            customShadow ?? [GlassTheme.dynamicSoftShadow(isDark: isDark)],
       ),
       child: ClipRRect(
         borderRadius: radius,
@@ -112,17 +113,20 @@ class LiquidGlassContainer extends StatelessWidget {
       width: width,
       height: height,
       customGradient: isDark
-          ? GlassTheme.liquidSurfaceDark
-          : GlassTheme.liquidSurfaceLight,
+          ? GlassTheme.dynamicLiquidSurfaceDark
+          : GlassTheme.dynamicLiquidSurfaceLight,
       customBorder: Border.all(
-        color: isDark ? GlassTheme.borderDark : GlassTheme.borderLight,
+        color: isDark ? GlassTheme.dynamicBorderDark : GlassTheme.borderLight,
         width: 1.2,
       ),
       customShadow: [
         GlassTheme.liquidShadow,
         BoxShadow(
-          color: (isDark ? GlassTheme.deepSmalt : GlassTheme.paleSmalt)
-              .withValues(alpha: 0.15),
+          color:
+              (isDark
+                      ? GlassTheme.dynamicAuraColor
+                      : GlassTheme.dynamicPrimaryColor)
+                  .withValues(alpha: isDark ? 0.16 : 0.10),
           blurRadius: 14,
           offset: const Offset(0, 2),
         ),
@@ -137,7 +141,12 @@ class LiquidGlassContainer extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: effectiveRadius,
-          splashColor: GlassTheme.royalSmalt.withValues(alpha: 0.12),
+          splashColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.12),
+          hoverColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.05),
           highlightColor: Colors.white.withValues(alpha: 0.05),
           child: widget,
         ),

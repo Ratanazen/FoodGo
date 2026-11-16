@@ -37,9 +37,10 @@ if 'VERCEL' in os.environ:
             call_command('migrate', interactive=False)
             call_command('ensure_admin')
             call_command('seed_full_menu')
-        else:
+        elif os.environ.get('AUTO_MIGRATE', 'false').lower() in ('true', '1', 'yes'):
             call_command('migrate', interactive=False)
             call_command('ensure_admin')
+
     except Exception as _e:
         print(f"Vercel auto-init note: {_e}")
 

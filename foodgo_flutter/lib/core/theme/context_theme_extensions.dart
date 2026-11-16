@@ -43,10 +43,12 @@ extension ThemeContextExtensions on BuildContext {
   bool get isFestive => GlassTheme.activePalette.isFestive;
 
   /// Festival greeting message for the active theme.
-  String get festivalGreeting => ThemeStyles.getFestivalGreeting(GlassTheme.activePalette);
+  String get festivalGreeting =>
+      ThemeStyles.getFestivalGreeting(GlassTheme.activePalette);
 
   /// Festival subtitle / blessing in Khmer script.
-  String get festivalSubtitleKh => ThemeStyles.getFestivalSubtitleKh(GlassTheme.activePalette);
+  String get festivalSubtitleKh =>
+      ThemeStyles.getFestivalSubtitleKh(GlassTheme.activePalette);
 
   /// Active theme badge text (e.g. 'ចូលឆ្នាំខ្មែរ', 'CHRISTMAS', 'បុណ្យអុំទូក').
   String get festivalBadge => GlassTheme.activePalette.badgeText;
@@ -60,34 +62,27 @@ extension ThemeContextExtensions on BuildContext {
     double borderRadius = 20,
     double borderWidth = 1.2,
     bool glow = false,
-  }) =>
-      ThemeStyles.cardDecoration(
-        this,
-        isGlass: isGlass,
-        borderRadius: borderRadius,
-        borderWidth: borderWidth,
-        glow: glow,
-      );
+  }) => ThemeStyles.cardDecoration(
+    this,
+    isGlass: isGlass,
+    borderRadius: borderRadius,
+    borderWidth: borderWidth,
+    glow: glow,
+  );
 
   /// Dynamic themed pill badge decoration.
   BoxDecoration themedPillBadgeDecoration({
     Color? customColor,
     double radius = 12,
-  }) =>
-      ThemeStyles.pillBadgeDecoration(
-        this,
-        customColor: customColor,
-        radius: radius,
-      );
+  }) => ThemeStyles.pillBadgeDecoration(
+    this,
+    customColor: customColor,
+    radius: radius,
+  );
 
   /// Dynamic themed primary button style.
   ButtonStyle themedPrimaryButtonStyle({
     double radius = 16,
     EdgeInsetsGeometry? padding,
-  }) =>
-      ThemeStyles.primaryButtonStyle(
-        this,
-        radius: radius,
-        padding: padding,
-      );
+  }) => ThemeStyles.primaryButtonStyle(this, radius: radius, padding: padding);
 }

@@ -47,40 +47,57 @@ class Command(BaseCommand):
             username='customer1',
             defaults={'role': 'customer', 'email': 'customer@foodgo.com', 'first_name': 'Alice', 'last_name': 'Smith'}
         )
-        customer1.set_password('customer123')
+        customer1.set_password('password123')
         customer1.role = 'customer'
         customer1.save()
+
+        user_rat, _ = User.objects.get_or_create(
+            username='rat',
+            defaults={
+                'role': 'customer',
+                'email': 'thansombathboraratt23@gmail.com',
+                'first_name': 'Ratana',
+                'last_name': 'Zen',
+            }
+        )
+        user_rat.set_password('12345678')
+        user_rat.email = 'thansombathboraratt23@gmail.com'
+        if not user_rat.first_name:
+            user_rat.first_name = 'Ratana'
+        if not user_rat.last_name:
+            user_rat.last_name = 'Zen'
+        user_rat.role = 'customer'
+        user_rat.save()
 
         driver1, _ = User.objects.get_or_create(
             username='driver1',
             defaults={'role': 'driver', 'email': 'driver@foodgo.com', 'first_name': 'Bob', 'last_name': 'Rider'}
         )
-        driver1.set_password('driver123')
+        driver1.set_password('password123')
         driver1.role = 'driver'
         driver1.save()
 
         # Customer wallet
-        wallet, _ = Wallet.objects.get_or_create(
-            user=customer1,
-            defaults={'balance': Decimal('100.00')}
-        )
-        if wallet.balance < Decimal('10.00'):
-            wallet.balance = Decimal('100.00')
-            wallet.save()
+        for target_user in [customer1, user_rat]:
+            wallet, _ = Wallet.objects.get_or_create(
+                user=target_user,
+                defaults={'balance': Decimal('100.00')}
+            )
+            if wallet.balance < Decimal('10.00'):
+                wallet.balance = Decimal('100.00')
+                wallet.save()
 
-        # Customer default address
-        Address.objects.get_or_create(
-            user=customer1,
-            defaults={
-                'street': 'Street 308, Tonle Bassac',
-                'city': 'Phnom Penh',
-                'state': 'Phnom Penh',
-                'zip_code': '120101',
-                'lat': Decimal('11.550500'),
-                'lng': Decimal('104.928000'),
-                'is_default': True
-            }
-        )
+            if not Address.objects.filter(user=target_user).exists():
+                Address.objects.create(
+                    user=target_user,
+                    street='Street 308, Tonle Bassac',
+                    city='Phnom Penh',
+                    state='Phnom Penh',
+                    zip_code='12301',
+                    is_default=True,
+                    lat=Decimal('11.5564'),
+                    lng=Decimal('104.9282'),
+                )
 
         # Ensure restaurant categories
         cat_pizza, _ = RestaurantCategory.objects.get_or_create(name='Pizza')

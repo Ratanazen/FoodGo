@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/glass_theme.dart';
 import 'animated_pressable.dart';
 
@@ -47,19 +48,20 @@ class GlassTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     final effectiveRadius =
         borderRadius ?? BorderRadius.circular(AppRadius.medium);
     final effectiveFill =
         fillColor ??
-        (isDark ? GlassTheme.dialogDark.withValues(alpha: 0.85) : Colors.white);
-    final textColor = isDark ? Colors.white : GlassTheme.textDark;
-    final hintColor = isDark ? Colors.white38 : const Color(0xFF94A3B8);
+        (isDark
+            ? GlassTheme.dynamicDialogDark.withValues(alpha: 0.86)
+            : Colors.white);
+    final textColor = AppTypography.primaryTextColor(brightness);
+    final hintColor = AppTypography.secondaryTextColor(brightness);
     final borderColor = errorText != null
         ? const Color(0xFFE53935)
-        : (isDark
-              ? Colors.white.withValues(alpha: 0.14)
-              : const Color(0xFFE2E8F0));
+        : (isDark ? GlassTheme.dynamicBorderDark : const Color(0xFFE2E8F0));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,8 +74,7 @@ class GlassTextField extends StatelessWidget {
             border: Border.all(color: borderColor, width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: (isDark ? Colors.black : GlassTheme.smaltShadow)
-                    .withValues(alpha: isDark ? 0.2 : 0.04),
+                color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
@@ -89,14 +90,15 @@ class GlassTextField extends StatelessWidget {
             focusNode: focusNode,
             autofocus: autofocus,
             readOnly: readOnly,
-            style: TextStyle(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: textColor,
-              fontSize: 14.5,
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
               hintText: hintText,
-              hintStyle: TextStyle(color: hintColor, fontSize: 14),
+              hintStyle: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: hintColor),
               prefixIcon:
                   prefix ??
                   (prefixIcon != null
@@ -124,9 +126,8 @@ class GlassTextField extends StatelessWidget {
             padding: const EdgeInsets.only(left: 8),
             child: Text(
               errorText!,
-              style: const TextStyle(
-                color: Color(0xFFE53935),
-                fontSize: 12,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: const Color(0xFFE53935),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -155,26 +156,28 @@ class GlassChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
-    final selectedBg = GlassTheme.royalSmalt;
+    final selectedBg = colorScheme.primary;
     final unselectedBg = isDark
         ? Colors.white.withValues(alpha: 0.08)
         : Colors.white;
-    final selectedBorder = GlassTheme.royalSmalt;
+    final selectedBorder = colorScheme.primary;
     final unselectedBorder = isDark
-        ? Colors.white.withValues(alpha: 0.15)
+        ? GlassTheme.dynamicBorderDark
         : const Color(0xFFE2E8F0);
-    final selectedTextColor = Colors.white;
-    final unselectedTextColor = isDark
-        ? Colors.white70
-        : const Color(0xFF475569);
+    final selectedTextColor = colorScheme.onPrimary;
+    final unselectedTextColor = AppTypography.secondaryTextColor(brightness);
 
     return AnimatedPressable(
       onTap: onTap,
       pressedScale: 0.94,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
+        constraints: const BoxConstraints(minHeight: 40),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? selectedBg : unselectedBg,
@@ -186,14 +189,14 @@ class GlassChip extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: GlassTheme.royalSmalt.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: selectedBg.withValues(alpha: 0.30),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
+                    color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.04),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -212,10 +215,9 @@ class GlassChip extends StatelessWidget {
             ],
             Text(
               label,
-              style: TextStyle(
+              style: theme.textTheme.labelMedium?.copyWith(
                 color: isSelected ? selectedTextColor : unselectedTextColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
             if (count != null && count! > 0) ...[
@@ -224,18 +226,17 @@ class GlassChip extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.white.withValues(alpha: 0.25)
+                      ? selectedTextColor.withValues(alpha: 0.22)
                       : (isDark
-                            ? Colors.white.withValues(alpha: 0.15)
+                            ? Colors.white.withValues(alpha: 0.14)
                             : const Color(0xFFEEF2F6)),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '$count',
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF64748B),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: isSelected ? selectedTextColor : unselectedTextColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

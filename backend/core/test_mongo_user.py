@@ -190,6 +190,15 @@ class MongoUserSyncTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_run_async.assert_called()
 
+    def test_google_login_rejects_mock_token_in_production(self):
+        with self.settings(DEBUG=False, IS_TESTING=False):
+            response = self.client.post('/api/auth/google/', {
+                'id_token': 'mock-google-token-attacker',
+                'email': 'admin@example.com',
+                'name': 'Attacker'
+            })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     @patch('core.signals._run_async')
     def test_phone_verify_login_triggers_mongo_record(self, mock_run_async):
         from core.sms_service import hash_otp, generate_salt

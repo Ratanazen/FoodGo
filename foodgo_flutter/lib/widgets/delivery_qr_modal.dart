@@ -8,9 +8,21 @@ import '../services/api_service.dart';
 import 'glass_container.dart';
 import 'responsive_layout.dart';
 
+/// Delivery handover sheet.
+///
+/// The QR payload and handover PIN are *always* supplied by the backend.
+/// The sheet never fabricates a code, PIN, or expiry: if the server does not
+/// return a verified payload the user sees a retryable error state instead.
 class DeliveryQrModal extends StatefulWidget {
   final String orderId;
+
+  /// Backend-supplied PIN, when the order payload already contains one.
   final String? initialPin;
+
+  /// Backend-supplied QR payload for callers that already fetched it.
+  /// Only used when [autoFetch] is false.
+  final String? initialQrPayload;
+
   final String? status;
   final String? restaurantName;
   final double? totalAmount;
@@ -22,6 +34,7 @@ class DeliveryQrModal extends StatefulWidget {
     super.key,
     required this.orderId,
     this.initialPin,
+    this.initialQrPayload,
     this.status,
     this.restaurantName,
     this.totalAmount,
@@ -62,8 +75,9 @@ class DeliveryQrModal extends StatefulWidget {
 
 class _DeliveryQrModalState extends State<DeliveryQrModal> {
   final ApiService _api = ApiService();
-  bool _isLoading = true;
 
+  bool _isLoading = true;
+  String? _errorMessage;
   String? _qrPayload;
   String? _verificationPin;
   DateTime? _expiresAt;
@@ -72,18 +86,22 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
 
   Timer? _countdownTimer;
   Timer? _pollingTimer;
-  int _secondsRemaining = 900; // 15 mins default
+  int _secondsRemaining = 0;
+
+  /// Guards against stale responses from overlapping fetch/regenerate calls.
+  int _requestId = 0;
 
   @override
   void initState() {
     super.initState();
     if (widget.autoFetch) {
-      _fetchOrInitToken();
+      _loadCode();
     } else {
-      _isLoading = false;
-      _verificationPin = widget.initialPin ?? '123456';
-      _qrPayload =
-          'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}&token=test-token';
+      _applyVerifiedPayload(
+        qrPayload: widget.initialQrPayload,
+        pin: widget.initialPin,
+        expiresAt: null,
+      );
     }
   }
 
@@ -96,107 +114,126 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
     super.dispose();
   }
 
-  Future<void> _fetchOrInitToken() async {
+  /// Applies a payload that the caller already received from the backend.
+  /// Never invents data: a missing payload becomes an error state.
+  void _applyVerifiedPayload({
+    required String? qrPayload,
+    required String? pin,
+    required DateTime? expiresAt,
+  }) {
+    final payload = qrPayload?.trim();
+    if (payload == null || payload.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _qrPayload = null;
+        _verificationPin = null;
+        _errorMessage =
+            'No verified delivery code was supplied for this order. '
+            'A code can only be issued by FoodGo.';
+      });
+      return;
+    }
+
     setState(() {
-      _isLoading = true;
+      _isLoading = false;
+      _errorMessage = null;
+      _qrPayload = payload;
+      _verificationPin = (pin?.trim().isEmpty ?? true) ? null : pin!.trim();
+      _expiresAt = expiresAt;
+      _secondsRemaining = _remainingSeconds(expiresAt);
     });
 
-    try {
-      final endpoint = widget.isDriver
-          ? 'orders/${widget.orderId}/delivery_qr/'
-          : 'orders/${widget.orderId}/customer_delivery_qr/';
-      final data = await _api.post(endpoint, {});
-      if (!mounted) return;
-
-      final payload =
-          data['qr_payload']?.toString() ??
-          'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}&token=${data['token']}';
-      final pin =
-          data['verification_pin']?.toString() ??
-          widget.initialPin ??
-          '${(int.tryParse(widget.orderId) ?? 1) * 73 % 900000 + 100000}';
-
-      DateTime? exp;
-      if (data['expires_at'] != null) {
-        exp = DateTime.tryParse(data['expires_at'].toString())?.toLocal();
-      }
-
-      setState(() {
-        _qrPayload = payload;
-        _verificationPin = pin;
-        _expiresAt = exp;
-        _isLoading = false;
-        _secondsRemaining = 900;
-      });
-
-      if (!mounted) return;
-      _startCountdown();
-      _startPollingConfirmation();
-    } catch (e) {
-      if (!mounted) return;
-      // Fallback local display if offline or network issue
-      final fallbackPin =
-          widget.initialPin ??
-          '${(int.tryParse(widget.orderId) ?? 1) * 73 % 900000 + 100000}';
-      final fallbackPayload =
-          'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}&token=demo-token-${widget.orderId}';
-
-      setState(() {
-        _qrPayload = fallbackPayload;
-        _verificationPin = fallbackPin;
-        _expiresAt = DateTime.now().add(const Duration(minutes: 15));
-        _isLoading = false;
-      });
-
-      if (!mounted) return;
-      _startCountdown();
-      _startPollingConfirmation();
-    }
+    _startCountdownIfNeeded();
   }
 
-  Future<void> _regenerateToken() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final endpoint = widget.isDriver
-          ? 'orders/${widget.orderId}/delivery_qr/'
-          : 'orders/${widget.orderId}/customer_regenerate_delivery_qr/';
-      final data = await _api.post(endpoint, {});
-      if (!mounted) return;
-
-      final payload =
-          data['qr_payload']?.toString() ??
-          'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}&token=${data['token']}';
-      final pin = data['verification_pin']?.toString() ?? widget.initialPin;
-
-      DateTime? exp;
-      if (data['expires_at'] != null) {
-        exp = DateTime.tryParse(data['expires_at'].toString())?.toLocal();
-      }
-
-      setState(() {
-        _qrPayload = payload;
-        _verificationPin = pin;
-        _expiresAt = exp;
-        _isLoading = false;
-        _secondsRemaining = 900;
-      });
-
-      if (!mounted) return;
-      _startCountdown();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  int _remainingSeconds(DateTime? expiresAt) {
+    if (expiresAt == null) return 0;
+    final diff = expiresAt.difference(DateTime.now()).inSeconds;
+    return diff > 0 ? diff : 0;
   }
 
-  void _startCountdown() {
-    if (!mounted) return;
+  Future<void> _loadCode({bool regenerate = false}) async {
+    final requestId = ++_requestId;
     _countdownTimer?.cancel();
+    _pollingTimer?.cancel();
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _isDelivered = false;
+    });
+
+    try {
+      final endpoint = regenerate
+          ? (widget.isDriver
+                ? 'orders/${widget.orderId}/delivery_qr/'
+                : 'orders/${widget.orderId}/customer_regenerate_delivery_qr/')
+          : (widget.isDriver
+                ? 'orders/${widget.orderId}/delivery_qr/'
+                : 'orders/${widget.orderId}/customer_delivery_qr/');
+
+      final data = await _api.post(
+        endpoint,
+        regenerate ? {'regenerate': true} : {},
+      );
+      if (!mounted || requestId != _requestId) return;
+
+      // Compose a payload only from server-issued values. A local placeholder
+      // is never used.
+      final serverPayload = data['qr_payload']?.toString().trim();
+      final serverToken = data['token']?.toString().trim();
+      final payload = (serverPayload != null && serverPayload.isNotEmpty)
+          ? serverPayload
+          : (serverToken != null && serverToken.isNotEmpty
+                ? 'FOODGO:DELIVERY:CONFIRM:v1?order_id=${widget.orderId}'
+                      '&token=$serverToken'
+                : null);
+
+      if (payload == null || payload.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _qrPayload = null;
+          _verificationPin = null;
+          _expiresAt = null;
+          _errorMessage =
+              'FoodGo did not return a verified delivery code for this '
+              'order. Check your connection and try again.';
+        });
+        return;
+      }
+
+      final pin = data['verification_pin']?.toString().trim();
+      DateTime? expiresAt;
+      final rawExpiry = data['expires_at']?.toString();
+      if (rawExpiry != null && rawExpiry.isNotEmpty) {
+        expiresAt = DateTime.tryParse(rawExpiry)?.toLocal();
+      }
+
+      _applyVerifiedPayload(
+        qrPayload: payload,
+        pin: (pin != null && pin.isNotEmpty) ? pin : widget.initialPin,
+        expiresAt: expiresAt,
+      );
+
+      _startPollingConfirmation();
+    } catch (error) {
+      if (!mounted || requestId != _requestId) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = ApiService.formatError(
+          error,
+          fallback:
+              'Could not reach FoodGo to issue a verified delivery code. '
+              'No handover can be confirmed until the code loads.',
+        );
+      });
+    }
+  }
+
+  void _startCountdownIfNeeded() {
+    _countdownTimer?.cancel();
+    if (!mounted || _expiresAt == null) return;
+
     _updateRemainingSeconds();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
@@ -204,20 +241,24 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
         return;
       }
       _updateRemainingSeconds();
+      if (_secondsRemaining <= 0) timer.cancel();
     });
   }
 
   void _updateRemainingSeconds() {
     if (!mounted || _expiresAt == null) return;
-    final diff = _expiresAt!.difference(DateTime.now()).inSeconds;
-    setState(() {
-      _secondsRemaining = diff > 0 ? diff : 0;
-    });
+    final remaining = _remainingSeconds(_expiresAt);
+    if (remaining != _secondsRemaining) {
+      setState(() {
+        _secondsRemaining = remaining;
+      });
+    }
   }
 
   void _startPollingConfirmation() {
-    if (!mounted) return;
     _pollingTimer?.cancel();
+    if (!mounted) return;
+
     _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (!mounted || _isDelivered) {
         timer.cancel();
@@ -226,16 +267,41 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
       try {
         final orderData = await _api.get('orders/${widget.orderId}/');
         if (!mounted) return;
-        if (orderData['status'] == 'delivered') {
+
+        final status = orderData['status']?.toString().toLowerCase();
+        if (status == 'delivered' || status == 'completed') {
           timer.cancel();
-          setState(() {
-            _isDelivered = true;
-            _deliveryTimestamp = DateTime.now().toIso8601String();
-          });
-          widget.onDelivered?.call();
+          _markDelivered(orderData);
         }
-      } catch (_) {}
+      } catch (_) {
+        // Polling failures are transient; keep the code usable and retry on
+        // the next tick. The QR never claims delivery without a server status.
+      }
     });
+  }
+
+  void _markDelivered(Map<String, dynamic> orderData) {
+    final rawDeliveredAt = orderData['delivered_at']?.toString();
+    final parsedDeliveredAt = rawDeliveredAt == null
+        ? null
+        : DateTime.tryParse(rawDeliveredAt)?.toLocal();
+
+    setState(() {
+      _isDelivered = true;
+      _deliveryTimestamp = parsedDeliveredAt != null
+          ? _formatTimestamp(parsedDeliveredAt)
+          : _formatTimestamp(DateTime.now());
+    });
+    widget.onDelivered?.call();
+  }
+
+  String _formatTimestamp(DateTime value) {
+    final local = value.toLocal();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '${local.year}-$month-$day $hour:$minute';
   }
 
   String _formatTimer(int totalSeconds) {
@@ -248,414 +314,542 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
   Widget build(BuildContext context) {
     return ResponsiveBottomSheet(
       child: GlassContainer(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadius.large),
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.lg,
+        ),
         child: SingleChildScrollView(
-          child: _isDelivered ? _buildSuccessView() : _buildActiveQrView(),
+          child: _isDelivered ? _buildSuccessView() : _buildHandoverView(),
         ),
       ),
     );
   }
 
-  Widget _buildSuccessView() {
+  Widget _buildSheetHandle(Color color) {
+    return Center(
+      child: Container(
+        width: 44,
+        height: 5,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(ColorScheme scheme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: scheme.primary.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(AppRadius.small),
+          ),
+          child: Icon(Icons.qr_code_2, color: scheme.primary, size: 22),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.isDriver
+                    ? 'Delivery Handover QR'
+                    : 'Delivery Confirmation QR',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                widget.isDriver
+                    ? 'Order #${widget.orderId} • Show to customer'
+                    : 'Order #${widget.orderId} • Show to driver',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.close, color: scheme.onSurfaceVariant),
+          tooltip: 'Close delivery code',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWarningBadge(ColorScheme scheme) {
+    final amber = scheme.brightness == Brightness.dark
+        ? const Color(0xFFFFC107)
+        : const Color(0xFF8A5A00);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: amber.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.small),
+        border: Border.all(color: amber.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline, color: amber, size: 14),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              'Delivery Confirmation (Not Payment)',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: amber,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHandoverView() {
+    final scheme = Theme.of(context).colorScheme;
+    final divider = scheme.outlineVariant.withValues(alpha: 0.4);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _buildSheetHandle(divider),
+        const SizedBox(height: AppSpacing.md),
+        _buildHeader(scheme),
+        if (!widget.isDriver) ...[
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _buildWarningBadge(scheme),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.md),
+
+        if (_isLoading)
+          _buildLoadingState(scheme)
+        else if (_qrPayload == null)
+          _buildErrorState(scheme)
+        else
+          _buildQrState(scheme),
+
+        const SizedBox(height: AppSpacing.md),
+        _buildInstructionCard(scheme),
+
+        const SizedBox(height: AppSpacing.md),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: scheme.onSurface,
+            side: BorderSide(color: divider),
+            minimumSize: const Size.fromHeight(48),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.small),
+            ),
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'Close',
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState(ColorScheme scheme) {
+    return Container(
+      height: 240,
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(color: scheme.primary),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Requesting a verified handover code…',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(ColorScheme scheme) {
+    final errorColor = scheme.error;
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 220),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: errorColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        border: Border.all(color: errorColor.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline, color: errorColor, size: 40),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Verified code unavailable',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            _errorMessage ?? 'The delivery code could not be loaded.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              height: 1.4,
+            ),
+          ),
+          if (widget.autoFetch) ...[
+            const SizedBox(height: AppSpacing.md),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.primary,
+                foregroundColor: scheme.onPrimary,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+              ),
+              onPressed: _isLoading ? null : () => _loadCode(),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Try again'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQrState(ColorScheme scheme) {
+    final isExpired = _expiresAt != null && _secondsRemaining <= 0;
+    final primary = scheme.primary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_errorMessage != null && !isExpired) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: scheme.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppRadius.small),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.cloud_off, color: scheme.error, size: 16),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _errorMessage!,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: scheme.error),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         Center(
           child: Container(
-            width: 44,
-            height: 5,
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(3),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+              boxShadow: [
+                BoxShadow(
+                  color: (isExpired ? scheme.error : primary).withValues(
+                    alpha: 0.3,
+                  ),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Semantics(
+                  label:
+                      'Delivery confirmation QR code for order '
+                      '${widget.orderId}',
+                  child: ExcludeSemantics(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        QrImageView(
+                          data: _qrPayload!,
+                          version: QrVersions.auto,
+                          size: 200,
+                          backgroundColor: Colors.white,
+                          eyeStyle: const QrEyeStyle(
+                            eyeShape: QrEyeShape.square,
+                            color: GlassTheme.royalSmalt,
+                          ),
+                          dataModuleStyle: const QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: GlassTheme.inkSmalt,
+                          ),
+                        ),
+                        if (isExpired)
+                          Container(
+                            width: 200,
+                            height: 200,
+                            color: Colors.black.withValues(alpha: 0.8),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.timer_off,
+                                  color: Colors.redAccent,
+                                  size: 40,
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(
+                                  'Code expired',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primary,
+                                    foregroundColor: scheme.onPrimary,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 6,
+                                    ),
+                                  ),
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => _loadCode(regenerate: true),
+                                  child: Text(
+                                    'Get new code',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: scheme.onPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (_verificationPin != null) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(AppRadius.small),
+                    ),
+                    child: Text(
+                      'HANDOVER PIN: $_verificationPin',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: const Color(0xFF1B5E20),
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isExpired ? Icons.error_outline : Icons.timer,
+              color: isExpired ? scheme.error : primary,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                isExpired
+                    ? 'Code expired. Request a new one.'
+                    : (_expiresAt != null
+                          ? 'Valid for ${_formatTimer(_secondsRemaining)} '
+                                '• Auto-verifies upon scan'
+                          : 'Secure code • Auto-verifies upon scan'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isExpired ? scheme.error : scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (!isExpired && widget.autoFetch) ...[
+              const SizedBox(width: AppSpacing.sm),
+              IconButton(
+                icon: Icon(
+                  Icons.refresh,
+                  size: 18,
+                  color: scheme.onSurfaceVariant,
+                ),
+                tooltip: 'Request a new code',
+                onPressed: _isLoading
+                    ? null
+                    : () => _loadCode(regenerate: true),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInstructionCard(ColorScheme scheme) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm + 4),
+      decoration: BoxDecoration(
+        color: scheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppRadius.small),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.shield_outlined, color: scheme.primary, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              widget.isDriver
+                  ? 'Present this code at the customer doorstep. The customer '
+                        'scans it in the FoodGo app; delivery is only marked '
+                        'complete after FoodGo confirms it.'
+                  : 'Show this code to your assigned FoodGo driver on arrival. '
+                        'The driver scans it; delivery is only marked complete '
+                        'after FoodGo confirms it.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuccessView() {
+    final scheme = Theme.of(context).colorScheme;
+    final primary = scheme.primary;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSheetHandle(scheme.outlineVariant.withValues(alpha: 0.4)),
+        const SizedBox(height: AppSpacing.lg),
         Container(
           width: 80,
           height: 80,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-            border: Border.all(color: GlassTheme.primaryGreen, width: 3),
+            color: primary.withValues(alpha: 0.2),
+            border: Border.all(color: primary, width: 3),
             boxShadow: [
               BoxShadow(
-                color: GlassTheme.primaryGreen.withValues(alpha: 0.4),
+                color: primary.withValues(alpha: 0.35),
                 blurRadius: 20,
                 spreadRadius: 2,
               ),
             ],
           ),
-          child: const Icon(
-            Icons.check_rounded,
-            color: GlassTheme.primaryGreen,
-            size: 48,
+          child: Icon(Icons.check_rounded, color: primary, size: 48),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Semantics(
+          liveRegion: true,
+          label: 'Delivery confirmed for order ${widget.orderId}',
+          child: Text(
+            'Delivery Confirmed',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-        const SizedBox(height: 20),
-        const Text(
-          'Delivery Confirmed!',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
-          widget.isDriver
-              ? 'Customer scanned QR code. Order #${widget.orderId} is complete.'
-              : 'Driver verified QR code. Order #${widget.orderId} is confirmed delivered.',
+          'FoodGo confirmed order #${widget.orderId} as delivered.',
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
         ),
         if (_deliveryTimestamp != null) ...[
           const SizedBox(height: 6),
           Text(
-            'Timestamp: $_deliveryTimestamp',
+            'Confirmed at $_deliveryTimestamp',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: GlassTheme.primaryGreen,
-              fontSize: 12,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: primary,
               fontWeight: FontWeight.w600,
             ),
           ),
         ],
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.lg),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: GlassTheme.primaryGreen,
-            foregroundColor: Colors.black,
+            backgroundColor: primary,
+            foregroundColor: scheme.onPrimary,
+            minimumSize: const Size.fromHeight(48),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppRadius.small),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             widget.isDriver ? 'Back to Dashboard' : 'Done',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-        ),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
-
-  Widget _buildActiveQrView() {
-    final isExpired = _secondsRemaining <= 0;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Center(
-          child: Container(
-            width: 44,
-            height: 5,
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(3),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: scheme.onPrimary,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.qr_code_2,
-                      color: GlassTheme.primaryGreen,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.isDriver
-                              ? 'Delivery Handover QR'
-                              : 'Delivery Confirmation QR',
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          widget.isDriver
-                              ? 'Order #${widget.orderId} • Show to customer'
-                              : 'Order #${widget.orderId} • Show to driver',
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: GlassTheme.textMuted,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, color: Colors.white60),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-        if (!widget.isDriver) ...[
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.amber.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.info_outline, color: Colors.amber, size: 14),
-                SizedBox(width: 6),
-                Text(
-                  'Delivery Confirmation (Not Payment)',
-                  style: TextStyle(
-                    color: Colors.amber,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        const SizedBox(height: 16),
-
-        if (_isLoading)
-          Container(
-            height: 260,
-            alignment: Alignment.center,
-            child: const CircularProgressIndicator(
-              color: GlassTheme.primaryGreen,
-            ),
-          )
-        else ...[
-          // QR Code Card
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: isExpired
-                        ? Colors.redAccent.withValues(alpha: 0.3)
-                        : GlassTheme.primaryGreen.withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      QrImageView(
-                        data:
-                            (_qrPayload != null &&
-                                _qrPayload!.trim().isNotEmpty)
-                            ? _qrPayload!.trim()
-                            : 'FOODGO:HANDOVER:ORDER#${widget.orderId}',
-                        version: QrVersions.auto,
-                        size: 200.0,
-                        backgroundColor: Colors.white,
-                        eyeStyle: const QrEyeStyle(
-                          eyeShape: QrEyeShape.square,
-                          color: GlassTheme.royalSmalt,
-                        ),
-                        dataModuleStyle: const QrDataModuleStyle(
-                          dataModuleShape: QrDataModuleShape.square,
-                          color: GlassTheme.inkSmalt,
-                        ),
-                      ),
-                      if (isExpired)
-                        Container(
-                          width: 200,
-                          height: 200,
-                          color: Colors.black87.withValues(alpha: 0.8),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.timer_off,
-                                color: Colors.redAccent,
-                                size: 40,
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'QR Expired',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: GlassTheme.primaryGreen,
-                                  foregroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 6,
-                                  ),
-                                ),
-                                onPressed: _regenerateToken,
-                                child: const Text(
-                                  'Regenerate',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'BACKUP PIN: ${_verificationPin ?? "------"}',
-                      style: const TextStyle(
-                        color: Color(0xFF1B5E20),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        letterSpacing: 2.0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Expiration and Live Polling Banner
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isExpired ? Icons.error_outline : Icons.timer,
-                color: isExpired ? Colors.redAccent : GlassTheme.primaryGreen,
-                size: 16,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  isExpired
-                      ? 'Token expired. Tap regenerate.'
-                      : 'Valid for ${_formatTimer(_secondsRemaining)} • Auto-verifies upon scan',
-                  style: TextStyle(
-                    color: isExpired ? Colors.redAccent : Colors.white70,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (!isExpired) ...[
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(
-                    Icons.refresh,
-                    size: 16,
-                    color: Colors.white60,
-                  ),
-                  tooltip: 'Regenerate QR',
-                  onPressed: _regenerateToken,
-                ),
-              ],
-            ],
-          ),
-        ],
-
-        const SizedBox(height: 14),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.shield_outlined,
-                color: GlassTheme.primaryGreen,
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  widget.isDriver
-                      ? 'Present this code at customer doorstep. Customer will scan with FoodGo app to confirm handover.'
-                      : 'Show this QR code to your assigned FoodGo delivery driver upon arrival. The driver will scan it to verify and complete your delivery.',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 18),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white.withValues(alpha: 0.1),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 14),
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
-            'Close',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
       ],
     );
   }

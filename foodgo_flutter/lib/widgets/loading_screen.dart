@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../core/theme/app_typography.dart';
 import '../core/theme/glass_theme.dart';
 import 'svg_icon.dart';
 
@@ -50,7 +51,9 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
     final palette = GlassTheme.activePalette;
 
     return Scaffold(
-      backgroundColor: isDark ? palette.backgroundDark : palette.backgroundLight,
+      backgroundColor: isDark
+          ? palette.backgroundDark
+          : palette.backgroundLight,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -67,7 +70,9 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                   height: 240,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.16),
+                    color: GlassTheme.dynamicPrimaryColor.withValues(
+                      alpha: 0.16,
+                    ),
                   ),
                 ),
               ),
@@ -85,7 +90,9 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                   height: 260,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: GlassTheme.dynamicPrimaryDark.withValues(alpha: 0.14),
+                    color: GlassTheme.dynamicPrimaryDark.withValues(
+                      alpha: 0.14,
+                    ),
                   ),
                 ),
               ),
@@ -101,78 +108,90 @@ class _FoodGoLoadingScreenState extends State<FoodGoLoadingScreen>
                 children: [
                   // Glowing pulsating logo card
                   AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, _) => Transform.scale(
-                    scale: _pulseAnimation.value,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: GlassTheme.dynamicPrimaryColor.withValues(
-                              alpha: 0.35 * _pulseAnimation.value,
-                            ),
-                            blurRadius: 36 * _pulseAnimation.value,
-                            spreadRadius: 2,
+                    animation: _pulseAnimation,
+                    builder: (context, _) => Transform.scale(
+                      scale: _pulseAnimation.value,
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.white.withValues(alpha: 0.88),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.12)
+                                : GlassTheme.borderLight,
                           ),
-                        ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: GlassTheme.dynamicPrimaryColor.withValues(
+                                alpha: 0.35 * _pulseAnimation.value,
+                              ),
+                              blurRadius: 36 * _pulseAnimation.value,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: const FoodGoAppIcon(size: 72, borderRadius: 18),
                       ),
-                      child: const FoodGoAppIcon(size: 72, borderRadius: 18),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 28),
+                  const SizedBox(height: 28),
 
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                  ),
-                ).animate().fade(duration: 400.ms).slideY(begin: 0.15, end: 0),
+                  Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          widget.title,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                color: AppTypography.primaryTextColor(
+                                  Theme.of(context).brightness,
+                                ),
+                              ),
+                        ),
+                      )
+                      .animate()
+                      .fade(duration: 400.ms)
+                      .slideY(begin: 0.15, end: 0),
 
-                const SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Text(
-                    widget.message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.white60,
-                      fontWeight: FontWeight.w400,
-                      height: 1.4,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      widget.message,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTypography.secondaryTextColor(
+                          Theme.of(context).brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ).animate().fade(delay: 150.ms, duration: 400.ms),
+                  ).animate().fade(delay: 150.ms, duration: 400.ms),
 
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-                // Pulsing Emerald Loading Ring
-                SizedBox(
-                  width: 38,
-                  height: 38,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      GlassTheme.dynamicPrimaryColor,
+                  // Pulsing Emerald Loading Ring
+                  SizedBox(
+                    width: 38,
+                    height: 38,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3.2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        GlassTheme.dynamicPrimaryColor,
+                      ),
+                      backgroundColor: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.08),
                     ),
-                    backgroundColor: Colors.white.withValues(alpha: 0.08),
-                  ),
-                ).animate().fade(delay: 300.ms, duration: 400.ms),
-              ],
+                  ).animate().fade(delay: 300.ms, duration: 400.ms),
+                ],
+              ),
             ),
           ),
-        ),
         ],
       ),
     );
@@ -213,7 +232,9 @@ class FoodGoLoadingOverlay extends StatelessWidget {
                       color: GlassTheme.dynamicSurfaceDark,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.3),
+                        color: GlassTheme.dynamicPrimaryColor.withValues(
+                          alpha: 0.3,
+                        ),
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -230,9 +251,14 @@ class FoodGoLoadingOverlay extends StatelessWidget {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: GlassTheme.dynamicPrimaryColor.withValues(alpha: 0.15),
+                            color: GlassTheme.dynamicPrimaryColor.withValues(
+                              alpha: 0.15,
+                            ),
                           ),
-                          child: const FoodGoAppIcon(size: 48, borderRadius: 12),
+                          child: const FoodGoAppIcon(
+                            size: 48,
+                            borderRadius: 12,
+                          ),
                         ),
                         const SizedBox(height: 18),
                         SizedBox(
@@ -243,7 +269,9 @@ class FoodGoLoadingOverlay extends StatelessWidget {
                             valueColor: AlwaysStoppedAnimation<Color>(
                               GlassTheme.dynamicPrimaryColor,
                             ),
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.1,
+                            ),
                           ),
                         ),
                         if (message != null && message!.isNotEmpty) ...[
@@ -251,11 +279,8 @@ class FoodGoLoadingOverlay extends StatelessWidget {
                           Text(
                             message!,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(color: Colors.white),
                           ),
                         ],
                       ],

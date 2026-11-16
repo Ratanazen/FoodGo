@@ -1,0 +1,634 @@
+{
+  "project": "FoodGo Smart Mobile Food Delivery",
+  "university_km": "សាកលវិទ្យាល័យ ពាណិជ្ជសាស្រ្ត អេស៊ីលីដា",
+  "team_members": [
+    "01 Em Ratana",
+    "02 Hen Yaungkuy",
+    "03 Than Sombath Borarat",
+    "04 Cheang borin",
+    "05 Ly KimChhun"
+  ],
+  "total_duration_sec": 485.3,
+  "capcut_draft_path": "/home/reny/FoodGo/output/capcut-pack/FoodGo_CapCut_Draft/draft_content.json",
+  "master_video_path": "/home/reny/FoodGo/output/final/foodgo-demo-full.mp4",
+  "scenes": [
+    {
+      "chapter_index": 1,
+      "id": "ch01_intro",
+      "title_km": "១. ការណែនាំគម្រោង (Introduction)",
+      "title_en": "Section 1: Introduction • Problem, Objectives & Team",
+      "start_sec": 0.0,
+      "duration_sec": 59.56,
+      "hook_en": "Meet FoodGo: Cambodia's Bilingual Smart Food Delivery App",
+      "capcut_zoom_keyframes": "0.14–0.36 -> 1.34x Top Header | 0.46–0.72 -> 1.42x Dish Cards | 0.78–0.93 -> 1.32x 5-Tab Nav",
+      "capcut_transition": "Pull-In Zoom + Whip Glow (0.30s)",
+      "sfx_cue": "Whoosh Soft + Sub Bass Drop + Pop Pill",
+      "ai_broll_prompt": "Cinematic close-up of a sleek titanium smartphone in a modern Phnom Penh cafe displaying the FoodGo bilingual Khmer/English delivery app, warm emerald neon rim lighting, shallow depth of field, 4k 60fps commercial.",
+      "avatar_pose_plan": "standing -> find (wave greeting + pointing to mobile UI)",
+      "raw_clip": "media/01_raw_mobile_clips/ch01_intro.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch01_intro.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch01_intro.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 7.48,
+          "text": "សូមគោរពលោកគ្រូ អ្នកគ្រូ គណៈកម្មការ និងទស្សនិកជនទាំងអស់ មកកាន់ការធ្វើបទបង្ហាញគម្រោង FoodGo Mobile App!"
+        },
+        {
+          "start": 7.48,
+          "end": 16.55,
+          "text": "គម្រោងនេះត្រូវបានស្រាវជ្រាវ និងអភិវឌ្ឍឡើងដោយក្រុមនិស្សិតចំនួន ៥ រូប មកពី សាកលវិទ្យាល័យ ពាណិជ្ជសាស្រ្ត អេស៊ីលីដា រួមមាន ទីមួយ Em Ratana,"
+        },
+        {
+          "start": 16.55,
+          "end": 22.59,
+          "text": "ទីពីរ Hen Yaungkuy, ទីបី Than Sombath Borarat, ទីបួន Cheang borin, និងទីប្រាំ Ly KimChhun។"
+        },
+        {
+          "start": 22.59,
+          "end": 27.09,
+          "text": "ផ្នែកទីមួយ Introduction៖ បញ្ហាប្រឈមក្នុងការកុម្ម៉ង់អាហារបច្ចុប្បន្ន"
+        },
+        {
+          "start": 27.09,
+          "end": 33.07,
+          "text": "គឺការបាត់បង់ភាពច្បាស់លាស់នៃថ្លៃសេវា ការខ្វះភាសាខ្មែរពេញលេញ និងការទូទាត់ឆ្លងធនាគារយឺតយ៉ាវ។"
+        },
+        {
+          "start": 33.07,
+          "end": 42.07,
+          "text": "គោលបំណងចម្បងរបស់ FoodGo គឺបង្កើតកម្មវិធីទូរស័ព្ទទំនើបសម្រាប់ទីផ្សារប្រទេសកម្ពុជា ដែលរួមបញ្ចូលរូបិយប័ណ្ណពីរគឺ USD និង KHR, ការទូទាត់តាម"
+        },
+        {
+          "start": 42.07,
+          "end": 47.38,
+          "text": "Bakong KHQR, ការតាមដានទីតាំង GPS ផ្ទាល់, និងតួនាទីអ្នកប្រើប្រាស់ ៤ ផ្នែកពេញលេញ។"
+        },
+        {
+          "start": 47.38,
+          "end": 52.15,
+          "text": "បទបង្ហាញនេះបែងចែកជា ៤ ផ្នែកធំៗគឺ ទីមួយ Introduction, ទីពីរ Technology &"
+        },
+        {
+          "start": 52.15,
+          "end": 56.31,
+          "text": "Method, ទីបី Live App Showcase, និងទីបួន Results & Conclusion។"
+        },
+        {
+          "start": 56.31,
+          "end": 58.66,
+          "text": "តោះចាប់ផ្តើមទស្សនាជាមួយគ្នាឥឡូវនេះ!"
+        }
+      ]
+    },
+    {
+      "chapter_index": 2,
+      "id": "ch02_architecture",
+      "title_km": "២. បច្ចេកវិទ្យា និងវិធីសាស្រ្ត (Technology & Method)",
+      "title_en": "Section 2: Technology & Method • Stack & AI Skills",
+      "start_sec": 59.56,
+      "duration_sec": 55.48,
+      "hook_en": "Full-Stack Architecture: Flutter Mobile + Django Channels + PostgreSQL",
+      "capcut_zoom_keyframes": "0.22–0.52 -> 1.16x Stack Diagram | 0.60–0.88 -> 1.18x Bakong & WebSocket Pipeline",
+      "capcut_transition": "Glitch Slide + Blur Dissolve (0.30s)",
+      "sfx_cue": "Digital HUD Beep + Tech Swipe",
+      "ai_broll_prompt": "3D isometric glassmorphism system architecture diagram connecting Flutter mobile app, Django REST API, Daphne ASGI WebSockets, PostgreSQL, and Bakong KHQR gateway, dark cyber studio.",
+      "avatar_pose_plan": "standing -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch02_architecture.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch02_architecture.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch02_architecture.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 5.51,
+          "text": "ចូលដល់ផ្នែកទីពីរ Technology and Method ឬបច្ចេកវិទ្យា និងវិធីសាស្រ្តអភិវឌ្ឍន៍!"
+        },
+        {
+          "start": 5.51,
+          "end": 11.19,
+          "text": "ផ្នែកបច្ចេកវិទ្យា FoodGo ប្រើប្រាស់ស្ថាបត្យកម្មវិស្វកម្មសូហ្វែរទំនើប និងមានសុវត្ថិភាពខ្ពស់។"
+        },
+        {
+          "start": 11.19,
+          "end": 16.81,
+          "text": "ផ្នែកខាងមុខ Mobile App ប្រើប្រាស់ Flutter ដែលឆ្លើយតបដោយស្វ័យប្រវត្តិតាមទំហំអេក្រង់ទូរស័ព្ទ"
+        },
+        {
+          "start": 16.81,
+          "end": 20.87,
+          "text": "ជាមួយពុម្ពអក្សរ Kantumruy Pro និង High-Contrast Accessibility UI។"
+        },
+        {
+          "start": 20.87,
+          "end": 27.05,
+          "text": "ផ្នែកខាងក្រោយ Backend ដំណើរការដោយ Django REST Framework រួមជាមួយ Django Channels សម្រាប់ WebSockets"
+        },
+        {
+          "start": 27.05,
+          "end": 36.47,
+          "text": "ដើម្បីបញ្ជូនព័ត៌មានស្ថានភាពបញ្ជាទិញ និងទីតាំង GPS អ្នកដឹកជញ្ជូនក្នុងពេលជាក់ស្តែង លើមូលដ្ឋានទិន្នន័យ PostgreSQL និង MongoDB ព្រមទាំង Bakong KHQR Engine។"
+        },
+        {
+          "start": 36.47,
+          "end": 46.78,
+          "text": "ចំណែកវិធីសាស្រ្តអភិវឌ្ឍន៍ Method យើងអនុវត្ត Agile Sprint, ការការពារសុវត្ថិភាពទិន្នន័យ និងការធ្វើតេស្តស្វ័យប្រវត្តិទាំង Backend និង Mobile, ព្រមទាំងបញ្ចូលបច្ចេកវិទ្យា"
+        },
+        {
+          "start": 46.78,
+          "end": 54.58,
+          "text": "AI Video Skills ពី awesome-claude-video-skills តាមរយៈ /skill install ដើម្បីផលិតបទបង្ហាញស្តង់ដារខ្ពស់ និង Avatar គ្រប់ហ្វ្រេម!"
+        }
+      ]
+    },
+    {
+      "chapter_index": 3,
+      "id": "ch03_auth_portals",
+      "title_km": "ប្រព័ន្ធសុវត្ថិភាព និងការចូលប្រើប្រាស់តាមតួនាទី",
+      "title_en": "Mobile Authentication & Role Portals",
+      "start_sec": 115.04,
+      "duration_sec": 35.13,
+      "hook_en": "Role-Based Security: Customer, Driver & Admin JWT Portals",
+      "capcut_zoom_keyframes": "0.15–0.44 -> 1.42x Login & OTP Form | 0.54–0.86 -> 1.38x Role Portal Redirect",
+      "capcut_transition": "Smooth Scale-In (0.30s)",
+      "sfx_cue": "Key Tap + Success Chime",
+      "ai_broll_prompt": "Smartphone screen macro shot showing seamless biometric and JWT login transitioning into a vibrant food delivery home feed, clean UI motion.",
+      "avatar_pose_plan": "standing -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch03_auth_portals.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch03_auth_portals.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch03_auth_portals.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 6.9,
+          "text": "នៅលើអេក្រង់ទូរស័ព្ទ FoodGo ផ្តល់ជូនប្រព័ន្ធផ្ទៀងផ្ទាត់អត្តសញ្ញាណដ៏រឹងមាំ និងងាយស្រួលប្រើប្រាស់។"
+        },
+        {
+          "start": 6.9,
+          "end": 11.72,
+          "text": "ប្រព័ន្ធបែងចែកតួនាទីយ៉ាងច្បាស់លាស់សម្រាប់ អតិថិជនទូទៅ, អ្នកបើកបរដឹកជញ្ជូន,"
+        },
+        {
+          "start": 11.72,
+          "end": 17.4,
+          "text": "ម្ចាស់ហាងអាហារ, និងអ្នកគ្រប់គ្រងប្រព័ន្ធ Admin ដោយមានប៊ូតុងចូលប្រើរហ័សសម្រាប់ធ្វើតេស្ត។"
+        },
+        {
+          "start": 17.4,
+          "end": 24.12,
+          "text": "រាល់ការចូលប្រើប្រាស់ទាំងអស់ត្រូវបានការពារដោយ JWT Token Authentication, ការត្រួតពិនិត្យសិទ្ធិ Permission"
+        },
+        {
+          "start": 24.12,
+          "end": 28.42,
+          "text": "Classes នៅលើ Backend API និងការរក្សាទុក Session យ៉ាងមានសុវត្ថិភាព។"
+        },
+        {
+          "start": 28.42,
+          "end": 34.23,
+          "text": "ឥឡូវនេះ យើងចូលប្រើប្រាស់ក្នុងនាមជាអតិថិជន customer1 ដើម្បីសាកល្បងបទពិសោធន៍ទូរស័ព្ទផ្ទាល់!"
+        }
+      ]
+    },
+    {
+      "chapter_index": 4,
+      "id": "ch04_home_localization",
+      "title_km": "ទំព័រដើមទូរស័ព្ទ និងការប្តូរភាសា/រូបិយប័ណ្ណ",
+      "title_en": "Mobile Home, Khmer UI & Dual Currency",
+      "start_sec": 150.17,
+      "duration_sec": 35.63,
+      "hook_en": "1-Tap Khmer/English Switch & Dual Currency ($ USD / ៛ KHR)",
+      "capcut_zoom_keyframes": "0.14–0.42 -> 1.46x Language Toggle | 0.50–0.85 -> 1.40x Dual Currency Dish Cards",
+      "capcut_transition": "Whip Pan Right (0.28s)",
+      "sfx_cue": "UI Toggle Click + Card Pop",
+      "ai_broll_prompt": "Dynamic UI close-up switching between Khmer Kantumruy Pro typography and English on a food delivery app with USD and Khmer Riel prices updating live.",
+      "avatar_pose_plan": "standing -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch04_home_localization.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch04_home_localization.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch04_home_localization.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 4.85,
+          "text": "នេះគឺជាទំព័រដើម FoodGo ក្នុងទម្រង់កម្មវិធីទូរស័ព្ទចល័តពេញលេញ!"
+        },
+        {
+          "start": 4.85,
+          "end": 9.62,
+          "text": "លោកអ្នកអាចសង្កេតឃើញរបារ Bottom Navigation នៅផ្នែកខាងក្រោមសម្រាប់ Home,"
+        },
+        {
+          "start": 9.62,
+          "end": 14.59,
+          "text": "Explore, Cart, Offers និង Profile ដែលរចនាឡើងសម្រាប់ការចុចដោយម្រាមដៃតែមួយ។"
+        },
+        {
+          "start": 14.59,
+          "end": 21.12,
+          "text": "ចំណុចពិសេសគឺការគាំទ្រភាសាខ្មែរ និងភាសាអង់គ្លេសយ៉ាងរលូន ដោយប្រើពុម្ពអក្សរ Kantumruy Pro ដ៏ច្បាស់។"
+        },
+        {
+          "start": 21.12,
+          "end": 28.67,
+          "text": "លើសពីនេះ មុខងារ Dual Currency អនុញ្ញាតឱ្យប្តូរ និងបង្ហាញតម្លៃទាំងប្រាក់ដុល្លារ USD និងប្រាក់រៀល KHR ទន្ទឹមគ្នា។"
+        },
+        {
+          "start": 28.67,
+          "end": 34.73,
+          "text": "ផ្នែកខាងលើបង្ហាញប្រូម៉ូសិនពិសេសៗ ប្រភេទមុខម្ហូប និងហាងអាហារពេញនិយមជាមួយរូបភាពច្បាស់ស្អាត។"
+        }
+      ]
+    },
+    {
+      "chapter_index": 5,
+      "id": "ch05_explore_theme",
+      "title_km": "ការស្វែងរកមុខម្ហូប និង Theme Center",
+      "title_en": "Explore Filters & High-Contrast Theme Center",
+      "start_sec": 185.8,
+      "duration_sec": 33.35,
+      "hook_en": "Smart Filter Chips & High-Contrast Dark/Light/Heritage Themes",
+      "capcut_zoom_keyframes": "0.14–0.42 -> 1.42x Filter Chips | 0.50–0.86 -> 1.45x Theme Center Switching",
+      "capcut_transition": "Flash Glow Transition (0.28s)",
+      "sfx_cue": "Soft Shimmer + Switch Snap",
+      "ai_broll_prompt": "Sleek mobile app interface morphing smoothly between Light Mode, Dark Glassmorphism Mode, and Khmer Heritage Gold Theme, ultra-crisp 60fps UI.",
+      "avatar_pose_plan": "standing -> investigate -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch05_explore_theme.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch05_explore_theme.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch05_explore_theme.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 7.04,
+          "text": "នៅលើទំព័រ Explore អតិថិជនអាចរុករកមុខម្ហូបរាប់សិបមុខបានយ៉ាងរហ័ស តាមរយៈប្រអប់ស្វែងរកភ្លាមៗ និងប៊ូតុង"
+        },
+        {
+          "start": 7.04,
+          "end": 10.34,
+          "text": "Filter Chips តាមប្រភេទម្ហូប តម្លៃ និងកម្រិត Rating។"
+        },
+        {
+          "start": 10.34,
+          "end": 17.0,
+          "text": "ជាមួយគ្នានេះដែរ FoodGo ក៏ភ្ជាប់មកជាមួយ Theme Center ដែលអនុញ្ញាតឱ្យអ្នកប្រើប្រាស់ ប្តូររចនាបថអេក្រង់រវាង"
+        },
+        {
+          "start": 17.0,
+          "end": 21.01,
+          "text": "Dark Mode ដ៏ទាក់ទាញ និង Light Mode ដ៏ភ្លឺថ្លាបានតាមចំណូលចិត្ត។"
+        },
+        {
+          "start": 21.01,
+          "end": 25.98,
+          "text": "ក្រុមអភិវឌ្ឍន៍របស់យើងបានកែលម្អកម្រិត Contrast រវាងអក្សរ និងផ្ទៃ Glassmorphism"
+        },
+        {
+          "start": 25.98,
+          "end": 32.45,
+          "text": "នៅក្នុង Light Mode ឱ្យមើលឃើញច្បាស់ល្អឥតខ្ចោះ ងាយស្រួលអានគ្រប់ស្ថានភាពពន្លឺ ដោយគ្មានការរំខានភ្នែកឡើយ។"
+        }
+      ]
+    },
+    {
+      "chapter_index": 6,
+      "id": "ch06_cart_checkout",
+      "title_km": "កន្ត្រកទំនិញឆ្លាតវៃ និងគូប៉ុងបញ្ចុះតម្លៃ",
+      "title_en": "Interactive Mobile Cart & Promo FOODGO30",
+      "start_sec": 219.15,
+      "duration_sec": 35.37,
+      "hook_en": "Instant Cart Sync & FOODGO30 (-30% OFF) Promo Engine",
+      "capcut_zoom_keyframes": "0.15–0.45 -> 1.44x FOODGO30 Coupon Input | 0.54–0.88 -> 1.46x USD/KHR Total Breakdown",
+      "capcut_transition": "Spring Pop Zoom (0.30s)",
+      "sfx_cue": "Cash Register Cha-Ching + Pop",
+      "ai_broll_prompt": "Close-up of applying promo code FOODGO30 on mobile checkout screen with green discount badge popping in and total price dropping by 30 percent.",
+      "avatar_pose_plan": "standing -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch06_cart_checkout.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch06_cart_checkout.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch06_cart_checkout.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 7.73,
+          "text": "នៅពេលអតិថិជនចុចបន្ថែមមុខម្ហូបចូលក្នុងកន្ត្រកទំនិញ បរិមាណ និងតម្លៃសរុបត្រូវបានធ្វើបច្ចុប្បន្នភាពភ្លាមៗ។"
+        },
+        {
+          "start": 7.73,
+          "end": 15.24,
+          "text": "នៅក្នុងទំព័រ Cart អតិថិជនអាចបង្កើន ឬបន្ថយចំនួនមុខម្ហូប ពិនិត្យតម្លៃ Subtotal និងថ្លៃសេវាដឹកជញ្ជូនដោយតម្លាភាព។"
+        },
+        {
+          "start": 15.24,
+          "end": 21.1,
+          "text": "ពិសេសបំផុត ប្រព័ន្ធមានគូប៉ុងប្រូម៉ូសិនឆ្លាតវៃ ដូចជាកូដ FOODGO30 សម្រាប់ការបញ្ចុះតម្លៃ"
+        },
+        {
+          "start": 21.1,
+          "end": 25.03,
+          "text": "៣០ ភាគរយ ឬកូដ FOODGOFREE សម្រាប់ការដឹកជញ្ជូនដោយឥតគិតថ្លៃ។"
+        },
+        {
+          "start": 25.03,
+          "end": 28.82,
+          "text": "គ្រាន់តែចុចលើគូប៉ុង FOODGO30 ប្រព័ន្ធនឹងគណនាប្រាក់សន្សំ"
+        },
+        {
+          "start": 28.82,
+          "end": 34.47,
+          "text": "និងតម្លៃចុងក្រោយទាំង USD និងរៀលដោយស្វ័យប្រវត្តិ មុនពេលបន្តទៅដំណាក់កាលទូទាត់ប្រាក់!"
+        }
+      ]
+    },
+    {
+      "chapter_index": 7,
+      "id": "ch07_bakong_khqr",
+      "title_km": "ការទូទាត់ប្រាក់ឌីជីថល Bakong KHQR",
+      "title_en": "Dynamic Bakong KHQR Payment Gateway",
+      "start_sec": 254.52,
+      "duration_sec": 34.96,
+      "hook_en": "Cambodia NBC Bakong KHQR Instant Scan & Auto-Verification",
+      "capcut_zoom_keyframes": "0.16–0.54 -> 1.50x EMVCo Bakong QR Modal | 0.60–0.90 -> 1.42x Auto PAID Status",
+      "capcut_transition": "Red-to-Emerald Pulse Zoom (0.30s)",
+      "sfx_cue": "QR Scan Beep + Payment Verified Ding",
+      "ai_broll_prompt": "High-detail macro shot of Cambodia Bakong KHQR code modal on smartphone screen with live countdown timer and instant green PAID verification checkmark.",
+      "avatar_pose_plan": "standing -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch07_bakong_khqr.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch07_bakong_khqr.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch07_bakong_khqr.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 6.63,
+          "text": "ចំណុចលេចធ្លោបំផុតរបស់ FoodGo គឺការរួមបញ្ចូលប្រព័ន្ធទូទាត់ប្រាក់តាមស្តង់ដារជាតិ Bakong KHQR!"
+        },
+        {
+          "start": 6.63,
+          "end": 10.73,
+          "text": "នៅពេលអតិថិជនបញ្ជាក់ការបញ្ជាទិញ ប្រព័ន្ធ Backend នឹងបង្កើតកូដ QR"
+        },
+        {
+          "start": 10.73,
+          "end": 17.57,
+          "text": "ឌីណាមិកតាមស្តង់ដារ EMVCo TLV ដោយបញ្ចូលទឹកប្រាក់ជាក់លាក់ លេខយោងវិក្កយបត្រ និងឈ្មោះគណនីហាងដោយស្វ័យប្រវត្តិ។"
+        },
+        {
+          "start": 17.57,
+          "end": 24.61,
+          "text": "លើអេក្រង់ទូរស័ព្ទមាននាឡិការាប់ថយក្រោយយ៉ាងច្បាស់ និងគាំទ្រការស្កេនតាម Bakong App, ABA Mobile ឬ ACLEDA Mobile។"
+        },
+        {
+          "start": 24.61,
+          "end": 26.57,
+          "text": "ប្រព័ន្ធ Webhook និង Real-Time"
+        },
+        {
+          "start": 26.57,
+          "end": 34.06,
+          "text": "Polling នឹងផ្ទៀងផ្ទាត់ការបង់ប្រាក់រៀងរាល់វិនាទី ហើយប្តូរស្ថានភាពវិក្កយបត្រទៅជា PAID ភ្លាមៗនៅពេលប្រតិបត្តិការជោគជ័យ!"
+        }
+      ]
+    },
+    {
+      "chapter_index": 8,
+      "id": "ch08_orders_receipt",
+      "title_km": "ប្រវត្តិការបញ្ជាទិញ និងវិក្កយបត្រអេឡិចត្រូនិក",
+      "title_en": "Mobile Orders & E-Receipt Viewer",
+      "start_sec": 289.48,
+      "duration_sec": 32.13,
+      "hook_en": "5-Step Order Lifecycle & 1-Tap Digital E-Receipt Export",
+      "capcut_zoom_keyframes": "0.15–0.44 -> 1.40x Active Order Card | 0.52–0.88 -> 1.46x E-Receipt Modal & TXT Copy",
+      "capcut_transition": "Slide Up Reveal (0.28s)",
+      "sfx_cue": "Paper Unfold + Copy Tick",
+      "ai_broll_prompt": "Mobile screen displaying itemized bilingual digital food receipt with KHQR reference badge and one-tap copy confirmation toast.",
+      "avatar_pose_plan": "standing -> investigate -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch08_orders_receipt.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch08_orders_receipt.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch08_orders_receipt.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 8.81,
+          "text": "នៅលើទំព័រ Orders អតិថិជនអាចតាមដានរាល់ប្រវត្តិការបញ្ជាទិញទាំងអស់បានយ៉ាងងាយស្រួល ដោយបែងចែកតាម Tab Active, Completed និង Cancelled។"
+        },
+        {
+          "start": 8.81,
+          "end": 14.44,
+          "text": "រាល់ប័ណ្ណបញ្ជាទិញនីមួយៗបង្ហាញលេខកូដកុម្ម៉ង់ ស្ថានភាពបច្ចុប្បន្ន កាលបរិច្ឆេទ និងតម្លៃសរុប។"
+        },
+        {
+          "start": 14.44,
+          "end": 19.89,
+          "text": "នៅពេលចុចប៊ូតុង View Bill ប្រព័ន្ធនឹងបើកផ្ទាំងវិក្កយបត្រអេឡិចត្រូនិក Structured Summary"
+        },
+        {
+          "start": 19.89,
+          "end": 25.53,
+          "text": "Viewer ដែលបង្ហាញមុខម្ហូបលម្អិត ប្រាក់បញ្ចុះតម្លៃ ពន្ធ និងលេខយោងប្រតិបត្តិការ Bakong KHQR។"
+        },
+        {
+          "start": 25.53,
+          "end": 31.23,
+          "text": "អ្នកប្រើប្រាស់ក៏អាចចម្លងវិក្កយបត្រជា Plain TXT យ៉ាងរហ័សសម្រាប់រក្សាទុក ឬផ្ញើចែករំលែកផងដែរ។"
+        }
+      ]
+    },
+    {
+      "chapter_index": 9,
+      "id": "ch09_live_tracking",
+      "title_km": "ការតាមដានទីតាំង GPS លើផែនទីភ្នំពេញផ្ទាល់",
+      "title_en": "Live Phnom Penh Map & GPS Tracking",
+      "start_sec": 321.61,
+      "duration_sec": 33.42,
+      "hook_en": "Real-Time Phnom Penh OpenStreetMap GPS & Courier Tracking",
+      "capcut_zoom_keyframes": "0.14–0.50 -> 1.48x Phnom Penh OSM Green Route | 0.58–0.88 -> 1.42x Courier ETA Sheet",
+      "capcut_transition": "Map Zoom Dive (0.30s)",
+      "sfx_cue": "Scooter Zip + Radar Ping",
+      "ai_broll_prompt": "Live GPS map of Phnom Penh streets on smartphone with glowing green delivery route polyline and moving scooter courier marker.",
+      "avatar_pose_plan": "standing -> run -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch09_live_tracking.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch09_live_tracking.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch09_live_tracking.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 7.38,
+          "text": "បន្ទាប់ពីហាងទទួលការបញ្ជាទិញ អតិថិជនអាចបើកមើលការតាមដានទីតាំងលើផែនទី GPS ផ្ទាល់នៅទីក្រុងភ្នំពេញ!"
+        },
+        {
+          "start": 7.38,
+          "end": 14.69,
+          "text": "ផែនទី OpenStreetMap បង្ហាញទីតាំងហាងអាហារ, ទីតាំងម៉ូតូអ្នកដឹកជញ្ជូនដែលកំពុងធ្វើដំណើរក្នុងល្បឿនជាក់ស្តែង,"
+        },
+        {
+          "start": 14.69,
+          "end": 18.39,
+          "text": "ខ្សែផ្លូវ Polyline ពណ៌បៃតង និងទីតាំងផ្ទះរបស់អតិថិជន។"
+        },
+        {
+          "start": 18.39,
+          "end": 23.36,
+          "text": "នៅផ្នែកខាងក្រោមមាន Bottom Sheet បង្ហាញពេលវេលាប៉ាន់ស្មាន ETA គិតជានាទី,"
+        },
+        {
+          "start": 23.36,
+          "end": 32.52,
+          "text": "របារ 5-Step Milestone Stepper ចាប់ពីទទួលបញ្ជាទិញរហូតដល់ដឹកជញ្ជូនដល់ដៃ ព្រមទាំងប៊ូតុងទូរស័ព្ទ និងផ្ញើសារទាក់ទងអ្នកដឹកជញ្ជូនភ្លាមៗ!"
+        }
+      ]
+    },
+    {
+      "chapter_index": 10,
+      "id": "ch10_driver_portal",
+      "title_km": "ផ្ទាំងគ្រប់គ្រងសម្រាប់អ្នកបើកបរដឹកជញ្ជូន",
+      "title_en": "Mobile Driver Portal & Earnings",
+      "start_sec": 355.03,
+      "duration_sec": 32.78,
+      "hook_en": "Driver Partner Portal: Online Toggle, Trip Pool & Earnings",
+      "capcut_zoom_keyframes": "0.14–0.46 -> 1.42x Online Status & Trip Pool | 0.54–0.88 -> 1.44x Pickup/Dropoff Navigation",
+      "capcut_transition": "Fast Whip Left (0.28s)",
+      "sfx_cue": "Notification Bell + Engine Start",
+      "ai_broll_prompt": "Delivery courier smartphone dashboard showing Online toggle, active Phnom Penh delivery route card, and daily earnings counter.",
+      "avatar_pose_plan": "run -> standing",
+      "raw_clip": "media/01_raw_mobile_clips/ch10_driver_portal.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch10_driver_portal.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch10_driver_portal.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 6.63,
+          "text": "ឥឡូវនេះ សូមទស្សនាផ្ទាំង Driver Portal ដែលរចនាឡើងសម្រាប់អ្នកបើកបរដឹកជញ្ជូនលើទូរស័ព្ទដៃ!"
+        },
+        {
+          "start": 6.63,
+          "end": 12.98,
+          "text": "អ្នកបើកបរអាចបើកឬបិទស្ថានភាព Online សម្រាប់ទទួលការងារថ្មីៗ និងមើលបញ្ជីការបញ្ជាទិញសកម្មភ្លាមៗ។"
+        },
+        {
+          "start": 12.98,
+          "end": 18.77,
+          "text": "កាតដឹកជញ្ជូននីមួយៗបង្ហាញអាសយដ្ឋានទៅយកអាហារនៅហាង និងអាសយដ្ឋានដឹកជូនអតិថិជនយ៉ាងច្បាស់។"
+        },
+        {
+          "start": 18.77,
+          "end": 25.88,
+          "text": "លើសពីនេះ ផ្ទាំង Earnings អនុញ្ញាតឱ្យអ្នកដឹកជញ្ជូនពិនិត្យចំណូលប្រចាំថ្ងៃ ប្រចាំសប្តាហ៍ និងប្រវត្តិជើងដឹក"
+        },
+        {
+          "start": 25.88,
+          "end": 31.88,
+          "text": "រួមជាមួយទំព័រ Profile ដែលបង្ហាញកម្រិត Rating ព័ត៌មានយានយន្ត និងស្ថិតិដឹកជញ្ជូនប្រចាំខែ។"
+        }
+      ]
+    },
+    {
+      "chapter_index": 11,
+      "id": "ch11_owner_admin",
+      "title_km": "ផ្ទាំងគ្រប់គ្រងម្ចាស់ហាង និង Admin Console",
+      "title_en": "Mobile Admin & Telemetry Console",
+      "start_sec": 387.81,
+      "duration_sec": 32.1,
+      "hook_en": "Admin Command Center: System Health, Revenue & Fleet Dispatch",
+      "capcut_zoom_keyframes": "0.15–0.46 -> 1.44x Core Health Monitor | 0.54–0.88 -> 1.42x Revenue ($487.49) & Orders",
+      "capcut_transition": "Cyber Wipe (0.30s)",
+      "sfx_cue": "Data Stream Hum + Metric Tick",
+      "ai_broll_prompt": "Mobile admin command center showing real-time PostgreSQL and Daphne health indicators, $487.49 revenue analytics, and active courier fleet list.",
+      "avatar_pose_plan": "standing -> find",
+      "raw_clip": "media/01_raw_mobile_clips/ch11_owner_admin.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch11_owner_admin.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch11_owner_admin.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 6.5,
+          "text": "សម្រាប់ម្ចាស់ហាង និងអ្នកគ្រប់គ្រងប្រព័ន្ធ FoodGo មានផ្ទាំង Admin Mobile Console ដ៏សម្បូរបែប។"
+        },
+        {
+          "start": 6.5,
+          "end": 11.86,
+          "text": "នៅលើអេក្រង់ទូរស័ព្ទ អ្នកគ្រប់គ្រងអាចពិនិត្យទិន្នន័យសង្ខេបសំខាន់ៗភ្លាមៗ ដូចជាចំណូលសរុប"
+        },
+        {
+          "start": 11.86,
+          "end": 15.64,
+          "text": "ចំនួនការបញ្ជាទិញសកម្ម ហាងដៃគូ និងអ្នកដឹកជញ្ជូនកំពុងបម្រើការ។"
+        },
+        {
+          "start": 15.64,
+          "end": 22.25,
+          "text": "ផ្ទាំង System Health ត្រួតពិនិត្យសុខភាព Server, PostgreSQL Database, Redis Cache និង WebSocket Pipeline ។"
+        },
+        {
+          "start": 22.25,
+          "end": 23.2,
+          "text": "ចំណែក Tab Fleet"
+        },
+        {
+          "start": 23.2,
+          "end": 31.2,
+          "text": "និង Orders អនុញ្ញាតឱ្យតាមដានលំហូរការងារទូទាំងប្រព័ន្ធបានគ្រប់ទីកន្លែង ជួយបង្កើនប្រសិទ្ធភាពគ្រប់គ្រងអាជីវកម្មឱ្យដំណើរការដោយរលូន!"
+        }
+      ]
+    },
+    {
+      "chapter_index": 12,
+      "id": "ch12_qa_outro",
+      "title_km": "៤. លទ្ធផល និងសេចក្តីសន្និដ្ឋាន (Results & Conclusion)",
+      "title_en": "Section 4: Results, Conclusion & ACLEDA University Credits",
+      "start_sec": 419.91,
+      "duration_sec": 65.39,
+      "hook_en": "100% Verified Production QA & ACLEDA University Team Credits",
+      "capcut_zoom_keyframes": "0.18–0.52 -> 1.14x QA Scorecard | 0.65–1.00 -> 1.00x Team Outro & Wave",
+      "capcut_transition": "Cinematic Fade to Obsidian (0.45s)",
+      "sfx_cue": "Orchestral Swell + Final Chime",
+      "ai_broll_prompt": "Cinematic finale screen celebrating FoodGo Mobile App by ACLEDA University of Business team with 0 errors badge and waving Chibi Minato presenter.",
+      "avatar_pose_plan": "investigate -> find -> standing (wave)",
+      "raw_clip": "media/01_raw_mobile_clips/ch12_qa_outro.mp4",
+      "recut_clip": "media/05_capcut_recut_chapters/ch12_qa_outro.mp4",
+      "voiceover_mp3": "media/02_khmer_voiceover/ch12_qa_outro.mp3",
+      "subtitle_cues": [
+        {
+          "start": 0.7,
+          "end": 6.31,
+          "text": "ឥឡូវនេះ សូមចូលដល់ផ្នែកទីបួនគឺ លទ្ធផល និងសេចក្តីសន្និដ្ឋាន Results and Conclusion!"
+        },
+        {
+          "start": 6.31,
+          "end": 18.71,
+          "text": "ផ្អែកលើលទ្ធផលការសាកល្បង និងការផ្ទៀងផ្ទាត់គុណភាពកម្រិត Production កម្មវិធី FoodGo ទទួលបានជោគជ័យយ៉ាងត្រចះត្រចង់៖ ការធ្វើតេស្ត Backend Django ចំនួន ២២១ Tests ទទួលបានជោគជ័យ ១០០ ភាគរយ,"
+        },
+        {
+          "start": 18.71,
+          "end": 27.85,
+          "text": "ការធ្វើតេស្ត Flutter ចំនួន ២៣៥ Tests ទទួលបានជោគជ័យ ១០០ ភាគរយ សរុប ៤៥៦ Tests Pass ជាមួយការត្រួតពិនិត្យ Flutter Analyze មានសូន្យកំហុស។"
+        },
+        {
+          "start": 27.85,
+          "end": 35.61,
+          "text": "សេចក្តីសន្និដ្ឋាន៖ FoodGo បានដោះស្រាយបញ្ហាការបញ្ជាទិញអាហារតាមទូរស័ព្ទយ៉ាងពេញលេញ ទាំងភាសាខ្មែរ រូបិយប័ណ្ណ USD និង"
+        },
+        {
+          "start": 35.61,
+          "end": 39.56,
+          "text": "KHR, ការបង់ប្រាក់ Bakong KHQR ភ្លាមៗ និងផែនទី GPS ផ្ទាល់។"
+        },
+        {
+          "start": 39.56,
+          "end": 46.69,
+          "text": "ទិសដៅអនាគត គម្រោងនឹងបន្ថែមប្រព័ន្ធ AI ណែនាំមុខម្ហូប និងការដាក់ឱ្យប្រើប្រាស់លើ Play Store និង App Store។"
+        },
+        {
+          "start": 46.69,
+          "end": 53.96,
+          "text": "តាងនាមក្រុមនិស្សិតអភិវឌ្ឍន៍នៃ សាកលវិទ្យាល័យ ពាណិជ្ជសាស្រ្ត អេស៊ីលីដា រួមមាន Em Ratana, Hen Yaungkuy, Than"
+        },
+        {
+          "start": 53.96,
+          "end": 62.83,
+          "text": "Sombath Borarat, Cheang borin, និង Ly KimChhun សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះលោកគ្រូ អ្នកគ្រូ គណៈកម្មការ និងទស្សនិកជនទាំងអស់!"
+        },
+        {
+          "start": 62.83,
+          "end": 64.49,
+          "text": "សូមអរគុណ និងសូមជម្រាបលា!"
+        }
+      ]
+    }
+  ]
+}

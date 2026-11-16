@@ -10,16 +10,84 @@ import '../models/payment_model.dart';
 class FlutterPaymentService {
   final ApiService _api = ApiService();
 
+  Future<List<PaymentMethodConfig>> getAvailablePaymentMethods() async {
+    try {
+      final response = await _api.get('payments/methods/');
+      if (response is List) {
+        return response
+            .map(
+              (item) => PaymentMethodConfig.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching payment methods: $e');
+    }
+    return const [
+      PaymentMethodConfig(
+        code: 'BAKONG',
+        name: 'Bakong KHQR',
+        khmerName: 'Bakong KHQR (ធនាគារជាតិនៃកម្ពុជា)',
+        method: 'KHQR',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD', 'KHR'],
+        icon: 'bakong_logo',
+        description: 'National Bank of Cambodia universal KHQR rail',
+      ),
+      PaymentMethodConfig(
+        code: 'CARD',
+        name: 'Credit / Debit Card',
+        khmerName: 'កាតឥណទាន / ឥណពន្ធ (Card)',
+        method: 'CARD',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD'],
+        icon: 'card',
+        description: 'Visa, Mastercard, JCB, UnionPay',
+      ),
+      PaymentMethodConfig(
+        code: 'COD',
+        name: 'Cash on Delivery',
+        khmerName: 'ទូទាត់ជាសាច់ប្រាក់ពេលដឹកដល់ (Cash on Delivery)',
+        method: 'COD',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD', 'KHR'],
+        icon: 'cash',
+        description: 'Pay driver in cash upon food arrival',
+      ),
+      PaymentMethodConfig(
+        code: 'WALLET',
+        name: 'FoodGo Wallet',
+        khmerName: 'កាបូបលុយ FoodGo (1-Tap Pay)',
+        method: 'WALLET',
+        isEnabled: true,
+        isConfigured: true,
+        currencies: ['USD'],
+        icon: 'wallet',
+        description: 'Instant 1-tap payment from FoodGo balance',
+      ),
+    ];
+  }
+
   Future<PaymentModel> createPayment({
     required int orderId,
     required String provider,
     String currency = 'USD',
+    bool regenerate = false,
+    Map<String, dynamic>? cardDetails,
   }) async {
-    final response = await _api.post('payments/create/', {
+    final Map<String, dynamic> payload = {
       'order_id': orderId,
       'provider': provider,
       'currency': currency,
-    });
+      if (regenerate) 'regenerate': true,
+      ...?cardDetails,
+    };
+    final response = await _api.post('payments/create/', payload);
     return PaymentModel.fromJson(response);
   }
 
@@ -28,14 +96,32 @@ class FlutterPaymentService {
     return PaymentModel.fromJson(response);
   }
 
+  Future<PaymentModel?> getPaymentByOrder(int orderId) async {
+    try {
+      final response = await _api.get('payments/order/$orderId/');
+      if (response != null && response is Map<String, dynamic>) {
+        return PaymentModel.fromJson(response);
+      }
+    } catch (e) {
+      debugPrint('Error fetching payment for order $orderId: $e');
+    }
+    return null;
+  }
+
+  /// Reads the authoritative payment status from the backend.
+  ///
+  /// There is deliberately no client-side "mark as paid" path: payment
+  /// confirmation can only come from the provider callback/webhook or official bank API.
   Future<PaymentModel> getPaymentStatus(
     int paymentId, {
-    bool simulate = false,
+    String? qrPayload,
   }) async {
-    final body = simulate
-        ? {'simulate': true, 'status': 'PAID'}
-        : <String, dynamic>{};
-    final response = await _api.post('payments/$paymentId/status/', body);
+    final response = await _api.post(
+      'payments/$paymentId/status/',
+      <String, dynamic>{
+        if (qrPayload != null && qrPayload.isNotEmpty) 'qr_payload': qrPayload,
+      },
+    );
     return PaymentModel.fromJson(response);
   }
 
@@ -51,12 +137,12 @@ class FlutterPaymentService {
     WebSocketChannel? channel;
     try {
       final token = await SecureStorage().getAccessToken() ?? '';
+      if (token.isEmpty) {
+        throw StateError('Sign in required to subscribe to payment status.');
+      }
       final wsBase = customWsUrl ?? AppConfig.wsPaymentBaseUrl;
       final normalizedWsBase = wsBase.endsWith('/') ? wsBase : '$wsBase/';
-      final tokenParam = token.isNotEmpty
-          ? '?token=$token'
-          : '?token=simulator-token';
-      final wsUri = Uri.parse('$normalizedWsBase$paymentId/$tokenParam');
+      final wsUri = Uri.parse('$normalizedWsBase$paymentId/?token=$token');
 
       channel = WebSocketChannel.connect(wsUri);
       await for (final rawMessage in channel.stream) {

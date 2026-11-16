@@ -4,7 +4,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 60,
-      "excludeFiles": "{staticfiles/**,media/**,tests*/**}"
+      "excludeFiles": "{venv/**,.venv/**,staticfiles/**,media/**,db.sqlite3,**/*.sqlite3,**/*.db,tests*/**,core/tests*.py}"
     }
   },
   "rewrites": [

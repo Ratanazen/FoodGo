@@ -29,7 +29,7 @@ class GlassQuantityControl extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             quantity.toString(),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(width: 12),
           InkWell(onTap: onIncrement, child: const Icon(Icons.add, size: 20)),

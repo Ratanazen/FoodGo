@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -12,11 +10,13 @@ import '../../../providers/cart_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/theme/theme_styles.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/shimmer_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../widgets/svg_icon.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,17 +30,15 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
   String _selectedSort = 'All';
   final bool _showActiveOrderFloater = true;
-  int _activeOrderEta = 11;
-  Timer? _etaUpdateTimer;
 
   // Healthy & Organic Quick Categories
   final List<Map<String, dynamic>> _quickCategories = [
-    {'name': 'All', 'icon': Icons.restaurant_rounded},
-    {'name': 'Salad', 'icon': Icons.eco_rounded},
-    {'name': 'Fruit Salad', 'icon': Icons.apple_rounded},
-    {'name': 'Healthy Bowls', 'icon': Icons.rice_bowl_rounded},
-    {'name': 'Sushi', 'icon': Icons.set_meal_rounded},
-    {'name': 'Chicken', 'icon': Icons.kebab_dining_rounded},
+    {'name': 'All', 'icon': AppIcons.foodCategory},
+    {'name': 'Salad', 'icon': AppIcons.salad},
+    {'name': 'Fruit Salad', 'icon': AppIcons.healthy},
+    {'name': 'Healthy Bowls', 'icon': AppIcons.asian},
+    {'name': 'Sushi', 'icon': AppIcons.sushi},
+    {'name': 'Chicken', 'icon': AppIcons.chicken},
   ];
   int _selectedQuickCategoryIndex = 0;
 
@@ -249,13 +247,13 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<Map<String, dynamic>> _categories = [
-    {'name': 'All', 'icon': Icons.restaurant_rounded},
-    {'name': 'Burger', 'icon': Icons.lunch_dining_rounded},
-    {'name': 'Pizza', 'icon': Icons.local_pizza_rounded},
-    {'name': 'Sushi', 'icon': Icons.set_meal_rounded},
-    {'name': 'Chicken', 'icon': Icons.kebab_dining_rounded},
-    {'name': 'Drinks', 'icon': Icons.local_drink_rounded},
-    {'name': 'Dessert', 'icon': Icons.cake_rounded},
+    {'name': 'All', 'icon': AppIcons.foodCategory},
+    {'name': 'Burger', 'icon': AppIcons.burger},
+    {'name': 'Pizza', 'icon': AppIcons.pizza},
+    {'name': 'Sushi', 'icon': AppIcons.sushi},
+    {'name': 'Chicken', 'icon': AppIcons.chicken},
+    {'name': 'Drinks', 'icon': AppIcons.drink},
+    {'name': 'Dessert', 'icon': AppIcons.dessert},
   ];
 
   final List<Map<String, dynamic>> _deals = [
@@ -284,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Map<String, dynamic>> _fastDeliveryRestaurants = [
     {
-      'id': 101,
+      'id': 1,
       'name': 'Tealive - BKK1 Phnom Penh',
       'discount': '5% OFF',
       'rating': 4.6,
@@ -294,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'https://images.unsplash.com/photo-1558857563-b371033873b8?w=400&q=80',
     },
     {
-      'id': 102,
+      'id': 2,
       'name': 'KFC - Norodom Boulevard',
       'discount': '20% OFF',
       'rating': 4.5,
@@ -305,26 +303,6 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    // Simulate live dynamic ETA countdown (from 11 min down to 9 min like in video)
-    _etaUpdateTimer = Timer.periodic(const Duration(seconds: 12), (t) {
-      if (!mounted) return;
-      setState(() {
-        if (_activeOrderEta > 8) {
-          _activeOrderEta--;
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _etaUpdateTimer?.cancel();
-    super.dispose();
-  }
-
   void _claimCoupon(String code) {
     final cart = context.read<CartProvider>();
     final applied = cart.applyPromoCode(code);
@@ -333,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const Icon(AppIcons.successFilled, color: Colors.white, size: 20),
             const SizedBox(width: 8),
             Text(
               applied
@@ -404,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           // ── Popular Menu Section ──────────────────────────
                           _buildSectionHeader(
-                            'Popular Menu',
+                            context.tr('home.popularMenu'),
                             () => context.push('/explore'),
                           ),
                           const SizedBox(height: 12),
@@ -420,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           // ── Categories Section Header ("Categories" | "See All") ──
                           _buildSectionHeader(
-                            'Categories',
+                            context.tr('home.categories'),
                             () => context.push('/explore'),
                           ),
                           const SizedBox(height: 12),
@@ -436,7 +414,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                           const SizedBox(height: 24),
 
-                          // ── "Recomended" Section Header ───────────────────
+                          // ── "Recommended" Section Header ───────────────────
                           _buildRecommendedHeader(
                             context,
                             isDark,
@@ -459,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         delegate: SliverChildListDelegate([
                           const SizedBox(height: 28),
                           _buildSectionHeader(
-                            'Deals for you',
+                            context.tr('home.dealsForYou'),
                             () => context.push('/explore'),
                           ),
                           const SizedBox(height: 12),
@@ -470,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 24),
 
                           _buildSectionHeader(
-                            'Restaurants near you',
+                            context.tr('home.restaurantsNearYou'),
                             () => context.push('/explore'),
                           ),
                           const SizedBox(height: 8),
@@ -518,11 +496,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final topPadding = MediaQuery.of(context).padding.top;
     final activeAddress = context.watch<AddressProvider>().selectedAddress;
     final userProvider = context.watch<UserProvider>();
-    final user = userProvider.user;
-    final avatarUrl = user?['avatar_url'] ?? user?['avatar'];
-    final username = (user?['first_name'] as String?)?.isNotEmpty == true
-        ? user!['first_name'] as String
-        : (user?['username'] as String? ?? 'Foodie');
+    final avatarUrl = userProvider.avatarUrl;
+    final displayName = userProvider.displayName;
+    final initials = userProvider.initials;
     final String locationName =
         (activeAddress?.city.isNotEmpty == true &&
             activeAddress?.street.isNotEmpty == true)
@@ -532,7 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : 'Phnom Penh, Cambodia');
 
     return Container(
-      color: isDark ? GlassTheme.surfaceDark : Colors.white,
+      color: isDark ? GlassTheme.dynamicSurfaceDark : Colors.white,
       padding: EdgeInsets.only(
         top: topPadding + 10,
         left: 20,
@@ -546,66 +522,98 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Left: Location Icon + "Your Location" + City dropdown
-              AnimatedPressable(
-                pressedScale: 0.96,
-                onTap: () => context.push('/addresses'),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: const BoxDecoration(
-                        color: GlassTheme.lightGreenSurface,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.location_on_rounded,
-                        color: GlassTheme.primaryGreen,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Your Location',
-                          style: TextStyle(
-                            color: isDark
-                                ? Colors.white60
-                                : const Color(0xFF9CA3AF),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
+              Expanded(
+                child: AnimatedPressable(
+                  pressedScale: 0.96,
+                  onTap: () => context.push('/addresses'),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(height: 2),
-                        Row(
+                        child: Icon(
+                          AppIcons.location,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              locationName,
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF111827),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const FoodGoLogo(size: 16),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    displayName != 'Foodie' &&
+                                            displayName != 'Guest'
+                                        ? 'Hi, $displayName'
+                                        : 'Your Location',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color:
+                                              AppTypography.secondaryTextColor(
+                                                isDark
+                                                    ? Brightness.dark
+                                                    : Brightness.light,
+                                              ),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: isDark
-                                  ? Colors.white70
-                                  : const Color(0xFF374151),
-                              size: 18,
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    locationName,
+                                    maxLines: 2,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(
+                                          color: AppTypography.primaryTextColor(
+                                            isDark
+                                                ? Brightness.dark
+                                                : Brightness.light,
+                                          ),
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.25,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  AppIcons.chevronDown,
+                                  color: AppTypography.secondaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
+                                  size: 18,
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
 
               // Right: Notification Bell & Profile Avatar
               Row(
@@ -630,7 +638,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             alignment: Alignment.center,
                             children: [
                               Icon(
-                                Icons.notifications_none_rounded,
+                                AppIcons.notifications,
                                 color: isDark
                                     ? Colors.white
                                     : const Color(0xFF1F2937),
@@ -664,7 +672,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: GlassTheme.primaryGreen,
+                          color: Theme.of(context).colorScheme.primary,
                           width: 2,
                         ),
                       ),
@@ -677,42 +685,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                 placeholder: (ctx, url) => Container(
                                   color: Colors.grey[200],
                                   alignment: Alignment.center,
-                                  child: const SizedBox(
+                                  child: SizedBox(
                                     width: 14,
                                     height: 14,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: GlassTheme.primaryGreen,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                     ),
                                   ),
                                 ),
                                 errorWidget: (ctx, url, err) => Container(
-                                  color: GlassTheme.lightGreenSurface,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.15),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    username.isNotEmpty
-                                        ? username[0].toUpperCase()
-                                        : 'F',
-                                    style: const TextStyle(
-                                      color: GlassTheme.primaryGreen,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                                    initials,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                   ),
                                 ),
                               )
                             : Container(
-                                color: GlassTheme.lightGreenSurface,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.15),
                                 alignment: Alignment.center,
                                 child: Text(
-                                  username.isNotEmpty
-                                      ? username[0].toUpperCase()
-                                      : 'F',
-                                  style: const TextStyle(
-                                    color: GlassTheme.primaryGreen,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
+                                  initials,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                               ),
                       ),
@@ -747,26 +763,28 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
                   Icon(
-                    Icons.search_rounded,
-                    color: isDark ? Colors.white60 : const Color(0xFF9CA3AF),
+                    AppIcons.search,
+                    color: AppTypography.secondaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
                     size: 20,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Search food...',
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.white60
-                            : const Color(0xFF9CA3AF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
+                      context.tr('home.search'),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTypography.secondaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                     ),
                   ),
                   Icon(
-                    Icons.tune_rounded,
-                    color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+                    AppIcons.filter,
+                    color: AppTypography.secondaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
                     size: 18,
                   ),
                 ],
@@ -827,25 +845,21 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   '50% OFF',
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: 22,
-                    letterSpacing: -0.5,
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
+                Text(
                   'Your First Healthy Meal!',
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.white,
-                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 12),
                 AnimatedPressable(
@@ -867,21 +881,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'Buy Now',
-                          style: TextStyle(
-                            color: Color(0xFF16A34A),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: const Color(0xFF15803D),
+                                fontWeight: FontWeight.w800,
+                              ),
                         ),
-                        SizedBox(width: 4),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Color(0xFF16A34A),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          AppIcons.forward,
+                          color: Color(0xFF15803D),
                           size: 14,
                         ),
                       ],
@@ -923,7 +937,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     errorWidget: (c, u, e) => Container(
                       color: Colors.white24,
                       child: const Icon(
-                        Icons.eco,
+                        AppIcons.healthy,
                         color: Colors.white,
                         size: 40,
                       ),
@@ -960,21 +974,17 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 165,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                color: isDark
+                    ? GlassTheme.dynamicSurfaceCardDark
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
+                      ? GlassTheme.dynamicBorderDark
                       : const Color(0xFFE5E7EB),
                   width: 1.0,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -996,7 +1006,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               errorWidget: (context, url, error) => Container(
                                 color: Colors.grey.withValues(alpha: 0.1),
                                 child: const Icon(
-                                  Icons.eco,
+                                  AppIcons.healthy,
                                   color: GlassTheme.primaryGreen,
                                   size: 32,
                                 ),
@@ -1024,8 +1034,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: Icon(
                               isFav
-                                  ? Icons.favorite
-                                  : Icons.favorite_border_rounded,
+                                  ? AppIcons.favorite
+                                  : AppIcons.favoriteBorder,
                               size: 16,
                               color: isFav
                                   ? GlassTheme.primaryGreen
@@ -1043,13 +1053,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Item Name
                   Text(
                     item['name'] as String,
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: isDark ? Colors.white : const Color(0xFF111827),
+                      color: AppTypography.primaryTextColor(
+                        isDark ? Brightness.dark : Brightness.light,
+                      ),
                     ),
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
 
@@ -1057,29 +1067,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     children: [
                       const Icon(
-                        Icons.star_rounded,
+                        AppIcons.star,
                         color: Color(0xFFFBBF24),
                         size: 15,
                       ),
                       const SizedBox(width: 3),
                       Text(
                         '4.8',
-                        style: TextStyle(
-                          fontSize: 11,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF6B7280),
+                          color: AppTypography.secondaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        '• 15 min',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark
-                              ? Colors.white38
-                              : const Color(0xFF9CA3AF),
+                      Flexible(
+                        child: Text(
+                          '• 15 min',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppTypography.secondaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                              ),
                         ),
                       ),
                     ],
@@ -1091,13 +1102,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        '\$${(item['price'] as double).toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 15,
-                          color: GlassTheme.primaryGreen,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            KhmerCurrency.formatUsd(item['price'] as double),
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark
+                                      ? const Color(0xFF4ADE80)
+                                      : const Color(0xFF15803D),
+                                ),
+                          ),
+                          Text(
+                            KhmerCurrency.formatKhr(item['price'] as double),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTypography.secondaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
+                                ),
+                          ),
+                        ],
                       ),
                       AnimatedPressable(
                         pressedScale: 0.88,
@@ -1107,12 +1135,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             item['name'] as String,
                             item['price'] as double,
                             item['image'] as String,
+                            restaurantId: item['restaurantId'] as int? ?? 1,
+                            restaurantName:
+                                item['restaurantName'] as String? ??
+                                'Glass Burger',
                           );
                           ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('${item['name']} added to cart!'),
-                              backgroundColor: GlassTheme.primaryGreen,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
                               duration: const Duration(seconds: 2),
                             ),
                           );
@@ -1120,12 +1154,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           width: 26,
                           height: 26,
-                          decoration: const BoxDecoration(
-                            color: GlassTheme.primaryGreen,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.add_rounded,
+                            AppIcons.add,
                             color: Colors.white,
                             size: 16,
                           ),
@@ -1174,13 +1208,15 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? Theme.of(context).colorScheme.primary
-                    : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
+                    : (isDark
+                          ? GlassTheme.dynamicSurfaceCardDark
+                          : Colors.white),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: isSelected
                       ? Theme.of(context).colorScheme.primary
                       : (isDark
-                            ? Colors.white.withValues(alpha: 0.12)
+                            ? GlassTheme.dynamicBorderDark
                             : const Color(0xFFE5E7EB)),
                   width: isSelected ? 1.6 : 1.0,
                 ),
@@ -1214,17 +1250,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 6),
                   Text(
                     cat['name'] as String,
-                    style: TextStyle(
-                      fontSize: 12,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: isSelected
                           ? FontWeight.w800
                           : FontWeight.w600,
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? Colors.white70 : const Color(0xFF616161)),
+                          : AppTypography.secondaryTextColor(
+                              isDark ? Brightness.dark : Brightness.light,
+                            ),
                     ),
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -1236,10 +1273,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 4. "Recomended" Section Header (Mockup Style)
+  // 4. "Recommended" Section Header (Mockup Style)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildRecommendedHeader(BuildContext context, bool isDark) {
-    return _buildSectionHeader('Recomended', () => context.push('/explore'));
+    return _buildSectionHeader(
+      context.tr('home.recommended'),
+      () => context.push('/explore'),
+    );
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -1302,23 +1342,17 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  color: isDark
+                      ? GlassTheme.dynamicSurfaceCardDark
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isDark
-                        ? Colors.white.withValues(alpha: 0.12)
+                        ? GlassTheme.dynamicBorderDark
                         : const Color(0xFFE5E7EB),
                     width: 1.0,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(
-                        alpha: isDark ? 0.25 : 0.05,
-                      ),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1340,9 +1374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            isFav
-                                ? Icons.favorite
-                                : Icons.favorite_border_rounded,
+                            isFav ? AppIcons.favorite : AppIcons.favoriteBorder,
                             size: 16,
                             color: isFav
                                 ? GlassTheme.primaryGreen
@@ -1370,7 +1402,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               errorWidget: (context, url, error) => Container(
                                 color: Colors.grey.withValues(alpha: 0.1),
                                 child: const Icon(
-                                  Icons.eco,
+                                  AppIcons.healthy,
                                   size: 32,
                                   color: GlassTheme.primaryGreen,
                                 ),
@@ -1385,24 +1417,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Item Name
                     Text(
                       item['name'] as String,
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
+                        color: AppTypography.primaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
 
                     // Subtitle
                     Text(
                       item['subtitle'] as String,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? Colors.grey[400]
-                            : const Color(0xFF8E8E93),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppTypography.secondaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1419,21 +1450,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               '\$${(item['price'] as double).toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 15,
-                                color: GlassTheme.primaryGreen,
-                              ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark
+                                        ? const Color(0xFF4ADE80)
+                                        : const Color(0xFF15803D),
+                                  ),
                             ),
                             Text(
                               KhmerCurrency.formatKhr(item['price'] as double),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? Colors.white54
-                                    : const Color(0xFF6B7280),
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTypography.secondaryTextColor(
+                                      isDark
+                                          ? Brightness.dark
+                                          : Brightness.light,
+                                    ),
+                                  ),
                             ),
                           ],
                         ),
@@ -1445,6 +1480,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               item['name'] as String,
                               item['price'] as double,
                               item['image'] as String,
+                              restaurantId: item['restaurantId'] as int? ?? 1,
+                              restaurantName:
+                                  item['restaurantName'] as String? ??
+                                  'Glass Burger',
                             );
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -1452,7 +1491,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 content: Row(
                                   children: [
                                     const Icon(
-                                      Icons.check_circle,
+                                      AppIcons.successFilled,
                                       color: Colors.white,
                                       size: 20,
                                     ),
@@ -1483,7 +1522,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
-                              Icons.add_rounded,
+                              AppIcons.add,
                               color: Colors.white,
                               size: 18,
                             ),
@@ -1520,20 +1559,16 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: isDark
-                  ? GlassTheme.surfaceCardDark
+                  ? GlassTheme.dynamicSurfaceCardDark
                   : const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.08),
+                color: isDark
+                    ? GlassTheme.dynamicBorderDark
+                    : Colors.white.withValues(alpha: 0.08),
                 width: 1.0,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.16),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
             ),
             child: Row(
               children: [
@@ -1544,9 +1579,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         deal['label'] ?? 'YOUR WHOLE ORDER',
-                        style: const TextStyle(
-                          color: Color(0xFFB0B0B0),
-                          fontSize: 10,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: const Color(0xFFD1D5DB),
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                         ),
@@ -1554,12 +1588,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 3),
                       Text(
                         deal['discount'] ?? '30% OFF',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
-                        ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -1578,12 +1611,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: Text(
                               deal['code'] ?? 'FOODIE30',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -1611,14 +1644,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ],
                               ),
-                              child: const Text(
+                              child: Text(
                                 'Claim',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                  letterSpacing: 0.3,
-                                ),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.3,
+                                    ),
                               ),
                             ),
                           ),
@@ -1649,16 +1682,20 @@ class _HomeScreenState extends State<HomeScreen> {
   // Fast Delivery: 20 min or less (TikTok Signature Section)
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildFastDeliverySection(bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Fast delivery · 20 min or less',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppTypography.primaryTextColor(brightness),
+          ),
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 155,
+          height: 164,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: _fastDeliveryRestaurants.length,
@@ -1668,18 +1705,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 175,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  color: isDark
+                      ? GlassTheme.dynamicSurfaceCardDark
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                    color: isDark
+                        ? GlassTheme.dynamicBorderDark
+                        : const Color(0xFFEEEEEE),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+                  boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1711,11 +1746,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: Text(
                               item['discount'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                         ),
@@ -1728,18 +1763,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Text(
                             item['name'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTypography.primaryTextColor(
+                                    brightness,
+                                  ),
+                                ),
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 3),
                           Row(
                             children: [
                               const Icon(
-                                Icons.star,
+                                AppIcons.star,
                                 color: Color(0xFFFFB300),
                                 size: 12,
                               ),
@@ -1747,12 +1784,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               Flexible(
                                 child: Text(
                                   '${item['rating']} · ${item['timeMin']} min · ${item['distanceKm']} km',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: GlassTheme.textMuted,
-                                  ),
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: AppTypography.secondaryTextColor(
+                                          brightness,
+                                        ),
+                                      ),
                                   maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -1774,14 +1812,15 @@ class _HomeScreenState extends State<HomeScreen> {
   // Sorting Filter Chips
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildSortingChips(bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     const sorts = [
       {'name': 'All', 'icon': null},
-      {'name': 'Top Rated', 'icon': Icons.star_rounded},
-      {'name': 'Fastest', 'icon': Icons.bolt_rounded},
-      {'name': 'Free Delivery', 'icon': Icons.delivery_dining_rounded},
-      {'name': r'$', 'icon': Icons.attach_money_rounded},
-      {'name': r'$$', 'icon': Icons.payments_outlined},
-      {'name': r'$$$', 'icon': Icons.workspace_premium_rounded},
+      {'name': 'Top Rated', 'icon': AppIcons.star},
+      {'name': 'Fastest', 'icon': AppIcons.fastDelivery},
+      {'name': 'Free Delivery', 'icon': AppIcons.delivery},
+      {'name': r'$', 'icon': AppIcons.discount},
+      {'name': r'$$', 'icon': AppIcons.payment},
+      {'name': r'$$$', 'icon': AppIcons.sparkles},
     ];
 
     return SingleChildScrollView(
@@ -1800,7 +1839,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 16,
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                          : AppTypography.secondaryTextColor(brightness),
                     )
                   : null,
               label: Text(sort),
@@ -1810,12 +1849,11 @@ class _HomeScreenState extends State<HomeScreen> {
               backgroundColor: isDark
                   ? Colors.white.withValues(alpha: 0.08)
                   : Colors.white,
-              labelStyle: TextStyle(
+              labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? Colors.white70 : const Color(0xFF444444)),
+                    : AppTypography.primaryTextColor(brightness),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 12,
               ),
               side: BorderSide(
                 color: isSelected
@@ -1934,14 +1972,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.storefront_outlined,
+                      AppIcons.restaurants,
                       size: 48,
                       color: Colors.grey,
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'No restaurants match this category.',
-                      style: TextStyle(color: Colors.grey),
+                    Text(
+                      provider.hasError
+                          ? (provider.errorMessage ??
+                                'Could not load restaurants.')
+                          : 'No restaurants match this category.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextButton.icon(
@@ -1953,13 +1997,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         provider.fetchRestaurants();
                       },
                       icon: Icon(
-                        Icons.refresh,
-                        color: Theme.of(context).colorScheme.primary,
+                        AppIcons.refresh,
+                        color: isDark
+                            ? Theme.of(context).colorScheme.primary
+                            : GlassTheme.dynamicPrimaryDark,
                       ),
                       label: Text(
-                        'Reset Filter',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                        provider.hasError ? 'Retry' : 'Reset Filter',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: isDark
+                              ? Theme.of(context).colorScheme.primary
+                              : GlassTheme.dynamicPrimaryDark,
                         ),
                       ),
                     ),
@@ -2026,21 +2074,15 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () => context.push('/restaurant/$id'),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+          color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.12)
+                ? GlassTheme.dynamicBorderDark
                 : const Color(0xFFE5E7EB),
             width: 1.0,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2092,10 +2134,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Text(
                       discountText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
@@ -2123,7 +2164,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        isFavorite
+                            ? AppIcons.favorite
+                            : AppIcons.favoriteBorder,
                         color: isFavorite
                             ? const Color(0xFFFF5252)
                             : Colors.white,
@@ -2143,46 +2186,47 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                      color: isDark ? Colors.white : const Color(0xFF222222),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppTypography.primaryTextColor(
+                        isDark ? Brightness.dark : Brightness.light,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 5),
 
                   // Rating • Delivery Time • Distance
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.star,
-                        color: Color(0xFFFFB300),
+                      Icon(
+                        AppIcons.star,
+                        color: isDark
+                            ? const Color(0xFFFBBF24)
+                            : const Color(0xFFB45309),
                         size: 13,
                       ),
                       const SizedBox(width: 3),
                       Text(
                         rating.toStringAsFixed(1),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF444444),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                         ),
                       ),
-                      Flexible(
+                      Expanded(
                         child: Text(
                           ' • ${timeMin}m • ${distanceKm.toStringAsFixed(1)}km',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark
-                                ? Colors.white54
-                                : const Color(0xFF757575),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppTypography.secondaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                              ),
+                          maxLines: 2,
                         ),
                       ),
                     ],
@@ -2194,15 +2238,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     fee == 0.0
                         ? 'Free Delivery'
                         : 'Delivery ${KhmerCurrency.formatDualApprox(fee)}',
-                    style: TextStyle(
-                      fontSize: 10,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: fee == 0.0
-                          ? Theme.of(context).colorScheme.primary
-                          : GlassTheme.textMuted,
+                          ? (isDark
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFF15803D))
+                          : AppTypography.secondaryTextColor(
+                              isDark ? Brightness.dark : Brightness.light,
+                            ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ],
               ),
@@ -2257,10 +2303,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Text(
         letter,
-        style: TextStyle(
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: fg,
-          fontSize: letter.length > 2 ? 8 : 10,
           fontWeight: FontWeight.w900,
+          height: 1.0,
         ),
       ),
     );
@@ -2282,10 +2328,20 @@ class _HomeScreenState extends State<HomeScreen> {
       return const SizedBox.shrink();
     }
 
-    final activeOrderId = activeNotif.orderId?.toString() ?? '1024';
+    final data = activeNotif.data;
     final courierTitle = activeNotif.title;
-    final courierSub =
-        '${activeNotif.data['restaurant_name'] ?? 'FoodGo'} • Arriving in ${_activeOrderEta}m';
+    final restaurantName = data['restaurant_name']?.toString();
+    final etaRaw =
+        data['eta_minutes'] ?? data['eta'] ?? data['estimated_minutes'];
+    final etaMinutes = int.tryParse(etaRaw?.toString() ?? '');
+    final courierSub = restaurantName != null && restaurantName.isNotEmpty
+        ? (etaMinutes != null
+              ? '$restaurantName • ETA $etaMinutes min'
+              : restaurantName)
+        : activeNotif.message;
+    final driverAvatar = data['driver_avatar']?.toString();
+    final driverOnline = data['driver_online'] == true;
+    final orderId = activeNotif.orderId;
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= 800;
@@ -2297,11 +2353,11 @@ class _HomeScreenState extends State<HomeScreen> {
       width: isWide ? 420 : null,
       child: AnimatedPressable(
         pressedScale: 0.98,
-        onTap: () => context.push('/map/$activeOrderId'),
+        onTap: orderId == null ? null : () => context.push('/map/$orderId'),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.surfaceDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicSurfaceDark : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isDark
@@ -2319,35 +2375,46 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Row(
             children: [
-              // Driver Avatar
+              // Driver identity supplied by the order/notification API.
               Stack(
                 children: [
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: CachedNetworkImageProvider(
-                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&q=80',
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.14),
+                      image: driverAvatar != null && driverAvatar.isNotEmpty
+                          ? DecorationImage(
+                              image: CachedNetworkImageProvider(driverAvatar),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: driverAvatar == null || driverAvatar.isEmpty
+                        ? Icon(
+                            AppIcons.delivery,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 22,
+                          )
+                        : null,
+                  ),
+                  if (driverOnline)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
                         ),
-                        fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(width: 12),
@@ -2360,63 +2427,74 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       courierTitle,
-                      style: const TextStyle(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        color: AppTypography.primaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       courierSub,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: GlassTheme.textMuted,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTypography.secondaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // Dynamic Stacked ETA Green Badge (TikTok Reference Style)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? GlassTheme.deepSmalt.withValues(alpha: 0.45)
-                      : GlassTheme.paleSmalt.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$_activeOrderEta',
-                      style: TextStyle(
-                        color: isDark
-                            ? GlassTheme.paleSmalt
-                            : Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                        height: 1.1,
+              // ETA is only shown when the backend actually supplies one.
+              if (etaMinutes != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? GlassTheme.deepSmalt.withValues(alpha: 0.45)
+                        : GlassTheme.paleSmalt.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$etaMinutes',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: isDark
+                                  ? GlassTheme.paleSmalt
+                                  : Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
+                            ),
                       ),
-                    ),
-                    Text(
-                      'min',
-                      style: TextStyle(
-                        color: isDark
-                            ? GlassTheme.paleSmalt
-                            : Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        height: 1.0,
+                      Text(
+                        'min',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: isDark
+                              ? GlassTheme.paleSmalt
+                              : Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                )
+              else if (orderId != null)
+                Icon(
+                  AppIcons.chevronRight,
+                  color: AppTypography.secondaryTextColor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
+                  size: AppIconSizes.sm,
                 ),
-              ),
             ],
           ),
         ),
@@ -2428,17 +2506,22 @@ class _HomeScreenState extends State<HomeScreen> {
   // Common Section Header with Green "See All"
   // ──────────────────────────────────────────────────────────────────────────
   Widget _buildSectionHeader(String title, VoidCallback onSeeAll) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.2,
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppTypography.primaryTextColor(
+                isDark ? Brightness.dark : Brightness.light,
+              ),
+            ),
           ),
         ),
+        const SizedBox(width: 8),
         AnimatedPressable(
           pressedScale: 0.92,
           onTap: onSeeAll,
@@ -2448,18 +2531,21 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'See All',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                  context.tr('common.seeAll'),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: isDark
+                        ? const Color(0xFF4ADE80)
+                        : const Color(0xFF15803D),
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Icon(
-                  Icons.arrow_forward_ios_rounded,
+                  AppIcons.chevronRight,
                   size: 11,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: isDark
+                      ? const Color(0xFF4ADE80)
+                      : const Color(0xFF15803D),
                 ),
               ],
             ),

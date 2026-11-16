@@ -8,7 +8,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/responsive_layout.dart';
-import '../../../widgets/lottie_assets.dart';
+import '../../../widgets/vector_illustrations.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../providers/cart_provider.dart';
@@ -95,7 +96,7 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             children: [
               Icon(
-                isFree ? Icons.check_circle : Icons.delivery_dining,
+                isFree ? AppIcons.successFilled : AppIcons.delivery,
                 color: isFree
                     ? Theme.of(context).colorScheme.primary
                     : (isDark ? Colors.amberAccent : Colors.amber.shade800),
@@ -107,12 +108,13 @@ class _CartScreenState extends State<CartScreen> {
                   isFree
                       ? 'You unlocked FREE delivery!'
                       : 'Add \$${remaining.toStringAsFixed(2)} more for FREE delivery',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: isFree
                         ? Theme.of(context).colorScheme.primary
-                        : (isDark ? Colors.white : GlassTheme.textDark),
+                        : AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                   ),
                 ),
               ),
@@ -153,17 +155,16 @@ class _CartScreenState extends State<CartScreen> {
             color: Colors.redAccent.withValues(alpha: 0.85),
             borderRadius: GlassTheme.borderRadiusMedium,
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Icon(Icons.delete_outline, color: Colors.white, size: 24),
-              SizedBox(width: 8),
+              const Icon(AppIcons.delete, color: Colors.white, size: 24),
+              const SizedBox(width: 8),
               Text(
                 'Delete',
-                style: TextStyle(
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
                 ),
               ),
             ],
@@ -177,12 +178,17 @@ class _CartScreenState extends State<CartScreen> {
           ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${removedItem.name} removed from cart'),
-              backgroundColor: GlassTheme.dialogDark,
+              content: Text(
+                '${removedItem.name} removed from cart',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              ),
+              backgroundColor: GlassTheme.dynamicDialogDark,
               behavior: SnackBarBehavior.floating,
               action: SnackBarAction(
                 label: 'UNDO',
-                textColor: GlassTheme.primaryGreen,
+                textColor: GlassTheme.limeAccent,
                 onPressed: () {
                   for (int i = 0; i < qty; i++) {
                     cart.addItem(
@@ -200,23 +206,17 @@ class _CartScreenState extends State<CartScreen> {
           );
         },
         child: Container(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(14.0),
           decoration: BoxDecoration(
-            color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+            color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? GlassTheme.dynamicBorderDark
                   : const Color(0xFFE5E7EB),
               width: 1.0,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
           ),
           child: Row(
             children: [
@@ -233,7 +233,7 @@ class _CartScreenState extends State<CartScreen> {
                           errorWidget: (context, url, error) => Container(
                             color: GlassTheme.lightGreenSurface,
                             child: const Icon(
-                              Icons.eco,
+                              AppIcons.healthy,
                               color: GlassTheme.primaryGreen,
                               size: 28,
                             ),
@@ -242,7 +242,7 @@ class _CartScreenState extends State<CartScreen> {
                       : Container(
                           color: GlassTheme.lightGreenSurface,
                           child: const Icon(
-                            Icons.eco,
+                            AppIcons.healthy,
                             color: GlassTheme.primaryGreen,
                             size: 28,
                           ),
@@ -256,13 +256,13 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Text(
                       item.name,
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
+                        color: AppTypography.primaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                     const SizedBox(height: 4),
                     Wrap(
@@ -271,21 +271,23 @@ class _CartScreenState extends State<CartScreen> {
                       children: [
                         Text(
                           '\$${item.price.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 15,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF15803D),
+                                fontWeight: FontWeight.w900,
+                              ),
                         ),
                         Text(
                           KhmerCurrency.formatKhr(item.price),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? Colors.white54
-                                : const Color(0xFF6B7280),
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppTypography.secondaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                              ),
                         ),
                       ],
                     ),
@@ -310,7 +312,7 @@ class _CartScreenState extends State<CartScreen> {
                         color: Color(0xFFEF4444),
                       ),
                       child: const Icon(
-                        Icons.remove,
+                        AppIcons.remove,
                         size: 16,
                         color: Colors.white,
                       ),
@@ -320,10 +322,11 @@ class _CartScreenState extends State<CartScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: Text(
                       '${item.quantity}',
-                      style: TextStyle(
-                        fontSize: 14,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
+                        color: AppTypography.primaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                     ),
                   ),
@@ -348,7 +351,7 @@ class _CartScreenState extends State<CartScreen> {
                         color: GlassTheme.primaryGreen,
                       ),
                       child: const Icon(
-                        Icons.add,
+                        AppIcons.add,
                         size: 16,
                         color: Colors.white,
                       ),
@@ -399,7 +402,7 @@ class _CartScreenState extends State<CartScreen> {
                         : const Color(0xFFF3F4F6),
                   ),
                   child: Icon(
-                    Icons.delete_outline_rounded,
+                    AppIcons.delete,
                     size: 17,
                     color: isDark ? Colors.white60 : const Color(0xFF9CA3AF),
                   ),
@@ -425,6 +428,28 @@ class _CartScreenState extends State<CartScreen> {
       borderRadius: isDesktop
           ? BorderRadius.circular(24)
           : const BorderRadius.vertical(top: Radius.circular(32)),
+      customColor: isDark ? null : Colors.white,
+      customShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+          blurRadius: 20,
+          offset: const Offset(0, -4),
+        ),
+      ],
+      customBorder: isDesktop
+          ? Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : const Color(0xFFE5E7EB),
+            )
+          : Border(
+              top: BorderSide(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : const Color(0xFFE5E7EB),
+                width: 1.0,
+              ),
+            ),
       padding: const EdgeInsets.all(24.0),
       child: SafeArea(
         top: false,
@@ -434,9 +459,14 @@ class _CartScreenState extends State<CartScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (isDesktop) ...[
-              const Text(
+              Text(
                 'Order Summary',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppTypography.primaryTextColor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],
@@ -462,33 +492,41 @@ class _CartScreenState extends State<CartScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Code "$promoCode" Applied',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(
+                                AppIcons.successFilled,
+                                color: isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF15803D),
+                                size: 18,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  'Code "$promoCode" Applied',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? const Color(0xFF4ADE80)
+                                            : const Color(0xFF15803D),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         InkWell(
                           onTap: () => cart.removePromoCode(),
                           child: Padding(
                             padding: const EdgeInsets.all(4.0),
                             child: Icon(
-                              Icons.close,
-                              color: isDark
-                                  ? Colors.white60
-                                  : const Color(0xFF64748B),
+                              AppIcons.close,
+                              color: AppTypography.secondaryTextColor(
+                                isDark ? Brightness.dark : Brightness.light,
+                              ),
                               size: 18,
                             ),
                           ),
@@ -499,8 +537,10 @@ class _CartScreenState extends State<CartScreen> {
                     Row(
                       children: [
                         Icon(
-                          Icons.local_offer_outlined,
-                          color: Theme.of(context).colorScheme.primary,
+                          AppIcons.coupon,
+                          color: isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D),
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -508,19 +548,23 @@ class _CartScreenState extends State<CartScreen> {
                           child: TextField(
                             controller: _voucherController,
                             textCapitalization: TextCapitalization.characters,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark
-                                  ? Colors.white
-                                  : GlassTheme.textDark,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: AppTypography.primaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
+                                  fontWeight: FontWeight.bold,
+                                ),
                             decoration: InputDecoration(
                               hintText: 'Enter Voucher or Promo Code',
-                              hintStyle: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 12,
-                              ),
+                              hintStyle: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: AppTypography.secondaryTextColor(
+                                      isDark
+                                          ? Brightness.dark
+                                          : Brightness.light,
+                                    ),
+                                  ),
                               isDense: true,
                               border: InputBorder.none,
                             ),
@@ -538,7 +582,7 @@ class _CartScreenState extends State<CartScreen> {
                             decoration: BoxDecoration(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.primary.withValues(alpha: 0.25),
+                              ).colorScheme.primary.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: Theme.of(
@@ -549,11 +593,13 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                             child: Text(
                               'Apply',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? const Color(0xFF4ADE80)
+                                        : const Color(0xFF15803D),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                         ),
@@ -594,12 +640,21 @@ class _CartScreenState extends State<CartScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Subtotal', style: TextStyle(fontSize: 15)),
+                Text(
+                  'Subtotal',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTypography.secondaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
+                  ),
+                ),
                 Text(
                   '\$${cart.totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: AppTypography.primaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
                   ),
                 ),
               ],
@@ -608,17 +663,27 @@ class _CartScreenState extends State<CartScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Delivery Fee', style: TextStyle(fontSize: 15)),
+                Text(
+                  'Delivery Fee',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTypography.secondaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
+                  ),
+                ),
                 Text(
                   cart.deliveryFee <= 0
                       ? 'FREE'
                       : '\$${cart.deliveryFee.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 15,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: cart.deliveryFee <= 0
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
+                        ? (isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D))
+                        : AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                   ),
                 ),
               ],
@@ -628,36 +693,46 @@ class _CartScreenState extends State<CartScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Discount ($promoCode)',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Theme.of(context).colorScheme.primary,
+                  Flexible(
+                    child: Text(
+                      'Discount ($promoCode)',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
+                      ),
                     ),
                   ),
                   Text(
                     '-\$${cart.discountAmount.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 15,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: isDark
+                          ? const Color(0xFF4ADE80)
+                          : const Color(0xFF15803D),
                     ),
                   ),
                 ],
               ),
             ],
             const SizedBox(height: 14),
-            Container(height: 1, color: GlassTheme.borderLight),
+            Container(
+              height: 1,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : const Color(0xFFE5E7EB),
+            ),
             const SizedBox(height: 14),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Total',
-                  style: TextStyle(
-                    fontSize: 18,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : GlassTheme.textDark,
+                    color: AppTypography.primaryTextColor(
+                      isDark ? Brightness.dark : Brightness.light,
+                    ),
                   ),
                 ),
                 Column(
@@ -665,22 +740,21 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Text(
                       '\$${cart.grandTotal.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: isDark
-                            ? GlassTheme.activePalette.primaryAccent
-                            : Theme.of(context).colorScheme.primary,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: isDark
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFF15803D),
+                          ),
                     ),
                     Text(
                       '≈ ${KhmerCurrency.formatKhr(cart.grandTotal)} KHR',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.7)
-                            : const Color(0xFF64748B),
+                        color: AppTypography.secondaryTextColor(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                       ),
                     ),
                   ],
@@ -696,7 +770,11 @@ class _CartScreenState extends State<CartScreen> {
               },
               child: Container(
                 width: double.infinity,
-                height: 52,
+                constraints: const BoxConstraints(minHeight: 52),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary,
                   borderRadius: BorderRadius.circular(26),
@@ -714,27 +792,23 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
                       child: Text(
-                        'Proceed to Checkout',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
+                        context.tr('cart.checkout'),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    const SizedBox(width: 8),
+                    const Icon(AppIcons.forward, color: Colors.white, size: 20),
                   ],
                 ),
               ),
@@ -769,9 +843,10 @@ class _CartScreenState extends State<CartScreen> {
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: isDark ? Colors.white70 : const Color(0xFF64748B),
-            fontSize: 10,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: AppTypography.secondaryTextColor(
+              isDark ? Brightness.dark : Brightness.light,
+            ),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -782,16 +857,16 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     return Consumer<CartProvider>(
       builder: (context, cart, child) {
         return Scaffold(
           backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
+          appBar: GlassAppBar(
+            title: context.tr('cart.title'),
             leading: Navigator.of(context).canPop()
                 ? Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(6.0),
                     child: AnimatedPressable(
                       pressedScale: 0.9,
                       onTap: () => context.pop(),
@@ -810,52 +885,41 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         child: Center(
                           child: Icon(
-                            Icons.arrow_back_ios_new,
+                            AppIcons.back,
                             size: 16,
-                            color: isDark ? Colors.white : GlassTheme.textDark,
+                            color: AppTypography.primaryTextColor(brightness),
                           ),
                         ),
                       ),
                     ),
                   )
                 : null,
-            centerTitle: true,
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'My Cart',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 20,
-                    color: isDark ? Colors.white : const Color(0xFF111827),
-                  ),
-                ),
-                if (cart.items.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  Container(
+            actions: [
+              if (cart.items.isNotEmpty) ...[
+                Center(
+                  child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
+                      horizontal: 10,
+                      vertical: 4,
                     ),
+                    margin: const EdgeInsets.only(right: 8),
                     decoration: BoxDecoration(
-                      color: GlassTheme.lightGreenSurface,
+                      color: isDark
+                          ? const Color(0xFF14532D).withValues(alpha: 0.45)
+                          : GlassTheme.lightGreenSurface,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '${cart.itemCount} ${cart.itemCount == 1 ? "Product" : "Products"}',
-                      style: const TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontSize: 11,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                ],
-              ],
-            ),
-            actions: [
-              if (cart.items.isNotEmpty)
+                ),
                 Padding(
                   padding: const EdgeInsets.only(right: 12.0),
                   child: AnimatedPressable(
@@ -864,20 +928,42 @@ class _CartScreenState extends State<CartScreen> {
                       showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          backgroundColor: GlassTheme.dialogDark,
+                          backgroundColor: isDark
+                              ? GlassTheme.dynamicDialogDark
+                              : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
+                            side: BorderSide(
+                              color: isDark
+                                  ? GlassTheme.dynamicBorderDark
+                                  : GlassTheme.borderLight,
+                            ),
                           ),
-                          title: const Text('Clear Cart?'),
-                          content: const Text(
+                          title: Text(
+                            'Clear Cart?',
+                            style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
+                              color: AppTypography.primaryTextColor(brightness),
+                            ),
+                          ),
+                          content: Text(
                             'Are you sure you want to remove all items from your cart?',
+                            style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                              color: AppTypography.secondaryTextColor(
+                                brightness,
+                              ),
+                            ),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),
-                              child: const Text(
+                              child: Text(
                                 'Cancel',
-                                style: TextStyle(color: Colors.white60),
+                                style: Theme.of(ctx).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: AppTypography.secondaryTextColor(
+                                        brightness,
+                                      ),
+                                    ),
                               ),
                             ),
                             ElevatedButton(
@@ -888,9 +974,10 @@ class _CartScreenState extends State<CartScreen> {
                                 cart.clear();
                                 Navigator.pop(ctx);
                               },
-                              child: const Text(
+                              child: Text(
                                 'Clear',
-                                style: TextStyle(color: Colors.white),
+                                style: Theme.of(ctx).textTheme.labelLarge
+                                    ?.copyWith(color: Colors.white),
                               ),
                             ),
                           ],
@@ -914,44 +1001,59 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       child: Center(
                         child: Icon(
-                          Icons.delete_outline,
+                          AppIcons.delete,
                           size: 18,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF64748B),
+                          color: AppTypography.secondaryTextColor(brightness),
                         ),
                       ),
                     ),
                   ),
                 ),
+              ],
             ],
           ),
           body: cart.items.isEmpty
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      LottieAsset.emptyBox(size: 150),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Your cart is empty',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const VectorIllustration(
+                          type: VectorIllustrationType.emptyCart,
+                          size: 160,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Discover delicious food and add items to your cart',
-                        style: TextStyle(color: GlassTheme.textMuted),
-                      ),
-                      const SizedBox(height: 32),
-                      GlassButton(
-                        text: 'Explore Food',
-                        icon: Icons.explore,
-                        onPressed: () => context.go('/explore'),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        Text(
+                          context.tr('cart.emptyTitle'),
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppTypography.primaryTextColor(
+                                  brightness,
+                                ),
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          context.tr('cart.emptySubtitle'),
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: AppTypography.secondaryTextColor(
+                                  brightness,
+                                ),
+                              ),
+                        ),
+                        const SizedBox(height: 32),
+                        GlassButton(
+                          text: context.tr('cart.startOrdering'),
+                          icon: AppIcons.foodCategory,
+                          onPressed: () => context.go('/explore'),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : ResponsiveWebContainer(

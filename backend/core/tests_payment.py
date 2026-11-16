@@ -344,17 +344,21 @@ class PaymentIntegrationTests(TestCase):
         # Known test vector: "123456789" with CCITT (poly 0x1021, init 0xFFFF) -> 0x29B1
         self.assertEqual(crc16_ccitt("123456789"), "29B1")
 
-        # 2. Test generated KHQR string format and checksum validity
+        # 2. Test generated KHQR string format, Tag 99 timestamp/expiration, and checksum validity
         qr_str, md5_val = build_emvco_khqr(
-            account_id="test_merchant_id",
+            account_id="sonar_seang@bkrt",
             merchant_name="FoodGo Restaurant",
             merchant_city="Phnom Penh",
             merchant_ref="FG-TEST-REF-001",
             amount=Decimal("12.50"),
             currency="USD",
-            acquiring_bank_guid="abaakhppxxx@abaa",
+            acquiring_bank_guid="bakong@khqr",
         )
         self.assertTrue(qr_str.startswith("000201010212"))
+        # Tag 29 Sub-tag 00 must be the Bakong Account ID per NBC KHQR specification
+        self.assertIn("29200016sonar_seang@bkrt", qr_str)
+        # Tag 99 must include Sub-tag 00 (13-digit creation ms) and Sub-tag 01 (13-digit expiration ms)
+        self.assertRegex(qr_str, r"99340013\d{13}0113\d{13}6304[0-9A-F]{4}$")
         self.assertTrue(qr_str.endswith(crc16_ccitt(qr_str[:-4])))
         self.assertEqual(len(md5_val), 32)
 
@@ -462,20 +466,237 @@ class PaymentWebSocketConsumerTests(TransactionTestCase):
 
         asyncio.run(run_ws_check())
 
-    def test_payment_status_simulation_in_sandbox(self):
-        """Simulate=True on status endpoint marks payment as PAID in sandbox mode."""
+    def test_client_status_forgery_rejected_pending_remains_pending(self):
+        """Simulate=True or ?status=PAID on status endpoint is rejected; payment remains PENDING."""
         self.client.force_authenticate(user=self.user)
         create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
         payment_id = create_res.data['id']
         self.assertEqual(create_res.data['status'], 'PENDING')
 
         status_url = reverse('payment_status', args=[payment_id])
-        status_res = self.client.post(status_url, {'simulate': True}, format='json')
+        status_res = self.client.post(status_url, {'simulate': True, 'status': 'PAID'}, format='json')
         self.assertEqual(status_res.status_code, status.HTTP_200_OK)
-        self.assertEqual(status_res.data['status'], 'PAID')
+        # Authoritative status check: pending remains pending!
+        self.assertEqual(status_res.data['status'], 'PENDING')
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, 'PENDING')
+        self.assertEqual(self.order.status, 'pending')
+
+    def test_payment_methods_endpoint_public_metadata(self):
+        """Payments methods endpoint returns public supported providers without secrets."""
+        url = reverse('payment_methods')
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(isinstance(res.data, list))
+        codes = [m['code'] for m in res.data]
+        self.assertIn('BAKONG', codes)
+        self.assertIn('CARD', codes)
+        self.assertIn('ABA', codes)
+        self.assertIn('ACLEDA', codes)
+        self.assertIn('COD', codes)
+        self.assertIn('WALLET', codes)
+        # Ensure no secrets leak
+        for m in res.data:
+            self.assertNotIn('api_key', m)
+            self.assertNotIn('api_secret', m)
+            self.assertNotIn('api_token', m)
+            self.assertNotIn('token', m)
+
+    def test_card_payment_creation_and_order_confirmation(self):
+        """Card payment creates a paid payment record and immediately confirms order."""
+        url = reverse('payment_create')
+        res = self.client.post(url, {
+            'order_id': self.order.id,
+            'provider': 'CARD',
+            'currency': 'USD',
+            'card_last4': '4242',
+            'card_brand': 'Visa'
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['provider'], 'CARD')
+        self.assertEqual(res.data['status'], 'PAID')
+        self.assertEqual(res.data['method'], 'CARD')
 
         self.order.refresh_from_db()
         self.assertEqual(self.order.payment_status, 'PAID')
         self.assertEqual(self.order.status, 'confirmed')
+
+    def test_get_payment_by_order_id(self):
+        """Can retrieve payment bound to an order."""
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'BAKONG', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+
+        url = reverse('payment_by_order', args=[self.order.id])
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['id'], payment_id)
+        self.assertEqual(res.data['provider'], 'BAKONG')
+
+    def test_bakong_open_api_authoritative_verification(self):
+        """Authoritative verification through NBC Bakong Open API check_transaction_by_md5."""
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'BAKONG', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+        payment = Payment.objects.get(id=payment_id)
+
+        mock_resp = mock.MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "responseCode": 0,
+            "responseMessage": "Success",
+            "data": {
+                "hash": "BAKONG-HASH-ABC123456",
+                "amount": "20.00",
+                "currency": "USD",
+                "toAccountId": "sonar_seang@bkrt"
+            }
+        }
+
+        with mock.patch.dict(os.environ, {'BAKONG_API_TOKEN': 'mock_token'}), mock.patch('requests.post', return_value=mock_resp):
+            status_url = reverse('payment_status', args=[payment_id])
+            res = self.client.post(status_url, {}, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(res.data['status'], 'PAID')
+            self.assertEqual(res.data['transaction_id'], 'BAKONG-HASH-ABC123456')
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, 'PAID')
+        self.assertEqual(self.order.status, 'confirmed')
+
+    def test_bakong_open_api_amount_mismatch_fails_verification(self):
+        """If Bakong transaction amount does not match order amount, payment is not marked PAID."""
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'BAKONG', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+
+        mock_resp = mock.MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "responseCode": 0,
+            "data": {
+                "hash": "BAKONG-TAMPERED-AMOUNT",
+                "amount": "5.00", # Mismatch! Order is 20.00
+                "currency": "USD",
+            }
+        }
+
+        with mock.patch.dict(os.environ, {'BAKONG_API_TOKEN': 'mock_token'}), mock.patch('requests.post', return_value=mock_resp):
+            status_url = reverse('payment_status', args=[payment_id])
+            res = self.client.post(status_url, {}, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertNotEqual(res.data['status'], 'PAID')
+
+        payment = Payment.objects.get(id=payment_id)
+        self.assertNotEqual(payment.status, 'PAID')
+
+    def test_driver_cannot_mark_bank_payment_paid(self):
+        """A driver deliver button cannot mark an unpaid bank QR payment as PAID."""
+        from core.models import Driver, Delivery
+        driver_user = User.objects.create_user(username='driver_jack', password='password123', role='driver')
+        driver = Driver.objects.create(user=driver_user, vehicle_type='Motorcycle', license_plate='PP-1234')
+        delivery = Delivery.objects.create(order=self.order, driver=driver, status='on_the_way')
+
+        # Create unpaid Bank QR payment
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'BAKONG', 'currency': 'USD'}, format='json')
+        self.assertEqual(create_res.data['status'], 'PENDING')
+
+        # Driver attempts to complete delivery with payment_collected=True
+        driver_client = APIClient()
+        driver_client.force_authenticate(user=driver_user)
+        deliver_url = f'/api/drivers/orders/{self.order.id}/deliver/'
+        res = driver_client.post(deliver_url, {'payment_collected': True}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Bank QR payment has not been verified yet', res.data['error'])
+
+        # Order must remain unpaid
+        self.order.refresh_from_db()
+        self.assertNotEqual(self.order.payment_status, 'PAID')
+
+    def test_aba_and_acleda_universal_bakong_fallback_and_null_expires_safety(self):
+        """ABA and ACLEDA providers safely handle expires_at=None and support universal Bakong Open API verification."""
+        create_res = self.client.post(reverse('payment_create'), {'order_id': self.order.id, 'provider': 'ABA', 'currency': 'USD'}, format='json')
+        payment_id = create_res.data['id']
+        payment = Payment.objects.get(id=payment_id)
+        payment.expires_at = None
+        payment.save(update_fields=['expires_at'])
+
+        # Status check with expires_at=None must not raise TypeError
+        status_url = reverse('payment_status', args=[payment_id])
+        res1 = self.client.get(status_url)
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        self.assertEqual(res1.data['status'], 'PENDING')
+
+        # Universal Bakong Open API check confirms ABA KHQR payment when BAKONG_API_TOKEN is set
+        mock_resp = mock.MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "responseCode": 0,
+            "data": {
+                "hash": "BAKONG-ABA-UNIV-777",
+                "amount": "20.00",
+                "currency": "USD",
+            }
+        }
+        with mock.patch.dict(os.environ, {'BAKONG_API_TOKEN': 'mock_token'}), mock.patch('requests.post', return_value=mock_resp):
+            res2 = self.client.post(status_url, {}, format='json')
+            self.assertEqual(res2.status_code, status.HTTP_200_OK)
+            self.assertEqual(res2.data['status'], 'PAID')
+            self.assertEqual(res2.data['transaction_id'], 'BAKONG-ABA-UNIV-777')
+
+    def test_wallet_khqr_topup_and_verify_topup_via_bakong(self):
+        """Wallet khqr_topup returns qr_payload/qr_image/md5 and verify_topup settles via Bakong Open API."""
+        res_topup = self.client.post('/api/wallets/khqr_topup/', {'amount': '15.00', 'currency': 'USD'}, format='json')
+        self.assertEqual(res_topup.status_code, status.HTTP_200_OK)
+        self.assertIn('qr_payload', res_topup.data)
+        self.assertIn('qr_image', res_topup.data)
+        self.assertIn('md5', res_topup.data)
+        merchant_ref = res_topup.data['merchant_reference']
+        md5_val = res_topup.data['md5']
+
+        # Before settlement, verify_topup returns PENDING
+        res_pending = self.client.post('/api/wallets/verify_topup/', {'merchant_reference': merchant_ref}, format='json')
+        self.assertEqual(res_pending.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_pending.data['status'], 'PENDING')
+
+        # With Bakong Open API confirming MD5, verify_topup credits wallet idempotently
+        mock_resp = mock.MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "responseCode": 0,
+            "data": {
+                "hash": "BAKONG-TOPUP-HASH-001",
+                "amount": "15.00",
+                "currency": "USD",
+            }
+        }
+        with mock.patch.dict(os.environ, {'BAKONG_API_TOKEN': 'mock_token'}), mock.patch('requests.post', return_value=mock_resp):
+            res_credit = self.client.post('/api/wallets/verify_topup/', {
+                'merchant_reference': merchant_ref,
+                'md5': md5_val,
+                'amount': '15.00',
+                'currency': 'USD',
+            }, format='json')
+            self.assertEqual(res_credit.status_code, status.HTTP_200_OK)
+            self.assertEqual(res_credit.data['status'], 'CREDITED')
+            self.assertEqual(res_credit.data['new_balance'], '15.00')
+
+    def test_add_food_item_with_non_url_placeholder_succeeds(self):
+        """Adding a food item with image_url='no' or blank normalizes cleanly and returns 201 Created."""
+        from .models import FoodCategory
+        cat = FoodCategory.objects.create(restaurant=self.restaurant, name='Signature Burgers')
+        self.client.force_authenticate(user=self.owner)
+        res = self.client.post('/api/food-items/', {
+            'category': cat.id,
+            'name': 'nnn',
+            'price': '0.01',
+            'image_url': 'no',
+            'description': 'nn',
+            'ingredients': 'nn',
+            'is_available': True,
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['name'], 'nnn')
+        self.assertEqual(res.data['image_url'], '')
+
+
 
 

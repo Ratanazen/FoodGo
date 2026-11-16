@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../core/theme/glass_theme.dart';
+import '../core/localization/localization_extensions.dart';
 
 class ConnectivityBanner extends StatefulWidget {
   final Widget child;
@@ -57,17 +58,16 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
           height: _isOffline ? 36.0 : 0.0,
           color: GlassTheme.offlineRed,
           child: _isOffline
-              ? const Row(
+              ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.wifi_off, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
+                    const Icon(Icons.wifi_off, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
                     Text(
-                      'No Internet Connection · Offline Mode',
-                      style: TextStyle(
+                      context.tr('connectivity.offline'),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],

@@ -1,95 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
   <defs>
-    <!-- Golden Brioche Top Bun -->
-    <linearGradient id="logo_top_bun" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#F6A743" />
-      <stop offset="45%" stop-color="#E28928" />
-      <stop offset="100%" stop-color="#B86214" />
+    <linearGradient id="fgEmeraldGrad" x1="16" y1="12" x2="112" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="55%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
     </linearGradient>
-
-    <!-- Bottom Bun -->
-    <linearGradient id="logo_bot_bun" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#E28928" />
-      <stop offset="100%" stop-color="#9C4C0C" />
+    <linearGradient id="fgAmberGrad" x1="18" y1="54" x2="88" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF6B2C"/>
+      <stop offset="100%" stop-color="#FFB020"/>
     </linearGradient>
-
-    <!-- Grilled Patty -->
-    <linearGradient id="logo_patty" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#733919" />
-      <stop offset="100%" stop-color="#451A03" />
-    </linearGradient>
-
-    <!-- Melted Cheddar -->
-    <linearGradient id="logo_cheese" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FBBF24" />
-      <stop offset="100%" stop-color="#D97706" />
-    </linearGradient>
-
-    <!-- Crisp Lettuce -->
-    <linearGradient id="logo_lettuce" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#4ADE80" />
-      <stop offset="100%" stop-color="#16A34A" />
-    </linearGradient>
-
-    <!-- Fresh Leaf Sprout -->
-    <linearGradient id="logo_leaf" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#86EFAC" />
-      <stop offset="100%" stop-color="#22C55E" />
-    </linearGradient>
-
-    <!-- Tomato Slice -->
-    <linearGradient id="logo_tomato" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#EF4444" />
-      <stop offset="100%" stop-color="#B91C1C" />
+    <linearGradient id="fgLeafGrad" x1="56" y1="18" x2="84" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6EE7B7"/>
+      <stop offset="100%" stop-color="#FBBF24"/>
     </linearGradient>
   </defs>
 
-  <!-- Ambient Glow Circle Background -->
-  <circle cx="60" cy="60" r="54" fill="#2A52BE" fill-opacity="0.12" stroke="#2A52BE" stroke-width="2.5" stroke-opacity="0.4" />
+  <!-- Outer Emerald Emblem Disc -->
+  <circle cx="64" cy="64" r="58" fill="url(#fgEmeraldGrad)"/>
+  <circle cx="64" cy="64" r="56.5" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
 
-  <!-- Fresh Organic Sprout on Top -->
-  <g transform="translate(60, 24)">
-    <path d="M-1 12 C-2 7, 2 3, 5 0" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" fill="none" />
-    <path d="M4 0 C11 -3, 19 2, 17 8 C10 9, 6 6, 4 0 Z" fill="url(#logo_leaf)" />
-  </g>
+  <!-- Kinetic Delivery Speed Trails -->
+  <rect x="20" y="54" width="20" height="6" rx="3" fill="url(#fgAmberGrad)"/>
+  <rect x="14" y="66" width="26" height="6" rx="3" fill="#FFB020"/>
+  <rect x="24" y="78" width="16" height="5" rx="2.5" fill="rgba(255,255,255,0.75)"/>
 
-  <!-- Top Brioche Bun -->
-  <path d="M26 48 C26 28, 94 28, 94 48 C94 51, 26 51, 26 48 Z" fill="url(#logo_top_bun)" />
-  <!-- Bun Highlight -->
-  <path d="M32 45 C35 34, 85 34, 88 45 C78 38, 42 38, 32 45 Z" fill="#FFF7ED" fill-opacity="0.5" />
-  <!-- Sesame Seeds -->
-  <circle cx="44" cy="38" r="1.4" fill="#FFFFFF" fill-opacity="0.9" />
-  <circle cx="60" cy="34" r="1.4" fill="#FFFFFF" fill-opacity="0.9" />
-  <circle cx="76" cy="38" r="1.4" fill="#FFFFFF" fill-opacity="0.9" />
-  <circle cx="52" cy="44" r="1.2" fill="#FFFFFF" fill-opacity="0.8" />
-  <circle cx="68" cy="44" r="1.2" fill="#FFFFFF" fill-opacity="0.8" />
+  <!-- Fresh Leaf Top Accent -->
+  <path d="M68 33C68 23 78 19 85 21C85 29 78 36 68 35Z" fill="url(#fgLeafGrad)"/>
+  <circle cx="64" cy="36" r="5" fill="#FFB020"/>
 
-  <!-- Tomato Slices -->
-  <rect x="30" y="50" width="26" height="4" rx="2" fill="url(#logo_tomato)" />
-  <rect x="64" y="50" width="26" height="4" rx="2" fill="url(#logo_tomato)" />
+  <!-- Modern Aerodynamic Cloche Dome -->
+  <path d="M39 74C39 53.5 52.5 41 70 41C87.5 41 100 53.5 100 74H39Z" fill="#FFFFFF"/>
 
-  <!-- Wavy Crisp Lettuce Ribbon -->
-  <path d="M23 54
-           C27 51, 31 56, 36 53
-           C41 50, 45 56, 50 53
-           C55 50, 59 56, 64 53
-           C69 50, 73 56, 78 53
-           C83 50, 87 56, 92 53
-           C97 51, 99 55, 96 59
-           C92 61, 88 58, 83 60
-           C78 62, 74 58, 69 60
-           C64 62, 60 58, 55 60
-           C50 62, 46 58, 41 60
-           C36 62, 32 58, 27 60
-           C22 59, 21 56, 23 54 Z"
-        fill="url(#logo_lettuce)" />
+  <!-- Specular Rim Arc inside Cloche -->
+  <path d="M49 65C51.5 54 60 48 70 48" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
 
-  <!-- Cheddar Cheese Melt -->
-  <path d="M25 61 L95 61 L91 66 L82 66 L78 73 L74 66 L58 66 L54 75 L50 66 L36 66 L31 71 L28 66 Z" fill="url(#logo_cheese)" />
-
-  <!-- Flame-Grilled Patty -->
-  <rect x="25" y="66" width="70" height="11" rx="5.5" fill="url(#logo_patty)" />
-
-  <!-- Bottom Brioche Bun -->
-  <path d="M28 78 C28 89, 92 89, 92 78 C92 77, 28 77, 28 78 Z" fill="url(#logo_bot_bun)" />
+  <!-- Signature Serving Platter Base -->
+  <rect x="34" y="79" width="70" height="8.5" rx="4.25" fill="#FFFFFF"/>
+  <rect x="44" y="92" width="48" height="5" rx="2.5" fill="rgba(255,255,255,0.45)"/>
 </svg>

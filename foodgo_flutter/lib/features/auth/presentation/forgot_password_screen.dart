@@ -1,8 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
@@ -78,8 +78,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
-          backgroundColor: GlassTheme.royalSmalt,
+          content: Text(
+            message,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+          ),
+          backgroundColor: GlassTheme.dynamicPrimaryDark,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -93,17 +98,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      String errorMsg = 'Failed to send reset code. Please try again.';
-      if (e is DioException) {
-        final data = e.response?.data;
-        if (data is Map) {
-          if (data['error'] != null) {
-            errorMsg = data['error'].toString();
-          } else if (data['detail'] != null) {
-            errorMsg = data['detail'].toString();
-          }
-        }
-      }
+      final errorMsg = ApiService.formatError(
+        e,
+        fallback: 'Failed to send reset code. Please try again.',
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -120,13 +118,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      backgroundColor: Colors.transparent,
+      appBar: GlassAppBar(
+        title: 'Reset Password',
         leading: Center(
           child: AnimatedIconButton(
-            icon: Icons.arrow_back_ios_new_rounded,
+            icon: AppIcons.back,
             iconSize: 18,
             iconColor: isDark ? Colors.white : const Color(0xFF1E293B),
             onPressed: () {
@@ -186,11 +183,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   Text(
                     'Forgot Password',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : GlassTheme.authTitleDark,
-                      letterSpacing: -0.5,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: AppTypography.primaryTextColor(
+                        Theme.of(context).brightness,
+                      ),
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fade(delay: 150.ms),
@@ -199,13 +195,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   Text(
                     'Enter your registered email address or phone number and we will send you a verification code to recover your account.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark
-                          ? Colors.grey[400]
-                          : GlassTheme.authSubtitle,
-                      fontWeight: FontWeight.w400,
-                      height: 1.45,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTypography.secondaryTextColor(
+                        Theme.of(context).brightness,
+                      ),
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fade(delay: 200.ms),
@@ -229,22 +222,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _sendOTP(),
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        fontSize: 14,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTypography.primaryTextColor(
+                          Theme.of(context).brightness,
+                        ),
                       ),
                       decoration: InputDecoration(
                         hintText: 'Email address or phone number',
-                        hintStyle: TextStyle(
-                          color: isDark
-                              ? Colors.white38
-                              : const Color(0xFF94A3B8),
-                          fontSize: 14,
-                        ),
+                        hintStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(
+                              color: AppTypography.secondaryTextColor(
+                                Theme.of(context).brightness,
+                              ),
+                            ),
                         prefixIcon: Icon(
-                          _isPhone
-                              ? Icons.phone_iphone_rounded
-                              : Icons.alternate_email_rounded,
+                          _isPhone ? AppIcons.phone : AppIcons.email,
                           color: GlassTheme.primaryGreen,
                           size: 20,
                         ),
@@ -290,13 +282,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   strokeWidth: 2.2,
                                 ),
                               )
-                            : const Text(
+                            : Text(
                                 'Send Reset Code / Link',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.3,
-                                ),
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(color: Colors.white),
                               ),
                       ),
                     ),
@@ -309,11 +298,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     children: [
                       Text(
                         'Remember your password? ',
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.grey[400]
-                              : GlassTheme.authSubtitle,
-                          fontSize: 13,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTypography.secondaryTextColor(
+                            Theme.of(context).brightness,
+                          ),
                         ),
                       ),
                       AnimatedPressable(
@@ -325,18 +313,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             context.go('/login');
                           }
                         },
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 4,
                             vertical: 2,
                           ),
                           child: Text(
                             'Sign in',
-                            style: TextStyle(
-                              color: GlassTheme.primaryGreen,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: isDark
+                                      ? GlassTheme.primaryGreen
+                                      : GlassTheme.primaryGreenDark,
+                                  fontWeight: FontWeight.w700,
+                                ),
                           ),
                         ),
                       ),

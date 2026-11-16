@@ -138,7 +138,10 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
         qs = super().get_queryset()
         status_param = self.request.query_params.get('status')
         if status_param and status_param != 'all':
-            qs = qs.filter(status=status_param)
+            if status_param in ('unassigned', 'needs_driver'):
+                qs = qs.filter(Q(delivery__isnull=True) | Q(delivery__driver__isnull=True)).exclude(status__in=['delivered', 'cancelled'])
+            else:
+                qs = qs.filter(status=status_param)
         search_query = self.request.query_params.get('search')
         if search_query:
             qs = qs.filter(
@@ -519,7 +522,7 @@ class AdminDriverViewSet(viewsets.ModelViewSet):
         driver.save(update_fields=['is_approved'])
         AuditLog.objects.create(
             admin_user=request.user,
-            action='UPDATE_MENU_ITEM',
+            action='APPROVE_DRIVER',
             target_type='Driver',
             target_id=str(driver.id),
             details={'action': 'approve', 'driver_username': driver.user.username},
@@ -539,7 +542,7 @@ class AdminDriverViewSet(viewsets.ModelViewSet):
         driver.save(update_fields=['is_approved', 'is_online'])
         AuditLog.objects.create(
             admin_user=request.user,
-            action='UPDATE_MENU_ITEM',
+            action='SUSPEND_DRIVER',
             target_type='Driver',
             target_id=str(driver.id),
             details={'action': 'suspend', 'driver_username': driver.user.username},

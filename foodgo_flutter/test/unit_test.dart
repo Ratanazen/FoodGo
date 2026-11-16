@@ -167,6 +167,31 @@ void main() {
       expect(payment.amount, 12.00);
       expect(payment.isPending, true);
     });
+
+    test(
+      'ensureDynamicKhqrExpiration injects Tag 99 expiration and fixes Tag 29 on legacy dynamic KHQR',
+      () {
+        const legacyPayload =
+            '00020101021229350011bakong@khqr0116sonar_seang@bkrt52045812530384054041.505802KH5917FoodGo Restaurant6010Phnom Penh62240120FG-BK-136-17944925786304A1B2';
+        final upgraded = PaymentModel.ensureDynamicKhqrExpiration(
+          legacyPayload,
+        )!;
+        expect(
+          upgraded.startsWith('00020101021229200016sonar_seang@bkrt'),
+          true,
+        );
+        expect(
+          RegExp(
+            r'99340013\d{13}0113\d{13}6304[0-9A-F]{4}$',
+          ).hasMatch(upgraded),
+          true,
+        );
+        final expectedCrc = PaymentModel.crc16Ccitt(
+          upgraded.substring(0, upgraded.length - 4),
+        );
+        expect(upgraded.endsWith(expectedCrc), true);
+      },
+    );
   });
 
   group('MapConfig Tests', () {

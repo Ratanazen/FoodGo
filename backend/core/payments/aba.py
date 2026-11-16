@@ -7,8 +7,9 @@ import requests
 import logging
 from datetime import timedelta
 from django.utils import timezone
+from urllib.parse import quote
 from .base import PaymentProvider
-from .utils import build_emvco_khqr
+from .utils import build_emvco_khqr, generate_qr_base64
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,10 @@ class ABAKHQRProvider(PaymentProvider):
     def __init__(self):
         self.enabled = os.environ.get("ABA_ENABLED", "True").lower() in ("true", "1", "yes")
         self.payment_env = os.environ.get("PAYMENT_ENV", "sandbox")
-        self.merchant_id = os.environ.get("ABA_MERCHANT_ID", "foodgo_merchant_01")
+        self.merchant_id = (
+            os.environ.get("ABA_MERCHANT_ID")
+            or os.environ.get("BAKONG_ACCOUNT_ID", "sonar_seang@bkrt")
+        )
         self.merchant_name = os.environ.get("ABA_MERCHANT_NAME", "FoodGo Restaurant")
         self.merchant_city = os.environ.get("ABA_MERCHANT_CITY", "Phnom Penh")
         self.api_key = os.environ.get("ABA_API_KEY", "mock_aba_api_key")
@@ -51,6 +55,8 @@ class ABAKHQRProvider(PaymentProvider):
         
         # Bakong / ABA Dynamic KHQR payload structure according to NBC KHQR standard
         qr_string, md5_hash = self.generate_khqr(merchant_ref=merchant_ref, amount=amount, currency=currency)
+        qr_image_data = generate_qr_base64(qr_string)
+        deep_link = f"abamobile://qr?data={quote(qr_string)}"
 
         provider_response = {
             "merchant_id": self.merchant_id,
@@ -58,6 +64,8 @@ class ABAKHQRProvider(PaymentProvider):
             "amount": str(amount),
             "currency": currency,
             "qr_string": qr_string,
+            "qr_image": qr_image_data,
+            "deep_link": deep_link,
             "md5": md5_hash,
             "environment": self.payment_env,
             "status": "PENDING"
@@ -66,19 +74,42 @@ class ABAKHQRProvider(PaymentProvider):
         return {
             "merchant_reference": merchant_ref,
             "qr_payload": qr_string,
-            "qr_image": None,
+            "qr_image": qr_image_data,
             "expires_at": expires_at,
             "provider_response": provider_response
         }
 
+    @property
+    def is_configured(self) -> bool:
+        return bool(self.enabled and self.merchant_id and self.api_key and self.api_secret)
+
     def get_payment_status(self, payment):
-        if timezone.now() > payment.expires_at and payment.status == "PENDING":
+        if payment.status == "PAID":
+            return {
+                "status": "PAID",
+                "transaction_id": payment.transaction_id,
+                "paid_at": payment.paid_at,
+                "raw_response": payment.provider_response or {}
+            }
+
+        if payment.expires_at and timezone.now() > payment.expires_at and payment.status == "PENDING":
             return {
                 "status": "EXPIRED",
                 "transaction_id": payment.transaction_id,
                 "paid_at": None,
-                "raw_response": {"reason": "Payment window expired (5 minutes)"}
+                "raw_response": {"reason": "Payment window expired"}
             }
+
+        # Universal Bakong KHQR Open API verification fallback when BAKONG_API_TOKEN is configured
+        bakong_token = os.environ.get("BAKONG_API_TOKEN", "")
+        if payment.status == "PENDING" and bakong_token:
+            from .bakong import BakongKHQRProvider
+            bakong = BakongKHQRProvider()
+            bakong.account_id = self.merchant_id
+            bakong_status = bakong.get_payment_status(payment)
+            if bakong_status.get("status") in ("PAID", "FAILED"):
+                return bakong_status
+
         return {
             "status": payment.status,
             "transaction_id": payment.transaction_id,

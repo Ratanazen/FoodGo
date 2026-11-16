@@ -34,38 +34,40 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final amberText = isDark ? Colors.amber : const Color(0xFFB45309);
+    final surfaceFill = isDark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.white.withValues(alpha: 0.85);
+    final surfaceBorder = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : GlassTheme.borderLight;
+    final accentIconColor = isDark
+        ? GlassTheme.limeAccent
+        : const Color(0xFF15803D);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'Explore Food & Spots',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
+      appBar: GlassAppBar(
+        title: 'Explore Food & Spots',
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-              ),
-              child: IconButton(
-                icon: const Icon(
-                  Icons.map_outlined,
-                  color: GlassTheme.limeAccent,
-                  size: 20,
-                ),
-                tooltip: 'View on Google Maps',
-                onPressed: () => context.push('/map'),
-              ),
+          Container(
+            decoration: BoxDecoration(
+              color: surfaceFill,
+              shape: BoxShape.circle,
+              border: Border.all(color: surfaceBorder),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.map_outlined, color: accentIconColor, size: 20),
+              tooltip: 'View on Google Maps',
+              onPressed: () => context.push('/map'),
             ),
           ),
         ],
@@ -75,7 +77,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ResponsiveWebContainer(
             maxWidth: 1200,
             child: RefreshIndicator(
-              color: GlassTheme.limeAccent,
+              color: accentIconColor,
               onRefresh: () =>
                   context.read<RestaurantProvider>().fetchRestaurants(),
               child: SingleChildScrollView(
@@ -90,11 +92,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     // Modern Rounded Pill Search Input
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.06),
+                        color: surfaceFill,
                         borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
-                        ),
+                        border: Border.all(color: surfaceBorder),
+                        boxShadow: [
+                          GlassTheme.dynamicSoftShadow(isDark: isDark),
+                        ],
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
@@ -102,24 +105,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.search,
-                            color: GlassTheme.limeAccent,
-                            size: 22,
-                          ),
+                          Icon(Icons.search, color: accentIconColor, size: 22),
                           const SizedBox(width: 10),
                           Expanded(
                             child: TextField(
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: primaryText,
                               ),
                               decoration: InputDecoration(
                                 hintText:
                                     'Search restaurants, cuisines, dishes...',
-                                hintStyle: TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 14,
+                                hintStyle: textTheme.bodyMedium?.copyWith(
+                                  color: secondaryText,
                                 ),
                                 border: InputBorder.none,
                               ),
@@ -132,10 +129,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           ),
                           if (_searchQuery.isNotEmpty)
                             IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.clear,
                                 size: 18,
-                                color: Colors.white70,
+                                color: secondaryText,
                               ),
                               onPressed: () =>
                                   setState(() => _searchQuery = ''),
@@ -146,14 +143,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     const SizedBox(height: 16),
 
                     // ── Modern Filter Chips ──────────────────
-                    SizedBox(
-                      height: 38,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _filters.length,
-                        itemBuilder: (context, index) {
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: List.generate(_filters.length, (index) {
                           final isSelected = _activeFilterIndex == index;
                           final filter = _filters[index];
+                          final primaryColor = Theme.of(
+                            context,
+                          ).colorScheme.primary;
+                          final onPrimaryColor = Theme.of(
+                            context,
+                          ).colorScheme.onPrimary;
                           return Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: InkWell(
@@ -164,20 +166,34 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               borderRadius: BorderRadius.circular(20),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
+                                constraints: const BoxConstraints(
+                                  minHeight: 40,
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 14,
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? GlassTheme.limeAccent
-                                      : Colors.white.withValues(alpha: 0.06),
+                                      ? primaryColor
+                                      : surfaceFill,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
                                     color: isSelected
-                                        ? GlassTheme.limeAccent
-                                        : Colors.white.withValues(alpha: 0.12),
+                                        ? primaryColor
+                                        : surfaceBorder,
                                   ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: primaryColor.withValues(
+                                              alpha: 0.25,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -186,20 +202,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       SvgAssetIcon(
                                         assetName: filter['svg'] as String,
                                         size: 14,
-                                        color: isSelected ? Colors.black : null,
+                                        color: isSelected
+                                            ? onPrimaryColor
+                                            : secondaryText,
                                       ),
                                       const SizedBox(width: 6),
                                     ],
                                     Text(
                                       filter['label'] as String,
-                                      style: TextStyle(
-                                        fontSize: 12,
+                                      style: textTheme.bodySmall?.copyWith(
                                         fontWeight: isSelected
-                                            ? FontWeight.w900
+                                            ? FontWeight.w800
                                             : FontWeight.w600,
                                         color: isSelected
-                                            ? Colors.black
-                                            : Colors.white70,
+                                            ? onPrimaryColor
+                                            : primaryText,
                                       ),
                                     ),
                                   ],
@@ -207,7 +224,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               ),
                             ),
                           );
-                        },
+                        }),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -298,7 +315,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         ? Icons.filter_list_off
                                         : Icons.storefront_outlined,
                                     size: 68,
-                                    color: Colors.white30,
+                                    color: secondaryText.withValues(alpha: 0.5),
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
@@ -306,10 +323,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         ? 'No restaurants match this filter'
                                         : 'No restaurants available right now',
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
+                                    style: textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 17,
-                                      color: Colors.white,
+                                      color: primaryText,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -322,9 +338,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           ? 'Try clearing your search term or picking another category filter above.'
                                           : 'Could not connect to the live restaurant server. Check your connection or load the demo menu.',
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: GlassTheme.textMuted,
-                                        fontSize: 13,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: secondaryText,
                                       ),
                                     ),
                                   ),
@@ -341,9 +356,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       },
                                     )
                                   else
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                    Wrap(
+                                      alignment: WrapAlignment.center,
+                                      spacing: 12,
+                                      runSpacing: 12,
                                       children: [
                                         GlassButton(
                                           text: 'Retry',
@@ -351,24 +367,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           onPressed: () =>
                                               provider.fetchRestaurants(),
                                         ),
-                                        const SizedBox(width: 12),
                                         OutlinedButton.icon(
                                           onPressed: () =>
                                               provider.loadDemoFallback(),
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.restaurant_menu,
-                                            color: GlassTheme.primaryGreen,
+                                            color: accentGreen,
                                             size: 18,
                                           ),
-                                          label: const Text(
-                                            'Load Menu',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
+                                          label: Text(
+                                            'Load demo menu',
+                                            style: textTheme.labelLarge
+                                                ?.copyWith(color: primaryText),
                                           ),
                                           style: OutlinedButton.styleFrom(
-                                            side: const BorderSide(
-                                              color: GlassTheme.primaryGreen,
+                                            side: BorderSide(
+                                              color: accentGreen,
                                             ),
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 16,
@@ -391,11 +405,47 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (provider.isDemo) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.amber.withValues(alpha: 0.35),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: amberText,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Demo menu — not live availability. '
+                                        'Reconnect to FoodGo before ordering.',
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: amberText,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                             Text(
                               'Showing ${restaurants.length} restaurants',
-                              style: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 13,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: secondaryText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

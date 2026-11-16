@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../core/theme/glass_theme.dart';
+import '../core/theme/app_icons.dart';
 import '../providers/cart_provider.dart';
 
 class FloatingMiniCartBar extends StatelessWidget {
@@ -15,6 +15,12 @@ class FloatingMiniCartBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
     if (cart.itemCount == 0) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final bgColor = colorScheme.primary;
+    final fgColor = colorScheme.onPrimary;
 
     return Positioned(
       bottom: bottomOffset,
@@ -35,11 +41,11 @@ class FloatingMiniCartBar extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      gradient: GlassTheme.primaryGradient,
+                      color: bgColor,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.4),
+                          color: bgColor.withValues(alpha: 0.35),
                           blurRadius: 14,
                           offset: const Offset(0, 6),
                         ),
@@ -53,65 +59,55 @@ class FloatingMiniCartBar extends StatelessWidget {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.25),
+                            color: fgColor.withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
                             children: [
-                              const Icon(
-                                Icons.shopping_bag_outlined,
-                                color: Colors.white,
-                                size: 16,
-                              ),
+                              Icon(AppIcons.cart, color: fgColor, size: 16),
                               const SizedBox(width: 6),
                               Text(
                                 '${cart.itemCount}',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: textTheme.labelLarge?.copyWith(
+                                  color: fgColor,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
                                 ),
                               ),
                             ],
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              'View your cart',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'View your cart',
+                                style: textTheme.labelLarge?.copyWith(
+                                  color: fgColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            Text(
-                              'Estimated total: \$${cart.totalAmount.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 11,
+                              Text(
+                                'Estimated total: \$${cart.totalAmount.toStringAsFixed(2)}',
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: fgColor.withValues(alpha: 0.88),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                        const Spacer(),
-                        const Text(
+                        const SizedBox(width: 8),
+                        Text(
                           'Checkout',
-                          style: TextStyle(
-                            color: Colors.white,
+                          style: textTheme.labelLarge?.copyWith(
+                            color: fgColor,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          color: Colors.white,
-                          size: 13,
-                        ),
+                        Icon(AppIcons.forward, color: fgColor, size: 13),
                       ],
                     ),
                   ),

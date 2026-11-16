@@ -32,14 +32,8 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final isAuthEndpoint =
-              options.path == 'token/' ||
-              options.path.contains('token/refresh') ||
-              options.path.contains('auth/login') ||
-              options.path.contains('auth/google') ||
-              options.path.contains('auth/phone') ||
-              options.path.contains('auth/register');
-          if (!isAuthEndpoint) {
+          options.baseUrl = AppConfig.apiBaseUrl;
+          if (!AppConfig.isPublicAuthEndpoint(options.path)) {
             final token = await _secureStorage.getAccessToken();
             if (token != null && token.isNotEmpty) {
               options.headers['Authorization'] = 'Bearer $token';
@@ -48,6 +42,45 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
+          // Automatic edge failover when direct live domain times out or fails TCP/TLS
+          if ((e.type == DioExceptionType.connectionTimeout ||
+                  e.type == DioExceptionType.connectionError) &&
+              e.requestOptions.extra['_edgeFallbackAttempted'] != true &&
+              AppConfig.canFallbackToEdge(e.requestOptions.baseUrl)) {
+            final fallbackOptions = e.requestOptions.copyWith(
+              baseUrl: AppConfig.edgeApiBaseUrl,
+              extra: {
+                ...e.requestOptions.extra,
+                '_edgeFallbackAttempted': true,
+              },
+            );
+            try {
+              final fallbackDio = Dio(
+                BaseOptions(
+                  connectTimeout:
+                      e.requestOptions.connectTimeout ??
+                      const Duration(seconds: 15),
+                  receiveTimeout:
+                      e.requestOptions.receiveTimeout ??
+                      const Duration(seconds: 15),
+                ),
+              );
+              final response = await fallbackDio.fetch<dynamic>(
+                fallbackOptions,
+              );
+              AppConfig.activateEdgeFallback();
+              return handler.resolve(response);
+            } on DioException catch (fallbackErr) {
+              if (fallbackErr.response != null) {
+                AppConfig.activateEdgeFallback();
+                if (fallbackErr.response?.statusCode != 401) {
+                  return handler.next(fallbackErr);
+                }
+                e = fallbackErr;
+              }
+            } catch (_) {}
+          }
+
           // Only handle 401 responses (unauthorized / token expired)
           if (e.response?.statusCode != 401) {
             return handler.next(e);
@@ -56,14 +89,7 @@ class ApiClient {
           final requestOptions = e.requestOptions;
 
           // Never attempt token refresh on login or authentication endpoints
-          final isAuthEndpoint =
-              requestOptions.path == 'token/' ||
-              requestOptions.path.contains('token/refresh') ||
-              requestOptions.path.contains('auth/login') ||
-              requestOptions.path.contains('auth/google') ||
-              requestOptions.path.contains('auth/phone') ||
-              requestOptions.path.contains('auth/register');
-          if (isAuthEndpoint) {
+          if (AppConfig.isPublicAuthEndpoint(requestOptions.path)) {
             return handler.next(e);
           }
 

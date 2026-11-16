@@ -7,9 +7,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../widgets/glass_container.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/responsive_layout.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../providers/locale_provider.dart';
 import '../../../widgets/phone_verification_modal.dart';
 import '../../../widgets/svg_icon.dart';
 import '../../../widgets/about_foodgo_dialog.dart';
@@ -20,52 +22,86 @@ class ProfileScreen extends StatelessWidget {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: GlassTheme.dialogDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Log Out',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Are you sure you want to log out of your FoodGo account?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white60),
+      builder: (dialogCtx) {
+        final brightness = Theme.of(dialogCtx).brightness;
+        final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(dialogCtx).textTheme;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final secondaryText = AppTypography.secondaryTextColor(brightness);
+        final dangerColor = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
+        final isKhmer = Localizations.localeOf(dialogCtx).languageCode == 'km';
+        return AlertDialog(
+          backgroundColor: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: isDark
+                  ? GlassTheme.dynamicBorderDark
+                  : GlassTheme.borderLight,
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              side: BorderSide(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1.2,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(dialogCtx);
-              context.read<AuthProvider>().logout();
-              context.read<UserProvider>().clearUser();
-              context.go('/login');
-            },
-            child: const Text(
-              'Log Out',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+          title: Text(
+            context.tr('settings.logoutConfirmTitle'),
+            style: textTheme.titleLarge?.copyWith(
+              color: primaryText,
+              fontWeight: FontWeight.bold,
+              height: isKhmer ? 1.5 : null,
+              letterSpacing: isKhmer ? 0 : null,
             ),
           ),
-        ],
-      ),
+          content: Text(
+            context.tr('settings.logoutConfirmMessage'),
+            style: textTheme.bodyMedium?.copyWith(
+              color: secondaryText,
+              height: isKhmer ? 1.5 : null,
+              letterSpacing: isKhmer ? 0 : null,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(
+                context.tr('common.cancel'),
+                style: textTheme.labelLarge?.copyWith(
+                  color: secondaryText,
+                  height: isKhmer ? 1.5 : null,
+                  letterSpacing: isKhmer ? 0 : null,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: dangerColor,
+                foregroundColor: Colors.white,
+                side: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : Colors.black.withValues(alpha: 0.08),
+                  width: 1.2,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                context.read<AuthProvider>().logout();
+                context.read<UserProvider>().clearUser();
+                context.go('/login');
+              },
+              child: Text(
+                context.tr('auth.logout'),
+                style: textTheme.labelLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  height: isKhmer ? 1.5 : null,
+                  letterSpacing: isKhmer ? 0 : null,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -74,240 +110,214 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ResponsiveBottomSheet(
-        child: SafeArea(
-          child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(ctx).size.height * 0.88,
-            ),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: GlassTheme.dialogDark,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
+      builder: (ctx) {
+        final brightness = Theme.of(ctx).brightness;
+        final isDark = brightness == Brightness.dark;
+        final textTheme = Theme.of(ctx).textTheme;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final secondaryText = AppTypography.secondaryTextColor(brightness);
+        final accentGreen = isDark
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
+        final paymentMethods = [
+          (
+            icon: AppIcons.qrCode,
+            color: isDark ? Colors.redAccent : const Color(0xFFB91C1C),
+            title: 'Bakong KHQR (National Bank of Cambodia)',
+            subtitle: 'Universal QR in USD & KHR across all member banks',
+          ),
+          (
+            icon: AppIcons.bankTransfer,
+            color: isDark ? Colors.cyanAccent : const Color(0xFF0E7490),
+            title: 'ABA Mobile KHQR / PayWay',
+            subtitle: 'Direct scan-to-pay via ABA Mobile app',
+          ),
+          (
+            icon: AppIcons.creditCard,
+            color: isDark ? Colors.lightBlueAccent : const Color(0xFF1D4ED8),
+            title: 'ACLEDA Bank KHQR / x-Pay',
+            subtitle: 'Instant payment via ACLEDA Mobile banking',
+          ),
+          (
+            icon: AppIcons.payment,
+            color: isDark ? Colors.amberAccent : const Color(0xFFB45309),
+            title: 'Cash on Delivery (COD)',
+            subtitle: 'Pay cash directly to driver upon order arrival',
+          ),
+        ];
+
+        return ResponsiveBottomSheet(
+          child: SafeArea(
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height * 0.88,
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: GlassTheme.primaryGreen.withValues(
-                            alpha: 0.15,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.payment_outlined,
-                          color: GlassTheme.primaryGreen,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Payment Methods',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'FoodGo supports secure banking rails and cash on delivery in Cambodia.',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.qr_code_2,
-                        color: Colors.redAccent,
-                        size: 22,
-                      ),
-                    ),
-                    title: const Text(
-                      'Bakong KHQR (National Bank of Cambodia)',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    subtitle: const Text(
-                      'Universal QR in USD & KHR across all member banks',
-                      style: TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.cyanAccent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.account_balance,
-                        color: Colors.cyanAccent,
-                        size: 20,
-                      ),
-                    ),
-                    title: const Text(
-                      'ABA Mobile KHQR / PayWay',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    subtitle: const Text(
-                      'Direct scan-to-pay via ABA Mobile app',
-                      style: TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.blueAccent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.credit_card,
-                        color: Colors.blueAccent,
-                        size: 20,
-                      ),
-                    ),
-                    title: const Text(
-                      'ACLEDA Bank KHQR / x-Pay',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    subtitle: const Text(
-                      'Instant payment via ACLEDA Mobile banking',
-                      style: TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.amberAccent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.payments_outlined,
-                        color: Colors.amberAccent,
-                        size: 22,
-                      ),
-                    ),
-                    title: const Text(
-                      'Cash on Delivery (COD)',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    subtitle: const Text(
-                      'Pay cash directly to driver upon order arrival',
-                      style: TextStyle(
-                        color: GlassTheme.textMuted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            context.push('/orders');
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.2),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? GlassTheme.dynamicDialogDark : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                border: Border.all(
+                  color: isDark
+                      ? GlassTheme.dynamicBorderDark
+                      : Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.15,
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            AppIcons.payment,
+                            color: accentGreen,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(
+                            'Payment Methods',
+                            style: textTheme.titleLarge?.copyWith(
+                              color: primaryText,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          child: const Text('View Orders & Receipts'),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'FoodGo supports secure banking rails and cash on delivery in Cambodia.',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: secondaryText,
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: GlassTheme.primaryGreen,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                    ),
+                    const SizedBox(height: 16),
+                    ...paymentMethods.map(
+                      (method) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: method.color.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              method.icon,
+                              color: method.color,
+                              size: 21,
                             ),
                           ),
-                          child: const Text('Close'),
+                          title: Text(
+                            method.title,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: primaryText,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            method.subtitle,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
+                            ),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              context.push('/orders');
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: primaryText,
+                              side: BorderSide(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.2)
+                                    : Colors.black.withValues(alpha: 0.18),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'View Orders & Receipts',
+                              textAlign: TextAlign.center,
+                              style: textTheme.labelLarge?.copyWith(
+                                color: primaryText,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(
+                                ctx,
+                              ).colorScheme.primary,
+                              foregroundColor: Theme.of(
+                                ctx,
+                              ).colorScheme.onPrimary,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Close',
+                              style: textTheme.labelLarge?.copyWith(
+                                color: Theme.of(ctx).colorScheme.onPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final accentAmber = isDark ? Colors.amber : const Color(0xFFB45309);
+    final dangerRed = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
 
     return SafeArea(
       child: ResponsiveWebContainer(
@@ -319,18 +329,21 @@ class ProfileScreen extends StatelessWidget {
               builder: (context, userProvider, child) {
                 final user = userProvider.user;
                 if (userProvider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: GlassTheme.primaryGreen,
-                    ),
+                  return Center(
+                    child: CircularProgressIndicator(color: accentGreen),
                   );
                 }
-                final String username = user?['username'] ?? 'Guest';
-                final String email = user?['email'] ?? 'guest@example.com';
-                final String phone = user?['phone'] ?? '';
+                final String displayName = userProvider.displayName;
+                final String email = userProvider.email.isNotEmpty
+                    ? userProvider.email
+                    : (user?['username'] != null
+                          ? '${user!['username']}@foodgo.app'
+                          : 'guest@example.com');
+                final String username = user?['username']?.toString() ?? '';
+                final String phone = userProvider.phone;
                 final bool isPhoneVerified = user?['is_phone_verified'] == true;
-                final String? avatarUrl =
-                    user?['avatar_url'] ?? user?['avatar'];
+                final String? avatarUrl = userProvider.avatarUrl;
+                final String initials = userProvider.initials;
 
                 return Column(
                   children: [
@@ -338,23 +351,17 @@ class ProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? GlassTheme.surfaceCardDark
+                                ? GlassTheme.dynamicSurfaceCardDark
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(28),
                             border: Border.all(
                               color: isDark
-                                  ? Colors.white.withValues(alpha: 0.1)
+                                  ? GlassTheme.dynamicBorderDark
                                   : const Color(0xFFE5E7EB),
                               width: 1.0,
                             ),
                             boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: isDark ? 0.25 : 0.04,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
+                              GlassTheme.dynamicSoftShadow(isDark: isDark),
                             ],
                           ),
                           child: Column(
@@ -411,17 +418,16 @@ class ProfileScreen extends StatelessWidget {
                                                     backgroundColor: GlassTheme
                                                         .lightGreenSurface,
                                                     child: Text(
-                                                      username.isNotEmpty
-                                                          ? username[0]
-                                                                .toUpperCase()
-                                                          : 'G',
-                                                      style: const TextStyle(
-                                                        fontSize: 32,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: GlassTheme
-                                                            .primaryGreen,
-                                                      ),
+                                                      initials,
+                                                      style: textTheme
+                                                          .displayLarge
+                                                          ?.copyWith(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: const Color(
+                                                              0xFF15803D,
+                                                            ),
+                                                          ),
                                                     ),
                                                   ),
                                             )
@@ -430,15 +436,15 @@ class ProfileScreen extends StatelessWidget {
                                               backgroundColor:
                                                   GlassTheme.lightGreenSurface,
                                               child: Text(
-                                                username.isNotEmpty
-                                                    ? username[0].toUpperCase()
-                                                    : 'G',
-                                                style: const TextStyle(
-                                                  fontSize: 32,
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      GlassTheme.primaryGreen,
-                                                ),
+                                                initials,
+                                                style: textTheme.displayLarge
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: const Color(
+                                                        0xFF15803D,
+                                                      ),
+                                                    ),
                                               ),
                                             ),
                                     ),
@@ -448,11 +454,11 @@ class ProfileScreen extends StatelessWidget {
                                       child: Container(
                                         padding: const EdgeInsets.all(6),
                                         decoration: const BoxDecoration(
-                                          color: GlassTheme.primaryGreen,
+                                          color: Color(0xFF15803D),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
-                                          Icons.edit,
+                                          AppIcons.edit,
                                           size: 13,
                                           color: Colors.white,
                                         ),
@@ -463,44 +469,50 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 14),
                               Text(
-                                username,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF111827),
+                                displayName,
+                                textAlign: TextAlign.center,
+                                style: textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: primaryText,
+                                  height: 1.4,
+                                  letterSpacing: 0,
                                 ),
                               ),
+                              if (username.isNotEmpty &&
+                                  username != displayName &&
+                                  !username.startsWith('adb_user_')) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  '@$username',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: accentGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 4),
                               Text(
                                 email,
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white60
-                                      : const Color(0xFF6B7280),
-                                  fontSize: 13,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: secondaryText,
                                 ),
                               ),
                               const SizedBox(height: 6),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
-                                    Icons.phone_outlined,
+                                  Icon(
+                                    AppIcons.phone,
                                     size: 14,
-                                    color: GlassTheme.primaryGreen,
+                                    color: accentGreen,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
                                     phone.isNotEmpty
                                         ? phone
                                         : 'No phone linked',
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white70
-                                          : const Color(0xFF374151),
-                                      fontSize: 13,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: primaryText,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -520,22 +532,22 @@ class ProfileScreen extends StatelessWidget {
                                               .withValues(alpha: 0.3),
                                         ),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
-                                            Icons.check_circle,
+                                            AppIcons.successFilled,
                                             size: 10,
-                                            color: GlassTheme.primaryGreen,
+                                            color: accentGreen,
                                           ),
-                                          SizedBox(width: 3),
+                                          const SizedBox(width: 3),
                                           Text(
                                             'Verified',
-                                            style: TextStyle(
-                                              color: GlassTheme.primaryGreen,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                            style: textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: accentGreen,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -567,22 +579,22 @@ class ProfileScreen extends StatelessWidget {
                                             width: 1.2,
                                           ),
                                         ),
-                                        child: const Row(
+                                        child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(
-                                              Icons.warning_amber_rounded,
+                                              AppIcons.warning,
                                               size: 10,
-                                              color: Colors.amber,
+                                              color: accentAmber,
                                             ),
-                                            SizedBox(width: 3),
+                                            const SizedBox(width: 3),
                                             Text(
                                               'Verify SMS',
-                                              style: TextStyle(
-                                                color: Colors.amber,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    color: accentAmber,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -591,43 +603,119 @@ class ProfileScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: () => context.push('/edit-profile'),
-                                icon: const Icon(
-                                  Icons.edit_outlined,
-                                  size: 14,
-                                  color: GlassTheme.primaryGreen,
-                                ),
-                                label: Text(
-                                  'Edit Profile',
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF111827),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: GlassTheme.primaryGreen.withValues(
-                                      alpha: 0.5,
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () =>
+                                        context.push('/edit-profile'),
+                                    icon: Icon(
+                                      AppIcons.edit,
+                                      size: 14,
+                                      color: accentGreen,
                                     ),
-                                    width: 1.2,
+                                    label: Text(
+                                      context.tr(
+                                        'profile.editProfile',
+                                        fallback: 'Edit Profile',
+                                      ),
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: primaryText,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(
+                                        color: GlassTheme.primaryGreen
+                                            .withValues(alpha: 0.5),
+                                        width: 1.2,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      backgroundColor: GlassTheme.primaryGreen
+                                          .withValues(alpha: 0.08),
+                                    ),
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
+                                  Builder(
+                                    builder: (context) {
+                                      LocaleProvider? localeProvider;
+                                      try {
+                                        localeProvider = context
+                                            .watch<LocaleProvider>();
+                                      } catch (_) {
+                                        localeProvider = null;
+                                      }
+                                      final isKhmer =
+                                          localeProvider?.isKhmer ?? false;
+                                      return InkWell(
+                                        onTap: () {
+                                          try {
+                                            context
+                                                .read<LocaleProvider>()
+                                                .toggleLanguage();
+                                          } catch (_) {}
+                                        },
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: GlassTheme.primaryGreen
+                                                .withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: GlassTheme.primaryGreen
+                                                  .withValues(alpha: 0.4),
+                                              width: 1.2,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                AppIcons.language,
+                                                size: 14,
+                                                color: accentGreen,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                isKhmer
+                                                    ? 'ភាសាខ្មែរ'
+                                                    : 'English',
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      color: primaryText,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      height: isKhmer
+                                                          ? 1.5
+                                                          : null,
+                                                      letterSpacing: isKhmer
+                                                          ? 0
+                                                          : null,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 18,
-                                    vertical: 8,
-                                  ),
-                                  backgroundColor: GlassTheme.primaryGreen
-                                      .withValues(alpha: 0.08),
-                                ),
+                                ],
                               ),
                               const SizedBox(height: 16),
-                              // Quick Action Shortcuts: Addresses, Orders, KHQR
+                              // Quick Action Shortcuts: Addresses, Orders
                               Row(
                                 children: [
                                   Expanded(
@@ -658,21 +746,19 @@ class ProfileScreen extends StatelessWidget {
                                         ),
                                         child: Column(
                                           children: [
-                                            const Icon(
-                                              Icons.location_on_outlined,
-                                              color: GlassTheme.primaryGreen,
+                                            Icon(
+                                              AppIcons.locationOutline,
+                                              color: accentGreen,
                                               size: 22,
                                             ),
                                             const SizedBox(height: 6),
                                             Text(
                                               'Addresses',
-                                              style: TextStyle(
-                                                color: isDark
-                                                    ? Colors.white
-                                                    : const Color(0xFF111827),
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: primaryText,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -708,21 +794,19 @@ class ProfileScreen extends StatelessWidget {
                                         ),
                                         child: Column(
                                           children: [
-                                            const Icon(
-                                              Icons.receipt_long_outlined,
-                                              color: GlassTheme.primaryGreen,
+                                            Icon(
+                                              AppIcons.orders,
+                                              color: accentGreen,
                                               size: 22,
                                             ),
                                             const SizedBox(height: 6),
                                             Text(
                                               'Orders',
-                                              style: TextStyle(
-                                                color: isDark
-                                                    ? Colors.white
-                                                    : const Color(0xFF111827),
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: primaryText,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -744,20 +828,20 @@ class ProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
-                          leading: const Icon(
-                            Icons.store,
-                            color: GlassTheme.primaryGreen,
+                          leading: Icon(
+                            AppIcons.restaurants,
+                            color: accentGreen,
                           ),
-                          title: const Text(
+                          title: Text(
                             'Restaurant Dashboard',
-                            style: TextStyle(
-                              color: Colors.white,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: Colors.white54,
+                          trailing: Icon(
+                            AppIcons.chevronRight,
+                            color: secondaryText,
                           ),
                           onTap: () => context.push('/restaurant-dashboard'),
                         ),
@@ -770,20 +854,17 @@ class ProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
-                          leading: const Icon(
-                            Icons.delivery_dining,
-                            color: GlassTheme.primaryGreen,
-                          ),
-                          title: const Text(
+                          leading: Icon(AppIcons.delivery, color: accentGreen),
+                          title: Text(
                             'Driver Dashboard',
-                            style: TextStyle(
-                              color: Colors.white,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: Colors.white54,
+                          trailing: Icon(
+                            AppIcons.chevronRight,
+                            color: secondaryText,
                           ),
                           onTap: () => context.push('/driver-dashboard'),
                         ),
@@ -796,27 +877,23 @@ class ProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         borderRadius: GlassTheme.borderRadiusSmall,
                         child: ListTile(
-                          leading: const Icon(
-                            Icons.admin_panel_settings_rounded,
-                            color: GlassTheme.limeAccent,
-                          ),
-                          title: const Text(
+                          leading: Icon(AppIcons.admin, color: accentGreen),
+                          title: Text(
                             'Admin Console',
-                            style: TextStyle(
-                              color: Colors.white,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: primaryText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          subtitle: const Text(
+                          subtitle: Text(
                             'Platform analytics, orders, users & audit logs',
-                            style: TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 11,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: secondaryText,
                             ),
                           ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: Colors.white54,
+                          trailing: Icon(
+                            AppIcons.chevronRight,
+                            color: secondaryText,
                           ),
                           onTap: () => context.push('/admin-dashboard'),
                         ),
@@ -829,10 +906,9 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Account',
-              style: TextStyle(
-                fontSize: 18,
+              style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF111827),
+                color: primaryText,
               ),
             ),
             const SizedBox(height: 12),
@@ -845,12 +921,12 @@ class ProfileScreen extends StatelessWidget {
                 return Column(
                   children: [
                     _ProfileOption(
-                      icon: Icons.person_outline,
+                      icon: AppIcons.profile,
                       title: 'Edit Profile',
                       onTap: () => context.push('/edit-profile'),
                     ),
                     _ProfileOption(
-                      icon: Icons.switch_account_outlined,
+                      icon: AppIcons.users,
                       title: 'Account Role',
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(
@@ -872,9 +948,8 @@ class ProfileScreen extends StatelessWidget {
                           (currentUser?['role'] ?? 'customer')
                               .toString()
                               .toUpperCase(),
-                          style: const TextStyle(
-                            color: GlassTheme.primaryGreen,
-                            fontSize: 10,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: accentGreen,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -903,7 +978,7 @@ class ProfileScreen extends StatelessWidget {
                       },
                     ),
                     _ProfileOption(
-                      icon: Icons.phone_android_outlined,
+                      icon: AppIcons.phone,
                       title: 'Phone Verification (SMS OTP)',
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(
@@ -918,11 +993,8 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         child: Text(
                           isVerified ? 'Verified' : 'Unverified',
-                          style: TextStyle(
-                            color: isVerified
-                                ? GlassTheme.primaryGreen
-                                : Colors.amber,
-                            fontSize: 11,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: isVerified ? accentGreen : accentAmber,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -940,221 +1012,258 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
             _ProfileOption(
-              icon: Icons.receipt_long_outlined,
+              icon: AppIcons.orders,
               title: 'My Orders',
               onTap: () => context.push('/orders'),
             ),
             _ProfileOption(
-              icon: Icons.payment_outlined,
+              icon: AppIcons.payment,
               title: 'Payment Methods',
               onTap: () => _showPaymentMethodsModal(context),
             ),
             _ProfileOption(
-              icon: Icons.location_on_outlined,
+              icon: AppIcons.locationOutline,
               title: 'Saved Addresses',
               onTap: () => context.push('/addresses'),
             ),
             _ProfileOption(
-              icon: Icons.notifications_outlined,
+              icon: AppIcons.notifications,
               title: 'Notifications',
               onTap: () => context.push('/notifications'),
             ),
             _ProfileOption(
-              icon: Icons.favorite_outline,
+              icon: AppIcons.saved,
               title: 'Favorites',
               onTap: () => context.push('/favorites'),
             ),
             const SizedBox(height: 24),
             Text(
               'Settings & Preferences',
-              style: TextStyle(
-                fontSize: 18,
+              style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF111827),
+                color: primaryText,
               ),
             ),
             const SizedBox(height: 12),
             _ProfileOption(
-              icon: Icons.settings_outlined,
+              icon: AppIcons.settings,
               title: 'General Settings',
               onTap: () => context.push('/settings'),
             ),
             _ProfileOption(
-              icon: Icons.palette_outlined,
+              icon: AppIcons.theme,
               title: 'Theme & Khmer Festivals',
               onTap: () => context.push('/theme-center'),
             ),
             _ProfileOption(
-              icon: Icons.language,
+              icon: AppIcons.language,
               title: 'Language',
               onTap: () {
                 showModalBottomSheet(
                   context: context,
                   backgroundColor: Colors.transparent,
-                  builder: (ctx) => ResponsiveBottomSheet(
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: GlassTheme.dialogDark,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(28),
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Text(
-                            'Select Language / ជ្រើសរើសភាសា',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                  builder: (ctx) {
+                    final sheetDark =
+                        Theme.of(ctx).brightness == Brightness.dark;
+                    final sheetTextTheme = Theme.of(ctx).textTheme;
+                    final sheetPrimaryText = AppTypography.primaryTextColor(
+                      sheetDark ? Brightness.dark : Brightness.light,
+                    );
+                    final sheetAccentGreen = sheetDark
+                        ? GlassTheme.primaryGreenAccent
+                        : const Color(0xFF15803D);
+                    return ResponsiveBottomSheet(
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: sheetDark
+                              ? GlassTheme.dynamicDialogDark
+                              : Colors.white,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(28),
                           ),
-                          const SizedBox(height: 16),
-                          ListTile(
-                            title: const Text(
-                              'English (US)',
-                              style: TextStyle(
-                                color: Colors.white,
+                          border: Border.all(
+                            color: sheetDark
+                                ? GlassTheme.dynamicBorderDark
+                                : Colors.black.withValues(alpha: 0.08),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'Select Language / ជ្រើសរើសភាសា',
+                              style: sheetTextTheme.titleLarge?.copyWith(
+                                color: sheetPrimaryText,
                                 fontWeight: FontWeight.bold,
+                                height: 1.5,
+                                letterSpacing: 0,
                               ),
                             ),
-                            trailing: const Icon(
-                              Icons.check,
-                              color: GlassTheme.primaryGreen,
-                            ),
-                            onTap: () => Navigator.pop(ctx),
-                          ),
-                          ListTile(
-                            title: const Text(
-                              'ភាសាខ្មែរ (Khmer)',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onTap: () {
-                              Navigator.pop(ctx);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('ភាសាខ្មែរ ត្រូវបានជ្រើសរើស'),
-                                  backgroundColor: GlassTheme.primaryGreen,
+                            const SizedBox(height: 16),
+                            ListTile(
+                              title: Text(
+                                'English (US)',
+                                style: sheetTextTheme.bodyLarge?.copyWith(
+                                  color: sheetPrimaryText,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text(
-                              'Français (French)',
-                              style: TextStyle(color: Colors.white),
+                              ),
+                              trailing: Icon(
+                                AppIcons.check,
+                                color: sheetAccentGreen,
+                              ),
+                              onTap: () => Navigator.pop(ctx),
                             ),
-                            onTap: () {
-                              Navigator.pop(ctx);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Langue française sélectionnée',
+                            ListTile(
+                              title: Text(
+                                'ភាសាខ្មែរ (Khmer)',
+                                style: sheetTextTheme.bodyLarge?.copyWith(
+                                  color: sheetPrimaryText,
+                                  height: 1.5,
+                                  letterSpacing: 0,
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('ភាសាខ្មែរ ត្រូវបានជ្រើសរើស'),
+                                    backgroundColor: GlassTheme.primaryGreen,
                                   ),
-                                  backgroundColor: GlassTheme.primaryGreen,
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: Text(
+                                'Français (French)',
+                                style: sheetTextTheme.bodyLarge?.copyWith(
+                                  color: sheetPrimaryText,
                                 ),
-                              );
-                            },
-                          ),
-                        ],
+                              ),
+                              onTap: () {
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Langue française sélectionnée',
+                                    ),
+                                    backgroundColor: GlassTheme.primaryGreen,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 );
               },
             ),
             _ProfileOption(
-              icon: Icons.help_outline,
+              icon: AppIcons.help,
               title: 'Help & Support',
               onTap: () {
                 showModalBottomSheet(
                   context: context,
                   backgroundColor: Colors.transparent,
-                  builder: (ctx) => ResponsiveBottomSheet(
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: GlassTheme.dialogDark,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(28),
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Text(
-                            'FoodGo 24/7 Support',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                  builder: (ctx) {
+                    final sheetDark =
+                        Theme.of(ctx).brightness == Brightness.dark;
+                    final sheetTextTheme = Theme.of(ctx).textTheme;
+                    final sheetPrimaryText = AppTypography.primaryTextColor(
+                      sheetDark ? Brightness.dark : Brightness.light,
+                    );
+                    final sheetSecondaryText = AppTypography.secondaryTextColor(
+                      sheetDark ? Brightness.dark : Brightness.light,
+                    );
+                    final sheetAccentGreen = sheetDark
+                        ? GlassTheme.primaryGreenAccent
+                        : const Color(0xFF15803D);
+                    return ResponsiveBottomSheet(
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: sheetDark
+                              ? GlassTheme.dynamicDialogDark
+                              : Colors.white,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(28),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Get fast help with delivery, payments, or orders.',
-                            style: TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 13,
-                            ),
+                          border: Border.all(
+                            color: sheetDark
+                                ? GlassTheme.dynamicBorderDark
+                                : Colors.black.withValues(alpha: 0.08),
                           ),
-                          const SizedBox(height: 16),
-                          ListTile(
-                            leading: const Icon(
-                              Icons.chat_bubble_outline,
-                              color: GlassTheme.primaryGreen,
-                            ),
-                            title: const Text(
-                              'Chat with Support',
-                              style: TextStyle(
-                                color: Colors.white,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'FoodGo 24/7 Support',
+                              style: sheetTextTheme.titleLarge?.copyWith(
+                                color: sheetPrimaryText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            subtitle: Text(
-                              'Average reply time: 2 mins',
-                              style: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 12,
+                            const SizedBox(height: 8),
+                            Text(
+                              'Get fast help with delivery, payments, or orders.',
+                              style: sheetTextTheme.bodySmall?.copyWith(
+                                color: sheetSecondaryText,
                               ),
                             ),
-                            onTap: () => Navigator.pop(ctx),
-                          ),
-                          ListTile(
-                            leading: const Icon(
-                              Icons.phone_outlined,
-                              color: Colors.amber,
-                            ),
-                            title: const Text(
-                              'Hotline: +855 23 999 888',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(height: 16),
+                            ListTile(
+                              leading: Icon(
+                                AppIcons.support,
+                                color: sheetAccentGreen,
                               ),
-                            ),
-                            subtitle: Text(
-                              'Toll-free customer care',
-                              style: TextStyle(
-                                color: GlassTheme.textMuted,
-                                fontSize: 12,
+                              title: Text(
+                                'Chat with Support',
+                                style: sheetTextTheme.titleMedium?.copyWith(
+                                  color: sheetPrimaryText,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
+                              subtitle: Text(
+                                'Average reply time: 2 mins',
+                                style: sheetTextTheme.bodySmall?.copyWith(
+                                  color: sheetSecondaryText,
+                                ),
+                              ),
+                              onTap: () => Navigator.pop(ctx),
                             ),
-                            onTap: () => Navigator.pop(ctx),
-                          ),
-                        ],
+                            ListTile(
+                              leading: Icon(
+                                AppIcons.phone,
+                                color: sheetDark
+                                    ? Colors.amber
+                                    : const Color(0xFFB45309),
+                              ),
+                              title: Text(
+                                'Hotline: +855 23 999 888',
+                                style: sheetTextTheme.titleMedium?.copyWith(
+                                  color: sheetPrimaryText,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Toll-free customer care',
+                                style: sheetTextTheme.bodySmall?.copyWith(
+                                  color: sheetSecondaryText,
+                                ),
+                              ),
+                              onTap: () => Navigator.pop(ctx),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 );
               },
             ),
@@ -1167,18 +1276,18 @@ class ProfileScreen extends StatelessWidget {
               builder: (context, auth, child) {
                 if (auth.isAuthenticated) {
                   return _ProfileOption(
-                    icon: Icons.logout,
+                    icon: AppIcons.logout,
                     title: 'Logout',
-                    textColor: Colors.red,
-                    iconColor: Colors.red,
+                    textColor: dangerRed,
+                    iconColor: dangerRed,
                     onTap: () => _showLogoutDialog(context),
                   );
                 } else {
                   return _ProfileOption(
-                    icon: Icons.login,
+                    icon: AppIcons.login,
                     title: 'Login / Sign Up',
-                    textColor: GlassTheme.primaryGreen,
-                    iconColor: GlassTheme.primaryGreen,
+                    textColor: accentGreen,
+                    iconColor: accentGreen,
                     onTap: () => context.push('/login'),
                   );
                 }
@@ -1196,12 +1305,16 @@ class ProfileScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: GlassTheme.lightGreenSurface,
                         border: Border.all(
-                          color: GlassTheme.primaryGreen.withValues(alpha: 0.35),
+                          color: GlassTheme.primaryGreen.withValues(
+                            alpha: 0.35,
+                          ),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: GlassTheme.primaryGreen.withValues(alpha: 0.2),
+                            color: GlassTheme.primaryGreen.withValues(
+                              alpha: 0.2,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
                           ),
@@ -1212,8 +1325,8 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'FoodGo Enterprise Delivery v1.0.0',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
+                    'FoodGo Enterprise Delivery v2.0.0',
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -1221,21 +1334,15 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       Text(
                         'Made with ',
-                        style: TextStyle(
-                          color: GlassTheme.textMuted.withValues(alpha: 0.6),
-                          fontSize: 11,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: secondaryText,
                         ),
                       ),
-                      const Icon(
-                        Icons.favorite,
-                        color: Colors.redAccent,
-                        size: 12,
-                      ),
+                      Icon(AppIcons.favorite, color: dangerRed, size: 12),
                       Text(
                         ' in Phnom Penh, Cambodia',
-                        style: TextStyle(
-                          color: GlassTheme.textMuted.withValues(alpha: 0.6),
-                          fontSize: 11,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: secondaryText,
                         ),
                       ),
                     ],
@@ -1268,16 +1375,28 @@ class _ProfileOption extends StatelessWidget {
     this.textColor,
     this.iconColor,
     this.trailing,
-  }) : assert(icon != null || leadingWidget != null, 'Either icon or leadingWidget must be provided');
+  }) : assert(
+         icon != null || leadingWidget != null,
+         'Either icon or leadingWidget must be provided',
+       );
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final dangerRed = isDark ? Colors.redAccent : const Color(0xFFB91C1C);
     final effectiveColor = iconColor ?? GlassTheme.primaryGreen;
     final bool isDestructive =
         effectiveColor == Colors.red ||
+        effectiveColor == Colors.redAccent ||
+        effectiveColor == const Color(0xFFB91C1C) ||
+        effectiveColor == const Color(0xFFEF4444) ||
         textColor == Colors.red ||
-        effectiveColor == const Color(0xFFEF4444);
+        textColor == Colors.redAccent ||
+        textColor == const Color(0xFFB91C1C);
 
     return Padding(
           padding: const EdgeInsets.only(bottom: 10.0),
@@ -1291,23 +1410,19 @@ class _ProfileOption extends StatelessWidget {
                     ? (isDark
                           ? const Color(0xFF2D1214)
                           : const Color(0xFFFEF2F2))
-                    : (isDark ? GlassTheme.surfaceCardDark : Colors.white),
+                    : (isDark
+                          ? GlassTheme.dynamicSurfaceCardDark
+                          : Colors.white),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isDestructive
                       ? const Color(0xFFFCA5A5)
                       : (isDark
-                            ? Colors.white.withValues(alpha: 0.1)
+                            ? GlassTheme.dynamicBorderDark
                             : const Color(0xFFE5E7EB)),
                   width: 1.0,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: [GlassTheme.dynamicSoftShadow(isDark: isDark)],
               ),
               child: Row(
                 children: [
@@ -1316,17 +1431,20 @@ class _ProfileOption extends StatelessWidget {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(12),
                       color: isDestructive
                           ? const Color(0xFFFEE2E2)
-                          : GlassTheme.lightGreenSurface,
+                          : Theme.of(context).colorScheme.primary.withValues(
+                              alpha: isDark ? 0.2 : 0.12,
+                            ),
                     ),
-                    child: leadingWidget ??
+                    child:
+                        leadingWidget ??
                         Icon(
-                          icon ?? Icons.circle,
+                          icon ?? AppIcons.info,
                           color: isDestructive
-                              ? const Color(0xFFEF4444)
-                              : GlassTheme.primaryGreen,
+                              ? dangerRed
+                              : Theme.of(context).colorScheme.primary,
                           size: 20,
                         ),
                   ),
@@ -1334,12 +1452,9 @@ class _ProfileOption extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style: TextStyle(
+                      style: textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color:
-                            textColor ??
-                            (isDark ? Colors.white : const Color(0xFF111827)),
+                        color: textColor ?? primaryText,
                       ),
                     ),
                   ),
@@ -1347,11 +1462,7 @@ class _ProfileOption extends StatelessWidget {
                     trailing!,
                     const SizedBox(width: 8),
                   ],
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
-                    size: 20,
-                  ),
+                  Icon(AppIcons.chevronRight, color: secondaryText, size: 20),
                 ],
               ),
             ),

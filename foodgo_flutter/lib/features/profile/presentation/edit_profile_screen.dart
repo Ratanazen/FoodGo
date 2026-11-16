@@ -11,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../widgets/glass/glass_widgets.dart';
 import '../../../../widgets/glass_container.dart';
 import '../../../../widgets/responsive_layout.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/glass_theme.dart';
 import '../../../../providers/user_provider.dart';
 
@@ -116,7 +117,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Could not access ${source == ImageSource.camera ? "camera" : "gallery"}: $e',
+              'Could not access ${source == ImageSource.camera ? "camera" : "gallery"}. Please check app permissions and try again.',
             ),
             backgroundColor: Colors.redAccent,
           ),
@@ -149,156 +150,148 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text(
-                'Change Profile Photo',
-                style: TextStyle(
-                  color: isDark ? Colors.white : GlassTheme.textDark,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: GlassTheme.primaryGreen,
-                  ),
-                ),
-                title: Text(
-                  'Take Photo with Camera',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : GlassTheme.textDark,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: const Text(
-                  'Capture a new profile picture',
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                ),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _pickImage(ImageSource.camera);
+              Builder(
+                builder: (sheetInnerCtx) {
+                  final theme = Theme.of(sheetInnerCtx);
+                  final textTheme = theme.textTheme;
+                  final brightness = theme.brightness;
+                  final isDark = brightness == Brightness.dark;
+                  final primaryText = AppTypography.primaryTextColor(
+                    brightness,
+                  );
+                  final secondaryText = AppTypography.secondaryTextColor(
+                    brightness,
+                  );
+                  final greenAccent = isDark
+                      ? GlassTheme.primaryGreenAccent
+                      : const Color(0xFF15803D);
+                  final blueAccent = isDark
+                      ? const Color(0xFF60A5FA)
+                      : const Color(0xFF1D4ED8);
+                  final amberAccent = isDark
+                      ? const Color(0xFFFBBF24)
+                      : const Color(0xFFB45309);
+                  final purpleAccent = isDark
+                      ? const Color(0xFFC084FC)
+                      : const Color(0xFF7E22CE);
+                  final redAccent = isDark
+                      ? const Color(0xFFF87171)
+                      : const Color(0xFFB91C1C);
+
+                  Widget buildOption({
+                    required IconData icon,
+                    required Color accentColor,
+                    required String title,
+                    String? subtitle,
+                    Color? titleColor,
+                    required VoidCallback onTap,
+                  }) {
+                    return ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(icon, color: accentColor),
+                      ),
+                      title: Text(
+                        title,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: titleColor ?? primaryText,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: subtitle == null
+                          ? null
+                          : Text(
+                              subtitle,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: secondaryText,
+                              ),
+                            ),
+                      onTap: onTap,
+                    );
+                  }
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Change Profile Photo',
+                        style: textTheme.titleLarge?.copyWith(
+                          color: primaryText,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      buildOption(
+                        icon: AppIcons.camera,
+                        accentColor: greenAccent,
+                        title: 'Take Photo with Camera',
+                        subtitle: 'Capture a new profile picture',
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          _pickImage(ImageSource.camera);
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      buildOption(
+                        icon: AppIcons.gallery,
+                        accentColor: blueAccent,
+                        title: 'Choose from Gallery',
+                        subtitle: 'Select an image from device library',
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          _pickImage(ImageSource.gallery);
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      buildOption(
+                        icon: AppIcons.profile,
+                        accentColor: amberAccent,
+                        title: 'Pick FoodGo Avatar Preset',
+                        subtitle: 'Choose from curated food enthusiast icons',
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          _showPresetAvatarDialog();
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      buildOption(
+                        icon: AppIcons.link,
+                        accentColor: purpleAccent,
+                        title: 'Enter Image URL',
+                        subtitle: 'Paste direct link from web (Unsplash, etc.)',
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          _showUrlInputDialog();
+                        },
+                      ),
+                      if (_selectedAvatarUrl != null ||
+                          _pickedImagePath != null) ...[
+                        const SizedBox(height: 8),
+                        buildOption(
+                          icon: AppIcons.delete,
+                          accentColor: redAccent,
+                          title: 'Remove Photo',
+                          titleColor: redAccent,
+                          onTap: () {
+                            Navigator.of(ctx).pop();
+                            setState(() {
+                              _pickedImagePath = null;
+                              _selectedAvatarUrl = null;
+                              _avatarUrlController.clear();
+                            });
+                          },
+                        ),
+                      ],
+                    ],
+                  );
                 },
               ),
-              const SizedBox(height: 8),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: GlassTheme.googleBlue.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.photo_library,
-                    color: GlassTheme.googleBlue,
-                  ),
-                ),
-                title: Text(
-                  'Choose from Gallery',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : GlassTheme.textDark,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: const Text(
-                  'Select an image from device library',
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                ),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.face, color: Colors.amber),
-                ),
-                title: Text(
-                  'Pick FoodGo Avatar Preset',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : GlassTheme.textDark,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: const Text(
-                  'Choose from curated food enthusiast icons',
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                ),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _showPresetAvatarDialog();
-                },
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.link, color: Colors.purpleAccent),
-                ),
-                title: Text(
-                  'Enter Image URL',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : GlassTheme.textDark,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: const Text(
-                  'Paste direct link from web (Unsplash, etc.)',
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 12),
-                ),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _showUrlInputDialog();
-                },
-              ),
-              if (_selectedAvatarUrl != null || _pickedImagePath != null) ...[
-                const SizedBox(height: 8),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.delete_outline,
-                      color: Colors.redAccent,
-                    ),
-                  ),
-                  title: const Text(
-                    'Remove Photo',
-                    style: TextStyle(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    setState(() {
-                      _pickedImagePath = null;
-                      _selectedAvatarUrl = null;
-                      _avatarUrlController.clear();
-                    });
-                  },
-                ),
-              ],
             ],
           ),
         );
@@ -307,113 +300,120 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _showPresetAvatarDialog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (ctx) {
+        final theme = Theme.of(ctx);
+        final textTheme = theme.textTheme;
+        final brightness = theme.brightness;
+        final isDark = brightness == Brightness.dark;
+        final primaryText = AppTypography.primaryTextColor(brightness);
+        final secondaryText = AppTypography.secondaryTextColor(brightness);
+        final activeBorder = isDark
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
+
         return Dialog(
           backgroundColor: Colors.transparent,
           child: GlassContainer(
             borderRadius: BorderRadius.circular(24),
             padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Choose Avatar',
-                      style: TextStyle(
-                        color: isDark ? Colors.white : GlassTheme.textDark,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: isDark
-                            ? Colors.white60
-                            : const Color(0xFF64748B),
-                        size: 20,
-                      ),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.85,
-                  ),
-                  itemCount: _presetAvatars.length,
-                  itemBuilder: (context, index) {
-                    final item = _presetAvatars[index];
-                    final isSelected = _selectedAvatarUrl == item['url'];
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        setState(() {
-                          _selectedAvatarUrl = item['url'];
-                          _pickedImagePath = null;
-                          _avatarUrlController.text = item['url']!;
-                        });
-                        Navigator.of(ctx).pop();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? GlassTheme.primaryGreen.withValues(
-                                  alpha: isDark ? 0.2 : 0.12,
-                                )
-                              : (isDark
-                                    ? Colors.white.withValues(alpha: 0.05)
-                                    : Colors.black.withValues(alpha: 0.03)),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected
-                                ? GlassTheme.primaryGreen
-                                : (isDark
-                                      ? Colors.white12
-                                      : Colors.black.withValues(alpha: 0.08)),
-                            width: isSelected ? 2 : 1,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Choose Avatar',
+                          style: textTheme.titleLarge?.copyWith(
+                            color: primaryText,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundImage: NetworkImage(item['url']!),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              item['title']!,
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white70
-                                    : const Color(0xFF64748B),
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
                       ),
-                    );
-                  },
-                ),
-              ],
+                      IconButton(
+                        icon: Icon(
+                          AppIcons.close,
+                          color: secondaryText,
+                          size: 20,
+                        ),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.72,
+                        ),
+                    itemCount: _presetAvatars.length,
+                    itemBuilder: (context, index) {
+                      final item = _presetAvatars[index];
+                      final isSelected = _selectedAvatarUrl == item['url'];
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          setState(() {
+                            _selectedAvatarUrl = item['url'];
+                            _pickedImagePath = null;
+                            _avatarUrlController.text = item['url']!;
+                          });
+                          Navigator.of(ctx).pop();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? activeBorder.withValues(
+                                    alpha: isDark ? 0.2 : 0.12,
+                                  )
+                                : (isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : Colors.black.withValues(alpha: 0.03)),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? activeBorder
+                                  : (isDark
+                                        ? Colors.white12
+                                        : Colors.black.withValues(alpha: 0.08)),
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundImage: NetworkImage(item['url']!),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                item['title']!,
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: isDark ? Colors.white70 : primaryText,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -421,114 +421,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _showUrlInputDialog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final controller = TextEditingController(text: _selectedAvatarUrl ?? '');
-    showDialog(
+  Future<void> _showUrlInputDialog() async {
+    final text = await showDialog<String>(
       context: context,
-      builder: (ctx) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: GlassContainer(
-            borderRadius: BorderRadius.circular(24),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Paste Image Link',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : GlassTheme.textDark,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Paste a direct URL to an image file (JPG, PNG, WebP).',
-                  style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  style: TextStyle(
-                    color: isDark ? Colors.white : GlassTheme.textDark,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'https://images.unsplash.com/...',
-                    hintStyle: TextStyle(
-                      color: isDark ? Colors.white24 : Colors.black26,
-                      fontSize: 13,
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.link,
-                      color: GlassTheme.primaryGreen,
-                    ),
-                    filled: true,
-                    fillColor: isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.03),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.black.withValues(alpha: 0.1),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF64748B),
-                        ),
-                      ),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlassTheme.primaryGreen,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Set Photo',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: () {
-                        final text = controller.text.trim();
-                        if (text.isNotEmpty) {
-                          setState(() {
-                            _selectedAvatarUrl = text;
-                            _pickedImagePath = null;
-                            _avatarUrlController.text = text;
-                          });
-                        }
-                        Navigator.of(ctx).pop();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (_) => _UrlInputDialog(initialUrl: _selectedAvatarUrl ?? ''),
     );
+    if (!mounted || text == null || text.isEmpty) return;
+    setState(() {
+      _selectedAvatarUrl = text;
+      _pickedImagePath = null;
+      _avatarUrlController.text = text;
+    });
   }
 
   Future<void> _handleSave() async {
@@ -560,8 +463,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context.pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to update profile. Please try again.'),
+        SnackBar(
+          content: Text(
+            userProvider.lastError ??
+                'Failed to update profile. Please check your inputs.',
+          ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -591,32 +497,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             strokeWidth: 2,
           ),
         ),
-        errorWidget: (context, url, error) => CircleAvatar(
-          radius: 54,
-          backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-          child: Text(
-            username.isNotEmpty ? username[0].toUpperCase() : 'U',
-            style: const TextStyle(
-              fontSize: 40,
-              fontWeight: FontWeight.bold,
-              color: GlassTheme.primaryGreen,
+        errorWidget: (errCtx, url, error) {
+          final errTheme = Theme.of(errCtx);
+          final accentGreen = errTheme.brightness == Brightness.dark
+              ? GlassTheme.primaryGreenAccent
+              : const Color(0xFF15803D);
+          return CircleAvatar(
+            radius: 54,
+            backgroundColor: accentGreen.withValues(alpha: 0.16),
+            child: Text(
+              username.isNotEmpty ? username[0].toUpperCase() : 'U',
+              style: errTheme.textTheme.displayLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: accentGreen,
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
     }
 
-    return CircleAvatar(
-      radius: 54,
-      backgroundColor: GlassTheme.primaryGreen.withValues(alpha: 0.2),
-      child: Text(
-        username.isNotEmpty ? username[0].toUpperCase() : 'U',
-        style: const TextStyle(
-          fontSize: 40,
-          fontWeight: FontWeight.bold,
-          color: GlassTheme.primaryGreen,
-        ),
-      ),
+    return Builder(
+      builder: (avatarCtx) {
+        final avatarTheme = Theme.of(avatarCtx);
+        final accentGreen = avatarTheme.brightness == Brightness.dark
+            ? GlassTheme.primaryGreenAccent
+            : const Color(0xFF15803D);
+        return CircleAvatar(
+          radius: 54,
+          backgroundColor: accentGreen.withValues(alpha: 0.16),
+          child: Text(
+            username.isNotEmpty ? username[0].toUpperCase() : 'U',
+            style: avatarTheme.textTheme.displayLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: accentGreen,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -624,12 +542,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
     final username = user?['username'] ?? 'User';
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: GlassAppBar(
         title: 'Edit Profile',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(AppIcons.back),
           onPressed: () => context.pop(),
         ),
       ),
@@ -653,14 +581,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: GlassTheme.primaryGreen,
+                                  color: accentGreen,
                                   width: 2.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: GlassTheme.primaryGreen.withValues(
-                                      alpha: 0.3,
-                                    ),
+                                    color: accentGreen.withValues(alpha: 0.28),
                                     blurRadius: 16,
                                     spreadRadius: 2,
                                   ),
@@ -674,10 +600,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: GlassContainer(
                                 padding: const EdgeInsets.all(8),
                                 borderRadius: BorderRadius.circular(20),
-                                customColor: GlassTheme.primaryGreen,
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.black87,
+                                customColor: colorScheme.primary,
+                                child: Icon(
+                                  AppIcons.camera,
+                                  color: colorScheme.onPrimary,
                                   size: 18,
                                 ),
                               ),
@@ -696,16 +622,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Center(
                   child: TextButton.icon(
                     onPressed: _showImageSourceSheet,
-                    icon: const Icon(
-                      Icons.edit,
-                      size: 14,
-                      color: GlassTheme.primaryGreen,
-                    ),
-                    label: const Text(
+                    icon: Icon(AppIcons.edit, size: 14, color: accentGreen),
+                    label: Text(
                       'Change Profile Photo',
-                      style: TextStyle(
-                        color: GlassTheme.primaryGreen,
-                        fontSize: 13,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: accentGreen,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -714,10 +635,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Center(
                   child: Text(
                     '@$username',
-                    style: const TextStyle(
-                      color: GlassTheme.textMuted,
-                      fontSize: 14,
-                    ),
+                    style: textTheme.bodyMedium?.copyWith(color: secondaryText),
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -726,7 +644,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildField(
                       controller: _firstNameController,
                       label: 'First Name',
-                      icon: Icons.person_outline,
+                      icon: AppIcons.profile,
                     )
                     .animate()
                     .fadeIn(delay: 100.ms, duration: 350.ms)
@@ -737,7 +655,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildField(
                       controller: _lastNameController,
                       label: 'Last Name',
-                      icon: Icons.badge_outlined,
+                      icon: AppIcons.badge,
                     )
                     .animate()
                     .fadeIn(delay: 100.ms, duration: 350.ms)
@@ -748,7 +666,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildField(
                       controller: _emailController,
                       label: 'Email Address',
-                      icon: Icons.email_outlined,
+                      icon: AppIcons.email,
                       keyboardType: TextInputType.emailAddress,
                       validator: (val) {
                         if (val != null &&
@@ -768,7 +686,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildField(
                       controller: _phoneController,
                       label: 'Phone Number',
-                      icon: Icons.phone_outlined,
+                      icon: AppIcons.phone,
                       keyboardType: TextInputType.phone,
                       helperText: 'e.g. +855 12 345 678 or 012 345 678',
                       validator: (val) {
@@ -788,9 +706,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       height: 52,
                       child: GlassButton(
                         text: _isSaving ? 'Saving Changes...' : 'Save Profile',
-                        icon: _isSaving
-                            ? Icons.hourglass_top
-                            : Icons.check_circle_outline,
+                        icon: _isSaving ? AppIcons.loading : AppIcons.success,
                         onPressed: _isSaving ? () {} : _handleSave,
                       ),
                     )
@@ -813,23 +729,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     String? helperText,
     String? Function(String?)? validator,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accent = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      style: TextStyle(color: isDark ? Colors.white : GlassTheme.textDark),
+      style: textTheme.bodyLarge?.copyWith(color: primaryText),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          color: isDark ? GlassTheme.textMuted : const Color(0xFF64748B),
-        ),
+        labelStyle: textTheme.bodyMedium?.copyWith(color: secondaryText),
         helperText: helperText,
-        helperStyle: TextStyle(
-          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-          fontSize: 11,
-        ),
-        prefixIcon: Icon(icon, color: GlassTheme.primaryGreen),
+        helperMaxLines: 2,
+        helperStyle: textTheme.labelSmall?.copyWith(color: secondaryText),
+        prefixIcon: Icon(icon, color: accent),
         filled: true,
         fillColor: isDark
             ? Colors.white.withValues(alpha: 0.05)
@@ -852,7 +773,133 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: GlassTheme.primaryGreen),
+          borderSide: BorderSide(color: accent),
+        ),
+      ),
+    );
+  }
+}
+
+class _UrlInputDialog extends StatefulWidget {
+  final String initialUrl;
+
+  const _UrlInputDialog({required this.initialUrl});
+
+  @override
+  State<_UrlInputDialog> createState() => _UrlInputDialogState();
+}
+
+class _UrlInputDialogState extends State<_UrlInputDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialUrl);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accent = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(24),
+        padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Paste Image Link',
+                style: textTheme.titleLarge?.copyWith(
+                  color: primaryText,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Paste a direct URL to an image file (JPG, PNG, WebP).',
+                style: textTheme.bodySmall?.copyWith(color: secondaryText),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _controller,
+                style: textTheme.bodyMedium?.copyWith(color: primaryText),
+                decoration: InputDecoration(
+                  hintText: 'https://images.unsplash.com/...',
+                  hintStyle: textTheme.bodySmall?.copyWith(
+                    color: secondaryText.withValues(alpha: 0.7),
+                  ),
+                  prefixIcon: Icon(AppIcons.link, color: accent),
+                  filled: true,
+                  fillColor: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'Cancel',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: secondaryText,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () =>
+                        Navigator.of(context).pop(_controller.text.trim()),
+                    child: Text(
+                      'Set Photo',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/utils/khmer_currency.dart';
 import '../../../widgets/glass/animated_pressable.dart';
@@ -20,6 +22,7 @@ class FoodItemDetailsScreen extends StatefulWidget {
 }
 
 class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
+  int _quantity = 1;
   bool _isDescriptionExpanded = false;
   final TextEditingController _instructionsCtrl = TextEditingController();
   bool _addedToBagAnimation = false;
@@ -49,8 +52,19 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
       name,
       price,
       imageUrl,
-      restaurantId: data['restaurantId'],
-      restaurantName: data['restaurantName'],
+      restaurantId:
+          int.tryParse(
+            data['restaurantId']?.toString() ??
+                data['restaurant_id']?.toString() ??
+                data['restaurant']?.toString() ??
+                '',
+          ) ??
+          1,
+      restaurantName:
+          data['restaurantName']?.toString() ??
+          data['restaurant_name']?.toString() ??
+          'FoodGo Kitchen',
+      quantity: _quantity,
     );
     if (buyNow) {
       context.push('/checkout');
@@ -64,13 +78,15 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(
-                Icons.check_circle_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+              const Icon(AppIcons.successFilled, color: Colors.white, size: 20),
               const SizedBox(width: 8),
-              Expanded(child: Text('$name added to cart!')),
+              Expanded(
+                child: Text(
+                  _quantity > 1
+                      ? '$_quantity x $name added to cart!'
+                      : '$name added to cart!',
+                ),
+              ),
             ],
           ),
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -129,9 +145,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
     final String carbo = data['carbo']?.toString() ?? '23.7';
 
     return Scaffold(
-      backgroundColor: isDark
-          ? GlassTheme.activePalette.backgroundDark
-          : Colors.white,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // ── Scrollable Body ──────────────────────────────────────────
@@ -200,7 +214,7 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                               height: 230,
                                               color: Colors.grey.shade200,
                                               child: const Icon(
-                                                Icons.fastfood,
+                                                AppIcons.emptyState,
                                                 size: 64,
                                                 color: Colors.grey,
                                               ),
@@ -236,14 +250,17 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               Expanded(
                                 child: Text(
                                   name,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w900,
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF1B1B1B),
-                                    letterSpacing: -0.5,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        color: AppTypography.primaryTextColor(
+                                          isDark
+                                              ? Brightness.dark
+                                              : Brightness.light,
+                                        ),
+                                      ),
                                 ),
                               ),
                               const SizedBox(width: 14),
@@ -252,25 +269,28 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                 children: [
                                   Text(
                                     '\$${price.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                      color: isDark
-                                          ? GlassTheme
-                                                .activePalette
-                                                .primaryAccent
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          color: isDark
+                                              ? const Color(0xFF4ADE80)
+                                              : const Color(0xFF15803D),
+                                        ),
                                   ),
                                   Text(
                                     KhmerCurrency.formatKhr(price),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: GlassTheme.textMuted,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color:
+                                              AppTypography.secondaryTextColor(
+                                                isDark
+                                                    ? Brightness.dark
+                                                    : Brightness.light,
+                                              ),
+                                        ),
                                   ),
                                 ],
                               ),
@@ -285,17 +305,25 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       Row(
                         children: [
                           Icon(
-                            Icons.location_on,
+                            AppIcons.location,
                             size: 16,
-                            color: GlassTheme.textMuted,
+                            color: AppTypography.secondaryTextColor(
+                              isDark ? Brightness.dark : Brightness.light,
+                            ),
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            location,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: GlassTheme.textMuted,
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Text(
+                              location,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: AppTypography.secondaryTextColor(
+                                      isDark
+                                          ? Brightness.dark
+                                          : Brightness.light,
+                                    ),
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ),
                         ],
@@ -310,12 +338,12 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? GlassTheme.surfaceCardDark
+                                  ? GlassTheme.dynamicSurfaceCardDark
                                   : const Color(0xFFF7F8F9),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isDark
-                                    ? Colors.white.withValues(alpha: 0.18)
+                                    ? GlassTheme.dynamicBorderDark
                                     : const Color(0xFFEDEDED),
                                 width: 1.2,
                               ),
@@ -340,13 +368,13 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                       // Description Section
                       Text(
                         'Description',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF1B1B1B),
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppTypography.primaryTextColor(
+                                isDark ? Brightness.dark : Brightness.light,
+                              ),
+                            ),
                       ),
                       const SizedBox(height: 8),
 
@@ -356,12 +384,10 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         overflow: _isDescriptionExpanded
                             ? TextOverflow.visible
                             : TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.5,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF757575),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTypography.secondaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -375,26 +401,113 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         },
                         child: Text(
                           _isDescriptionExpanded ? 'Show less' : 'Show more',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? GlassTheme.activePalette.primaryAccent
-                                : Theme.of(context).colorScheme.primary,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF15803D),
+                              ),
                         ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Quantity Stepper Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Quantity',
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTypography.primaryTextColor(
+                                        isDark
+                                            ? Brightness.dark
+                                            : Brightness.light,
+                                      ),
+                                    ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '\$${(price * _quantity).toStringAsFixed(2)}',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? const Color(0xFF4ADE80)
+                                          : const Color(0xFF15803D),
+                                    ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white12
+                                    : const Color(0xFFE5E7EB),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(AppIcons.remove, size: 18),
+                                  splashRadius: 20,
+                                  color: AppTypography.primaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
+                                  onPressed: _quantity > 1
+                                      ? () => setState(() => _quantity--)
+                                      : null,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  child: Text(
+                                    '$_quantity',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTypography.primaryTextColor(
+                                            isDark
+                                                ? Brightness.dark
+                                                : Brightness.light,
+                                          ),
+                                        ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(AppIcons.add, size: 18),
+                                  splashRadius: 20,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  onPressed: () => setState(() => _quantity++),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 20),
 
                       // Special Instructions Note Input
                       Text(
                         'Special Instructions',
-                        style: TextStyle(
-                          fontSize: 15,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF1B1B1B),
+                          color: AppTypography.primaryTextColor(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -413,19 +526,23 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         child: TextField(
                           controller: _instructionsCtrl,
                           maxLines: 2,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: AppTypography.primaryTextColor(
+                                  isDark ? Brightness.dark : Brightness.light,
+                                ),
+                              ),
                           decoration: InputDecoration(
                             hintText:
                                 'e.g. Extra sauce, no onions, allergy notes...',
-                            hintStyle: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white38 : Colors.black38,
-                            ),
+                            hintStyle: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: AppTypography.secondaryTextColor(
+                                    isDark ? Brightness.dark : Brightness.light,
+                                  ),
+                                ),
                             prefixIcon: Icon(
-                              Icons.edit_note_rounded,
+                              AppIcons.edit,
                               size: 22,
                               color: Theme.of(context).colorScheme.primary,
                             ),
@@ -457,12 +574,14 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
               children: [
                 // Back Button
                 AnimatedIconButton(
-                  icon: Icons.chevron_left,
+                  icon: AppIcons.back,
                   iconSize: 26,
-                  size: 44,
-                  color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                  size: 48,
+                  color: isDark
+                      ? GlassTheme.dynamicSurfaceCardDark
+                      : Colors.white,
                   borderColor: isDark
-                      ? Colors.white.withValues(alpha: 0.22)
+                      ? GlassTheme.dynamicBorderDark
                       : Colors.black.withValues(alpha: 0.1),
                   iconColor: isDark ? Colors.white : Colors.black87,
                   onPressed: () => context.pop(),
@@ -471,10 +590,9 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                 // Center Title
                 Text(
                   'Details',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF1B1B1B),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF1F2937),
                   ),
                 ),
 
@@ -483,14 +601,16 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                   builder: (context, favs, child) {
                     final isFav = favs.isFoodFavorite(itemId);
                     return AnimatedIconButton(
-                      icon: isFav ? Icons.favorite : Icons.gps_fixed,
+                      icon: isFav ? AppIcons.favorite : AppIcons.favoriteBorder,
                       iconSize: 20,
-                      size: 44,
-                      color: isDark ? GlassTheme.surfaceCardDark : Colors.white,
+                      size: 48,
+                      color: isDark
+                          ? GlassTheme.dynamicSurfaceCardDark
+                          : Colors.white,
                       borderColor: isDark
                           ? (isFav
                                 ? const Color(0xFFE53935).withValues(alpha: 0.4)
-                                : Colors.white.withValues(alpha: 0.22))
+                                : GlassTheme.dynamicBorderDark)
                           : (isFav
                                 ? const Color(0xFFE53935).withValues(alpha: 0.3)
                                 : Colors.black.withValues(alpha: 0.1)),
@@ -519,11 +639,13 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                         bottom: bottomPadding + 14,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark ? GlassTheme.surfaceDark : Colors.white,
+                        color: isDark
+                            ? GlassTheme.dynamicSurfaceDark
+                            : Colors.white,
                         border: Border(
                           top: BorderSide(
                             color: isDark
-                                ? Colors.white.withValues(alpha: 0.15)
+                                ? GlassTheme.dynamicBorderDark
                                 : const Color(0xFFE2E4E6),
                             width: 1.2,
                           ),
@@ -573,8 +695,8 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                               ),
                               child: Icon(
                                 _addedToBagAnimation
-                                    ? Icons.check_rounded
-                                    : Icons.shopping_bag_outlined,
+                                    ? AppIcons.check
+                                    : AppIcons.cart,
                                 color: _addedToBagAnimation
                                     ? Colors.white
                                     : (isDark ? Colors.white : Colors.black87),
@@ -617,15 +739,17 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
                                     ),
                                   ],
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: Text(
                                     'Buy Now',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.2,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 0.2,
+                                        ),
                                   ),
                                 ),
                               ),
@@ -644,24 +768,23 @@ class _FoodItemDetailsScreenState extends State<FoodItemDetailsScreen> {
   }
 
   Widget _buildMacroMetric(String value, String label, bool isDark) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             value,
-            style: TextStyle(
-              fontSize: 17,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white : const Color(0xFF1B1B1B),
+              color: AppTypography.primaryTextColor(brightness),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
-              color: GlassTheme.textMuted,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppTypography.secondaryTextColor(brightness),
               fontWeight: FontWeight.w500,
             ),
           ),

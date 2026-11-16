@@ -496,3 +496,184 @@ aside.control-sidebar,
 }
 
 
+
+/* ==========================================================================
+   MODERN DJANGO ADMIN FORM CONTROLS & CHANGEFORM UI/UX POLISH
+   ========================================================================== */
+
+/* Universal form inputs: full-width, clean padding, modern border */
+.form-row input[type="text"],
+.form-row input[type="password"],
+.form-row input[type="email"],
+.form-row input[type="url"],
+.form-row input[type="number"],
+.form-row input[type="tel"],
+.form-row textarea,
+.form-row select,
+.vTextField,
+.vIntegerField,
+.vURLField,
+.vLargeTextField {
+    display: block;
+    width: 100% !important;
+    max-width: 620px;
+    height: 42px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #1e293b;
+    background-color: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    box-sizing: border-box;
+}
+
+.form-row textarea,
+.vLargeTextField {
+    height: auto !important;
+    min-height: 90px;
+}
+
+.form-row input:focus,
+.form-row textarea:focus,
+.form-row select:focus,
+.vTextField:focus,
+.vIntegerField:focus,
+.vURLField:focus,
+.vLargeTextField:focus {
+    border-color: #27ae60 !important;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.18) !important;
+}
+
+/* Number inputs (Price, Prep Time, etc.) */
+.form-row input[type="number"],
+.form-row input[name="price"],
+.form-row input[name="original_price"],
+.form-row input[name="preparation_time_mins"],
+.vIntegerField {
+    max-width: 240px !important;
+}
+
+/* Select2 dropdowns matching input heights and styling */
+.select2-container {
+    width: 100% !important;
+    max-width: 620px !important;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 42px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 8px !important;
+    background-color: #ffffff !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 40px !important;
+    padding-left: 6px !important;
+    font-size: 14px !important;
+    color: #1e293b !important;
+    font-weight: 500 !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px !important;
+    right: 8px !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #27ae60 !important;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.18) !important;
+    outline: none !important;
+}
+
+/* Form row labels and help texts */
+.form-row {
+    padding: 12px 0 !important;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.form-row:last-child {
+    border-bottom: none;
+}
+
+.form-row label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.form-row .help,
+.form-row .help-block,
+.help-tooltip {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+/* Changeform card tabs */
+.card-tabs .nav-tabs {
+    border-bottom: 2px solid #e2e8f0 !important;
+    gap: 4px;
+    padding: 4px 6px 0;
+}
+
+.card-tabs .nav-tabs .nav-link {
+    border-radius: 8px 8px 0 0 !important;
+    font-weight: 600;
+    font-size: 13.5px;
+    color: #475569;
+    padding: 10px 18px;
+    transition: all 0.18s ease;
+}
+
+.card-tabs .nav-tabs .nav-link:hover {
+    color: #16a34a;
+    background: #f8fafc;
+}
+
+.card-tabs .nav-tabs .nav-link.active {
+    color: #15803d !important;
+    border-color: #e2e8f0 #e2e8f0 #ffffff !important;
+    border-top: 3px solid #27ae60 !important;
+    background: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Submit row buttons polish */
+.submit-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.submit-row input[type="submit"],
+.submit-row .btn {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 8px 18px !important;
+    font-size: 13.5px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    transition: transform 0.12s ease, box-shadow 0.12s ease !important;
+}
+
+.submit-row input[type="submit"]:hover,
+.submit-row .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12) !important;
+}

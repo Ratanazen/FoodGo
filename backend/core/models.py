@@ -19,11 +19,19 @@ class User(AbstractUser):
     avatar_url = models.URLField(max_length=500, blank=True, null=True, help_text="Direct web link or Google profile photo")
 
     def save(self, *args, **kwargs):
-        if self.phone and not self.phone_normalized:
+        if self.phone:
             from .sms_service import normalize_cambodia_phone
             norm, valid, _ = normalize_cambodia_phone(self.phone)
-            if valid:
-                self.phone_normalized = norm
+            self.phone_normalized = norm if valid else None
+        else:
+            self.phone_normalized = None
+
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            update_fields = set(update_fields)
+            update_fields.add('phone_normalized')
+            kwargs['update_fields'] = update_fields
+
         super().save(*args, **kwargs)
 
 
@@ -218,6 +226,7 @@ class CartItem(models.Model):
 class Payment(models.Model):
     PROVIDER_CHOICES = (
         ('BAKONG', 'Bakong KHQR'),
+        ('CARD', 'Credit / Debit Card'),
         ('ABA', 'ABA KHQR'),
         ('ACLEDA', 'ACLEDA KHQR'),
         ('COD', 'Cash on Delivery'),
@@ -225,6 +234,7 @@ class Payment(models.Model):
     )
     METHOD_CHOICES = (
         ('KHQR', 'KHQR'),
+        ('CARD', 'Credit / Debit Card'),
         ('COD', 'Cash on Delivery'),
         ('WALLET', 'Wallet Account Balance'),
     )
@@ -446,6 +456,8 @@ class AuditLog(models.Model):
         ('REFUND_PAYMENT', 'Refund Payment'),
         ('TOGGLE_USER_ACTIVE', 'Toggle User Active Status'),
         ('TOGGLE_RESTAURANT', 'Toggle Restaurant Status'),
+        ('APPROVE_DRIVER', 'Approve Driver'),
+        ('SUSPEND_DRIVER', 'Suspend Driver'),
         ('UPDATE_MENU_ITEM', 'Update Menu Item'),
         ('SYSTEM_CONFIG', 'System Configuration Change'),
     )

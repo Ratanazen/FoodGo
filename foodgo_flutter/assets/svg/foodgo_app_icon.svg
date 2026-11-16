@@ -1,183 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
   <defs>
-    <!-- Background Gradient -->
-    <linearGradient id="icon_bg_grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0B1610" />
-      <stop offset="50%" stop-color="#12251B" />
-      <stop offset="100%" stop-color="#070E0A" />
+    <linearGradient id="appBgGrad" x1="8" y1="6" x2="122" y2="122" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#064E3B"/>
+      <stop offset="48%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10B981"/>
     </linearGradient>
-
-    <!-- Smalt Blue Glow Radial -->
-    <radialGradient id="emerald_glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#2A52BE" stop-opacity="0.32" />
-      <stop offset="65%" stop-color="#1D3FA4" stop-opacity="0.08" />
-      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    <radialGradient id="appWarmGlow" cx="0.28" cy="0.72" r="0.6">
+      <stop offset="0%" stop-color="#FF7A2F" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#FF7A2F" stop-opacity="0"/>
     </radialGradient>
-
-    <!-- Golden Brioche Top Bun -->
-    <linearGradient id="top_bun_grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#F6A743" />
-      <stop offset="40%" stop-color="#E28928" />
-      <stop offset="100%" stop-color="#B86214" />
+    <linearGradient id="appSpeedGrad" x1="18" y1="54" x2="46" y2="82" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF6B2C"/>
+      <stop offset="100%" stop-color="#FBBF24"/>
     </linearGradient>
-
-    <!-- Bun Highlight -->
-    <linearGradient id="bun_highlight" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFD699" stop-opacity="0.75" />
-      <stop offset="100%" stop-color="#F6A743" stop-opacity="0" />
-    </linearGradient>
-
-    <!-- Bottom Bun -->
-    <linearGradient id="bottom_bun_grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#E28928" />
-      <stop offset="100%" stop-color="#9C4C0C" />
-    </linearGradient>
-
-    <!-- Grilled Patty -->
-    <linearGradient id="patty_grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#733919" />
-      <stop offset="60%" stop-color="#55240C" />
-      <stop offset="100%" stop-color="#3A1504" />
-    </linearGradient>
-
-    <!-- Melted Cheddar -->
-    <linearGradient id="cheese_grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FBBF24" />
-      <stop offset="50%" stop-color="#F59E0B" />
-      <stop offset="100%" stop-color="#D97706" />
-    </linearGradient>
-
-    <!-- Crisp Curly Lettuce -->
-    <linearGradient id="lettuce_grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#4ADE80" />
-      <stop offset="100%" stop-color="#16A34A" />
-    </linearGradient>
-
-    <!-- Fresh Leaf -->
-    <linearGradient id="leaf_grad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#86EFAC" />
-      <stop offset="100%" stop-color="#22C55E" />
-    </linearGradient>
-
-    <!-- Tomato Slice -->
-    <linearGradient id="tomato_grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#EF4444" />
-      <stop offset="100%" stop-color="#B91C1C" />
-    </linearGradient>
-
-    <filter id="subtle_drop" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.45" />
-    </filter>
   </defs>
 
-  <!-- 1. Dark Smalt Squircle Base -->
-  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#icon_bg_grad)" stroke="#2A52BE" stroke-width="6" stroke-opacity="0.4" />
+  <!-- App Icon Squircle Tile -->
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#appBgGrad)"/>
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#appWarmGlow)"/>
+  <rect x="5.5" y="5.5" width="117" height="117" rx="28.5" stroke="rgba(255,255,255,0.26)" stroke-width="2.5"/>
 
-  <!-- 2. Ambient Radiant Aura -->
-  <circle cx="256" cy="256" r="210" fill="url(#emerald_glow)" />
+  <!-- Glass Sheen Highlight -->
+  <path d="M18 16H110C102 32 76 42 42 42C24 42 14 34 18 16Z" fill="rgba(255,255,255,0.10)"/>
 
-  <!-- 3. Fine Inner Border Accent Ring -->
-  <rect x="28" y="28" width="456" height="456" rx="100" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.08" />
+  <!-- Speed Streaks -->
+  <rect x="19" y="55" width="18" height="6" rx="3" fill="url(#appSpeedGrad)"/>
+  <rect x="14" y="67" width="23" height="6" rx="3" fill="#FBBF24"/>
+  <rect x="23" y="79" width="14" height="5" rx="2.5" fill="rgba(255,255,255,0.72)"/>
 
-  <!-- 4. Hero Burger & Organic Sprout Composition -->
-  <g id="hero_burger" filter="url(#subtle_drop)">
-    <!-- Organic Leaf Sprout on Top Bun -->
-    <g id="leaf_sprout" transform="translate(256, 118)">
-      <!-- Leaf Stem -->
-      <path d="M-2 42 C-4 28, 4 16, 12 6" stroke="#15803D" stroke-width="4.5" stroke-linecap="round" fill="none" />
-      <!-- Primary Leaf Right -->
-      <path d="M10 6 C28 -6, 52 4, 48 24 C30 26, 16 18, 10 6 Z" fill="url(#leaf_grad)" />
-      <path d="M12 8 C22 10, 36 16, 42 20" stroke="#15803D" stroke-width="2" stroke-linecap="round" fill="none" />
-      <!-- Secondary Mini Leaf Left -->
-      <path d="M2 24 C-14 16, -26 26, -20 36 C-8 36, -2 30, 2 24 Z" fill="url(#leaf_grad)" />
-    </g>
+  <!-- Botanical Leaf + Handle Knob -->
+  <path d="M70 33C70 23.5 79.5 19.5 87 21.5C86.5 29.5 79 36 70 35Z" fill="#A7F3D0"/>
+  <circle cx="65" cy="36" r="5" fill="#FBBF24"/>
 
-    <!-- Top Brioche Bun -->
-    <g id="top_bun">
-      <path d="M128 226 C128 152, 384 152, 384 226 C384 234, 128 234, 128 226 Z" fill="url(#top_bun_grad)" />
-      <!-- Glossy Light Arc Highlight -->
-      <path d="M148 214 C158 168, 354 168, 364 214 C324 186, 188 186, 148 214 Z" fill="url(#bun_highlight)" />
+  <!-- Delivery Dome / Cloche -->
+  <path d="M40 74C40 53.5 53.5 41 71 41C88.5 41 101 53.5 101 74H40Z" fill="#FFFFFF"/>
+  <path d="M50 65C52.5 54 61 48 71 48" stroke="#059669" stroke-width="4" stroke-linecap="round"/>
 
-      <!-- Golden Sesame Seeds -->
-      <ellipse cx="204" cy="184" rx="4" ry="2.5" transform="rotate(-15 204 184)" fill="#FFFBEB" fill-opacity="0.9" />
-      <ellipse cx="256" cy="172" rx="4" ry="2.5" fill="#FFFBEB" fill-opacity="0.9" />
-      <ellipse cx="308" cy="186" rx="4" ry="2.5" transform="rotate(18 308 186)" fill="#FFFBEB" fill-opacity="0.9" />
-      <ellipse cx="170" cy="208" rx="3.5" ry="2" transform="rotate(-25 170 208)" fill="#FFFBEB" fill-opacity="0.85" />
-      <ellipse cx="230" cy="204" rx="4" ry="2.5" transform="rotate(-5 230 204)" fill="#FFFBEB" fill-opacity="0.9" />
-      <ellipse cx="282" cy="202" rx="4" ry="2.5" transform="rotate(10 282 202)" fill="#FFFBEB" fill-opacity="0.9" />
-      <ellipse cx="340" cy="210" rx="3.5" ry="2" transform="rotate(22 340 210)" fill="#FFFBEB" fill-opacity="0.85" />
-    </g>
-
-    <!-- Ripe Tomato Slices (Peeking through) -->
-    <g id="tomato_slices">
-      <rect x="144" y="232" width="96" height="12" rx="6" fill="url(#tomato_grad)" />
-      <rect x="272" y="232" width="96" height="12" rx="6" fill="url(#tomato_grad)" />
-    </g>
-
-    <!-- Curly Crisp Wave Lettuce -->
-    <g id="crisp_lettuce">
-      <path d="M116 250
-               C128 240, 140 256, 154 246
-               C168 238, 180 256, 196 246
-               C212 238, 226 256, 242 246
-               C258 238, 272 256, 288 246
-               C304 238, 318 256, 334 246
-               C350 238, 364 256, 378 246
-               C392 238, 404 252, 400 262
-               C392 268, 380 260, 368 266
-               C352 272, 340 258, 326 264
-               C312 270, 298 258, 284 264
-               C270 270, 256 258, 242 264
-               C228 270, 214 258, 200 264
-               C186 270, 172 258, 158 264
-               C144 270, 130 258, 118 264
-               C110 258, 108 254, 116 250 Z"
-            fill="url(#lettuce_grad)" />
-    </g>
-
-    <!-- Melted Cheddar Cheese Drip -->
-    <g id="cheddar_melt">
-      <path d="M126 268
-               L386 268
-               L372 284
-               L338 284
-               L324 308
-               L306 284
-               L248 284
-               L234 316
-               L218 284
-               L160 284
-               L142 302
-               L132 284 Z"
-            fill="url(#cheese_grad)" />
-    </g>
-
-    <!-- Flame-Grilled Savory Patty -->
-    <g id="grilled_patty">
-      <rect x="124" y="284" width="264" height="42" rx="21" fill="url(#patty_grad)" />
-      <!-- Grill marks -->
-      <line x1="168" y1="292" x2="188" y2="318" stroke="#3A1504" stroke-width="4" stroke-linecap="round" />
-      <line x1="218" y1="292" x2="238" y2="318" stroke="#3A1504" stroke-width="4" stroke-linecap="round" />
-      <line x1="268" y1="292" x2="288" y2="318" stroke="#3A1504" stroke-width="4" stroke-linecap="round" />
-      <line x1="318" y1="292" x2="338" y2="318" stroke="#3A1504" stroke-width="4" stroke-linecap="round" />
-    </g>
-
-    <!-- Bottom Brioche Bun -->
-    <g id="bottom_bun">
-      <path d="M136 332 C136 368, 376 368, 376 332 C376 328, 136 328, 136 332 Z" fill="url(#bottom_bun_grad)" />
-      <!-- Bottom shadow curve -->
-      <path d="M152 344 C184 362, 328 362, 360 344 C332 366, 180 366, 152 344 Z" fill="#7C3B07" />
-    </g>
-  </g>
-
-  <!-- 5. Modern Brand Wordmark Monogram at Bottom -->
-  <g id="brand_badge" transform="translate(256, 420)">
-    <!-- Pill Container -->
-    <rect x="-76" y="-18" width="152" height="36" rx="18" fill="#1A2653" stroke="#2A52BE" stroke-width="1.8" stroke-opacity="0.6" />
-    <!-- Text FoodGo -->
-    <text x="-48" y="7" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">Food</text>
-    <text x="3" y="7" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="900" fill="#2A52BE" letter-spacing="-0.5">Go</text>
-    <!-- Lightning Dot -->
-    <circle cx="44" cy="2" r="3" fill="#CCFF00" />
-  </g>
+  <!-- Serving Base -->
+  <rect x="35" y="79" width="71" height="8.5" rx="4.25" fill="#FFFFFF"/>
+  <rect x="46" y="92" width="49" height="5" rx="2.5" fill="rgba(255,255,255,0.48)"/>
 </svg>

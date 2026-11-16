@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodGo - Cloudflare Edge Gateway</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background-color: #0F141A;
+      color: #FFFFFF;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      background: rgba(25, 33, 44, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 36px 32px;
+      max-width: 540px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(204, 255, 0, 0.12);
+      border: 1px solid rgba(204, 255, 0, 0.4);
+      color: #CCFF00;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #CCFF00;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #FFFFFF;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #94A3B8;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .stat-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #64748B;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .endpoints {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+    }
+    .endpoint-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .endpoint-row:last-child {
+      border-bottom: none;
+    }
+    .endpoint-path {
+      font-family: monospace;
+      color: #CCFF00;
+    }
+    .endpoint-desc {
+      color: #94A3B8;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: #2E7D32;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px;
+      border-radius: 14px;
+      transition: background 0.2s ease;
+    }
+    .btn:hover {
+      background: #388E3C;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <img src="/scooter_logo.png" alt="FoodGo Brand Logo" style="width: 130px; height: auto; filter: drop-shadow(0 8px 16px rgba(46, 204, 113, 0.25));" />
+    </div>
+    <div class="badge">
+      <span class="badge-dot"></span>
+      CLOUDFLARE EDGE ACTIVE
+    </div>
+    <h1>FoodGo Gateway</h1>
+    <p class="subtitle">
+      High-availability edge proxy with 50/50 dual-backend load balancing, live KHQR payment processing, and active failover.
+    </p>
+
+    <div class="grid">
+      <div class="stat-box">
+        <div class="stat-label">Origin Split</div>
+        <div class="stat-value">50% A / 50% B</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Active Failover</div>
+        <div class="stat-value">Enabled</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Primary Region</div>
+        <div class="stat-value">Global Anycast</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" style="color: #4ADE80;">Operational</div>
+      </div>
+    </div>
+
+    <div class="endpoints">
+      <div class="endpoint-row">
+        <span class="endpoint-path">/api/health/</span>
+        <span class="endpoint-desc">Backend Health Status</span>
+      </div>
+      <div class="endpoint-row">
+        <span class="endpoint-path">/api/restaurants/</span>
+        <span class="endpoint-desc">Restaurant Catalog</span>
+      </div>
+      <div class="endpoint-row">
+        <span class="endpoint-path">/api/food-items/</span>
+        <span class="endpoint-desc">Dishes & Pricing</span>
+      </div>
+      <div class="endpoint-row">
+        <span class="endpoint-path">/admin/</span>
+        <span class="endpoint-desc">Staff Admin Console</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 12px; margin-top: 12px;">
+      <a href="/" class="btn" style="background: #10B981;">Launch Web App</a>
+      <a href="/api/health/" class="btn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);">API Health</a>
+    </div>
+  </div>
+</body>
+</html>

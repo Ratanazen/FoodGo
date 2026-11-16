@@ -38,6 +38,7 @@ class _AnimatedPressableState extends State<AnimatedPressable>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   bool _isHovered = false;
+  bool _isFocused = false;
 
   @override
   void initState() {
@@ -52,6 +53,24 @@ class _AnimatedPressableState extends State<AnimatedPressable>
       begin: 1.0,
       end: widget.pressedScale,
     ).animate(CurvedAnimation(parent: _controller, curve: widget.curve));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    _controller.duration = reduceMotion ? Duration.zero : widget.duration;
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedPressable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.duration != widget.duration) {
+      final reduceMotion =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+      _controller.duration = reduceMotion ? Duration.zero : widget.duration;
+    }
   }
 
   @override
@@ -115,13 +134,51 @@ class _AnimatedPressableState extends State<AnimatedPressable>
 
     if (!isInteractive) return childWidget;
 
-    return GestureDetector(
+    final focusColor = Theme.of(context).colorScheme.primary;
+    Widget interactiveChild = GestureDetector(
       behavior: widget.behavior,
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
       onTapCancel: _handleTapCancel,
       onLongPress: widget.onLongPress,
       child: childWidget,
+    );
+
+    if (_isFocused) {
+      interactiveChild = Container(
+        foregroundDecoration: BoxDecoration(
+          border: Border.all(color: focusColor, width: 2),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: interactiveChild,
+      );
+    }
+
+    return Semantics(
+      button: true,
+      enabled: true,
+      child: FocusableActionDetector(
+        enabled: true,
+        mouseCursor: SystemMouseCursors.click,
+        onShowFocusHighlight: (focused) {
+          if (mounted && _isFocused != focused) {
+            setState(() => _isFocused = focused);
+          }
+        },
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onTap?.call();
+              return null;
+            },
+          ),
+        },
+        child: interactiveChild,
+      ),
     );
   }
 }

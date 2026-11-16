@@ -27,6 +27,7 @@ class MockPaymentService extends FlutterPaymentService {
   Future<PaymentModel> getPaymentStatus(
     int paymentId, {
     bool simulate = false,
+    String? qrPayload,
   }) async {
     return statusResponse ??
         PaymentModel(
@@ -50,6 +51,8 @@ class MockPaymentService extends FlutterPaymentService {
     required int orderId,
     required String provider,
     String currency = 'USD',
+    bool regenerate = false,
+    Map<String, dynamic>? cardDetails,
   }) async {
     createCalled = true;
     return PaymentModel(
@@ -219,7 +222,7 @@ void main() {
 
         // Action buttons
         expect(find.text('Check Payment Status'), findsOneWidget);
-        expect(find.text('Simulate Webhook Pay (Test Mode)'), findsOneWidget);
+        expect(find.text('Simulate Webhook Pay (Test Mode)'), findsNothing);
         expect(find.text('Cancel Payment'), findsOneWidget);
 
         // Expand order details
@@ -243,6 +246,7 @@ void main() {
           method: 'KHQR',
           amount: 18.25,
           currency: 'USD',
+          qrPayload: '00020101021229490016A0000007270499990108BAKONGSG',
           status: 'PENDING',
         );
 
@@ -324,5 +328,181 @@ void main() {
       expect(find.text('Retry Payment'), findsOneWidget);
       expect(find.byType(QrImageView), findsNothing);
     });
+
+    testWidgets(
+      'Renders zero-dollar (\$0.00) Bakong KHQR for sonar_seang@bkrt testing',
+      (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final zeroPayment = PaymentModel(
+          id: 21,
+          orderId: 26,
+          provider: 'BAKONG',
+          method: 'KHQR',
+          restaurantName: 'Glass Burger',
+          orderReference: 'FG-20261030-85FF46',
+          merchantReference: 'FG-BK-26-1793373161',
+          amount: 0.00,
+          currency: 'USD',
+          qrPayload:
+              '00020101021229350011bakong@khqr0116sonar_seang@bkrt52045812530384054040.005802KH5917FoodGo Restaurant6010Phnom Penh62230119FG-BK-26-1793373161630486EF',
+          status: 'PENDING',
+          expiresAt: DateTime.now().add(const Duration(minutes: 15)),
+          orderSummary: {
+            'restaurant': 'Glass Burger',
+            'items': [
+              {
+                'name': 'Classic Double Smash Cheeseburger',
+                'quantity': 1,
+                'price': 0.00,
+              },
+              {
+                'name': 'Truffle Bacon Swiss Burger',
+                'quantity': 1,
+                'price': 0.00,
+              },
+            ],
+          },
+        );
+
+        await tester.pumpWidget(createTestWidget(zeroPayment));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Order #FG-20261030-85FF46'), findsOneWidget);
+        expect(find.text('Glass Burger'), findsOneWidget);
+        expect(find.text('USD 0.00'), findsOneWidget);
+        expect(find.text('Bakong KHQR (NBC Open API)'), findsOneWidget);
+        expect(find.byType(QrImageView), findsOneWidget);
+        expect(find.text('WAITING FOR PAYMENT'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Interactive QR Payment UI buttons: Copy KHQR, Show/Hide Payload Details, Check Status, Regenerate, and Cancel',
+      (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final payment = PaymentModel(
+          id: 55,
+          orderId: 999,
+          provider: 'BAKONG',
+          method: 'KHQR',
+          restaurantName: 'Angkor Kitchen',
+          orderReference: 'ORD-999',
+          merchantReference: 'FG-BK-999',
+          amount: 15.50,
+          currency: 'USD',
+          qrPayload: '00020101021229350011bakong@khqr0116sonar_seang@bkrt',
+          status: 'PENDING',
+          expiresAt: DateTime.now().add(const Duration(minutes: 15)),
+        );
+
+        await tester.pumpWidget(createTestWidget(payment));
+        await tester.pumpAndSettle();
+
+        // 1. Toggle Show/Hide All QR Payload Details button
+        final showPayloadBtn = find.text('Show All QR Payload Details');
+        await tester.ensureVisible(showPayloadBtn);
+        await tester.tap(showPayloadBtn);
+        await tester.pumpAndSettle();
+        expect(find.text('EMVCo KHQR Payload:'), findsOneWidget);
+        expect(find.text('Merchant Ref: FG-BK-999'), findsOneWidget);
+        expect(find.text('Hide QR Payload Details'), findsOneWidget);
+
+        await tester.tap(find.text('Hide QR Payload Details'));
+        await tester.pumpAndSettle();
+        expect(find.text('EMVCo KHQR Payload:'), findsNothing);
+
+        // 2. Tap Copy KHQR Payload button
+        final copyBtn = find.text('Copy KHQR Payload');
+        await tester.ensureVisible(copyBtn);
+        await tester.tap(copyBtn);
+        await tester.pump();
+        expect(
+          find.text('KHQR code payload copied to clipboard!'),
+          findsOneWidget,
+        );
+
+        // 3. Tap Check Payment Status button when still PENDING
+        final checkStatusBtn = find.text('Check Payment Status');
+        await tester.ensureVisible(checkStatusBtn);
+        await tester.tap(checkStatusBtn);
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining('Payment not completed yet'),
+          findsOneWidget,
+        );
+
+        // 4. Tap Check Payment Status button when server transitions to PAID
+        ScaffoldMessenger.of(
+          tester.element(find.byType(QRPaymentScreen)),
+        ).clearSnackBars();
+        await tester.pumpAndSettle();
+
+        mockService.statusResponse = PaymentModel(
+          id: 55,
+          orderId: 999,
+          provider: 'BAKONG',
+          method: 'KHQR',
+          transactionId: 'BKG-VERIFIED-55',
+          amount: 15.50,
+          currency: 'USD',
+          status: 'PAID',
+        );
+        await tester.ensureVisible(checkStatusBtn);
+        await tester.tap(checkStatusBtn);
+        await tester.pumpAndSettle();
+        expect(find.text('Payment Confirmed!'), findsOneWidget);
+        expect(find.text('BKG-VERIFIED-55'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Regenerate QR Code button on expired and missing-QR states invokes createPayment(regenerate: true)',
+      (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final missingQrPayment = PaymentModel(
+          id: 77,
+          orderId: 321,
+          provider: 'BAKONG',
+          method: 'KHQR',
+          amount: 15.50,
+          currency: 'USD',
+          qrPayload: '',
+          status: 'PENDING',
+          expiresAt: DateTime.now().add(const Duration(minutes: 15)),
+        );
+
+        await tester.pumpWidget(createTestWidget(missingQrPayment));
+        await tester.pumpAndSettle();
+
+        expect(find.text('KHQR Code Unavailable'), findsOneWidget);
+        final regenBtn = find.text('Regenerate KHQR Code');
+        expect(regenBtn, findsOneWidget);
+
+        await tester.ensureVisible(regenBtn);
+        await tester.tap(regenBtn);
+        await tester.pumpAndSettle();
+
+        expect(mockService.createCalled, isTrue);
+        expect(find.byType(QrImageView), findsOneWidget);
+      },
+    );
   });
 }

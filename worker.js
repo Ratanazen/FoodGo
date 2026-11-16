@@ -10,19 +10,22 @@ const CACHEABLE_PATTERNS = [
   { pattern: /^\/api\/restaurants\/\d+\/$/, ttl: 120 },
   { pattern: /^\/api\/restaurant-categories\//, ttl: 300 },
   { pattern: /^\/api\/food-categories\//, ttl: 120 },
+  { pattern: /^\/api\/categories\//, ttl: 120 },
   { pattern: /^\/api\/food-items\//, ttl: 120 },
+  { pattern: /^\/api\/foods\//, ttl: 120 },
   { pattern: /^\/api\/currency\/rates\//, ttl: 600 },
   { pattern: /^\/api\/recommendations\//, ttl: 120 },
   { pattern: /^\/api\/coupons\/$/, ttl: 120 },
   { pattern: /^\/api\/live-items\//, ttl: 60 },
-  { pattern: /^\/health/, ttl: 30 },
-  { pattern: /^\/api\/health\//, ttl: 30 },
   { pattern: /^\/media\/mongo\//, ttl: 3600 },
   { pattern: /^\/api\/media\/mongo\//, ttl: 3600 },
+  { pattern: /^\/static\//, ttl: 86400 },
 ];
 
 // Endpoints that must NEVER be cached regardless of method
 const NEVER_CACHE_PATTERNS = [
+  /^\/health/,
+  /^\/api\/health/,
   /^\/api\/token/,
   /^\/api\/auth\//,
   /^\/api\/register/,
@@ -47,18 +50,24 @@ const NEVER_CACHE_PATTERNS = [
 // Request timeout for backend fetch (milliseconds)
 const BACKEND_TIMEOUT_MS = 25000;
 
+const ALLOWED_ORIGIN_HOSTS = new Set([
+  'foodgo.rtnaeam611.workers.dev',
+  'food-go-app.vercel.app',
+  'foodgo-backend-a.vercel.app',
+  'foodgo-backend-b.vercel.app',
+  'foodgo-53pl.onrender.com',
+  'localhost',
+  '127.0.0.1',
+  '0.0.0.0',
+]);
+
 function isAuthorizedOrigin(origin) {
   if (!origin) return false;
   try {
     const parsed = new URL(origin);
     const host = parsed.hostname;
-    if (host === 'foodgo.rtnaeam611.workers.dev') return true;
-    if (host === 'food-go-app.vercel.app') return true;
-    if (host.endsWith('.workers.dev')) return true;
-    if (host.endsWith('.vercel.app')) return true;
-    if (host.endsWith('foodgo.app')) return true;
-    if (host.endsWith('.onrender.com')) return true;
-    if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') return true;
+    if (ALLOWED_ORIGIN_HOSTS.has(host)) return true;
+    if (host === 'foodgo.app' || host.endsWith('.foodgo.app')) return true;
   } catch (_) {
     return false;
   }
@@ -79,12 +88,13 @@ function applyCorsHeaders(targetHeaders, requestOrigin) {
  * Check if a request path + method is eligible for edge caching.
  * Returns the TTL in seconds, or 0 if not cacheable.
  */
-function getCacheTtl(method, pathname, hasAuthHeader) {
+function getCacheTtl(method, pathname, hasAuthHeader, hasCookieHeader) {
   // Only cache GET/HEAD requests
   if (method !== 'GET' && method !== 'HEAD') return 0;
 
-  // Never cache if the request carries an Authorization header (user-specific data)
-  if (hasAuthHeader) return 0;
+  // Never cache if user is authenticated via Authorization header or session cookie
+  if (hasAuthHeader || hasCookieHeader) return 0;
+
 
   // Check explicit never-cache patterns
   for (const pattern of NEVER_CACHE_PATTERNS) {
@@ -142,12 +152,14 @@ export default {
       });
     }
 
-    // 2. Proxy API, Health, and Admin endpoints with 50/50 dual-backend load balancing and active failover
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz') || url.pathname.startsWith('/admin') || url.pathname.startsWith('/static/admin/')) {
+    // 2. Proxy API, WebSockets, Health, Admin, Static, and Media endpoints with dual-backend load balancing
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws/') || url.pathname.startsWith('/health') || url.pathname.startsWith('/healthz') || url.pathname.startsWith('/admin') || url.pathname.startsWith('/static/') || url.pathname.startsWith('/media/')) {
+
 
       // --- Edge Cache Check ---
       const hasAuthHeader = request.headers.has('Authorization');
-      const cacheTtl = getCacheTtl(request.method, url.pathname, hasAuthHeader);
+      const hasCookieHeader = request.headers.has('Cookie') && (request.headers.get('Cookie') || '').includes('sessionid');
+      const cacheTtl = getCacheTtl(request.method, url.pathname, hasAuthHeader, hasCookieHeader);
       const cache = caches.default;
 
       if (cacheTtl > 0) {
@@ -184,12 +196,18 @@ export default {
       const backendB = sanitizeOrigin(env.BACKEND_B_URL);
       const legacyBackend = sanitizeOrigin(env.BACKEND_URL);
 
-      // 50/50 Traffic Split
-      const pickA = Math.random() < 0.5;
-      const primaryOrigin = pickA ? backendA : backendB;
-      const secondaryOrigin = pickA ? backendB : backendA;
-      const primaryTag = pickA ? 'A' : 'B';
-      const secondaryTag = pickA ? 'B' : 'A';
+      // Intelligent Traffic Steering & Failover:
+      // If backendB is inactive (e.g. Render no-server), steer primary traffic to backendA (Vercel)
+      // to avoid request latency while preserving failover capability.
+      const ratio = env.TRAFFIC_SPLIT_RATIO || '50:50';
+      const isStandbyRender = backendB.includes('onrender.com');
+      const isWebSocket = url.pathname.startsWith('/ws/') || (request.headers.get('Upgrade') || '').toLowerCase() === 'websocket';
+      const pickA = !isWebSocket && ((ratio === '100:0' || isStandbyRender) ? true : Math.random() < 0.5);
+      const primaryOrigin = isWebSocket ? backendB : (pickA ? backendA : backendB);
+      const secondaryOrigin = isWebSocket ? backendB : (pickA ? backendB : backendA);
+      const primaryTag = isWebSocket ? 'B' : (pickA ? 'A' : 'B');
+      const secondaryTag = isWebSocket ? 'B' : (pickA ? 'B' : 'A');
+
 
       // Buffer request body once to allow retry on secondary backend for mutating methods
       const hasBody = !['GET', 'HEAD'].includes(request.method);
@@ -225,9 +243,10 @@ export default {
 
       try {
         response = await fetchWithTimeout(createProxyRequest(primaryOrigin), BACKEND_TIMEOUT_MS);
-        // Failover if primary returns 5xx server error or Vercel DEPLOYMENT_NOT_FOUND (404)
-        const isFailure = [500, 502, 503, 504].includes(response.status) ||
-          (response.status === 404 && response.headers.get('x-vercel-error') === 'DEPLOYMENT_NOT_FOUND');
+        // Failover if primary returns 5xx server error, Cloudflare error, Vercel 404, or Render no-server 404
+        const isFailure = [500, 502, 503, 504, 521, 522, 523, 524].includes(response.status) ||
+          (response.status === 404 && response.headers.get('x-vercel-error') === 'DEPLOYMENT_NOT_FOUND') ||
+          (response.status === 404 && response.headers.get('x-render-routing') === 'no-server');
 
         if (isFailure && primaryOrigin !== secondaryOrigin && canRetry) {
           try {
@@ -281,6 +300,31 @@ export default {
         }
       }
 
+      // Edge health check fallback if origin is cold or hasn't deployed health route
+      const isHealthPath = url.pathname === '/health' || url.pathname === '/health/' ||
+        url.pathname === '/api/health' || url.pathname === '/api/health/' ||
+        url.pathname === '/healthz' || url.pathname === '/api/healthz';
+
+      if (isHealthPath && response && response.status >= 400) {
+        const edgeHealthHeaders = new Headers();
+        edgeHealthHeaders.set('Content-Type', 'application/json');
+        edgeHealthHeaders.set('X-FoodGo-Origin', 'Edge-Worker');
+        edgeHealthHeaders.set('Vary', 'Origin');
+        applyCorsHeaders(edgeHealthHeaders, requestOrigin);
+        return new Response(JSON.stringify({
+          status: 'degraded',
+          edge: 'Cloudflare-Worker-Active',
+          backend_status: response.status,
+          primary: primaryOrigin,
+          secondary: secondaryOrigin,
+          timestamp: new Date().toISOString()
+        }), {
+          status: response.status,
+          headers: edgeHealthHeaders,
+        });
+
+      }
+
       // Build outgoing response with security and CORS headers
       const resHeaders = new Headers(response.headers);
       resHeaders.set('X-Content-Type-Options', 'nosniff');
@@ -289,12 +333,14 @@ export default {
       resHeaders.set('X-FoodGo-Origin', activeTag);
       resHeaders.set('Vary', 'Origin');
 
+      resHeaders.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+
       if (didFailover) {
         resHeaders.set('X-FoodGo-Failover', 'true');
       }
 
       // Add appropriate Cache-Control headers based on endpoint type
-      if (hasAuthHeader || NEVER_CACHE_PATTERNS.some(p => p.test(url.pathname))) {
+      if (hasAuthHeader || hasCookieHeader || NEVER_CACHE_PATTERNS.some(p => p.test(url.pathname))) {
         resHeaders.set('Cache-Control', 'no-store, private');
       }
 

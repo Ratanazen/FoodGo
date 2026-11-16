@@ -1,0 +1,29 @@
+{
+  "@@locale": "en",
+  "appTitle": "FoodGo",
+  "@appTitle": {
+    "description": "Application name"
+  },
+  "tagline": "Order fresh food in Phnom Penh",
+  "@tagline": {
+    "description": "App tagline"
+  },
+  "home": "Home",
+  "search": "Search",
+  "orders": "Orders",
+  "favorites": "Favorites",
+  "profile": "Profile",
+  "login": "Sign In",
+  "register": "Create Account",
+  "logout": "Log Out",
+  "cart": "Cart",
+  "checkout": "Checkout",
+  "deliveryTo": "Delivery To",
+  "total": "Total",
+  "payWithKhqr": "Pay with Bakong KHQR",
+  "payWithCard": "Pay with Card",
+  "payWithCod": "Cash on Delivery",
+  "retry": "Try Again",
+  "emptyStateMessage": "No items found in this section.",
+  "errorGeneric": "Something went wrong. Please check your connection."
+}

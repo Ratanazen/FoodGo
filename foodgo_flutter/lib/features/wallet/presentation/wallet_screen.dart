@@ -11,9 +11,13 @@ import '../../../widgets/svg_icon.dart';
 import '../../../services/api_service.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../core/utils/khmer_currency.dart';
+import '../../payment/models/payment_model.dart';
 
 class WalletScreen extends StatefulWidget {
-  const WalletScreen({super.key});
+  final Map<String, dynamic>? initialWallet;
+  final bool? initialLoading;
+
+  const WalletScreen({super.key, this.initialWallet, this.initialLoading});
 
   @override
   State<WalletScreen> createState() => _WalletScreenState();
@@ -24,6 +28,7 @@ class _WalletScreenState extends State<WalletScreen> {
   bool _isLoading = true;
   bool _isProcessing = false;
   Map<String, dynamic>? _wallet;
+  String? _walletError;
   final TextEditingController _amountController = TextEditingController(
     text: '10.00',
   );
@@ -33,7 +38,12 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchWallet();
+    if (widget.initialWallet != null || widget.initialLoading != null) {
+      _wallet = widget.initialWallet;
+      _isLoading = widget.initialLoading ?? false;
+    } else {
+      _fetchWallet();
+    }
   }
 
   @override
@@ -43,7 +53,10 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<void> _fetchWallet() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _walletError = null;
+    });
     try {
       final hasToken = await SecureStorage().hasAccessToken();
       if (!hasToken) {
@@ -54,11 +67,20 @@ class _WalletScreenState extends State<WalletScreen> {
       final data = await _api.get('wallets/my_wallet/');
       if (!mounted) return;
       setState(() {
-        _wallet = data;
+        _wallet = data is Map<String, dynamic> ? data : null;
+        _walletError = null;
         _isLoading = false;
       });
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _walletError = ApiService.formatError(
+            e,
+            fallback: 'Unable to load wallet balance. Pull down to retry.',
+          );
+        });
+      }
     }
   }
 
@@ -88,7 +110,7 @@ class _WalletScreenState extends State<WalletScreen> {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to top up: $e'),
+            content: Text('Failed to top up: ${ApiService.formatError(e)}'),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -99,6 +121,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Future<void> _showKHQRTopUpDialog(double amount) async {
     if (amount <= 0) return;
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _isProcessing = true);
     try {
       final res = await _api.post('wallets/khqr_topup/', {
@@ -107,39 +130,68 @@ class _WalletScreenState extends State<WalletScreen> {
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
-      final String qrPayload = res['qr_payload'] ?? '';
-      final String merchantRef = res['merchant_reference'] ?? '';
-      final String effectivePayload = qrPayload.isNotEmpty
-          ? qrPayload
-          : 'FOODGO-KHQR-TOPUP';
+      final String qrPayload = (res['qr_payload'] ?? '').toString().trim();
+      final String merchantRef = (res['merchant_reference'] ?? '').toString();
+      final String md5Hash = (res['md5'] ?? '').toString();
+      if (qrPayload.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Payment server did not return a valid KHQR payload.',
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      final String effectivePayload =
+          PaymentModel.ensureDynamicKhqrExpiration(qrPayload) ?? qrPayload;
       bool showRawPayload = false;
+      bool isVerifyingTopUp = false;
+
+      final brightness = Theme.of(context).brightness;
+      final isDark = brightness == Brightness.dark;
+      final textTheme = Theme.of(context).textTheme;
+      final primaryText = AppTypography.primaryTextColor(brightness);
+      final secondaryText = AppTypography.secondaryTextColor(brightness);
+      final accentGreen = isDark
+          ? GlassTheme.primaryGreenAccent
+          : const Color(0xFF15803D);
 
       showDialog(
         context: context,
         builder: (dialogCtx) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            backgroundColor: GlassTheme.dialogDark,
+            backgroundColor: isDark
+                ? GlassTheme.dynamicDialogDark
+                : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              side: BorderSide(
+                color: isDark
+                    ? GlassTheme.dynamicBorderDark
+                    : GlassTheme.borderLight,
+              ),
             ),
             title: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: GlassTheme.bakongRed.withValues(alpha: 0.2),
+                    color: GlassTheme.bakongRed.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const SvgAssetIcon(assetName: 'khqr_logo', size: 24),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'KHQR Top-Up',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    'KHQR Top-Up',
+                    style: textTheme.titleLarge?.copyWith(
+                      color: primaryText,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -150,7 +202,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 children: [
                   Text(
                     'Scan with ABA Mobile, Bakong, or any Cambodian App',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 13),
+                    style: textTheme.bodySmall?.copyWith(color: secondaryText),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -165,13 +217,12 @@ class _WalletScreenState extends State<WalletScreen> {
                         top: Radius.circular(16),
                       ),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         'KHQR · SCAN TO PAY',
-                        style: TextStyle(
+                        style: textTheme.bodySmall?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
-                          fontSize: 13,
                           letterSpacing: 1.5,
                         ),
                       ),
@@ -202,34 +253,34 @@ class _WalletScreenState extends State<WalletScreen> {
 
                   Text(
                     '\$${amount.toStringAsFixed(2)} USD',
-                    style: const TextStyle(
-                      color: GlassTheme.primaryGreen,
-                      fontSize: 26,
+                    style: textTheme.displayLarge?.copyWith(
+                      color: accentGreen,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '≈ ${KhmerCurrency.formatKhr(amount)} KHR',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 13,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: primaryText.withValues(alpha: 0.85),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Ref: $merchantRef',
-                    style: TextStyle(color: GlassTheme.textMuted, fontSize: 11),
+                    style: textTheme.labelSmall?.copyWith(color: secondaryText),
                   ),
                   const SizedBox(height: 14),
 
                   // Copy Payload Button
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
+                      foregroundColor: primaryText,
                       side: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : Colors.black.withValues(alpha: 0.16),
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -239,15 +290,15 @@ class _WalletScreenState extends State<WalletScreen> {
                         vertical: 8,
                       ),
                     ),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.copy_rounded,
                       size: 16,
-                      color: GlassTheme.primaryGreen,
+                      color: accentGreen,
                     ),
-                    label: const Text(
+                    label: Text(
                       'Copy KHQR Payload',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: primaryText,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -283,16 +334,15 @@ class _WalletScreenState extends State<WalletScreen> {
                                 ? Icons.keyboard_arrow_up
                                 : Icons.keyboard_arrow_down,
                             size: 16,
-                            color: GlassTheme.textMuted,
+                            color: secondaryText,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             showRawPayload
                                 ? 'Hide QR Payload'
                                 : 'Show All QR Payload Details',
-                            style: TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 11,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: secondaryText,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -308,9 +358,13 @@ class _WalletScreenState extends State<WalletScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.black54,
+                        color: isDark
+                            ? Colors.black54
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white12),
+                        border: Border.all(
+                          color: isDark ? Colors.white12 : Colors.black12,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,19 +372,17 @@ class _WalletScreenState extends State<WalletScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 'KHQR Payload:',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11,
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: secondaryText,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Text(
                                 '${effectivePayload.length} chars',
-                                style: TextStyle(
-                                  color: GlassTheme.textMuted,
-                                  fontSize: 10,
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: secondaryText,
                                 ),
                               ),
                             ],
@@ -338,10 +390,9 @@ class _WalletScreenState extends State<WalletScreen> {
                           const SizedBox(height: 4),
                           SelectableText(
                             effectivePayload,
-                            style: const TextStyle(
+                            style: textTheme.labelSmall?.copyWith(
                               fontFamily: 'monospace',
-                              fontSize: 10,
-                              color: GlassTheme.primaryGreenAccent,
+                              color: accentGreen,
                             ),
                           ),
                         ],
@@ -353,12 +404,76 @@ class _WalletScreenState extends State<WalletScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: GlassButton(
-                      text: 'Simulate Successful Payment',
-                      icon: Icons.check_circle_outline,
-                      onPressed: () async {
-                        Navigator.of(dialogCtx).pop();
-                        await _instantTopUp(amount);
-                      },
+                      text: isVerifyingTopUp
+                          ? 'Verifying KHQR Payment...'
+                          : 'I Have Paid · Verify Top-Up',
+                      icon: Icons.verified_outlined,
+                      isLoading: isVerifyingTopUp,
+                      onPressed: isVerifyingTopUp
+                          ? null
+                          : () async {
+                              setDialogState(() => isVerifyingTopUp = true);
+                              try {
+                                final verifyRes = await _api
+                                    .post('wallets/verify_topup/', {
+                                      'merchant_reference': merchantRef,
+                                      'md5': md5Hash,
+                                      'qr_payload': effectivePayload,
+                                      'amount': amount.toStringAsFixed(2),
+                                      'currency': 'USD',
+                                    });
+                                if (!mounted) return;
+                                final statusStr = (verifyRes['status'] ?? '')
+                                    .toString()
+                                    .toUpperCase();
+                                if (statusStr == 'CREDITED') {
+                                  if (dialogCtx.mounted) {
+                                    Navigator.of(dialogCtx).pop();
+                                  }
+                                  await _fetchWallet();
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'KHQR Top-Up of \$${amount.toStringAsFixed(2)} verified and credited!',
+                                      ),
+                                      backgroundColor: GlassTheme.primaryGreen,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                } else {
+                                  setDialogState(
+                                    () => isVerifyingTopUp = false,
+                                  );
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        verifyRes['message']?.toString() ??
+                                            'Payment not yet confirmed by bank. Please complete the scan first.',
+                                      ),
+                                      backgroundColor: Colors.orangeAccent,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              } catch (err) {
+                                if (dialogCtx.mounted) {
+                                  setDialogState(
+                                    () => isVerifyingTopUp = false,
+                                  );
+                                }
+                                if (!mounted) return;
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Verification error: ${ApiService.formatError(err)}',
+                                    ),
+                                    backgroundColor: Colors.redAccent,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            },
                     ),
                   ),
                 ],
@@ -367,9 +482,11 @@ class _WalletScreenState extends State<WalletScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogCtx).pop(),
-                child: const Text(
+                child: Text(
                   'Close',
-                  style: TextStyle(color: Colors.white60),
+                  style: Theme.of(
+                    dialogCtx,
+                  ).textTheme.labelLarge?.copyWith(color: secondaryText),
                 ),
               ),
             ],
@@ -381,7 +498,9 @@ class _WalletScreenState extends State<WalletScreen> {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to generate KHQR: $e'),
+            content: Text(
+              'Failed to generate KHQR: ${ApiService.formatError(e)}',
+            ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -394,8 +513,18 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     final balance = _wallet?['balance'] ?? '0.00';
     final List transactions = _wallet?['transactions'] ?? [];
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final primaryText = AppTypography.primaryTextColor(brightness);
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
+    final accentAmber = isDark ? Colors.orangeAccent : const Color(0xFFB45309);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
         title: 'Account Balance & Wallet',
@@ -405,20 +534,60 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
       ),
       body: Container(
-        color: GlassTheme.backgroundDark,
+        color: Colors.transparent,
         child: SafeArea(
           child: _isLoading && _wallet == null
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: GlassTheme.primaryGreen,
-                  ),
-                )
+              ? Center(child: CircularProgressIndicator(color: accentGreen))
               : RefreshIndicator(
                   onRefresh: _fetchWallet,
-                  color: GlassTheme.primaryGreen,
+                  color: accentGreen,
                   child: ListView(
                     padding: const EdgeInsets.all(16.0),
                     children: [
+                      if (_walletError != null) ...[
+                        GlassContainer(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          customColor: Colors.redAccent.withValues(
+                            alpha: isDark ? 0.16 : 0.1,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: isDark
+                                    ? const Color(0xFFFCA5A5)
+                                    : const Color(0xFFB91C1C),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _walletError!,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: primaryText,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: _fetchWallet,
+                                child: Text(
+                                  'Retry',
+                                  style: textTheme.labelLarge?.copyWith(
+                                    color: accentGreen,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       // Balance Card
                       GlassContainer(
                             padding: const EdgeInsets.all(24),
@@ -431,17 +600,17 @@ class _WalletScreenState extends State<WalletScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.account_balance_wallet_outlined,
-                                      color: GlassTheme.primaryGreen,
+                                      color: accentGreen,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
-                                    const Text(
+                                    Text(
                                       'Total Available Balance',
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 14,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: secondaryText,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
@@ -449,28 +618,26 @@ class _WalletScreenState extends State<WalletScreen> {
                                 const SizedBox(height: 10),
                                 Text(
                                   '\$$balance',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 38,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5,
+                                  style: textTheme.displayLarge?.copyWith(
+                                    color: primaryText,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '≈ ${KhmerCurrency.formatKhr(double.tryParse(balance.toString()) ?? 0.0)} KHR',
-                                  style: const TextStyle(
-                                    color: GlassTheme.primaryGreen,
-                                    fontSize: 16,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    color: accentGreen,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Live Dual Balance · អត្រា ៤,១០០ ៛/USD',
-                                  style: TextStyle(
-                                    color: GlassTheme.textMuted,
-                                    fontSize: 12,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: secondaryText,
+                                    height: 1.5,
+                                    letterSpacing: 0,
                                   ),
                                 ),
                               ],
@@ -487,12 +654,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       const SizedBox(height: 24),
 
                       // Quick Top Up Section
-                      const Text(
+                      Text(
                         'Add Money to Account',
-                        style: TextStyle(
-                          fontSize: 18,
+                        style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: primaryText,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -518,24 +684,31 @@ class _WalletScreenState extends State<WalletScreen> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? GlassTheme.primaryGreen.withValues(
-                                        alpha: 0.3,
+                                        alpha: isDark ? 0.3 : 0.16,
                                       )
-                                    : Colors.white.withValues(alpha: 0.05),
+                                    : (isDark
+                                          ? Colors.white.withValues(alpha: 0.05)
+                                          : Colors.black.withValues(
+                                              alpha: 0.04,
+                                            )),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isSelected
-                                      ? GlassTheme.primaryGreen
-                                      : Colors.white.withValues(alpha: 0.1),
+                                      ? accentGreen
+                                      : (isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.1,
+                                              )
+                                            : Colors.black.withValues(
+                                                alpha: 0.12,
+                                              )),
                                 ),
                               ),
                               child: Text(
                                 '+\$${amt.toStringAsFixed(0)} (${KhmerCurrency.formatKhr(amt)})',
-                                style: TextStyle(
+                                style: textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                  color: isSelected
-                                      ? GlassTheme.primaryGreen
-                                      : Colors.white,
+                                  color: isSelected ? accentGreen : primaryText,
                                 ),
                               ),
                             ),
@@ -547,9 +720,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       // Custom Amount TextField
                       TextField(
                         controller: _amountController,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
+                        style: textTheme.titleLarge?.copyWith(
+                          color: primaryText,
                           fontWeight: FontWeight.bold,
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
@@ -557,13 +729,32 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                         decoration: InputDecoration(
                           labelText: 'Custom Amount',
-                          labelStyle: TextStyle(color: GlassTheme.textMuted),
-                          prefixIcon: const Icon(
+                          labelStyle: textTheme.bodyMedium?.copyWith(
+                            color: secondaryText,
+                          ),
+                          prefixIcon: Icon(
                             Icons.attach_money,
-                            color: GlassTheme.primaryGreen,
+                            color: accentGreen,
                           ),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          fillColor: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.04),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.12),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              color: accentGreen,
+                              width: 1.5,
+                            ),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
                             borderSide: BorderSide.none,
@@ -588,9 +779,12 @@ class _WalletScreenState extends State<WalletScreen> {
                                   ),
                                 ),
                                 icon: const Icon(Icons.qr_code_2, size: 22),
-                                label: const Text(
+                                label: Text(
                                   'KHQR Top Up',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: textTheme.labelLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 onPressed: _isProcessing
                                     ? null
@@ -600,7 +794,24 @@ class _WalletScreenState extends State<WalletScreen> {
                                               _amountController.text.trim(),
                                             ) ??
                                             0.0;
-                                        if (amt > 0) _showKHQRTopUpDialog(amt);
+                                        if (amt > 0) {
+                                          _showKHQRTopUpDialog(amt);
+                                        } else {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Please enter a valid amount greater than \$0.00.',
+                                              ),
+                                              backgroundColor: Color(
+                                                0xFFB45309,
+                                              ),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        }
                                       },
                               ),
                             ),
@@ -614,6 +825,7 @@ class _WalletScreenState extends State<WalletScreen> {
                               child: GlassButton(
                                 text: 'Add Money',
                                 icon: Icons.add_card,
+                                isLoading: _isProcessing,
                                 onPressed: _isProcessing
                                     ? () {}
                                     : () {
@@ -622,7 +834,24 @@ class _WalletScreenState extends State<WalletScreen> {
                                               _amountController.text.trim(),
                                             ) ??
                                             0.0;
-                                        if (amt > 0) _instantTopUp(amt);
+                                        if (amt > 0) {
+                                          _instantTopUp(amt);
+                                        } else {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Please enter a valid amount greater than \$0.00.',
+                                              ),
+                                              backgroundColor: Color(
+                                                0xFFB45309,
+                                              ),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        }
                                       },
                               ),
                             ),
@@ -635,19 +864,17 @@ class _WalletScreenState extends State<WalletScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Transaction History',
-                            style: TextStyle(
-                              fontSize: 18,
+                            style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: primaryText,
                             ),
                           ),
                           Text(
                             '${transactions.length} total',
-                            style: TextStyle(
-                              color: GlassTheme.textMuted,
-                              fontSize: 12,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
                             ),
                           ),
                         ],
@@ -709,15 +936,15 @@ class _WalletScreenState extends State<WalletScreen> {
                                   Icon(
                                     Icons.receipt_long_outlined,
                                     size: 48,
-                                    color: GlassTheme.textMuted,
+                                    color: secondaryText,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     _txFilter == 'all'
                                         ? 'No transactions yet'
                                         : 'No ${_txFilter == 'deposit' ? 'top-up' : 'payment'} transactions found',
-                                    style: TextStyle(
-                                      color: GlassTheme.textMuted,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: secondaryText,
                                     ),
                                   ),
                                 ],
@@ -747,8 +974,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                             ? Icons.arrow_downward
                                             : Icons.arrow_upward,
                                         color: isDeposit
-                                            ? GlassTheme.primaryGreen
-                                            : Colors.orangeAccent,
+                                            ? accentGreen
+                                            : accentAmber,
                                         size: 18,
                                       ),
                                     ),
@@ -763,29 +990,34 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 (isDeposit
                                                     ? 'Deposit (បញ្ចូលប្រាក់)'
                                                     : 'Payment (ទូទាត់ប្រាក់)'),
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: primaryText,
+                                                  height: 1.5,
+                                                  letterSpacing: 0,
+                                                ),
                                           ),
                                           Text(
                                             '${tx['transaction_type'].toString().toUpperCase()} • ${KhmerCurrency.formatKhr(double.tryParse(tx['amount']?.toString() ?? '0') ?? 0.0)}',
-                                            style: TextStyle(
-                                              color: GlassTheme.textMuted,
-                                              fontSize: 11,
-                                            ),
+                                            style: textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: secondaryText,
+                                                  height: 1.5,
+                                                  letterSpacing: 0,
+                                                ),
                                           ),
                                         ],
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
                                     Text(
                                       '${isDeposit ? '+' : '-'}\$${tx['amount']}',
-                                      style: TextStyle(
+                                      style: textTheme.titleMedium?.copyWith(
                                         color: isDeposit
-                                            ? GlassTheme.primaryGreen
-                                            : Colors.orangeAccent,
+                                            ? accentGreen
+                                            : accentAmber,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
                                       ),
                                     ),
                                   ],
@@ -806,6 +1038,13 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildTxFilterChip(String label, String value, int count) {
     final isSelected = _txFilter == value;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final accentGreen = isDark
+        ? GlassTheme.primaryGreenAccent
+        : const Color(0xFF15803D);
     return InkWell(
       onTap: () => setState(() => _txFilter = value),
       borderRadius: BorderRadius.circular(10),
@@ -813,21 +1052,24 @@ class _WalletScreenState extends State<WalletScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? GlassTheme.primaryGreen.withValues(alpha: 0.25)
-              : Colors.white.withValues(alpha: 0.05),
+              ? GlassTheme.primaryGreen.withValues(alpha: isDark ? 0.25 : 0.16)
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.04)),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
-                ? GlassTheme.primaryGreen
-                : Colors.white.withValues(alpha: 0.1),
+                ? accentGreen
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.12)),
           ),
         ),
         child: Text(
           '$label ($count)',
-          style: TextStyle(
-            fontSize: 12,
+          style: textTheme.bodySmall?.copyWith(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? GlassTheme.primaryGreen : Colors.white70,
+            color: isSelected ? accentGreen : secondaryText,
           ),
         ),
       ),

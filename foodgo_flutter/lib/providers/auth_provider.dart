@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../core/network/api_client.dart';
@@ -8,11 +7,13 @@ import '../services/api_service.dart';
 class AuthProvider with ChangeNotifier {
   bool _isAuthenticated = false;
   String? _lastAuthError;
+  Map<String, dynamic>? _lastLoginUser;
   final ApiService _apiService = ApiService();
   final SecureStorage _secureStorage = SecureStorage();
 
   bool get isAuthenticated => _isAuthenticated;
   String? get lastAuthError => _lastAuthError;
+  Map<String, dynamic>? get lastLoginUser => _lastLoginUser;
 
   AuthProvider() {
     ApiClient.onSessionExpired = () {
@@ -37,10 +38,12 @@ class AuthProvider with ChangeNotifier {
     if (result.isSuccess) {
       _isAuthenticated = true;
       _lastAuthError = null;
+      _lastLoginUser = result.user;
       notifyListeners();
       return true;
     } else {
       _lastAuthError = result.errorMessage;
+      _lastLoginUser = null;
       notifyListeners();
       return false;
     }
@@ -86,11 +89,10 @@ class AuthProvider with ChangeNotifier {
       });
       return true;
     } catch (e) {
-      if (e is DioException && e.response?.data is Map) {
-        _lastAuthError = e.response!.data['error']?.toString();
-      } else {
-        _lastAuthError = 'Unable to dispatch SMS verification code.';
-      }
+      _lastAuthError = ApiService.formatError(
+        e,
+        fallback: 'Unable to dispatch SMS verification code.',
+      );
       notifyListeners();
       return false;
     }
@@ -119,11 +121,10 @@ class AuthProvider with ChangeNotifier {
       }
       return false;
     } catch (e) {
-      if (e is DioException && e.response?.data is Map) {
-        _lastAuthError = e.response!.data['error']?.toString();
-      } else {
-        _lastAuthError = 'Invalid or expired verification code.';
-      }
+      _lastAuthError = ApiService.formatError(
+        e,
+        fallback: 'Invalid or expired verification code.',
+      );
       notifyListeners();
       return false;
     }

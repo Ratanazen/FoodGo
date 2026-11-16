@@ -1,4 +1,7 @@
-from .auth_views import RequestOTPView, VerifyOTPView, GoogleLoginView, ChangePasswordView, LogoutView, DeleteAccountView
+from .auth_views import (
+    RequestOTPView, VerifyOTPView, GoogleLoginView, ChangePasswordView,
+    LogoutView, DeleteAccountView, FoodGoTokenObtainPairView
+)
 from .phone_views import (
     SendPhoneOTPView,
     VerifyPhoneOTPView,
@@ -7,7 +10,8 @@ from .phone_views import (
 )
 from .payment_views import (
     CreatePaymentView, PaymentDetailView, PaymentStatusView,
-    CancelPaymentView, RefundPaymentView, ABACallbackView, ACLEDACallbackView, BakongCallbackView
+    CancelPaymentView, RefundPaymentView, ABACallbackView, ACLEDACallbackView, BakongCallbackView,
+    PaymentMethodsView, OrderPaymentDetailView
 )
 from .admin_views import (
     AdminAnalyticsView, AdminOrderViewSet, AdminUserViewSet,
@@ -23,7 +27,9 @@ router = DefaultRouter()
 router.register(r'restaurants', RestaurantViewSet)
 router.register(r'restaurant-categories', RestaurantCategoryViewSet)
 router.register(r'food-categories', FoodCategoryViewSet)
+router.register(r'categories', FoodCategoryViewSet, basename='categories')
 router.register(r'food-items', FoodItemViewSet)
+router.register(r'foods', FoodItemViewSet, basename='foods')
 router.register(r'orders', OrderViewSet)
 router.register(r'wallets', WalletViewSet, basename='wallet')
 router.register(r'reviews', ReviewViewSet)
@@ -61,11 +67,16 @@ urlpatterns = [
     path('auth/logout/', LogoutView.as_view(), name='auth_logout'),
     path('auth/delete-account/', DeleteAccountView.as_view(), name='delete_account'),
     path('', include(router.urls)),
+    path('auth/register/', UserRegistrationView.as_view(), name='auth_register'),
+    path('auth/token/', FoodGoTokenObtainPairView.as_view(), name='auth_token'),
+    path('auth/login/', FoodGoTokenObtainPairView.as_view(), name='auth_login'),
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('me/', UserMeView.as_view(), name='user-me'),
     path('admin/analytics/', AdminAnalyticsView.as_view(), name='admin_analytics'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
     # Real KHQR & COD Payment Endpoints
+    path('payments/methods/', PaymentMethodsView.as_view(), name='payment_methods'),
+    path('payments/order/<int:order_id>/', OrderPaymentDetailView.as_view(), name='payment_by_order'),
     path('payments/', CreatePaymentView.as_view(), name='payment_create_root'),
     path('payments/create/', CreatePaymentView.as_view(), name='payment_create'),
     path('payments/<int:pk>/', PaymentDetailView.as_view(), name='payment_detail'),
@@ -98,6 +109,8 @@ urlpatterns = [
     path('health/live/', HealthLiveView.as_view(), name='api_health_live'),
     path('health/ready', HealthReadyView.as_view(), name='api_health_ready_no_slash'),
     path('health/ready/', HealthReadyView.as_view(), name='api_health_ready'),
+    path('healthz', HealthCheckView.as_view(), name='api_healthz_no_slash'),
+    path('healthz/', HealthCheckView.as_view(), name='api_healthz'),
     # MongoDB Atlas Media & Sync Services
     path('media/mongo/upload/', MongoImageUploadView.as_view(), name='mongo_image_upload'),
     path('media/mongo/<path:filename>', MongoImageView.as_view(), name='mongo_image_serve'),

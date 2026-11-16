@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../core/theme/glass_theme.dart';
 import '../glass_container.dart';
+import '../vector_illustrations.dart';
 import 'glass_widgets.dart';
 
 class GlassSkeleton extends StatelessWidget {
@@ -32,39 +33,58 @@ class GlassSkeleton extends StatelessWidget {
 }
 
 class AppErrorView extends StatelessWidget {
-  final String title;
-  final String message;
+  final String? title;
+  final String? message;
+  final String? retryText;
   final VoidCallback onRetry;
 
   const AppErrorView({
     super.key,
-    this.title = 'Something went wrong',
-    this.message = 'Please check your connection and try again.',
+    this.title,
+    this.message,
+    this.retryText,
     required this.onRetry,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveTitle = title ?? context.tr('errors.serverError');
+    final effectiveMessage = message ?? context.tr('errors.networkError');
+    final effectiveRetry = retryText ?? context.tr('common.retry');
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: GlassTheme.textMuted),
-            const SizedBox(height: 24),
+            const VectorIllustration(
+              type: VectorIllustrationType.networkOffline,
+              size: 140,
+            ),
+            const SizedBox(height: 20),
             Text(
-              title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              effectiveTitle,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppTypography.primaryTextColor(
+                  Theme.of(context).brightness,
+                ),
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+              effectiveMessage,
               textAlign: TextAlign.center,
-              style: TextStyle(color: GlassTheme.textMuted),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTypography.secondaryTextColor(
+                  Theme.of(context).brightness,
+                ),
+              ),
             ),
             const SizedBox(height: 24),
-            GlassButton(text: 'Retry', onPressed: onRetry),
+            GlassButton(text: effectiveRetry, onPressed: onRetry),
           ],
         ),
       ),
@@ -75,7 +95,8 @@ class AppErrorView extends StatelessWidget {
 class EmptyStateView extends StatelessWidget {
   final String title;
   final String message;
-  final IconData icon;
+  final IconData? icon;
+  final VectorIllustrationType? illustrationType;
   final String? buttonText;
   final VoidCallback? onAction;
 
@@ -83,7 +104,8 @@ class EmptyStateView extends StatelessWidget {
     super.key,
     required this.title,
     required this.message,
-    required this.icon,
+    this.icon,
+    this.illustrationType,
     this.buttonText,
     this.onAction,
   });
@@ -96,21 +118,38 @@ class EmptyStateView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GlassContainer(
-              padding: const EdgeInsets.all(24),
-              borderRadius: BorderRadius.circular(100),
-              child: Icon(icon, size: 64, color: GlassTheme.primaryGreen),
-            ),
-            const SizedBox(height: 24),
+            if (illustrationType != null)
+              VectorIllustration(type: illustrationType!, size: 150)
+            else
+              GlassContainer(
+                padding: const EdgeInsets.all(24),
+                borderRadius: BorderRadius.circular(100),
+                child: Icon(
+                  icon ?? Icons.inbox_outlined,
+                  size: 64,
+                  color: GlassTheme.dynamicPrimaryColor,
+                ),
+              ),
+            const SizedBox(height: 20),
             Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppTypography.primaryTextColor(
+                  Theme.of(context).brightness,
+                ),
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: GlassTheme.textMuted),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTypography.secondaryTextColor(
+                  Theme.of(context).brightness,
+                ),
+              ),
             ),
             if (buttonText != null && onAction != null) ...[
               const SizedBox(height: 24),

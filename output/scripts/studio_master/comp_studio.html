@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>FoodGo Academic Capstone Master Composition v4</title>
+<style>
+  @font-face { font-family: 'Fraunces'; src: url('./fonts/Fraunces.ttf') format('truetype'); font-weight: 100 900; font-style: normal; }
+  @font-face { font-family: 'Inter'; src: url('./fonts/Inter.ttf') format('truetype'); font-weight: 100 900; font-style: normal; }
+  @font-face { font-family: 'GeistMono'; src: url('./fonts/GeistMono.ttf') format('truetype'); font-weight: 100 900; font-style: normal; }
+  @font-face { font-family: 'Kantumruy'; src: url('./fonts/KantumruyPro-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Kantumruy'; src: url('./fonts/KantumruyPro-Bold.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+  @font-face { font-family: 'Moul'; src: url('./fonts/Moul-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent !important;
+    font-family: 'Inter', 'Kantumruy', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #stage-root {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  #bg-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* EXECUTIVE NAVY KEYNOTE (Dark) & ARCHITECTURAL PEARL STUDIO (Light) */
+  .theme-dark {
+    --ink: #F8FAFC;
+    --ink-muted: #94A3B8;
+    --ink-soft: rgba(226, 232, 240, 0.80);
+    --card-bg: rgba(15, 23, 42, 0.82);
+    --card-active-bg: rgba(23, 36, 62, 0.96);
+    --card-border: rgba(148, 163, 184, 0.20);
+    --card-active-border: rgba(241, 90, 36, 0.92);
+    --panel-bg: rgba(11, 18, 32, 0.88);
+    --accent: #F15A24;
+    --accent-soft: rgba(241, 90, 36, 0.18);
+    --gold: #E6C173;
+    --teal: #34D399;
+    --sky: #38BDF8;
+    --navy-pill: rgba(255, 255, 255, 0.08);
+    --footer-bg: rgba(9, 14, 24, 0.90);
+    --footer-border: rgba(230, 193, 115, 0.30);
+    --pedestal-bg: linear-gradient(175deg, rgba(19, 30, 52, 0.92), rgba(9, 14, 24, 0.96));
+    --km-title: #FFA377;
+    --mockup-bg: #070B14;
+  }
+
+  .theme-paper {
+    --ink: #0F172A;
+    --ink-muted: #475569;
+    --ink-soft: rgba(30, 41, 59, 0.80);
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --card-active-bg: #FFFFFF;
+    --card-border: rgba(15, 23, 42, 0.10);
+    --card-active-border: #EA511B;
+    --panel-bg: rgba(255, 255, 255, 0.94);
+    --accent: #E24E18;
+    --accent-soft: rgba(226, 78, 24, 0.11);
+    --gold: #A16207;
+    --teal: #059669;
+    --sky: #0284C7;
+    --navy-pill: rgba(15, 23, 42, 0.06);
+    --footer-bg: rgba(255, 255, 255, 0.95);
+    --footer-border: rgba(18, 52, 91, 0.22);
+    --pedestal-bg: linear-gradient(175deg, rgba(255, 255, 255, 0.98), rgba(238, 242, 247, 0.98));
+    --km-title: #C2410C;
+    --mockup-bg: #E2E8F0;
+  }
+
+  /* 1. TOP HEADER BAR (y: 16..88) */
+  .top-bar {
+    position: absolute;
+    left: 44px;
+    right: 44px;
+    top: 16px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 4;
+  }
+
+  .acleda-pill {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    height: 64px;
+    padding: 7px 18px 7px 12px;
+    background: #FFFFFF;
+    border-radius: 15px;
+    border: 1.5px solid #D4AF37;
+    box-shadow: 0 10px 26px rgba(2, 6, 23, 0.16);
+  }
+  .acleda-pill img {
+    height: 44px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+  }
+  .acleda-pill-divider {
+    width: 1.5px;
+    height: 32px;
+    background: rgba(18, 52, 91, 0.18);
+  }
+  .acleda-pill-text { display: flex; flex-direction: column; gap: 2px; }
+  .acleda-pill-km {
+    font-family: 'Kantumruy', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #12345B;
+    line-height: 1.2;
+  }
+  .acleda-pill-en {
+    font-family: 'GeistMono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: #9A6B13;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    padding: 9px 22px;
+    border-radius: 999px;
+    box-shadow: 0 10px 28px rgba(2, 6, 23, 0.10);
+  }
+  .brand-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .brand-chip img {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  .ch-pill {
+    padding: 5px 13px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'GeistMono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .progress-dots { display: flex; align-items: center; gap: 4px; margin-left: 2px; }
+  .p-dot { width: 13px; height: 5px; border-radius: 99px; background: var(--card-border); }
+  .p-dot.done { background: var(--gold); opacity: 0.9; }
+  .p-dot.now { width: 28px; background: var(--accent); }
+
+  .mode-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 14px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    color: var(--ink);
+    font-family: 'GeistMono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    box-shadow: 0 10px 28px rgba(2, 6, 23, 0.10);
+  }
+  .live-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.22);
+  }
+
+  /* 2. TITANIUM PHONE BEZEL (Outer: x=44..400, y=110..856; Screen hole: x=56, y=122, w=332, h=722, r=26) */
+  .phone-shell {
+    position: absolute;
+    left: 44px;
+    top: 110px;
+    width: 356px;
+    height: 746px;
+    border-radius: 38px;
+    background: transparent;
+    border: 12px solid #1E293B;
+    box-shadow:
+      0 0 0 2px rgba(230, 193, 115, 0.28),
+      0 26px 60px rgba(2, 6, 23, 0.42);
+    pointer-events: none;
+    z-index: 3;
+    transform-origin: center center;
+  }
+  .phone-notch {
+    position: absolute;
+    left: 50%;
+    top: 7px;
+    transform: translateX(-50%);
+    width: 92px;
+    height: 18px;
+    border-radius: 99px;
+    background: #0F172A;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .phone-tag-bottom {
+    position: absolute;
+    left: 50%;
+    bottom: -24px;
+    transform: translateX(-50%);
+    padding: 5px 14px;
+    border-radius: 99px;
+    background: linear-gradient(135deg, #F15A24, #D94816);
+    color: #FFFFFF;
+    font-family: 'GeistMono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    box-shadow: 0 8px 20px rgba(241, 90, 36, 0.45);
+  }
+
+  /* 3. CENTER STAGE DECK (x=420..1508 -> w=1088, y=110..882 -> h=772) */
+  .deck-stage {
+    position: absolute;
+    left: 420px;
+    top: 108px;
+    width: 1088px;
+    height: 774px;
+    display: flex;
+    flex-direction: column;
+    z-index: 4;
+  }
+
+  .eyebrow-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+  .eyebrow-bar { width: 30px; height: 4px; border-radius: 4px; background: var(--accent); }
+  .eyebrow-text {
+    font-family: 'GeistMono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .eyebrow-km {
+    font-family: 'Kantumruy', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink-muted);
+  }
+
+  .hero-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 40px;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .hero-subtitle-km {
+    font-family: 'Kantumruy', sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 1.32;
+    color: var(--km-title);
+    margin-bottom: 12px;
+  }
+
+  /* Two-column Split Body for Explanation + App Visual Proof */
+  .split-body {
+    display: grid;
+    grid-template-columns: 586px 484px;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .cards-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .point-card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 13px 16px;
+    border-radius: 16px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    overflow: hidden;
+    flex: 1;
+  }
+  .point-card.compact {
+    padding: 10px 14px;
+    gap: 12px;
+  }
+  .point-card.active {
+    background: var(--card-active-bg);
+    border-color: var(--card-active-border);
+    box-shadow: 0 12px 32px rgba(241, 90, 36, 0.18);
+  }
+  .point-card.past { opacity: 0.84; }
+  .point-card.future { opacity: 0.65; }
+  .point-rail {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    background: var(--accent); opacity: 0;
+  }
+  .point-card.active .point-rail { opacity: 1; }
+
+  .point-num {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--navy-pill);
+    border: 1px solid var(--card-border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'GeistMono', monospace;
+    font-size: 14px; font-weight: 800; color: var(--ink);
+  }
+  .point-card.active .point-num { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
+  .point-card.past .point-num { background: rgba(52, 211, 153, 0.16); border-color: var(--teal); color: var(--teal); }
+
+  .point-body { flex: 1; min-width: 0; }
+  .point-km {
+    font-family: 'Kantumruy', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.38;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .point-card.compact .point-km { font-size: 16px; line-height: 1.3; margin-bottom: 2px; }
+  .point-en {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.34;
+    color: var(--ink-soft);
+  }
+  .point-card.compact .point-en { font-size: 13px; line-height: 1.25; }
+
+  .point-pill {
+    align-self: flex-start;
+    flex-shrink: 0;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: var(--navy-pill);
+    border: 1px solid var(--card-border);
+    font-family: 'GeistMono', monospace;
+    font-size: 11px; font-weight: 700; color: var(--gold);
+    white-space: nowrap;
+  }
+  .point-card.active .point-pill {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Spec / Highlight summary footer for 3-card left column (zero blank gap!) */
+  .spec-bar {
+    padding: 13px 16px;
+    border-radius: 16px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--footer-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .spec-bar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'GeistMono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+  }
+  .spec-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .spec-chip {
+    padding: 5px 11px;
+    border-radius: 8px;
+    background: var(--navy-pill);
+    border: 1px solid var(--card-border);
+    font-family: 'Inter', 'Kantumruy', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* RIGHT VISUAL PROOF PANEL (IN-APP SCREENSHOT SPOTLIGHT + FILMSTRIP) */
+  .proof-panel {
+    border-radius: 20px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--card-border);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.16);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    height: 100%;
+    min-height: 0;
+  }
+  .proof-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .proof-badge {
+    display: flex; align-items: center; gap: 7px;
+    padding: 4px 10px; border-radius: 99px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    font-family: 'GeistMono', monospace;
+    font-size: 11px; font-weight: 700; color: var(--accent);
+  }
+  .proof-step {
+    font-family: 'GeistMono', monospace;
+    font-size: 11px; font-weight: 700; color: var(--ink-muted);
+  }
+
+  .proof-hero-box {
+    display: grid;
+    grid-template-columns: 202px 1fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+  .hero-screen-frame {
+    position: relative;
+    border-radius: 18px;
+    background: var(--mockup-bg);
+    border: 3px solid #334155;
+    box-shadow: 0 12px 26px rgba(2, 6, 23, 0.25);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hero-screen-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+  .hero-screen-pill {
+    position: absolute;
+    left: 8px; bottom: 8px;
+    padding: 4px 9px;
+    border-radius: 7px;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    font-family: 'GeistMono', monospace;
+    font-size: 10px; font-weight: 700; color: #F8FAFC;
+  }
+
+  .hero-zoom-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+  .zoom-crop-card {
+    position: relative;
+    flex: 1;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--mockup-bg);
+    border: 2px solid var(--accent);
+    box-shadow: 0 10px 26px rgba(241, 90, 36, 0.16);
+  }
+  .zoom-crop-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .zoom-crop-tag {
+    position: absolute;
+    top: 8px; left: 8px;
+    padding: 4px 9px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #FFFFFF;
+    font-family: 'GeistMono', monospace;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+  }
+  .zoom-info-card {
+    padding: 12px 13px;
+    border-radius: 14px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .zoom-info-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 17px;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .zoom-info-km {
+    font-family: 'Kantumruy', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    line-height: 1.35;
+    color: var(--km-title);
+  }
+  .zoom-info-en {
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    line-height: 1.32;
+    color: var(--ink-soft);
+  }
+
+  /* Bottom Multi-Screen Filmstrip inside Right Panel */
+  .filmstrip {
+    display: grid;
+    gap: 8px;
+    height: 152px;
+    flex-shrink: 0;
+  }
+  .film-thumb {
+    position: relative;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .film-thumb.active {
+    border-color: var(--accent);
+    background: var(--card-active-bg);
+    box-shadow: 0 8px 20px rgba(241, 90, 36, 0.25);
+    transform: translateY(-2px);
+  }
+  .film-thumb img {
+    width: 100%;
+    height: 114px;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 8px;
+    display: block;
+  }
+  .film-thumb span {
+    font-family: 'GeistMono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .film-thumb.active span { color: var(--accent); }
+
+  /* SPECIAL LAYOUT 06 TECH STACK (2x2 Stack Cards + Live App Proof Right) */
+  .tech-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    height: 100%;
+  }
+  .tech-mini-card {
+    padding: 15px 16px;
+    border-radius: 16px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .tech-mini-card.active {
+    background: var(--card-active-bg);
+    border-color: var(--accent);
+    box-shadow: 0 14px 32px rgba(226, 78, 24, 0.15);
+  }
+  .tech-name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 21px; color: var(--ink); line-height: 1.15; }
+  .tech-badge {
+    display: inline-block; align-self: flex-start;
+    padding: 3px 9px; border-radius: 99px;
+    background: var(--accent-soft); border: 1px solid var(--accent);
+    font-family: 'GeistMono', monospace; font-size: 10.5px; font-weight: 700; color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .tech-km { font-family: 'Kantumruy', sans-serif; font-weight: 700; font-size: 15.5px; color: var(--ink); margin-top: 6px; }
+  .tech-en { font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.35; color: var(--ink-soft); margin-top: 4px; }
+  .tech-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .t-pill {
+    padding: 3px 8px; border-radius: 6px;
+    background: var(--navy-pill); border: 1px solid var(--card-border);
+    font-family: 'GeistMono', monospace; font-size: 11px; font-weight: 600; color: var(--ink);
+  }
+
+  /* SPECIAL LAYOUT 07 ARCHITECTURE (Vector Diagram Top + 5 Real UI/UX Screens Bottom) */
+  .arch-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+  .arch-top {
+    display: grid;
+    grid-template-columns: 500px 1fr;
+    gap: 16px;
+    height: 410px;
+    flex-shrink: 0;
+  }
+  .arch-top .cards-col { gap: 8px; }
+  .arch-top .point-card.compact { padding: 8px 12px; }
+  .arch-top .point-card.compact .point-km { font-size: 15px; line-height: 1.25; }
+  .arch-top .point-card.compact .point-en { font-size: 12.5px; line-height: 1.22; }
+  .vector-arch-box {
+    border-radius: 18px;
+    background: rgba(10, 16, 28, 0.94);
+    border: 1.5px solid rgba(230, 193, 115, 0.42);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 16px 38px rgba(2, 6, 23, 0.35);
+  }
+  .v-tier {
+    padding: 10px 13px;
+    border-radius: 12px;
+    background: rgba(30, 41, 59, 0.72);
+    border: 1.5px solid rgba(148, 163, 184, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .v-tier.active {
+    background: rgba(30, 41, 59, 0.98);
+    border-color: #F15A24;
+    box-shadow: 0 0 0 2px rgba(241, 90, 36, 0.24);
+  }
+  .v-tier-l { display: flex; flex-direction: column; gap: 2px; }
+  .v-tier-name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; color: #F8FAFC; }
+  .v-tier-sub { font-family: 'Inter', sans-serif; font-size: 12px; color: #CBD5E1; }
+  .v-tier-badge {
+    padding: 4px 9px; border-radius: 7px;
+    font-family: 'GeistMono', monospace; font-size: 11px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .v-arrow {
+    text-align: center;
+    font-family: 'GeistMono', monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #E6C173;
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+
+  .arch-ui-strip {
+    flex: 1;
+    min-height: 0;
+    border-radius: 18px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--card-border);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .arch-ui-hdr {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'GeistMono', monospace; font-size: 11.5px; font-weight: 700; color: var(--gold);
+  }
+  .arch-screens-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+  }
+  .portal-thumb {
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-height: 0;
+  }
+  .portal-thumb.active {
+    border-color: var(--accent);
+    box-shadow: 0 10px 24px rgba(241, 90, 36, 0.25);
+  }
+  .portal-thumb img {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 8px;
+    display: block;
+  }
+  .portal-thumb span {
+    font-family: 'GeistMono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  /* SPECIAL LAYOUT 09 RESULTS (KPI Top Ribbon + Cards Left + Proof Right) */
+  .results-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+  }
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    height: 98px;
+    flex-shrink: 0;
+  }
+  .kpi-tile {
+    padding: 12px 16px;
+    border-radius: 15px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+  }
+  .kpi-tile.highlight { border-color: var(--accent); background: var(--card-active-bg); }
+  .kpi-val { font-family: 'Fraunces', serif; font-weight: 800; font-size: 34px; line-height: 1.0; color: var(--accent); }
+  .kpi-lbl { font-family: 'GeistMono', monospace; font-size: 12px; font-weight: 700; color: var(--ink); }
+  .kpi-km { font-family: 'Kantumruy', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--ink-muted); }
+
+  /* SPECIAL LAYOUT 10 CONCLUSION (Conclusion + Team Left | 6-Screen Mosaic Right) */
+  .mosaic-panel {
+    border-radius: 20px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--footer-border);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    min-height: 0;
+  }
+  .mosaic-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+  }
+  .mosaic-card {
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1.5px solid rgba(148, 163, 184, 0.24);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-height: 0;
+  }
+  .mosaic-card.active {
+    border-color: #E6C173;
+    box-shadow: 0 10px 26px rgba(241, 90, 36, 0.28);
+  }
+  .mosaic-card img {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 8px;
+    display: block;
+  }
+  .mosaic-card span {
+    font-family: 'GeistMono', monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #F8FAFC;
+    text-align: center;
+  }
+
+  /* 4. RIGHT PRESENTER BROADCAST FRAME (x=1528..1876 -> w=348, y=108..882 -> h=774) */
+  .pedestal {
+    position: absolute;
+    left: 1528px;
+    top: 108px;
+    width: 348px;
+    height: 774px;
+    border-radius: 24px;
+    background: var(--pedestal-bg);
+    border: 1.5px solid var(--card-border);
+    box-shadow: 0 22px 54px rgba(2, 6, 23, 0.26);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 18px 18px;
+    z-index: 4;
+  }
+  .pedestal-glow {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: 280px;
+    height: 280px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .pedestal-top {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+  }
+  .pose-chip {
+    padding: 5px 11px;
+    border-radius: 99px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'GeistMono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .eq-bars { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
+  .eq-b { width: 3px; border-radius: 2px; background: var(--gold); }
+
+  .avatar-wrap {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  .avatar-wrap img {
+    max-width: 312px;
+    max-height: 556px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 18px 26px rgba(2, 6, 23, 0.30));
+  }
+
+  .pedestal-card {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    z-index: 2;
+  }
+  .pedestal-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 17px; color: var(--ink); margin-bottom: 2px; }
+  .pedestal-km { font-family: 'Kantumruy', sans-serif; font-weight: 700; font-size: 13.5px; color: var(--accent); }
+
+  /* 5. PERMANENT 5-MEMBER TEAM FOOTER BAR (y: 1022..1070) */
+  .team-footer {
+    position: absolute;
+    left: 44px;
+    right: 44px;
+    bottom: 10px;
+    height: 48px;
+    padding: 0 18px;
+    border-radius: 14px;
+    background: var(--footer-bg);
+    border: 1.5px solid var(--footer-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 5;
+  }
+  .tf-uni {
+    font-family: 'Kantumruy', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tf-members { display: flex; align-items: center; gap: 10px; }
+  .tf-m {
+    padding: 5px 11px;
+    border-radius: 9px;
+    background: var(--navy-pill);
+    border: 1px solid var(--card-border);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .tf-m b { font-family: 'GeistMono', monospace; color: var(--accent); margin-right: 4px; }
+</style>
+</head>
+<body>
+<div id="stage-root" class="theme-dark">
+  <canvas id="bg-canvas" width="1920" height="1080"></canvas>
+
+  <header class="top-bar">
+    <div class="acleda-pill">
+      <img src="./assets/acleda_logo.png" alt="ACLEDA University" />
+      <div class="acleda-pill-divider"></div>
+      <div class="acleda-pill-text">
+        <span class="acleda-pill-km">សាកលវិទ្យាល័យ ពាណិជ្ជសាស្រ្ត អេស៊ីលីដា</span>
+        <span class="acleda-pill-en">ACLEDA University · Capstone Defense</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="brand-chip">
+        <img src="./assets/icon.png" alt="FoodGo" />
+        <span>FoodGo</span>
+      </div>
+      <div class="ch-pill" id="hdr-ch-pill">CH 01 / 14</div>
+      <div class="progress-dots" id="hdr-dots"></div>
+    </div>
+
+    <div class="mode-badge">
+      <div class="live-dot"></div>
+      <span id="hdr-mode-text">LIVE APP + DECK</span>
+    </div>
+  </header>
+
+  <div class="phone-shell" id="phone-shell">
+    <div class="phone-notch"></div>
+    <div class="phone-tag-bottom" id="phone-tag">LIVE FLUTTER APP</div>
+  </div>
+
+  <main class="deck-stage" id="main-deck"></main>
+
+  <aside class="pedestal">
+    <div class="pedestal-glow"></div>
+    <div class="pedestal-top">
+      <span class="pose-chip" id="pedestal-pose-tag">HOST · INTRO</span>
+      <div class="eq-bars" id="eq-bars"></div>
+    </div>
+    <div class="avatar-wrap">
+      <img id="avatar-img" src="./assets/standing.png" alt="Minato Presenter" />
+    </div>
+    <div class="pedestal-card">
+      <div class="pedestal-title" id="pedestal-title">Minato · Capstone Guide</div>
+      <div class="pedestal-km" id="pedestal-km">អ្នកធ្វើបទបង្ហាញ FoodGo</div>
+    </div>
+  </aside>
+
+  <footer class="team-footer">
+    <div class="tf-uni">★ ACLEDA UNIVERSITY CAPSTONE</div>
+    <div class="tf-members">
+      <div class="tf-m"><b>01</b>Em Ratana</div>
+      <div class="tf-m"><b>02</b>Hen Yaungkuy</div>
+      <div class="tf-m"><b>03</b>Than Sombath Borarat</div>
+      <div class="tf-m"><b>04</b>Cheang borin</div>
+      <div class="tf-m"><b>05</b>Ly KimChhun</div>
+    </div>
+  </footer>
+</div>
+
+<script src="./motion.js"></script>
+<script>
+const PHONE_HOLE = { x: 56, y: 122, w: 332, h: 722, r: 26 };
+
+const SCREENS = {
+  homeBanner:    './assets/app_screens/01_home_banner.png',
+  homeMenu:      './assets/app_screens/02_home_menu.png',
+  exploreSpots:  './assets/app_screens/03_explore_spots.png',
+  signInOtp:     './assets/app_screens/04_signin_otp.png',
+  profileKh:     './assets/app_screens/05_profile_kh.png',
+  foodSpotDark:  './assets/app_screens/06_food_spot_dark.png',
+  themesDark:    './assets/app_screens/07_themes_dark.png',
+  themesLight:   './assets/app_screens/08_themes_light.png',
+  cartPromo:     './assets/app_screens/09_cart_promo.png',
+  cartKhTotal:   './assets/app_screens/10_cart_kh_total.png',
+  khqrTop:       './assets/app_screens/11_khqr_top.png',
+  khqrScan:      './assets/app_screens/12_khqr_scan.png',
+  khqrBanks:     './assets/app_screens/13_khqr_banks.png',
+  ordersList:    './assets/app_screens/14_orders_list.png',
+  receiptModal:  './assets/app_screens/15_receipt_modal.png',
+  mapRoute:      './assets/app_screens/16_map_route.png',
+  mapEtaStep:    './assets/app_screens/17_map_eta_step.png',
+  driverOnline:  './assets/app_screens/18_driver_online.png',
+  driverArrived: './assets/app_screens/19_driver_arrived.png',
+  driverEarn:    './assets/app_screens/20_driver_earn.png',
+  adminKpis:     './assets/app_screens/21_admin_kpis.png',
+  adminFleet:    './assets/app_screens/22_admin_fleet.png',
+  adminOrders:   './assets/app_screens/23_admin_orders.png',
+  adminAudit:    './assets/app_screens/24_admin_audit.png',
+};
+
+const CHAPTERS = {
+  seg01_intro: {
+    idx: 1, theme: 'dark', backdrop: './assets/backdrops/style1_academic_navy_gold.jpg', pose: 'standing.png',
+    eyebrowEn: '01 · INTRODUCTION', eyebrowKm: 'សេចក្ដីផ្ដើមគម្រោង',
+    titleEn: 'FoodGo Smart Delivery Platform',
+    titleKm: 'ប្រព័ន្ធកុម្ម៉ង់ និងដឹកជញ្ជូនម្ហូបអាហារឆ្លាតវៃ',
+    modeTag: 'CAPSTONE OPENING', phoneTag: 'LIVE APP · CUSTOMER HOME',
+    poseTag: 'HOST · WELCOME', pedTitle: 'Introduction Host', pedKm: 'ស្វាគមន៍គណៈកម្មការវាយតម្លៃ',
+    cards: [
+      { pill: 'ACLEDA UNIV', km: 'សួស្តីគណៈកម្មការ និងសាស្ត្រាចារ្យ សាកលវិទ្យាល័យពាណិជ្ជសាស្រ្ត អេស៊ីលីដា។', en: 'Senior Capstone Defense presenting real full-stack FoodGo deliverables.' },
+      { pill: 'FOODGO APP', km: 'វេទិកា FoodGo ភ្ជាប់ការកុម្ម៉ង់អាហារ និងការដឹកជញ្ជូនទំនើបសម្រាប់កម្ពុជា។', en: 'Bilingual Flutter 3 + Django 5 platform built for Phnom Penh.' },
+      { pill: '5 MEMBERS', km: 'អភិវឌ្ឍដោយក្រុមនិស្សិត ៥ រូប៖ រតនា, យ៉ាងគុយ, បររ័ត្ន, បូរិន និង គឹមឈុន។', en: '01 Em Ratana · 02 Hen Yaungkuy · 03 Borarat · 04 Borin · 05 KimChhun.' },
+      { pill: '4 PORTALS', km: 'បម្រើតួនាទីទាំង ៤៖ អតិថិជន អ្នកដឹកជញ្ជូន ម្ចាស់ហាង និងអ្នកគ្រប់គ្រង។', en: 'Unified Customer, Courier Driver, Restaurant Owner & Admin portals.' },
+    ],
+    screens: [
+      { img: SCREENS.homeBanner, label: 'HOME', focus: '50% 18%', title: 'Customer Home Discovery', km: 'ទំព័រដើមកម្មវិធី FoodGo នៅភ្នំពេញ', en: 'Banner promotions, categories & real dish cards.' },
+      { img: SCREENS.homeMenu,   label: 'MENUS', focus: '50% 42%', title: 'Curated Food Selection', km: 'មុខម្ហូបពេញនិយម និងតម្លៃដុល្លារ/រៀល', en: 'Live dish ratings, quick-add buttons & dual currency.' },
+      { img: SCREENS.profileKh,  label: 'KH/EN', focus: '50% 24%', title: 'Bilingual Khmer Switch', km: 'គណនីអ្នកប្រើ និងប៊ូតុងភាសាខ្មែរ', en: 'Instant Khmer UI switch inside Customer Profile.' },
+      { img: SCREENS.adminKpis,  label: 'PORTALS', focus: '50% 34%', title: '4-Role Unified System', km: 'ភ្ជាប់គ្រប់តួនាទីទាំង ៤ ក្នុងប្រព័ន្ធតែមួយ', en: 'Admin Console monitoring orders, drivers & sales.' },
+    ]
+  },
+  seg02_problem: {
+    idx: 2, theme: 'paper', backdrop: './assets/backdrops/style2_tech_blueprint.jpg', pose: 'think.png',
+    eyebrowEn: '02 · PROBLEM STATEMENT', eyebrowKm: 'ការវិភាគបញ្ហាប្រឈម',
+    titleEn: 'Local Delivery Challenges in Cambodia',
+    titleKm: 'បញ្ហាប្រឈមសំខាន់ៗក្នុងទីផ្សារដឹកជញ្ជូនបច្ចុប្បន្ន',
+    modeTag: 'PROBLEM AUDIT', phoneTag: 'LIVE APP · AUTH & ACCESS',
+    poseTag: 'ANALYST · THINK', pedTitle: 'Pain-Point Analysis', pedKm: 'ការវិភាគបញ្ហាជាក់ស្ដែង ៤ ចំណុច',
+    cards: [
+      { pill: '4 CORE GAPS', km: 'ទីផ្សារកុម្ម៉ង់ម្ហូបបច្ចុប្បន្ន ជួបប្រទះបញ្ហាប្រតិបត្តិការសំខាន់ៗ ៤ ចំណុច។', en: 'Legacy food delivery suffers from localization, billing & polling gaps.' },
+      { pill: '1 USD = 4,100៛', km: '១. ឧបសគ្គភាសាខ្មែរ និងកំហុសគណនាតម្លៃដុល្លារ/រៀលដោយដៃ។', en: 'Poor Khmer typography & manual FX math create checkout mistakes.' },
+      { pill: 'SLIP FRAUD', km: '២. ការផ្ទៀងផ្ទាត់បង់ប្រាក់តាមរូបភាព មានភាពយឺតយ៉ាវ និងងាយបន្លំ។', en: 'Screenshot transfer receipts delay prep & introduce spoofing risks.' },
+      { pill: 'POLLING LAG', km: '៣. ការតាមដានទីតាំងដោយការ Refresh ទំព័រ បណ្ដាលឱ្យយឺតទិន្នន័យ។', en: 'Periodic HTTP polling lags courier coordinates & spikes server DB.' },
+    ],
+    screens: [
+      { img: SCREENS.signInOtp,   label: 'ACCESS', focus: '50% 52%', title: 'Unified Secure Entry', km: 'ដោះស្រាយបញ្ហាចូលប្រើតាមតួនាទី', en: 'Single sign-in & +855 phone OTP verification.' },
+      { img: SCREENS.cartKhTotal, label: 'USD/KHR', focus: '50% 76%', title: 'Eliminating Manual FX Math', km: 'គណនាប្រាក់ដុល្លារ និងរៀលស្វ័យប្រវត្តិ', en: 'Cart displays exact 4,100 KHR totals without error.' },
+      { img: SCREENS.khqrScan,    label: 'NO SLIPS', focus: '50% 42%', title: 'Replacing Slip Screenshots', km: 'លែងត្រូវការផ្ទៀងផ្ទាត់រូបភាពដោយដៃ', en: 'Cryptographic EMVCo KHQR prevents forged receipts.' },
+      { img: SCREENS.mapRoute,    label: 'LIVE MAP', focus: '50% 35%', title: 'No More Manual Refresh', km: 'ផ្លាស់ប្ដូរពី Polling មក WebSocket', en: 'Live route updates directly on Phnom Penh map.' },
+    ]
+  },
+  seg03_objectives: {
+    idx: 3, theme: 'paper', backdrop: './assets/backdrops/style_objectives_sunrise.jpg', pose: 'find.png',
+    eyebrowEn: '03 · PROJECT OBJECTIVES', eyebrowKm: 'គោលបំណងនៃគម្រោង',
+    titleEn: 'Engineering Goals & User Value',
+    titleKm: 'គោលដៅបច្ចេកទេស និងអត្ថប្រយោជន៍សម្រាប់អ្នកប្រើប្រាស់',
+    modeTag: 'OBJECTIVES', phoneTag: 'LIVE APP · KH/EN UX',
+    poseTag: 'STRATEGIST · FIND', pedTitle: 'Target Outcomes', pedKm: 'គោលដៅស្នូលទាំង ៤ របស់ប្រព័ន្ធ',
+    cards: [
+      { pill: '4 TARGETS', km: 'FoodGo កំណត់គោលដៅបច្ចេកទេសជាក់លាក់ចំនួន ៤ ដើម្បីដោះស្រាយបញ្ហា។', en: 'Measured engineering goals spanning Flutter UX, Django APIs & KHQR.' },
+      { pill: '1-TAP KH/EN', km: '១. ចំណុចប្រទាក់ ខ្មែរ/អង់គ្លេស ច្បាស់ស្អាតជាមួយពុម្ពអក្សរ Kantumruy Pro។', en: 'Crisp bilingual toggle preserving Khmer line-height & legibility.' },
+      { pill: 'EXACT SYNC', km: '២. ប្ដូរប្រាក់ស្វ័យប្រវត្តិ (1 USD = 4,100 ៛) លើគ្រប់កន្ត្រក និងបង្កាន់ដៃ។', en: 'Deterministic USD + KHR math synced from backend across all screens.' },
+      { pill: 'KHQR + OSRM', km: '៣. ទូទាត់ Bakong KHQR ឌីណាមិក និងផែនទីដឹកជញ្ជូនភ្នំពេញផ្ទាល់។', en: 'Live EMVCo QR settlement plus OpenStreetMap OSRM route ETAs.' },
+    ],
+    screens: [
+      { img: SCREENS.homeBanner, label: 'HOME UX', focus: '50% 20%', title: 'Target 1 · Intuitive Food UI', km: 'រចនាស្អាត ងាយស្រួលកុម្ម៉ង់', en: 'Clean hierarchy built for mobile & desktop users.' },
+      { img: SCREENS.profileKh,  label: 'KH/EN', focus: '50% 24%', title: 'Target 2 · Khmer Localization', km: 'ប៊ូតុងប្ដូរភាសាខ្មែរភ្លាមៗ', en: 'Bilingual navigation & profile preferences in 1 tap.' },
+      { img: SCREENS.cartPromo,  label: 'DUAL FX', focus: '50% 68%', title: 'Target 3 · Automatic Currency', km: 'បញ្ចុះតម្លៃ និងគណនាប្រាក់រៀលច្បាស់', en: 'Promo deduction & live KHR subtotal displayed.' },
+      { img: SCREENS.mapEtaStep, label: 'GPS ETA', focus: '50% 58%', title: 'Target 4 · Live Map & ETA', km: 'តាមដានផ្លូវដឹកជញ្ជូនពិតក្នុងភ្នំពេញ', en: 'Courier telemetry & 3-min arrival countdown.' },
+    ]
+  },
+  seg04_solution: {
+    idx: 4, theme: 'dark', backdrop: './assets/backdrops/style_solution_fusion.jpg', pose: 'investigate.png',
+    eyebrowEn: '04 · PROPOSED SOLUTION', eyebrowKm: 'ដំណោះស្រាយដែលបានស្នើ',
+    titleEn: 'Unified 4-Role Digital Platform',
+    titleKm: 'ការបង្រួបបង្រួមវេទិកាតែមួយសម្រាប់តួនាទីទាំង ៤',
+    modeTag: 'SOLUTION MATRIX', phoneTag: 'LIVE APP · EXPLORE',
+    poseTag: 'ARCHITECT · INSPECT', pedTitle: 'System Solution', pedKm: 'វេទិកាតែមួយ តួនាទីទាំង ៤',
+    cards: [
+      { pill: 'SINGLE CORE', km: 'បង្រួបបង្រួមអតិថិជន អ្នកដឹក ម្ចាស់ហាង និងអ្នកគ្រប់គ្រងលើ FoodGo តែមួយ។', en: 'Unified API engine powers all 4 operational roles from one codebase.' },
+      { pill: 'JWT + OTP', km: 'ការចូលប្រើប្រាស់សុវត្ថិភាពតាមតួនាទី ដោយ SimpleJWT និងលេខសម្ងាត់ OTP។', en: 'Role-scoped authorization tokens + Cambodia +855 SMS verification.' },
+      { pill: 'WEBSOCKET', km: 'រាល់ស្ថានភាពបង់ប្រាក់ និងទីតាំងអ្នកដឹក ត្រូវបានរុញភ្លាមៗតាម WebSocket។', en: 'Daphne ASGI WebSockets push payment confirmations & GPS coordinates.' },
+      { pill: 'ZERO MANUAL', km: 'លុបបំបាត់ការគណនាដោយដៃ និងបង្កើនទំនុកចិត្តពាណិជ្ជកម្មឌីជីថល។', en: 'Automates voucher math, order locks & full financial audit trails.' },
+    ],
+    screens: [
+      { img: SCREENS.exploreSpots, label: 'CUSTOMER', focus: '50% 25%', title: 'Portal 1 · Customer Discovery', km: 'ចំណុចប្រទាក់អតិថិជនស្វែងរកហាង', en: 'Explore Phnom Penh merchants & live promotions.' },
+      { img: SCREENS.signInOtp,    label: 'SECURITY', focus: '50% 56%', title: 'SimpleJWT + Phone OTP Auth', km: 'សុវត្ថិភាព Token និង OTP', en: 'Strict role-based login guards every endpoint.' },
+      { img: SCREENS.driverOnline, label: 'DRIVER', focus: '50% 24%', title: 'Portal 2 · Driver WebSocket', km: 'អ្នកដឹកជញ្ជូនភ្ជាប់ WebSocket ផ្ទាល់', en: 'Live route broadcast & courier shift toggles.' },
+      { img: SCREENS.adminKpis,    label: 'ADMIN', focus: '50% 30%', title: 'Portal 3 & 4 · Owner/Admin', km: 'ផ្ទាំងគ្រប់គ្រងម្ចាស់ហាង និងរដ្ឋបាល', en: 'Centralized order oversight & marketplace KPIs.' },
+    ]
+  },
+  seg05a_features_ui: {
+    idx: 5, theme: 'paper', backdrop: './assets/backdrops/style2_tech_blueprint.jpg', pose: 'standing.png',
+    eyebrowEn: '05A · KEY FEATURES — UX', eyebrowKm: 'មុខងារសំខាន់ៗ — ចំណុចប្រទាក់',
+    titleEn: 'Bilingual Discovery & Smart Vouchers',
+    titleKm: 'ការរុករកម៉ឺនុយរហ័ស ១៦ Themes និងប្រូម៉ូកូដឆ្លាតវៃ',
+    modeTag: 'FEATURES · 5A', phoneTag: 'LIVE APP · CART & PROMO',
+    poseTag: 'UX GUIDE · STAND', pedTitle: 'Customer UX Flow', pedKm: 'បទពិសោធន៍អតិថិជនទំនើប',
+    cards: [
+      { pill: '31 SCREENS', km: 'មុខងាររុករកម៉ឺនុយភោជនីយដ្ឋានរហ័ស ជាមួយប្រភេទអាហារ និងតម្រងច្បាស់លាស់។', en: 'Fast category filtering, search & high-contrast restaurant cards.' },
+      { pill: '16 THEMES', km: 'ប្ដូរភាសា ខ្មែរ/អង់គ្លេស និងជ្រើសរើសផ្ទៃ GlassTheme ចំនួន ១៦ ម៉ូដភ្លាមៗ។', en: 'Reactive Theme Center swaps palettes seamlessly in light & dark mode.' },
+      { pill: 'FOODGO30', km: 'គណនាប្រូម៉ូកូដបញ្ចុះតម្លៃ (-$1.50) និងថ្លៃដឹកជញ្ជូនជារៀលដោយស្វ័យប្រវត្តិ។', en: 'Server-validated voucher engine calculates USD + KHR totals instantly.' },
+    ],
+    specTitle: 'VERIFIED FLUTTER CLIENT SPECS',
+    specChips: ['31 Production Screens', '16 GlassTheme Palettes', '1-Tap KH/EN Fonts', 'FOODGO30 Voucher (-$1.50)'],
+    screens: [
+      { img: SCREENS.foodSpotDark, label: 'DISCOVERY', focus: '50% 34%', title: 'Fast Visual Menu Browsing', km: 'រុករកមុខម្ហូប និងហាងក្នុងភ្នំពេញ', en: 'High-contrast dish cards & quick-filter chips.' },
+      { img: SCREENS.themesLight,  label: '16 THEMES', focus: '50% 44%', title: '16 GlassTheme Palettes', km: 'ជ្រើសរើសផ្ទៃ Theme ចំនួន ១៦ ម៉ូដ', en: 'Modern Foodie, Light Classic & WCAG Dark.' },
+      { img: SCREENS.cartPromo,    label: 'FOODGO30', focus: '50% 70%', title: 'Voucher & Dual-FX Engine', km: 'អនុវត្តប្រូម៉ូកូដ FOODGO30 ផ្ទាល់', en: 'Instant discount deduction ($12.79 / 52,439៛).' },
+    ]
+  },
+  seg05b_features_khqr: {
+    idx: 6, theme: 'dark', backdrop: './assets/backdrops/style_bakong_fintech_pro.jpg', pose: 'investigate.png',
+    eyebrowEn: '05B · KEY FEATURES — FINTECH', eyebrowKm: 'មុខងារសំខាន់ៗ — បាគង KHQR',
+    titleEn: 'Dynamic EMVCo Bakong KHQR Pay',
+    titleKm: 'ប្រព័ន្ធទូទាត់ Bakong KHQR ឌីណាមិក ស្តង់ដារ EMVCo',
+    modeTag: 'BAKONG KHQR · 5B', phoneTag: 'LIVE APP · KHQR SCAN',
+    poseTag: 'FINTECH · VERIFY', pedTitle: 'Payment Verification', pedKm: 'សុវត្ថិភាពទូទាត់អេឡិចត្រូនិក',
+    cards: [
+      { pill: 'CRC16-CCITT', km: 'បង្កើតកូដ Bakong KHQR ឌីណាមិកតាមស្តង់ដារ EMVCo Tag 99 ជាមួយទឹកប្រាក់ជាក់លាក់។', en: 'Per-order cryptographic QR payload prevents amount tampering.' },
+      { pill: '4 BANKS', km: 'គាំទ្រការស្កេនពីធនាគារ Bakong, ABA, ACLEDA និង Wing ក្នុងនាឡិកាកំណត់ ៣០ នាទី។', en: 'Supports Cambodia’s top banking apps with live countdown lock.' },
+      { pill: 'LOCK TOKEN', km: 'ពេលទូទាត់ជោគជ័យ Server បង្កើតលេខសម្គាល់ប្រគល់ម្ហូប (Delivery PIN/QR)។', en: 'WebSocket pushes PAID confirmation & unlocks Delivery Handover Token.' },
+    ],
+    specTitle: 'EMVCO & SECURITY ENGINE',
+    specChips: ['CRC16 Checksum', '30-Min Live Countdown', 'Bakong · ABA · ACLEDA · Wing', '6-Digit Handover PIN'],
+    screens: [
+      { img: SCREENS.khqrTop,      label: 'EMVCO QR', focus: '50% 34%', title: 'Dynamic Per-Order Payload', km: 'លេខកូដ KHQR ចងភ្ជាប់ទឹកប្រាក់ជាក់លាក់', en: 'USD 16.99 · KHR 69,659 locked into Order QR.' },
+      { img: SCREENS.khqrBanks,    label: '4 BANKS', focus: '50% 72%', title: 'Cambodian Bank Interop', km: 'ស្កេនបានទាំង Bakong, ABA, ACLEDA & Wing', en: 'Supported Cambodian banking rails & live status.' },
+      { img: SCREENS.receiptModal, label: 'RECEIPT', focus: '50% 56%', title: 'Atomic Receipt & PIN Lock', km: 'បង្កាន់ដៃឌីជីថល និងការផ្ទៀងផ្ទាត់ PIN', en: 'Settlement confirmed instantly on customer receipt.' },
+    ]
+  },
+  seg06_tech_stack: {
+    idx: 7, theme: 'paper', backdrop: './assets/backdrops/style2_tech_blueprint.jpg', pose: 'find.png',
+    eyebrowEn: '06 · TECHNOLOGY STACK', eyebrowKm: 'បច្ចេកវិទ្យា និងឧបករណ៍អភិវឌ្ឍន៍',
+    titleEn: 'Full-Stack Production Engineering Stack',
+    titleKm: 'បច្ចេកវិទ្យាស្នូលសម្រាប់ប្រព័ន្ធទូរស័ព្ទ គេហទំព័រ និងម៉ាស៊ីនមេ',
+    modeTag: 'TECH STACK + UI', phoneTag: 'LIVE APP · 16 THEMES UI',
+    poseTag: 'ENGINEER · STACK', pedTitle: 'Production Tooling', pedKm: 'គ្រឹះបច្ចេកវិទ្យាដ៏រឹងមាំ',
+    quads: [
+      { name: 'Frontend · Mobile & Web', badge: 'DART 3 + FLUTTER 3', km: 'អេក្រង់ ៣១ លើ Mobile & Web', en: 'Material 3 + Provider + Khmer Kantumruy Pro.', pills: ['31 Screens', '16 Themes'] },
+      { name: 'Backend · REST & ASGI', badge: 'PYTHON + DJANGO 5', km: 'ផ្លូវ API/WS ៥៩ & SimpleJWT', en: 'DRF + Daphne ASGI + Channels WebSockets.', pills: ['59 Endpoints', 'JWT RBAC'] },
+      { name: 'Data · ACID & Pub/Sub', badge: 'POSTGRESQL + REDIS', km: 'ម៉ូដែល ២៦ & select_for_update()', en: 'ACID relational persistence + Redis socket bus.', pills: ['26 Models', 'AuditLog'] },
+      { name: 'Maps & Banking Rails', badge: 'OSRM + BAKONG KHQR', km: 'ផែនទីភ្នំពេញ & EMVCo CRC16', en: 'OpenStreetMap ETAs + interoperable QR pay.', pills: ['OSRM Route', 'KHQR Pay'] },
+    ],
+    screens: [
+      { img: SCREENS.homeBanner, label: 'FULL-STACK', focus: '50% 25%', title: 'End-to-End Live App', km: 'ដំណើរការរួមបញ្ចូលគ្នាទាំង Frontend & API', en: 'Responsive mobile screens fed directly from Django 5.' },
+      { img: SCREENS.themesDark, label: 'FLUTTER 3', focus: '50% 42%', title: 'Dart 3 + Theme Engine UI', km: 'អេក្រង់ទាំង ៣១ និង 16 GlassThemes', en: 'Material 3 widget tree with reactive Provider themes.' },
+      { img: SCREENS.adminAudit, label: 'DJANGO 5', focus: '50% 45%', title: 'DRF & ASGI Audit Ledger', km: 'ប្រព័ន្ធ API & Ledger លើ Django 5', en: '59 REST/WS endpoints guarding KHQR & wallet state.' },
+      { img: SCREENS.mapRoute,   label: 'PGSQL+OSRM', focus: '50% 35%', title: 'PostgreSQL + OSRM Radar', km: 'ទិន្នន័យ PostgreSQL និងផែនទីភ្នំពេញ', en: 'Spatial telemetry synced through Redis & OSRM.' },
+    ]
+  },
+  seg07_architecture: {
+    idx: 8, theme: 'dark', backdrop: './assets/backdrops/style_database_er_stage.jpg', pose: 'think.png',
+    eyebrowEn: '07 · UI/UX & ARCHITECTURE', eyebrowKm: 'ស្ថាបត្យកម្មប្រព័ន្ធ ៤ ស្រទាប់',
+    titleEn: '4-Tier Architecture & 26 ORM Models',
+    titleKm: 'ស្ថាបត្យកម្ម ៤ ស្រទាប់ · ផ្លូវ API ៥៩ · ម៉ូដែលទិន្នន័យ ២៦',
+    modeTag: 'ARCH + 4-PORTAL UI', phoneTag: 'LIVE APP · 4 PORTALS',
+    poseTag: 'ARCHITECT · SYSTEM', pedTitle: '4-Layer Pipeline', pedKm: 'ស្ថាបត្យកម្ម និង UI/UX ជាក់ស្ដែង',
+    cards: [
+      { pill: '4-TIER', km: 'ស្ថាបត្យកម្ម ៤ ស្រទាប់ភ្ជាប់យ៉ាងរលូនពីអតិថិជនដល់ធនាគារ។', en: 'Flutter Portals → Django ASGI → PGSQL/Redis → KHQR & OSRM.' },
+      { pill: '59 APIS', km: '១. កម្មវិធី Flutter ទាំង ៤ តួនាទីភ្ជាប់ផ្លូវ API/WS ៥៩ លើ Django។', en: 'Versioned core/urls.py REST & WebSocket endpoints.' },
+      { pill: '26 MODELS', km: '២. ម៉ូដែល ២៦ គ្រប់គ្រង Order, Payment, Delivery, Wallet & Log។', en: '26 ORM domain tables in backend/core/models.py.' },
+      { pill: 'REDIS+OSRM', km: '៣. Redis Channels បញ្ជូនទីតាំង ខណៈ OSRM គណនាផ្លូវក្នុងភ្នំពេញ។', en: 'Real-time Socket fan-out + sub-second Phnom Penh ETA.' },
+    ],
+    portals: [
+      { img: SCREENS.homeBanner,   label: 'CUSTOMER UI' },
+      { img: SCREENS.themesDark,   label: 'THEME ENGINE' },
+      { img: SCREENS.khqrScan,     label: 'BAKONG KHQR' },
+      { img: SCREENS.driverOnline, label: 'DRIVER GPS' },
+      { img: SCREENS.adminKpis,    label: 'ADMIN CONSOLE' },
+    ]
+  },
+  seg08a_demo_checkout: {
+    idx: 9, theme: 'paper', backdrop: './assets/backdrops/style_objectives_sunrise.jpg', pose: 'delivery_bag.png',
+    eyebrowEn: '08A · LIVE DEMO — CHECKOUT', eyebrowKm: 'ការបង្ហាញកម្មវិធីផ្ទាល់ — ការកុម្ម៉ង់',
+    titleEn: 'Real App Flow: Cart to KHQR Receipt',
+    titleKm: 'លំហូរកម្មវិធីពិត៖ ពីកន្ត្រកទំនិញដល់បង្កាន់ដៃបង់ប្រាក់',
+    modeTag: 'LIVE DEMO · 8A', phoneTag: 'REAL CAPTURE · CHECKOUT',
+    poseTag: 'DELIVERY · BAG', pedTitle: 'Checkout Walkthrough', pedKm: 'ដំណើរការកុម្ម៉ង់ជាក់ស្ដែង',
+    cards: [
+      { pill: 'REAL VIDEO', km: 'ទស្សនាការបង្ហាញកម្មវិធី Flutter ពិតប្រាកដដែលកំពុងដំណើរការផ្ទាល់។', en: 'Live on-device app recording paired with step-by-step UI proof.' },
+      { pill: 'FOODGO30', km: 'បន្ថែមមុខម្ហូបចូលកន្ត្រក អនុវត្ត FOODGO30 និងមើលតម្លៃ ដុល្លារ/រៀល ភ្លាមៗ។', en: 'Instant voucher discount & automatic 4,100 KHR conversion.' },
+      { pill: 'LOCK BILL', km: 'ពេលបញ្ជាក់ការកុម្ម៉ង់ Order ID និងទម្រង់ Bakong KHQR ត្រូវបានបង្កើតស្វ័យប្រវត្តិ។', en: 'Locked itemized digital receipt prevents currency or total drift.' },
+    ],
+    specTitle: 'CHECKOUT PIPELINE STATE',
+    specChips: ['Add Item -> Cart', 'Apply FOODGO30 (-$1.50)', 'USD $16.29 / 66,789 KHR', 'Generate Dynamic KHQR'],
+    screens: [
+      { img: SCREENS.cartPromo,    label: 'STEP 1 CART', focus: '50% 45%', title: 'Cart Items + Voucher Code', km: 'ដាក់ម្ហូប និងប្រើកូដ FOODGO30', en: '3 items selected with -$1.50 voucher applied.' },
+      { img: SCREENS.cartKhTotal,  label: 'STEP 2 FX', focus: '50% 78%', title: 'Dual Currency Checkout Total', km: 'បង្ហាញតម្លៃសរុបជាដុល្លារ និងរៀល', en: '$16.29 · 66,789 KHR confirmed before checkout.' },
+      { img: SCREENS.receiptModal, label: 'STEP 3 BILL', focus: '50% 58%', title: 'Digital Order Bill & KHQR', km: 'ចេញបង្កាន់ដៃឌីជីថល និងប៊ូតុង KHQR', en: 'Locked order summary ready for scan-to-pay.' },
+    ]
+  },
+  seg08b_demo_gps: {
+    idx: 10, theme: 'dark', backdrop: './assets/backdrops/style_radar_city_pro.jpg', pose: 'delivery_scooter.png',
+    eyebrowEn: '08B · LIVE DEMO — GPS TRACKING', eyebrowKm: 'ការបង្ហាញផ្ទាល់ — ផែនទីពេលវេលាពិត',
+    titleEn: 'Live Phnom Penh Rider Radar',
+    titleKm: 'តាមដានទីតាំងអ្នកដឹកជញ្ជូនលើផែនទីទីក្រុងភ្នំពេញផ្ទាល់',
+    modeTag: 'LIVE DEMO · 8B', phoneTag: 'REAL CAPTURE · PHNOM PENH MAP',
+    poseTag: 'SCOOTER · DISPATCH', pedTitle: 'GPS Telemetry', pedKm: 'ផែនទីតាមដានជារៀងរាល់វិនាទី',
+    cards: [
+      { pill: 'OPENSTREETMAP', km: 'បង្ហាញទីតាំងភោជនីយដ្ឋាន ផ្ទះអតិថិជន និងផ្លូវដឹកជញ្ជូនពិតក្នុងរាជធានីភ្នំពេញ។', en: 'flutter_map + OpenStreetMap tiles with live OSRM polyline.' },
+      { pill: 'LIVE ETA', km: 'តាមដានចលនា Bob Rider ចម្ងាយ ល្បឿន និងនាឡិកាមកដល់ ETA ៣ នាទី។', en: 'WebSocket pushes bearing angles & live 3-minute arrival ETA.' },
+      { pill: 'AUTO STATUS', km: 'ជំហានស្ថានភាពទាំង ៤ ប្ដូរដោយស្វ័យប្រវត្តិ ដោយមិនចាំបាច់ Refresh ទំព័រឡើយ។', en: 'Confirmed -> Preparing -> On the Way -> Delivered zero-reload.' },
+    ],
+    specTitle: 'REAL-TIME RADAR TELEMETRY',
+    specChips: ['Phnom Penh OSRM Route', 'Courier: Bob Rider', 'Live 3-Min ETA', 'Channels WS /ws/tracking/'],
+    screens: [
+      { img: SCREENS.mapRoute,   label: 'MAP ROUTE', focus: '50% 34%', title: 'OpenStreetMap Route Polyline', km: 'ផ្លូវដឹកជញ្ជូនពិតលើផែនទីភ្នំពេញ', en: 'Origin merchant pin to customer destination pin.' },
+      { img: SCREENS.mapEtaStep, label: 'ETA 3 MIN', focus: '50% 60%', title: 'Bob Rider · Arriving in 3 min', km: 'កាតតាមដានអ្នកដឹក និងនាឡិកា ETA', en: 'Live rider card + 4-stage delivery progress bar.' },
+      { img: SCREENS.ordersList, label: 'SYNC LIST', focus: '50% 32%', title: 'Zero-Reload Order Tracker', km: 'បច្ចុប្បន្នភាពស្ថានភាពស្វ័យប្រវត្តិ', en: 'Order list updates synchronously via WebSocket.' },
+    ]
+  },
+  seg08c_demo_driver: {
+    idx: 11, theme: 'paper', backdrop: './assets/backdrops/style2_tech_blueprint.jpg', pose: 'delivery_handover.png',
+    eyebrowEn: '08C · LIVE DEMO — COURIER PORTAL', eyebrowKm: 'ការបង្ហាញផ្ទាល់ — អ្នកដឹកជញ្ជូន',
+    titleEn: 'Driver Shift & Verified Handover',
+    titleKm: 'ការទទួលការងារ និងការប្រគល់ម្ហូបដោយប្រើកូដ PIN ៦ ខ្ទង់',
+    modeTag: 'LIVE DEMO · 8C', phoneTag: 'REAL CAPTURE · DRIVER PORTAL',
+    poseTag: 'HANDOVER · PIN', pedTitle: 'Driver Workflow', pedKm: 'ការងារ និងសុវត្ថិភាពអ្នកដឹកជញ្ជូន',
+    cards: [
+      { pill: 'ONLINE SHIFT', km: 'អ្នកដឹកជញ្ជូនបើកប៊ូតុងអនឡាញដើម្បីទទួលការងារដឹកជញ្ជូនជិតខ្លួនបំផុត។', en: 'Courier toggles shift state & streams live GPS from device.' },
+      { pill: 'ATOMIC LOCK', km: 'ការចាក់សោ select_for_update() ការពារកុំឱ្យអ្នកដឹក ២ នាក់ទទួលការងារជាន់គ្នា។', en: 'PostgreSQL row locking enforces strict single-driver claims.' },
+      { pill: '6-DIGIT PIN', km: 'ពេលដល់ផ្ទះអតិថិជន បញ្ចប់ការប្រគល់ម្ហូបដោយសុវត្ថិភាពតាម PIN ៦ ខ្ទង់ ឬ QR។', en: 'Verified handover completes order & credits driver wallet (+$2.00).' },
+    ],
+    specTitle: 'COURIER SAFETY & SETTLEMENT',
+    specChips: ['WebSocket Route Active', 'Row Lock select_for_update()', '6-Digit PIN Handover', 'Wallet Credit +$2.00 / 8,200៛'],
+    screens: [
+      { img: SCREENS.driverOnline,  label: '1. ONLINE', focus: '50% 24%', title: 'Driver Shift & Route Socket', km: 'បើកស្ថានភាពអនឡាញ និងផ្ញើទីតាំង', en: 'Bob Rider active · PP-1AA-2389 GPS connected.' },
+      { img: SCREENS.driverArrived, label: '2. ARRIVED', focus: '50% 48%', title: 'Atomic Job Claim & Arrival', km: 'ទទួលការងារតែម្នាក់ & ប៊ូតុងដល់ផ្ទះ', en: 'Lock guarantees exclusive driver trip ownership.' },
+      { img: SCREENS.driverEarn,    label: '3. CREDITED', focus: '50% 56%', title: 'PIN Verified & +$2.00 Payout', km: 'ប្រគល់ជោគជ័យ និងទទួលកម្រៃជើងសារ', en: 'Verified handover credits +$2.00 (+8,200 KHR).' },
+    ]
+  },
+  seg08d_demo_admin: {
+    idx: 12, theme: 'dark', backdrop: './assets/backdrops/style3_capcut_neon.jpg', pose: 'run.png',
+    eyebrowEn: '08D · LIVE DEMO — OWNER & ADMIN', eyebrowKm: 'ការបង្ហាញផ្ទាល់ — ម្ចាស់ហាង & អ្នកគ្រប់គ្រង',
+    titleEn: 'Merchant & Admin Command Center',
+    titleKm: 'ផ្ទាំងគ្រប់គ្រងម្ចាស់ហាង និងប្រព័ន្ធត្រួតពិនិត្យស្ថិតិផ្ទាល់',
+    modeTag: 'LIVE DEMO · 8D', phoneTag: 'REAL CAPTURE · ADMIN CONSOLE',
+    poseTag: 'OPS · COMMAND', pedTitle: 'Operations Console', pedKm: 'ស្ថិតិហិរញ្ញវត្ថុ និង AuditLog',
+    cards: [
+      { pill: 'DUAL PORTALS', km: 'ផ្ទាំងគ្រប់គ្រងសម្រាប់ម្ចាស់ភោជនីយដ្ឋាន និងអ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin)។', en: 'Restaurants handle kitchen prep while Admins monitor whole platform.' },
+      { pill: '$487.49 REV', km: 'បង្ហាញទិន្នន័យជាក់ស្ដែង៖ ចំណូល $487.49 · 49 ការកុម្ម៉ង់ · អ្នកដឹក 6 · អតិថិជន 13។', en: 'Live platform metrics tracked across Revenue, Orders & Fleet.' },
+      { pill: 'AUDIT LOGS', km: 'ត្រួតពិនិត្យតារាងប្រតិបត្តិការទូទាត់ KHQR, ការសងប្រាក់ និងកំណត់ត្រា AuditLog។', en: 'Complete compliance ledger for Bakong, ABA, ACLEDA & Wallet.' },
+    ],
+    specTitle: 'LIVE TELEMETRY & COMPLIANCE',
+    specChips: ['$487.49 Gross Volume', '49 Orders Tracked', '6 Couriers · 13 Users', 'Full KHQR Audit Ledger'],
+    screens: [
+      { img: SCREENS.adminFleet, label: 'FLEET OPS', focus: '50% 35%', title: 'Live Delivery & Fleet Monitor', km: 'តាមដានក្រុមអ្នកដឹកជញ្ជូនផ្ទាល់', en: 'Active courier dispatch & live marketplace queues.' },
+      { img: SCREENS.adminKpis,  label: 'KPIS $487', focus: '50% 32%', title: 'Platform KPI & Status Matrix', km: 'ស្ថិតិចំណូល $487.49 និង 49 ការកុម្ម៉ង់', en: 'Real-time order distribution & active driver counts.' },
+      { img: SCREENS.adminAudit, label: 'AUDIT LOG', focus: '50% 45%', title: 'Payment & Security Ledger', km: 'កំណត់ត្រាប្រតិបត្តិការគ្រប់ធនាគារ', en: 'Inspect KHQR, ABA, ACLEDA, Wing & Wallet records.' },
+    ]
+  },
+  seg09_results: {
+    idx: 13, theme: 'paper', backdrop: './assets/backdrops/style4_results_honor.png', pose: 'investigate.png',
+    eyebrowEn: '09 · RESULTS & CHALLENGES', eyebrowKm: 'លទ្ធផលការធ្វើតេស្ត និងដំណោះស្រាយបញ្ហា',
+    titleEn: '474 Verified Automated Tests & Fixes',
+    titleKm: 'តេស្តស្វ័យប្រវត្តិ ៤៧៤ ករណី និងការដោះស្រាយបញ្ហាបច្ចេកទេសសំខាន់ៗ',
+    modeTag: 'VERIFIED QA · 474', phoneTag: 'LIVE APP · AUDIT & STATS',
+    poseTag: 'AUDITOR · QA', pedTitle: 'Verified Metrics', pedKm: 'លទ្ធផលជាក់ស្ដែងពីកូដប្រភព',
+    cards: [
+      { pill: '474 CHECKS', km: 'ប្រព័ន្ធ FoodGo ត្រូវបានផ្ទៀងផ្ទាត់ដោយករណីតេស្តស្វ័យប្រវត្តិសរុប ៤៧៤ ករណី។', en: 'End-to-end automated verification across backend APIs & mobile UI.' },
+      { pill: '225 DJANGO', km: 'តេស្ត Backend Django ចំនួន ២២៥ ករណី លើ ២៦ ម៉ូដែល និង ៥៩ ផ្លូវ API។', en: 'Covers JWT RBAC, KHQR payloads, race locks & wallet ledger math.' },
+      { pill: '249 FLUTTER', km: 'តេស្ត Flutter ចំនួន ២៤៩ ករណី (143 unit + 106 widget) រួមទាំងភាសាខ្មែរ។', en: 'Fixes solved: select_for_update() lock + clean alpha video matting.' },
+    ],
+    specTitle: 'KEY CHALLENGES SOLVED',
+    specChips: ['Race Lock: select_for_update()', 'Matting: Floodfill Alpha Cutout', 'Zero Skipped Assertions'],
+    screens: [
+      { img: SCREENS.adminKpis,  label: 'SYSTEM KPI', focus: '50% 34%', title: '474 Automated Checks Verified', km: 'ប្រព័ន្ធស្ថិតិ និងការបញ្ជាទិញពិត', en: 'Verified multi-role state metrics in Admin Console.' },
+      { img: SCREENS.adminAudit, label: '225 DJANGO', focus: '50% 44%', title: '225 Django Core API Tests', km: 'សុវត្ថិភាព Ledger និង JWT Verified', en: 'KHQR settlement & race locks validated in Python.' },
+      { img: SCREENS.khqrScan,   label: '249 FLUTTER', focus: '50% 42%', title: '249 Flutter Unit & Widget Tests', km: 'ចំណុចប្រទាក់ខ្មែរ និង KHQR UI', en: 'Bilingual text scale, checkout & QR UI pass 100%.' },
+    ]
+  },
+  seg10_conclusion: {
+    idx: 14, theme: 'dark', backdrop: './assets/backdrops/style_qa_stage_gala.jpg', pose: 'standing.png',
+    eyebrowEn: '10 · CONCLUSION & Q&A', eyebrowKm: 'សេចក្ដីសន្និដ្ឋាន ទិសដៅអនាគត និង Q&A',
+    titleEn: 'ACLEDA University Capstone Finale',
+    titleKm: 'សូមថ្លែងអំណរគុណ និងស្វាគមន៍រាល់សំណួររបស់គណៈកម្មការ (Q&A)',
+    modeTag: 'CONCLUSION · Q&A', phoneTag: 'APP RECAP · MONTAGE',
+    poseTag: 'TEAM · Q&A', pedTitle: 'Capstone Finale', pedKm: 'សាកលវិទ្យាល័យ ពាណិជ្ជសាស្រ្ត អេស៊ីលីដា',
+    cards: [
+      { pill: 'ECOSYSTEM', km: 'FoodGo សម្រេចបានប្រព័ន្ធដឹកជញ្ជូនម្ហូបពេញលេញ ២ ភាសា KH/EN និង KHQR ឌីណាមិក។', en: 'Cohesive bilingual Flutter + Django + WebSocket delivery ecosystem.' },
+      { pill: 'ROADMAP', km: 'ទិសដៅអនាគត៖ Production Bakong Webhook, Push Alerts និងពង្រីកសាខា Cloud។', en: 'Future work: live NBC Bakong callbacks, FCM push & multi-branch cloud.' },
+      { pill: 'THANK YOU', km: 'សូមអរគុណ! ក្រុមនិស្សិតសាកលវិទ្យាល័យ អេស៊ីលីដា សូមស្វាគមន៍សំណួរ Q&A។', en: 'Thank you faculty committee! Ready for Capstone Defense Q&A.' },
+    ],
+    mosaic: [
+      { img: SCREENS.homeBanner,   label: 'CUSTOMER HOME' },
+      { img: SCREENS.themesLight,  label: '16 GLASSTHEMES' },
+      { img: SCREENS.cartPromo,    label: 'FOODGO30 CART' },
+      { img: SCREENS.khqrScan,     label: 'BAKONG KHQR' },
+      { img: SCREENS.mapEtaStep,   label: 'LIVE GPS ETA' },
+      { img: SCREENS.adminKpis,    label: 'ADMIN CONSOLE' },
+    ]
+  }
+};
+
+// Preload all images in memory so chapter/line transitions are instantaneous (0ms frame swap latency!)
+const IMG_CACHE = {};
+function preloadAllImages() {
+  const urls = new Set([
+    './assets/acleda_logo.png', './assets/icon.png',
+    './assets/standing.png', './assets/think.png', './assets/find.png',
+    './assets/investigate.png', './assets/run.png', './assets/delivery_bag.png',
+    './assets/delivery_scooter.png', './assets/delivery_handover.png',
+    ...Object.values(SCREENS),
+    ...Object.values(CHAPTERS).map(c => c.backdrop).filter(Boolean),
+  ]);
+  const promises = [...urls].map(src => new Promise(res => {
+    const im = new Image();
+    im.onload = () => { IMG_CACHE[src] = im; res(); };
+    im.onerror = () => res();
+    im.src = src;
+  }));
+  return Promise.all(promises);
+}
+window.__readyPromise = preloadAllImages();
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawBackground(ch, t) {
+  const cvs = document.getElementById('bg-canvas');
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0, 0, 1920, 1080);
+
+  if (ch.theme === 'dark') {
+    const g = ctx.createLinearGradient(0, 0, 1920, 1080);
+    g.addColorStop(0, '#070B14');
+    g.addColorStop(0.55, '#0F172A');
+    g.addColorStop(1, '#09101F');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 1920, 1080);
+
+    const bd = IMG_CACHE[ch.backdrop];
+    if (bd && bd.naturalWidth > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.28;
+      ctx.drawImage(bd, 0, 0, 1920, 1080);
+      ctx.restore();
+    }
+
+    const rg = ctx.createRadialGradient(1480, 240, 40, 1480, 240, 740);
+    rg.addColorStop(0, 'rgba(241, 90, 36, 0.16)');
+    rg.addColorStop(0.55, 'rgba(56, 189, 248, 0.06)');
+    rg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, 1920, 1080);
+
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.045)';
+    ctx.lineWidth = 1;
+    for (let x = 44; x < 1920; x += 96) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1080); ctx.stroke(); }
+    for (let y = 44; y < 1080; y += 96) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1920, y); ctx.stroke(); }
+  } else {
+    const g = ctx.createLinearGradient(0, 0, 1920, 1080);
+    g.addColorStop(0, '#F8FAFC');
+    g.addColorStop(0.55, '#F1F5F9');
+    g.addColorStop(1, '#E7EEF6');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 1920, 1080);
+
+    const bd = IMG_CACHE[ch.backdrop];
+    if (bd && bd.naturalWidth > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.06;
+      ctx.drawImage(bd, 0, 0, 1920, 1080);
+      ctx.restore();
+    }
+
+    const rg = ctx.createRadialGradient(420, 280, 30, 420, 280, 760);
+    rg.addColorStop(0, 'rgba(226, 78, 24, 0.09)');
+    rg.addColorStop(0.6, 'rgba(18, 52, 91, 0.04)');
+    rg.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, 1920, 1080);
+
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 44; x < 1920; x += 96) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1080); ctx.stroke(); }
+    for (let y = 44; y < 1080; y += 96) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1920, y); ctx.stroke(); }
+  }
+
+  // Soft floor wave
+  const phase = (t * 0.45 + ch.idx * 0.7) % (Math.PI * 2);
+  ctx.save();
+  ctx.strokeStyle = ch.theme === 'dark' ? 'rgba(230,193,115,0.16)' : 'rgba(226,78,24,0.12)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let x = 0; x <= 1920; x += 48) {
+    const yy = 1008 + Math.sin(x * 0.005 + phase) * 7;
+    if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // EXACT TRANSPARENT PHONE SCREEN CUTOUT (ACTIVE ACROSS ALL 14 CHAPTERS!)
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  roundRectPath(ctx, PHONE_HOLE.x, PHONE_HOLE.y, PHONE_HOLE.w, PHONE_HOLE.h, PHONE_HOLE.r);
+  ctx.fillStyle = '#000000';
+  ctx.fill();
+  ctx.restore();
+}
+
+function renderCardStack(cards, activeIdx, t, compact = false) {
+  return cards.map((c, i) => {
+    const cls = i === activeIdx ? 'active' : (i < activeIdx ? 'past' : 'future');
+    const delay = 0.12 * i;
+    const enter = OM ? OM.sstep(delay, delay + 0.42, t) : 1;
+    const ty = (1 - enter) * 14;
+    const op = (cls === 'active' ? 1 : cls === 'past' ? 0.85 : 0.66) * (0.25 + 0.75 * enter);
+    const badge = i < activeIdx ? '✓' : `0${i + 1}`;
+    return `<div class="point-card ${compact ? 'compact' : ''} ${cls}" style="opacity:${op.toFixed(3)}; transform:translateY(${ty.toFixed(1)}px);">
+      <div class="point-rail"></div>
+      <div class="point-num">${badge}</div>
+      <div class="point-body">
+        <div class="point-km">${c.km}</div>
+        <div class="point-en">${c.en}</div>
+      </div>
+      <div class="point-pill">${c.pill}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderProofPanel(screens, activeIdx, t, badgeLabel = 'IN-APP VISUAL PROOF') {
+  const safeIdx = Math.min(activeIdx, screens.length - 1);
+  const s = screens[safeIdx];
+  const enter = OM ? OM.sstep(0.08, 0.52, t) : 1;
+  const cols = screens.length;
+  return `<div class="proof-panel" style="opacity:${0.25 + 0.75 * enter}; transform:translateY(${((1 - enter) * 16).toFixed(1)}px);">
+    <div class="proof-hdr">
+      <span class="proof-badge">📱 ${badgeLabel}</span>
+      <span class="proof-step">SCREEN 0${safeIdx + 1} / 0${cols} · ${s.label}</span>
+    </div>
+    <div class="proof-hero-box">
+      <div class="hero-screen-frame">
+        <img src="${s.img}" alt="${s.title}" />
+        <span class="hero-screen-pill">${s.label}</span>
+      </div>
+      <div class="hero-zoom-col">
+        <div class="zoom-crop-card">
+          <img src="${s.img}" style="object-position:${s.focus}; transform:scale(1.22); transform-origin:${s.focus};" alt="${s.title} zoom" />
+          <span class="zoom-crop-tag">UI FOCUS</span>
+        </div>
+        <div class="zoom-info-card">
+          <div class="zoom-info-title">${s.title}</div>
+          <div class="zoom-info-km">${s.km}</div>
+          <div class="zoom-info-en">${s.en}</div>
+        </div>
+      </div>
+    </div>
+    <div class="filmstrip" style="grid-template-columns:repeat(${cols}, 1fr);">
+      ${screens.map((sc, i) => `<div class="film-thumb ${i === safeIdx ? 'active' : ''}">
+        <img src="${sc.img}" alt="${sc.label}" />
+        <span>0${i + 1} · ${sc.label}</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderStandardSplit(ch, activeIdx, t) {
+  const compact = ch.cards.length >= 4;
+  const specBlock = ch.specTitle ? `<div class="spec-bar">
+    <div class="spec-bar-top"><span>⚡ ${ch.specTitle}</span><span>VERIFIED REPO</span></div>
+    <div class="spec-chips">${ch.specChips.map(x => `<span class="spec-chip">${x}</span>`).join('')}</div>
+  </div>` : '';
+
+  return `<div class="split-body">
+    <div class="cards-col">
+      ${renderCardStack(ch.cards, activeIdx, t, compact)}
+      ${specBlock}
+    </div>
+    ${renderProofPanel(ch.screens, activeIdx, t)}
+  </div>`;
+}
+
+function renderTechStackSplit(ch, activeIdx, t) {
+  const safeIdx = activeIdx % ch.quads.length;
+  return `<div class="split-body">
+    <div class="tech-2x2">
+      ${ch.quads.map((q, i) => {
+        const enter = OM ? OM.sstep(0.08 * i, 0.5 + 0.08 * i, t) : 1;
+        return `<div class="tech-mini-card ${i === safeIdx ? 'active' : ''}" style="opacity:${0.25 + 0.75 * enter}; transform:translateY(${((1 - enter) * 14).toFixed(1)}px);">
+          <div>
+            <span class="tech-badge">${q.badge}</span>
+            <div class="tech-name">${q.name}</div>
+            <div class="tech-km">${q.km}</div>
+            <div class="tech-en">${q.en}</div>
+          </div>
+          <div class="tech-pills">${q.pills.map(p => `<span class="t-pill">${p}</span>`).join('')}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${renderProofPanel(ch.screens, safeIdx, t, 'STACK IN LIVE APP')}
+  </div>`;
+}
+
+function renderArchitectureStage(ch, activeIdx, t) {
+  const tiers = [
+    { name: 'Tier 1 · 4 Flutter Client Portals', sub: 'Customer, Driver, Restaurant Owner, Admin · 31 Screens', badge: 'DART 3 / FLUTTER', col: '#38BDF8', bg: 'rgba(56,189,248,0.16)' },
+    { name: 'Tier 2 · Django 5 REST & Daphne ASGI', sub: 'SimpleJWT RBAC · 59 URL Routes · Channels WebSockets', badge: '59 REST + WS', col: '#34D399', bg: 'rgba(52,211,153,0.16)' },
+    { name: 'Tier 3 · PostgreSQL & Redis Engine', sub: '26 ORM Models · select_for_update() · Redis Pub/Sub', badge: '26 ORM MODELS', col: '#A78BFA', bg: 'rgba(167,139,250,0.16)' },
+    { name: 'Tier 4 · Bakong KHQR & OSRM Rails', sub: 'EMVCo CRC16 Verification · Phnom Penh OpenStreetMap ETA', badge: 'FINTECH + MAP', col: '#F59E0B', bg: 'rgba(245,158,11,0.16)' },
+  ];
+  return `<div class="arch-stage">
+    <div class="arch-top">
+      <div class="cards-col">${renderCardStack(ch.cards, activeIdx, t, true)}</div>
+      <div class="vector-arch-box">
+        ${tiers.map((tr, i) => `
+          <div class="v-tier ${activeIdx === i ? 'active' : ''}">
+            <div class="v-tier-l">
+              <div class="v-tier-name">${tr.name}</div>
+              <div class="v-tier-sub">${tr.sub}</div>
+            </div>
+            <span class="v-tier-badge" style="color:${tr.col}; background:${tr.bg}; border:1px solid ${tr.col};">${tr.badge}</span>
+          </div>
+          ${i < 3 ? `<div class="v-arrow">${i === 0 ? '⬇ HTTPS JSON + WSS LIVE STREAM ⬇' : i === 1 ? '⬇ ATOMIC ORM + REDIS CHANNELS ⬇' : '⬇ EMVCO CRC16 CHECK + ROUTE MATRIX ⬇'}</div>` : ''}
+        `).join('')}
+      </div>
+    </div>
+    <div class="arch-ui-strip">
+      <div class="arch-ui-hdr">
+        <span>📱 REAL APPLICATION UI/UX SCREENS ACROSS ALL 4 PORTALS</span>
+        <span>VERIFIED CAPSTONE INTERFACE SHOWCASE</span>
+      </div>
+      <div class="arch-screens-row">
+        ${ch.portals.map((pt, i) => `<div class="portal-thumb ${(activeIdx % ch.portals.length) === i ? 'active' : ''}">
+          <img src="${pt.img}" alt="${pt.label}" />
+          <span>${pt.label}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderResultsStage(ch, activeIdx, t) {
+  const cu = OM ? OM.sstep(0.08, 1.35, t) : 1;
+  const kpis = [
+    { val: Math.round(474 * cu), lbl: 'Total Automated Tests', km: 'តេស្តសរុប ១០០% ជោគជ័យ', hl: true },
+    { val: Math.round(225 * cu), lbl: 'Django Core Functions', km: 'តេស្ត Backend លើ ១០ ឯកសារ', hl: false },
+    { val: Math.round(249 * cu), lbl: 'Flutter Unit & Widget', km: 'តេស្ត App (143 + 106)', hl: false },
+    { val: `${Math.round(26 * cu)} / ${Math.round(59 * cu)}`, lbl: 'ORM Models / APIs', km: '២៦ ម៉ូដែល · ៥៩ ផ្លូវ API', hl: false },
+  ];
+  return `<div class="results-stage">
+    <div class="kpi-strip">
+      ${kpis.map(k => `<div class="kpi-tile ${k.hl ? 'highlight' : ''}">
+        <div class="kpi-val">${k.val}</div>
+        <div class="kpi-lbl">${k.lbl}</div>
+        <div class="kpi-km">${k.km}</div>
+      </div>`).join('')}
+    </div>
+    <div class="split-body">
+      <div class="cards-col">
+        ${renderCardStack(ch.cards, activeIdx, t, false)}
+        <div class="spec-bar">
+          <div class="spec-bar-top"><span>🛠️ ${ch.specTitle}</span><span>VERIFIED FIXES</span></div>
+          <div class="spec-chips">${ch.specChips.map(x => `<span class="spec-chip">${x}</span>`).join('')}</div>
+        </div>
+      </div>
+      ${renderProofPanel(ch.screens, activeIdx, t, 'VERIFIED FEATURE PROOF')}
+    </div>
+  </div>`;
+}
+
+function renderConclusionStage(ch, activeIdx, t) {
+  return `<div class="split-body" style="grid-template-columns: 548px 522px;">
+    <div class="cards-col">
+      ${renderCardStack(ch.cards, activeIdx, t, true)}
+      <div style="padding:14px 16px; border-radius:16px; background:linear-gradient(155deg, rgba(22,33,56,0.96), rgba(11,18,32,0.98)); border:1.5px solid rgba(230,193,115,0.55); display:flex; flex-direction:column; gap:10px; flex-shrink:0;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="background:#FFFFFF; padding:6px 12px; border-radius:10px; border:1.5px solid #D4AF37;">
+            <img src="./assets/acleda_logo.png" style="height:36px; object-fit:contain; display:block;" />
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Kantumruy',sans-serif; font-weight:700; font-size:15px; color:#F8FAFC;">សូមអរគុណ គណៈកម្មការ និងសាស្ត្រាចារ្យ!</div>
+            <div style="font-family:'GeistMono',monospace; font-size:11px; color:#E6C173; font-weight:700;">THANK YOU · OPEN FOR Q&amp;A</div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12.5px; color:#F8FAFC; font-weight:600;">
+          <div style="padding:5px 9px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(230,193,115,0.25);"><b style="color:#E6C173;">01</b> Em Ratana</div>
+          <div style="padding:5px 9px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(230,193,115,0.25);"><b style="color:#E6C173;">02</b> Hen Yaungkuy</div>
+          <div style="padding:5px 9px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(230,193,115,0.25);"><b style="color:#E6C173;">03</b> Than Sombath Borarat</div>
+          <div style="padding:5px 9px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(230,193,115,0.25);"><b style="color:#E6C173;">04</b> Cheang borin</div>
+          <div style="grid-column:span 2; padding:5px 9px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(230,193,115,0.25);"><b style="color:#E6C173;">05</b> Ly KimChhun · ACLEDA University Capstone Team</div>
+        </div>
+      </div>
+    </div>
+    <div class="mosaic-panel">
+      <div class="proof-hdr">
+        <span class="proof-badge">📱 FOODGO COMPLETE APP SHOWCASE</span>
+        <span class="proof-step">6 SIGNATURE REAL SCREENS</span>
+      </div>
+      <div class="mosaic-grid">
+        ${ch.mosaic.map((m, i) => `<div class="mosaic-card ${(i % 3) === activeIdx ? 'active' : ''}">
+          <img src="${m.img}" alt="${m.label}" />
+          <span>${m.label}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+window.__setStage = function(segId, localT, activeIdx) {
+  const ch = CHAPTERS[segId] || CHAPTERS.seg01_intro;
+  document.getElementById('stage-root').className = ch.theme === 'dark' ? 'theme-dark' : 'theme-paper';
+
+  drawBackground(ch, localT);
+
+  document.getElementById('hdr-ch-pill').textContent = `CH ${String(ch.idx).padStart(2, '0')} / 14`;
+  document.getElementById('hdr-mode-text').textContent = ch.modeTag;
+  document.getElementById('hdr-dots').innerHTML = Array.from({ length: 14 }, (_, k) => {
+    const i = k + 1;
+    return `<span class="p-dot ${i < ch.idx ? 'done' : i === ch.idx ? 'now' : ''}"></span>`;
+  }).join('');
+
+  // Phone bezel shown cleanly on ALL 14 chapters!
+  const phoneEl = document.getElementById('phone-shell');
+  const pEnt = OM ? OM.sstep(0.0, 0.50, localT) : 1;
+  phoneEl.style.display = 'block';
+  phoneEl.style.opacity = pEnt;
+  phoneEl.style.transform = `translateY(${((1 - pEnt) * 16).toFixed(1)}px)`;
+  document.getElementById('phone-tag').textContent = ch.phoneTag;
+
+  let bodyHtml = '';
+  if (segId === 'seg06_tech_stack') bodyHtml = renderTechStackSplit(ch, activeIdx, localT);
+  else if (segId === 'seg07_architecture') bodyHtml = renderArchitectureStage(ch, activeIdx, localT);
+  else if (segId === 'seg09_results') bodyHtml = renderResultsStage(ch, activeIdx, localT);
+  else if (segId === 'seg10_conclusion') bodyHtml = renderConclusionStage(ch, activeIdx, localT);
+  else bodyHtml = renderStandardSplit(ch, activeIdx, localT);
+
+  const deck = document.getElementById('main-deck');
+  const tEnt = OM ? OM.sstep(0.02, 0.44, localT) : 1;
+  deck.innerHTML = `
+    <div style="opacity:${0.25 + 0.75 * tEnt}; transform:translateY(${((1 - tEnt) * 12).toFixed(1)}px);">
+      <div class="eyebrow-row">
+        <div class="eyebrow-bar"></div>
+        <span class="eyebrow-text">${ch.eyebrowEn}</span>
+        <span class="eyebrow-km">· ${ch.eyebrowKm}</span>
+      </div>
+      <h1 class="hero-title">${ch.titleEn}</h1>
+      <div class="hero-subtitle-km">${ch.titleKm}</div>
+    </div>
+    ${bodyHtml}
+  `;
+
+  // Presenter broadcast frame + gentle audio-wave bars + natural float
+  document.getElementById('pedestal-pose-tag').textContent = ch.poseTag;
+  document.getElementById('pedestal-title').textContent = ch.pedTitle;
+  document.getElementById('pedestal-km').textContent = ch.pedKm;
+  document.getElementById('eq-bars').innerHTML = [0, 1, 2, 3, 4].map(k => {
+    const h = 5 + Math.round((Math.sin(localT * Math.PI * 2 + k * 1.3 + ch.idx) * 0.5 + 0.5) * 10);
+    return `<div class="eq-b" style="height:${h}px;"></div>`;
+  }).join('');
+
+  const avImg = document.getElementById('avatar-img');
+  if (!avImg.src.endsWith(ch.pose)) avImg.src = `./assets/${ch.pose}`;
+  const bob = Math.sin(localT * Math.PI + ch.idx) * 4.0;
+  const avEnt = OM ? OM.sstep(0.05, 0.50, localT) : 1;
+  avImg.style.transform = `translateY(${(bob + (1 - avEnt) * 18).toFixed(2)}px) scale(${(0.96 + 0.04 * avEnt).toFixed(4)})`;
+  avImg.style.opacity = avEnt;
+};
+
+// Caption overlay renderer (1920x114 transparent bar at y=896)
+window.__renderCaptionOnly = function(kmText, enText, theme) {
+  document.body.innerHTML = '';
+  document.body.style.width = '1920px';
+  document.body.style.height = '114px';
+  document.body.style.background = 'transparent';
+  const box = document.createElement('div');
+  const dark = theme === 'dark';
+  box.style.cssText = `
+    width: 1812px; height: 102px; margin: 6px auto 0 auto;
+    border-radius: 16px;
+    background: ${dark ? 'rgba(9, 14, 24, 0.92)' : 'rgba(255, 255, 255, 0.96)'};
+    border: 1.5px solid ${dark ? 'rgba(241, 90, 36, 0.72)' : 'rgba(226, 78, 24, 0.65)'};
+    box-shadow: 0 10px 28px rgba(2, 6, 23, 0.22);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 8px 34px; text-align: center;
+  `;
+  box.innerHTML = `
+    <div style="font-family:'Kantumruy',sans-serif; font-weight:700; font-size:26px; line-height:1.34; color:${dark ? '#F8FAFC' : '#0F172A'};">${kmText}</div>
+    <div style="font-family:'Inter',sans-serif; font-weight:600; font-size:17.5px; line-height:1.25; color:${dark ? '#E6C173' : '#C2410C'}; margin-top:2px;">${enText}</div>
+  `;
+  document.body.appendChild(box);
+};
+
+window.__readyPromise.then(() => { window.__setStage('seg01_intro', 1.2, 0); });
+</script>
+</body>
+</html>

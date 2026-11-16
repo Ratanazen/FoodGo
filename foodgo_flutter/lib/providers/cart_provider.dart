@@ -38,8 +38,8 @@ class CartItem {
     price: (json['price'] as num).toDouble(),
     quantity: json['quantity'] as int? ?? 1,
     image: json['image'] as String?,
-    restaurantId: json['restaurantId'] as int?,
-    restaurantName: json['restaurantName'] as String?,
+    restaurantId: json['restaurantId'] as int? ?? 1,
+    restaurantName: json['restaurantName'] as String? ?? 'Glass Burger',
   );
 }
 
@@ -108,12 +108,20 @@ class CartProvider with ChangeNotifier {
 
   int? get restaurantId {
     if (_items.isEmpty) return null;
-    return _items.values.first.restaurantId;
+    for (final item in _items.values) {
+      if (item.restaurantId != null) return item.restaurantId;
+    }
+    return 1;
   }
 
   String? get restaurantName {
     if (_items.isEmpty) return null;
-    return _items.values.first.restaurantName;
+    for (final item in _items.values) {
+      if (item.restaurantName != null && item.restaurantName!.isNotEmpty) {
+        return item.restaurantName;
+      }
+    }
+    return 'Glass Burger';
   }
 
   double get deliveryFee => _items.isEmpty ? 0.0 : _deliveryFee;
@@ -204,10 +212,13 @@ class CartProvider with ChangeNotifier {
     int? restaurantId,
     String? restaurantName,
     double? deliveryFee,
+    int quantity = 1,
   }) {
     if (deliveryFee != null && deliveryFee >= 0) {
       _deliveryFee = deliveryFee;
     }
+
+    final addQty = quantity > 0 ? quantity : 1;
     if (_items.containsKey(id)) {
       _items.update(
         id,
@@ -215,7 +226,7 @@ class CartProvider with ChangeNotifier {
           id: existingItem.id,
           name: existingItem.name,
           price: existingItem.price,
-          quantity: existingItem.quantity + 1,
+          quantity: existingItem.quantity + addQty,
           image: existingItem.image,
           restaurantId: existingItem.restaurantId ?? restaurantId,
           restaurantName: existingItem.restaurantName ?? restaurantName,
@@ -228,6 +239,7 @@ class CartProvider with ChangeNotifier {
           id: id,
           name: name,
           price: price,
+          quantity: addQty,
           image: image,
           restaurantId: restaurantId,
           restaurantName: restaurantName,

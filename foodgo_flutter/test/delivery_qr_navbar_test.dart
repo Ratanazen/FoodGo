@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -6,6 +7,7 @@ import 'package:foodgo_flutter/providers/cart_provider.dart';
 import 'package:foodgo_flutter/providers/theme_provider.dart';
 import 'package:foodgo_flutter/widgets/glass/glass_bottom_navigation.dart';
 import 'package:foodgo_flutter/widgets/delivery_qr_modal.dart';
+import 'package:foodgo_flutter/widgets/delivery_scanner_modal.dart';
 
 void main() {
   group('GlassBottomNavigation Widget Tests', () {
@@ -184,6 +186,38 @@ void main() {
         );
         // autoFetch is off, so there is no misleading retry button.
         expect(find.text('Try again'), findsNothing);
+      },
+    );
+  });
+
+  group('DeliveryScannerModal Desktop Fallback Tests', () {
+    testWidgets(
+      'Displays helpful camera-unavailable fallback and PIN switch on Linux/Windows desktop',
+      (WidgetTester tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+        try {
+          await tester.pumpWidget(
+            const MaterialApp(
+              home: Scaffold(
+                body: DeliveryScannerModal(orderId: '2', isDriver: false),
+              ),
+            ),
+          );
+          await tester.pump();
+
+          expect(find.text('Confirm Delivery'), findsOneWidget);
+          expect(find.text('Camera Preview Unavailable'), findsOneWidget);
+          expect(find.text('Enter 6-Digit PIN'), findsNWidgets(2));
+
+          await tester.tap(
+            find.widgetWithText(FilledButton, 'Enter 6-Digit PIN'),
+          );
+          await tester.pump();
+
+          expect(find.text('Submit 6-Digit PIN'), findsOneWidget);
+        } finally {
+          debugDefaultTargetPlatformOverride = null;
+        }
       },
     );
   });

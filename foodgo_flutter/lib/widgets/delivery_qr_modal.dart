@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../core/config/app_config.dart';
 import '../core/theme/glass_theme.dart';
 import '../services/api_service.dart';
+import 'delivery_scanner_modal.dart';
 import 'glass_container.dart';
 import 'responsive_layout.dart';
 
@@ -152,6 +155,50 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
     return diff > 0 ? diff : 0;
   }
 
+  Future<dynamic> _requestFirstAvailable({
+    required List<({String method, String path})> candidates,
+    required Map<String, dynamic> body,
+  }) async {
+    Object? lastError;
+    for (final candidate in candidates) {
+      try {
+        if (candidate.method == 'GET') {
+          return await _api.get(candidate.path);
+        }
+        return await _api.post(candidate.path, body);
+      } on DioException catch (e) {
+        lastError = e;
+        final code = e.response?.statusCode;
+        if (code == 404 || code == 405) {
+          continue;
+        }
+        rethrow;
+      }
+    }
+    if (lastError != null) {
+      throw lastError;
+    }
+    throw StateError('No delivery QR endpoint candidates succeeded.');
+  }
+
+  String _formatLoadError(Object error) {
+    if (error is DioException && error.response?.statusCode == 404) {
+      final apiHost = Uri.tryParse(AppConfig.apiBaseUrl)?.host;
+      final serverNote = (apiHost != null && apiHost.isNotEmpty)
+          ? ' on $apiHost'
+          : '';
+      return 'Order #${widget.orderId} or its verified delivery QR endpoint '
+          'was not found$serverNote. Verify the order is active or enter the '
+          '6-digit handover PIN manually.';
+    }
+    return ApiService.formatError(
+      error,
+      fallback:
+          'Could not reach FoodGo to issue a verified delivery code. '
+          'No handover can be confirmed until the code loads.',
+    );
+  }
+
   Future<void> _loadCode({bool regenerate = false}) async {
     final requestId = ++_requestId;
     _countdownTimer?.cancel();
@@ -164,17 +211,48 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
     });
 
     try {
-      final endpoint = regenerate
-          ? (widget.isDriver
-                ? 'orders/${widget.orderId}/delivery_qr/'
-                : 'orders/${widget.orderId}/customer_regenerate_delivery_qr/')
-          : (widget.isDriver
-                ? 'orders/${widget.orderId}/delivery_qr/'
-                : 'orders/${widget.orderId}/customer_delivery_qr/');
+      final body = regenerate ? {'regenerate': true} : <String, dynamic>{};
+      final List<({String method, String path})> candidates;
+      if (widget.isDriver) {
+        candidates = [
+          (method: 'POST', path: 'orders/${widget.orderId}/delivery_qr/'),
+          (method: 'POST', path: 'orders/${widget.orderId}/delivery/qr/'),
+        ];
+      } else if (regenerate) {
+        candidates = [
+          (
+            method: 'POST',
+            path: 'orders/${widget.orderId}/customer_regenerate_delivery_qr/',
+          ),
+          (
+            method: 'POST',
+            path: 'orders/${widget.orderId}/customer-regenerate-delivery-qr/',
+          ),
+        ];
+      } else {
+        candidates = [
+          (
+            method: 'POST',
+            path: 'orders/${widget.orderId}/customer_delivery_qr/',
+          ),
+          (
+            method: 'POST',
+            path: 'orders/${widget.orderId}/customer-delivery-qr/',
+          ),
+          (
+            method: 'GET',
+            path: 'orders/${widget.orderId}/customer_delivery_qr/',
+          ),
+          (
+            method: 'GET',
+            path: 'orders/${widget.orderId}/customer-delivery-qr/',
+          ),
+        ];
+      }
 
-      final data = await _api.post(
-        endpoint,
-        regenerate ? {'regenerate': true} : {},
+      final data = await _requestFirstAvailable(
+        candidates: candidates,
+        body: body,
       );
       if (!mounted || requestId != _requestId) return;
 
@@ -220,12 +298,7 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
       if (!mounted || requestId != _requestId) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = ApiService.formatError(
-          error,
-          fallback:
-              'Could not reach FoodGo to issue a verified delivery code. '
-              'No handover can be confirmed until the code loads.',
-        );
+        _errorMessage = _formatLoadError(error);
       });
     }
   }
@@ -538,6 +611,34 @@ class _DeliveryQrModalState extends State<DeliveryQrModal> {
               onPressed: _isLoading ? null : () => _loadCode(),
               icon: const Icon(Icons.refresh, size: 18),
               label: const Text('Try again'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: scheme.onSurface,
+                side: BorderSide(
+                  color: scheme.outlineVariant.withValues(alpha: 0.6),
+                ),
+                minimumSize: const Size.fromHeight(44),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+              ),
+              onPressed: () {
+                final navigator = Navigator.of(context);
+                final hostContext = navigator.context;
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
+                DeliveryScannerModal.show(
+                  hostContext,
+                  orderId: widget.orderId,
+                  isDriver: widget.isDriver,
+                  onConfirmed: widget.onDelivered,
+                );
+              },
+              icon: const Icon(Icons.pin, size: 18),
+              label: const Text('Enter 6-Digit PIN Instead'),
             ),
           ],
         ],

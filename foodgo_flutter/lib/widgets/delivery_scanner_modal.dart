@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -60,6 +61,13 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
 
   MobileScannerController? _scannerController;
   bool _isTorchOn = false;
+  Timer? _cameraInitTimer;
+  bool _cameraTimedOut = false;
+
+  bool get _isUnsupportedDesktopScanner =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.windows);
 
   int _selectedTab = 0; // 0: Camera / QR, 1: 6-digit PIN
   bool _isSubmitting = false;
@@ -83,6 +91,17 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
       detectionSpeed: DetectionSpeed.noDuplicates,
       facing: CameraFacing.back,
     );
+
+    if (!_isUnsupportedDesktopScanner &&
+        (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS)) {
+      _cameraInitTimer = Timer(const Duration(milliseconds: 1800), () {
+        if (!mounted) return;
+        final isRunning = _scannerController?.value.isRunning ?? false;
+        if (!isRunning) {
+          setState(() => _cameraTimedOut = true);
+        }
+      });
+    }
 
     _laserController = AnimationController(
       vsync: this,
@@ -111,6 +130,7 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
 
   @override
   void dispose() {
+    _cameraInitTimer?.cancel();
     _scannerController?.dispose();
     _laserController.dispose();
     _pinController.dispose();
@@ -667,185 +687,219 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
 
   Widget _buildCameraViewfinder() {
     final scheme = _scheme;
+    final controller = _scannerController;
+    if (controller == null) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       children: [
-        Container(
-          width: 260,
-          height: 230,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(AppRadius.medium),
-            border: Border.all(
-              color: scheme.primary.withValues(alpha: 0.8),
-              width: 2,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.medium - 2),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                MobileScanner(
-                  controller: _scannerController,
-                  fit: BoxFit.cover,
-                  onDetect: (capture) {
-                    for (final barcode in capture.barcodes) {
-                      final val = barcode.rawValue;
-                      if (val != null && val.isNotEmpty) {
-                        _handleDetectedBarcode(val);
-                        break;
-                      }
-                    }
-                  },
-                  errorBuilder: (context, error) {
-                    return _buildCameraErrorView(error);
-                  },
-                ),
+        ValueListenableBuilder<MobileScannerState>(
+          valueListenable: controller,
+          builder: (context, scannerState, _) {
+            final isRunning = scannerState.isRunning;
+            final scannerError = scannerState.error;
+            final showDesktopFallback =
+                scannerError == null &&
+                !isRunning &&
+                (_isUnsupportedDesktopScanner || _cameraTimedOut);
 
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: _corner(isTop: true, isLeft: true),
+            return Container(
+              width: 260,
+              height: 230,
+              decoration: BoxDecoration(
+                color: showDesktopFallback
+                    ? scheme.surfaceContainerHighest.withValues(alpha: 0.35)
+                    : Colors.black,
+                borderRadius: BorderRadius.circular(AppRadius.medium),
+                border: Border.all(
+                  color: scheme.primary.withValues(alpha: 0.8),
+                  width: 2,
                 ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: _corner(isTop: true, isLeft: false),
-                ),
-                Positioned(
-                  bottom: 8,
-                  left: 8,
-                  child: _corner(isTop: false, isLeft: true),
-                ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: _corner(isTop: false, isLeft: false),
-                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.medium - 2),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (scannerError != null)
+                      _buildCameraErrorView(scannerError)
+                    else if (showDesktopFallback)
+                      _buildDesktopFallbackView(scheme)
+                    else if (!_isUnsupportedDesktopScanner)
+                      MobileScanner(
+                        controller: controller,
+                        fit: BoxFit.cover,
+                        onDetect: (capture) {
+                          for (final barcode in capture.barcodes) {
+                            final val = barcode.rawValue;
+                            if (val != null && val.isNotEmpty) {
+                              _handleDetectedBarcode(val);
+                              break;
+                            }
+                          }
+                        },
+                        errorBuilder: (context, error) {
+                          return _buildCameraErrorView(error);
+                        },
+                      ),
 
-                if (!_reduceMotion)
-                  AnimatedBuilder(
-                    animation: _laserAnimation,
-                    builder: (context, child) {
-                      return Positioned(
-                        top: _laserAnimation.value * 210,
-                        left: 20,
-                        right: 20,
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: _corner(isTop: true, isLeft: true),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _corner(isTop: true, isLeft: false),
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: _corner(isTop: false, isLeft: true),
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: _corner(isTop: false, isLeft: false),
+                    ),
+
+                    if (isRunning && !_reduceMotion)
+                      AnimatedBuilder(
+                        animation: _laserAnimation,
+                        builder: (context, child) {
+                          return Positioned(
+                            top: _laserAnimation.value * 210,
+                            left: 20,
+                            right: 20,
+                            child: Container(
+                              height: 2,
+                              decoration: BoxDecoration(
+                                color: scheme.primary,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: scheme.primary.withValues(
+                                      alpha: 0.9,
+                                    ),
+                                    blurRadius: 8,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                    if (isRunning)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.pill,
+                                ),
+                              ),
+                              child: IconButton(
+                                iconSize: 18,
+                                padding: const EdgeInsets.all(6),
+                                constraints: const BoxConstraints(),
+                                tooltip: _isTorchOn
+                                    ? 'Turn torch off'
+                                    : 'Turn torch on',
+                                icon: Icon(
+                                  _isTorchOn ? Icons.flash_on : Icons.flash_off,
+                                  color: _isTorchOn
+                                      ? Colors.amber
+                                      : Colors.white,
+                                ),
+                                onPressed: () async {
+                                  await controller.toggleTorch();
+                                  if (!mounted) return;
+                                  setState(() => _isTorchOn = !_isTorchOn);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.pill,
+                                ),
+                              ),
+                              child: IconButton(
+                                iconSize: 18,
+                                padding: const EdgeInsets.all(6),
+                                constraints: const BoxConstraints(),
+                                tooltip: 'Switch camera',
+                                icon: const Icon(
+                                  Icons.flip_camera_ios,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () => controller.switchCamera(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    if (!showDesktopFallback && scannerError == null)
+                      Positioned(
+                        bottom: 12,
                         child: Container(
-                          height: 2,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: scheme.primary,
-                            boxShadow: [
-                              BoxShadow(
-                                color: scheme.primary.withValues(alpha: 0.9),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              ),
-                            ],
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                          ),
+                          child: Text(
+                            widget.isDriver
+                                ? 'ALIGN CUSTOMER DELIVERY QR'
+                                : 'ALIGN DRIVER QR',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1,
+                                ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
 
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Row(
-                    children: [
+                    if (_isSubmitting)
                       Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                        child: IconButton(
-                          iconSize: 18,
-                          padding: const EdgeInsets.all(6),
-                          constraints: const BoxConstraints(),
-                          tooltip: _isTorchOn
-                              ? 'Turn torch off'
-                              : 'Turn torch on',
-                          icon: Icon(
-                            _isTorchOn ? Icons.flash_on : Icons.flash_off,
-                            color: _isTorchOn ? Colors.amber : Colors.white,
-                          ),
-                          onPressed: () async {
-                            await _scannerController?.toggleTorch();
-                            if (!mounted) return;
-                            setState(() => _isTorchOn = !_isTorchOn);
-                          },
+                        color: Colors.black87,
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(color: scheme.primary),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Verifying delivery with FoodGo…',
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                        child: IconButton(
-                          iconSize: 18,
-                          padding: const EdgeInsets.all(6),
-                          constraints: const BoxConstraints(),
-                          tooltip: 'Switch camera',
-                          icon: const Icon(
-                            Icons.flip_camera_ios,
-                            color: Colors.white,
-                          ),
-                          onPressed: () => _scannerController?.switchCamera(),
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-
-                Positioned(
-                  bottom: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Text(
-                      widget.isDriver
-                          ? 'ALIGN CUSTOMER DELIVERY QR'
-                          : 'ALIGN DRIVER QR',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: scheme.primary,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ),
-                ),
-
-                if (_isSubmitting)
-                  Container(
-                    color: Colors.black87,
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(color: scheme.primary),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Verifying delivery with FoodGo…',
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
         const SizedBox(height: 12),
         Text(
@@ -868,13 +922,78 @@ class _DeliveryScannerModalState extends State<DeliveryScannerModal>
               icon: const Icon(Icons.paste, size: 16),
               label: Text(
                 'Paste / Enter QR Data',
-                style: Theme.of(context).textTheme.labelMedium,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               onPressed: _pasteQrPayload,
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildDesktopFallbackView(ColorScheme scheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      alignment: Alignment.center,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: scheme.primary.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.videocam_off_outlined,
+                color: scheme.primary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Camera Preview Unavailable',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Use the 6-digit PIN or paste a delivery QR code below.',
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.primary,
+                foregroundColor: scheme.onPrimary,
+                minimumSize: const Size(0, 38),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+              ),
+              icon: const Icon(Icons.pin, size: 16),
+              label: const Text('Enter 6-Digit PIN'),
+              onPressed: () => setState(() => _selectedTab = 1),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

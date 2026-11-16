@@ -127,7 +127,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
-    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final tabUnselectedColor = isDark
+        ? Colors.white.withValues(alpha: 0.86)
+        : const Color(0xFF334155);
 
     return LiquidGlassBackground(
       child: Scaffold(
@@ -173,7 +175,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             indicatorColor: Theme.of(context).colorScheme.primary,
             indicatorWeight: 3,
             labelColor: Theme.of(context).colorScheme.primary,
-            unselectedLabelColor: secondaryText,
+            unselectedLabelColor: tabUnselectedColor,
             tabs: const [
               Tab(icon: Icon(AppIcons.admin), text: 'Overview'),
               Tab(icon: Icon(AppIcons.orders), text: 'Orders'),

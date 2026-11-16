@@ -1254,4 +1254,68 @@ class DriverAutoTrackingAndPickupTests(TestCase):
         self.assertAlmostEqual(track_res.data['driver_location']['lat'], 11.5591, places=4)
         self.assertAlmostEqual(track_res.data['driver_location']['lng'], 104.9225, places=4)
 
+    def test_driver_can_buy_food_and_view_own_orders_without_self_delivery(self):
+        d1 = self._make_driver('buying_driver', is_online=True, is_approved=True)
+        d1.user.is_phone_verified = True
+        d1.user.save(update_fields=['is_phone_verified'])
+        d2 = self._make_driver('delivering_driver', is_online=True, is_approved=True)
+
+        # Driver 1 places a personal food order ("Driver can buy")
+        self.client.force_authenticate(user=d1.user)
+        order_res = self.client.post('/api/orders/', {
+            'restaurant': self.restaurant.id,
+            'address': self.address.id,
+            'items': [{'food_item': self.food_item.id, 'quantity': 1}],
+        }, format='json')
+        self.assertEqual(order_res.status_code, status.HTTP_201_CREATED)
+        order_id = order_res.data['id']
+
+        order = Order.objects.select_related('delivery__driver').get(id=order_id)
+        self.assertEqual(order.customer_id, d1.user_id)
+        # Auto-assignment must pick another driver, never self-assign buying driver
+        self.assertIsNotNone(order.delivery)
+        self.assertEqual(order.delivery.driver_id, d2.id)
+
+        # Personal order filter shows the driver's own purchase
+        mine_res = self.client.get('/api/orders/?mine=true')
+        self.assertEqual(mine_res.status_code, status.HTTP_200_OK)
+        self.assertEqual([o['id'] for o in mine_res.data], [order_id])
+
+        # Buying driver cannot claim their own meal order for delivery
+        accept_own_res = self.client.post(f'/api/drivers/orders/{order_id}/accept/')
+        self.assertEqual(accept_own_res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_driver_operational_status_transitions_between_available_busy_and_offline(self):
+        d1 = self._make_driver('busy_d1', is_online=True, is_approved=True)
+        d1.user.is_phone_verified = True
+        d1.user.save(update_fields=['is_phone_verified'])
+        d2 = self._make_driver('avail_d2', is_online=True, is_approved=True)
+
+        # Manually toggle d1 to busy
+        self.client.force_authenticate(user=d1.user)
+        status_res = self.client.post('/api/drivers/set-status/', {'operational_status': 'busy'}, format='json')
+        self.assertEqual(status_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(status_res.data['operational_status'], 'busy')
+        d1.refresh_from_db()
+        self.assertEqual(d1.operational_status, 'busy')
+
+        # Auto-assign should pick available d2 rather than busy d1
+        self.client.force_authenticate(user=self.customer)
+        order_res = self.client.post('/api/orders/', {
+            'restaurant': self.restaurant.id,
+            'address': self.address.id,
+            'items': [{'food_item': self.food_item.id, 'quantity': 1}],
+        }, format='json')
+        self.assertEqual(order_res.status_code, status.HTTP_201_CREATED)
+        order = Order.objects.select_related('delivery__driver').get(id=order_res.data['id'])
+        self.assertEqual(order.delivery.driver_id, d2.id)
+        d2.refresh_from_db()
+        self.assertEqual(d2.operational_status, 'busy')
+
+        # Completing or toggling offline updates operational_status accurately
+        self.client.force_authenticate(user=d2.user)
+        toggle_off = self.client.post('/api/drivers/toggle-online/', {'is_online': False}, format='json')
+        self.assertEqual(toggle_off.status_code, status.HTTP_200_OK)
+        self.assertEqual(toggle_off.data['operational_status'], 'offline')
+
 

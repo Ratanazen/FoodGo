@@ -968,7 +968,7 @@ class ProfileScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                'Customer account active. Driver and merchant roles are provisioned by Admin in the backend.',
+                                'Customer account active. Sign out to register a Driver account, or keep browsing & ordering meals.',
                               ),
                               duration: Duration(seconds: 2),
                               behavior: SnackBarBehavior.floating,

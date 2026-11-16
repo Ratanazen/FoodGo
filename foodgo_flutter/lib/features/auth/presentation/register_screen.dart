@@ -5,8 +5,12 @@ import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../providers/address_provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/favorites_provider.dart';
+import '../../../providers/notification_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../services/api_service.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
 
@@ -23,6 +27,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _vehicleTypeController = TextEditingController();
+  final _licensePlateController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   String _selectedRole = 'customer';
@@ -42,7 +49,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           .toLowerCase()
           .replaceAll(RegExp(r'\s+'), '_')
           .replaceAll(RegExp(r'[^a-z0-9_]'), '');
-      _usernameController.text = slug;
+      if (slug.isNotEmpty) {
+        _usernameController.text = slug;
+      }
     }
   }
 
@@ -53,6 +62,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _phoneController.dispose();
+    _vehicleTypeController.dispose();
+    _licensePlateController.dispose();
     super.dispose();
   }
 
@@ -70,6 +82,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final firstName = parts.isNotEmpty ? parts.first : '';
     final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
     final username = _usernameController.text.trim().toLowerCase();
+    final phone = _phoneController.text.trim();
 
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.register(
@@ -78,15 +91,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
       password: _passwordController.text,
       firstName: firstName,
       lastName: lastName,
+      phone: phone.isNotEmpty ? phone : null,
       role: _selectedRole,
     );
 
     if (!mounted) return;
 
     if (success) {
+      if (_selectedRole == 'driver') {
+        final vType = _vehicleTypeController.text.trim();
+        final plate = _licensePlateController.text.trim();
+        if (vType.isNotEmpty || plate.isNotEmpty) {
+          try {
+            await ApiService().patch('drivers/me/', {
+              if (vType.isNotEmpty) 'vehicle_type': vType,
+              if (plate.isNotEmpty) 'license_plate': plate,
+            });
+          } catch (_) {}
+        }
+      }
+      if (!mounted) return;
       final userProvider = context.read<UserProvider>();
+      if (authProvider.lastLoginUser != null) {
+        userProvider.setUser(authProvider.lastLoginUser!);
+      }
       await userProvider.fetchUser();
       if (!mounted) return;
+      try {
+        context.read<AddressProvider>().fetchAddresses();
+      } catch (_) {}
+      try {
+        context.read<FavoritesProvider>().fetchFavorites();
+      } catch (_) {}
+      try {
+        context.read<NotificationProvider>().fetchNotifications();
+      } catch (_) {}
+
       final role = userProvider.user?['role']?.toString().toLowerCase();
       if (role == 'admin') {
         context.go('/admin-dashboard');
@@ -848,12 +888,84 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           },
                                         ).animate().fade(delay: 320.ms),
 
+                                        const SizedBox(height: 12),
+
+                                        // Optional Phone Number
+                                        TextFormField(
+                                          controller: _phoneController,
+                                          textInputAction:
+                                              _selectedRole == 'driver'
+                                              ? TextInputAction.next
+                                              : TextInputAction.done,
+                                          keyboardType: TextInputType.phone,
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: primaryText,
+                                          ),
+                                          decoration: buildFieldDecoration(
+                                            labelText: context.tr(
+                                              'auth.phoneOptional',
+                                            ),
+                                            hintText: 'e.g. +855 12 345 678',
+                                            prefixIcon: AppIcons.phone,
+                                          ),
+                                          validator: (val) {
+                                            if (val == null ||
+                                                val.trim().isEmpty) {
+                                              return null;
+                                            }
+                                            final digits = val.replaceAll(
+                                              RegExp(r'[^0-9]'),
+                                              '',
+                                            );
+                                            if (digits.length < 8 ||
+                                                digits.length > 15) {
+                                              return 'Enter a valid phone number (8-15 digits)';
+                                            }
+                                            return null;
+                                          },
+                                        ).animate().fade(delay: 340.ms),
+
                                         const SizedBox(height: 14),
 
                                         // Role selector (Customer / Driver)
                                         _buildRoleSelector(
                                           isDark,
                                         ).animate().fade(delay: 360.ms),
+
+                                        if (_selectedRole == 'driver') ...[
+                                          const SizedBox(height: 12),
+                                          TextFormField(
+                                            controller: _vehicleTypeController,
+                                            textInputAction:
+                                                TextInputAction.next,
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(color: primaryText),
+                                            decoration: buildFieldDecoration(
+                                              labelText:
+                                                  'Vehicle Type (Optional)',
+                                              hintText:
+                                                  'e.g. Motorcycle (Honda Wave)',
+                                              prefixIcon:
+                                                  Icons.two_wheeler_rounded,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          TextFormField(
+                                            controller: _licensePlateController,
+                                            textInputAction:
+                                                TextInputAction.done,
+                                            onFieldSubmitted: (_) =>
+                                                _register(),
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(color: primaryText),
+                                            decoration: buildFieldDecoration(
+                                              labelText:
+                                                  'License Plate (Optional)',
+                                              hintText: 'e.g. PP-1AB-2026',
+                                              prefixIcon: Icons.badge_outlined,
+                                            ),
+                                          ),
+                                        ],
 
                                         const SizedBox(height: 14),
 

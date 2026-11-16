@@ -552,4 +552,257 @@ class DeliveryConfirmationQRTests(TestCase):
         self.assertEqual(token_obj.rotation_count, 1)
 
 
+class EndToEndCustomerPaymentDriverMapFlowTests(TestCase):
+    """
+    Full multi-role lifecycle test:
+    Customer Order -> Bakong KHQR Webhook & Wallet Payment -> Restaurant Prep
+    -> Driver Accept & GPS Telemetry -> Live Map Tracking -> Customer QR/PIN Handover
+    -> Delivered State & Driver Earnings.
+    """
+
+    def setUp(self):
+        from core.models import Address, FoodCategory, FoodItem, Wallet
+
+        self.client = APIClient()
+        self.customer = User.objects.create_user(
+            username='e2e_customer',
+            email='e2e_cust@foodgo.kh',
+            password='password123',
+            role='customer',
+            phone='+85512000111',
+            phone_normalized='+85512000111',
+            is_phone_verified=True,
+        )
+        self.owner = User.objects.create_user(
+            username='e2e_owner',
+            email='e2e_owner@foodgo.kh',
+            password='password123',
+            role='restaurant_owner',
+        )
+        self.driver_user = User.objects.create_user(
+            username='e2e_driver',
+            email='e2e_driver@foodgo.kh',
+            password='password123',
+            role='driver',
+            phone='+85512999888',
+            phone_normalized='+85512999888',
+            is_phone_verified=True,
+        )
+        self.driver = Driver.objects.create(
+            user=self.driver_user,
+            vehicle_type='Motorcycle (Honda Wave 125i)',
+            license_plate='PP-9E2E-2026',
+            is_online=True,
+            is_approved=True,
+            current_lat=Decimal('11.555000'),
+            current_lng=Decimal('104.920000'),
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.owner,
+            name='E2E Khmer Grill',
+            address='Street 308, BKK1, Phnom Penh',
+            phone='+855 12 345 678',
+            delivery_fee=Decimal('1.50'),
+            lat=Decimal('11.556400'),
+            lng=Decimal('104.928200'),
+            is_active=True,
+        )
+        self.category = FoodCategory.objects.create(
+            restaurant=self.restaurant,
+            name='Signature Bowls',
+        )
+        self.food = FoodItem.objects.create(
+            category=self.category,
+            name='Kampot Pepper Beef Bowl',
+            price=Decimal('7.50'),
+            is_available=True,
+        )
+        self.address = Address.objects.create(
+            user=self.customer,
+            street='Street 240, Daun Penh',
+            city='Phnom Penh',
+            state='Phnom Penh',
+            zip_code='120207',
+            lat=Decimal('11.564500'),
+            lng=Decimal('104.932800'),
+            is_default=True,
+        )
+        self.wallet = Wallet.objects.create(
+            user=self.customer,
+            balance=Decimal('100.00'),
+        )
+
+    def test_full_customer_khqr_payment_restaurant_driver_gps_map_and_qr_delivery(self):
+        # 1. Customer places an order
+        self.client.force_authenticate(user=self.customer)
+        order_res = self.client.post(
+            '/api/orders/',
+            {
+                'restaurant': self.restaurant.id,
+                'address': self.address.id,
+                'items': [{'food_item': self.food.id, 'quantity': 2}],
+                'special_instructions': 'Call upon arrival at gate',
+            },
+            format='json',
+        )
+        self.assertEqual(order_res.status_code, status.HTTP_201_CREATED)
+        order_id = order_res.data['id']
+        expected_total = Decimal('16.50')  # (7.50 * 2) + 1.50 delivery fee
+        self.assertEqual(Decimal(str(order_res.data['total_amount'])), expected_total)
+
+        # 2. Customer generates Bakong KHQR payment & settles via callback
+        pay_res = self.client.post(
+            '/api/payments/create/',
+            {'order_id': order_id, 'provider': 'BAKONG', 'currency': 'USD'},
+            format='json',
+        )
+        self.assertEqual(pay_res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(pay_res.data['provider'], 'BAKONG')
+        self.assertEqual(pay_res.data['method'], 'KHQR')
+        self.assertEqual(pay_res.data['status'], 'PENDING')
+        self.assertTrue(pay_res.data['qr_payload'].startswith('000201'))
+        merchant_ref = pay_res.data['merchant_reference']
+
+        cb_res = self.client.post(
+            '/api/payments/bakong/callback/',
+            {
+                'merchant_reference': merchant_ref,
+                'amount': '16.50',
+                'currency': 'USD',
+                'transaction_id': 'BKG-E2E-TXN-001',
+                'status': 'PAID',
+            },
+            format='json',
+        )
+        self.assertEqual(cb_res.status_code, status.HTTP_200_OK)
+
+        order_obj = Order.objects.get(id=order_id)
+        self.assertEqual(order_obj.payment_status, 'PAID')
+        self.assertEqual(order_obj.status, 'confirmed')
+
+        # 3. Restaurant accepts, prepares, and marks ready
+        self.client.force_authenticate(user=self.owner)
+        self.assertEqual(
+            self.client.post(f'/api/orders/{order_id}/restaurant-accept/', {}, format='json').status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            self.client.post(f'/api/orders/{order_id}/start-preparing/', {}, format='json').status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            self.client.post(f'/api/orders/{order_id}/ready-for-pickup/', {}, format='json').status_code,
+            status.HTTP_200_OK,
+        )
+
+        # 4. Auto-assigned online driver sees the ready-for-pickup ticket in active-deliveries,
+        # accepts it, arrives at restaurant, picks up, and broadcasts GPS telemetry
+        self.client.force_authenticate(user=self.driver_user)
+        active_res = self.client.get('/api/drivers/active-deliveries/')
+        self.assertEqual(active_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(any(o['id'] == order_id for o in active_res.data))
+
+        self.assertEqual(
+            self.client.post(f'/api/drivers/orders/{order_id}/accept/', {}, format='json').status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            self.client.post(f'/api/drivers/orders/{order_id}/arrive-restaurant/', {}, format='json').status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            self.client.post(f'/api/drivers/orders/{order_id}/pickup/', {}, format='json').status_code,
+            status.HTTP_200_OK,
+        )
+
+        loc_res = self.client.post(
+            '/api/drivers/location/',
+            {'lat': 11.5592, 'lng': 104.9255, 'speed': 32.5, 'bearing': 68.0},
+            format='json',
+        )
+        self.assertEqual(loc_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(loc_res.data['active_orders_updated'], 1)
+
+        # 5. Customer fetches live Map tracking data and verifies driver GPS + route points
+        self.client.force_authenticate(user=self.customer)
+        track_res = self.client.get(f'/api/orders/{order_id}/track/')
+        self.assertEqual(track_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(track_res.data['driver_assigned'])
+        self.assertTrue(track_res.data['is_picked_up'])
+        self.assertEqual(track_res.data['tracking_stage'], 'on_the_way')
+        self.assertAlmostEqual(track_res.data['driver_location']['lat'], 11.5592, places=4)
+        self.assertAlmostEqual(track_res.data['driver_location']['lng'], 104.9255, places=4)
+        self.assertAlmostEqual(track_res.data['restaurant_location']['lat'], 11.5564, places=4)
+        self.assertAlmostEqual(track_res.data['customer_location']['lat'], 11.5645, places=4)
+
+        # 6. Driver arrives at customer -> Customer generates QR + PIN -> Driver confirms delivery
+        self.client.force_authenticate(user=self.driver_user)
+        self.assertEqual(
+            self.client.post(f'/api/drivers/orders/{order_id}/arrive-customer/', {}, format='json').status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.client.force_authenticate(user=self.customer)
+        qr_res = self.client.post(f'/api/orders/{order_id}/customer_delivery_qr/', {}, format='json')
+        self.assertEqual(qr_res.status_code, status.HTTP_200_OK)
+        token = qr_res.data['token']
+        self.assertEqual(len(qr_res.data['verification_pin']), 6)
+
+        self.client.force_authenticate(user=self.driver_user)
+        confirm_res = self.client.post(
+            f'/api/orders/{order_id}/confirm_delivery/',
+            {'token': token},
+            format='json',
+        )
+        self.assertEqual(confirm_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(confirm_res.data['order_status'], 'delivered')
+
+        # 7. Verify anti-replay idempotency, updated earnings, and delivered tracking map state
+        replay_res = self.client.post(
+            f'/api/orders/{order_id}/confirm_delivery/',
+            {'token': token},
+            format='json',
+        )
+        self.assertEqual(replay_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(replay_res.data['status'], 'ALREADY_DELIVERED')
+
+        earnings_res = self.client.get('/api/drivers/earnings/')
+        self.assertEqual(earnings_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(earnings_res.data['completed_trips'], 1)
+        self.assertAlmostEqual(earnings_res.data['total_earnings_usd'], 1.50, places=2)
+
+        final_track = self.client.get(f'/api/orders/{order_id}/track/')
+        self.assertEqual(final_track.status_code, status.HTTP_200_OK)
+        self.assertEqual(final_track.data['status'], 'delivered')
+
+    def test_customer_wallet_order_deducts_balance_and_confirms(self):
+        self.client.force_authenticate(user=self.customer)
+        order_res = self.client.post(
+            '/api/orders/',
+            {
+                'restaurant': self.restaurant.id,
+                'address': self.address.id,
+                'items': [{'food_item': self.food.id, 'quantity': 1}],
+            },
+            format='json',
+        )
+        self.assertEqual(order_res.status_code, status.HTTP_201_CREATED)
+        order_id = order_res.data['id']
+
+        pay_res = self.client.post(
+            '/api/payments/create/',
+            {'order_id': order_id, 'provider': 'WALLET', 'currency': 'USD'},
+            format='json',
+        )
+        self.assertEqual(pay_res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(pay_res.data['status'], 'PAID')
+
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, Decimal('91.00'))  # 100 - (7.50 + 1.50)
+        order_obj = Order.objects.get(id=order_id)
+        self.assertEqual(order_obj.payment_status, 'PAID')
+        self.assertEqual(order_obj.status, 'confirmed')
+
+
+
 

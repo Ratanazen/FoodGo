@@ -51,7 +51,7 @@ if [ "$API_MODE" = "local" ]; then
             "$PYTHON_BIN" manage.py migrate --noinput
             "$PYTHON_BIN" manage.py ensure_admin
             "$PYTHON_BIN" manage.py seed_full_menu
-            exec "$PYTHON_BIN" manage.py runserver 0.0.0.0:8000
+            exec "$PYTHON_BIN" manage.py runserver --noreload 0.0.0.0:8000
         ) >/tmp/foodgo_backend.log 2>&1 &
         BACKEND_PID=$!
 

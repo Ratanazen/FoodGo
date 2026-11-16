@@ -51,6 +51,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   late bool _isLoading;
   bool _isOnline = true;
   bool _isApproved = true;
+  String _operationalStatus = 'available';
 
   Map<String, dynamic>? _driverProfile;
   List<dynamic> _availableOrders = [];
@@ -75,6 +76,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       _driverProfile = widget.initialProfile;
       _isOnline = widget.initialProfile!['is_online'] == true;
       _isApproved = widget.initialProfile!['is_approved'] ?? true;
+      _operationalStatus =
+          (widget.initialProfile!['operational_status'] ??
+                  (_isOnline ? 'available' : 'offline'))
+              .toString()
+              .toLowerCase();
     }
     if (widget.initialAvailable != null) {
       _availableOrders = List.from(widget.initialAvailable!);
@@ -122,6 +128,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           _driverProfile = profileRes;
           _isOnline = profileRes['is_online'] == true;
           _isApproved = profileRes['is_approved'] ?? true;
+          _operationalStatus =
+              (profileRes['operational_status'] ??
+                      (_isOnline ? 'available' : 'offline'))
+                  .toString()
+                  .toLowerCase();
         }
       } catch (_) {}
 
@@ -228,6 +239,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     try {
       await _api.post('drivers/toggle-online/', {'is_online': value});
       if (!mounted) return;
+      _operationalStatus = value
+          ? (_activeOrders.isNotEmpty ? 'busy' : 'available')
+          : 'offline';
       _syncAutoTracking();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -277,6 +291,49 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  Future<void> _toggleBusyStatus() async {
+    if (!_isOnline || _activeOrders.isNotEmpty) return;
+    final nextStatus = _operationalStatus == 'busy' ? 'available' : 'busy';
+    final previous = _operationalStatus;
+    setState(() => _operationalStatus = nextStatus);
+    try {
+      await _api.post('drivers/set-status/', {
+        'operational_status': nextStatus,
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            nextStatus == 'busy'
+                ? 'Status set to Busy (on break).'
+                : 'Status set to Online & Available.',
+          ),
+          backgroundColor: nextStatus == 'busy'
+              ? Colors.orange
+              : GlassTheme.primaryGreen,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      _fetchDashboardData();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _operationalStatus = previous);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ApiService.formatError(
+              e,
+              fallback: 'Unable to update availability status.',
+            ),
+          ),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Map<String, dynamic> _computeNextDriverTelemetry(dynamic deviceLoc) {
@@ -1104,6 +1161,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.shopping_bag_outlined),
+            tooltip: context.tr('driver.orderFood'),
+            onPressed: () => context.go('/home'),
+          ),
+          IconButton(
             icon: const Icon(AppIcons.refresh),
             tooltip: 'Refresh Dashboard',
             onPressed: _fetchDashboardData,
@@ -1312,144 +1374,169 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             ),
             SizedBox(
               width: double.infinity,
-              child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+              child: Builder(
+                builder: (context) {
+                  final bool isBusy =
+                      _activeOrders.isNotEmpty || _operationalStatus == 'busy';
+                  final Color dotColor = isBusy ? amberTextColor : accentGreen;
+                  final String statusLabel = _activeOrders.isNotEmpty
+                      ? context.tr(
+                          'driver.busyDelivering',
+                          args: {'count': _activeOrders.length},
+                        )
+                      : (_operationalStatus == 'busy'
+                            ? context.tr('driver.busyPaused')
+                            : context.tr('driver.onlineAvailable'));
+                  return Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: accentGreen,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: GlassTheme.primaryGreen.withValues(
-                                alpha: 0.6,
+                      InkWell(
+                        onTap: _activeOrders.isEmpty ? _toggleBusyStatus : null,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: dotColor,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: dotColor.withValues(alpha: 0.6),
+                                    blurRadius: 6,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
                               ),
-                              blurRadius: 6,
-                              spreadRadius: 2,
                             ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                statusLabel,
+                                style: textTheme.labelMedium?.copyWith(
+                                  color: dotColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            if (_activeOrders.isEmpty) ...[
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.swap_horiz_rounded,
+                                size: 15,
+                                color: dotColor,
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          context.tr('driver.onlineAvailable'),
-                          style: textTheme.labelMedium?.copyWith(
-                            color: accentGreen,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      InkWell(
-                        onTap: _toggleAutoTrack,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _autoTrackEnabled
-                                ? GlassTheme.primaryGreen.withValues(
-                                    alpha: 0.14,
-                                  )
-                                : Colors.orange.withValues(alpha: 0.14),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          InkWell(
+                            onTap: _toggleAutoTrack,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: _autoTrackEnabled
-                                  ? accentGreen.withValues(alpha: 0.4)
-                                  : (isDark
-                                            ? Colors.orangeAccent
-                                            : const Color(0xFFB45309))
-                                        .withValues(alpha: 0.4),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _autoTrackEnabled
-                                    ? Icons.gps_fixed
-                                    : Icons.gps_off,
-                                size: 14,
-                                color: _autoTrackEnabled
-                                    ? accentGreen
-                                    : (isDark
-                                          ? Colors.orangeAccent
-                                          : const Color(0xFFB45309)),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
                               ),
-                              const SizedBox(width: 5),
-                              Text(
-                                _autoTrackEnabled
-                                    ? (_activeOrders.isNotEmpty
-                                          ? context.tr(
-                                              'driver.autoTrackOn',
-                                              args: {
-                                                'count': _activeOrders.length,
-                                              },
-                                            )
-                                          : context.tr(
-                                              'driver.autoTrackStandby',
-                                            ))
-                                    : context.tr('driver.autoTrackPaused'),
-                                style: textTheme.labelSmall?.copyWith(
+                              decoration: BoxDecoration(
+                                color: _autoTrackEnabled
+                                    ? GlassTheme.primaryGreen.withValues(
+                                        alpha: 0.14,
+                                      )
+                                    : Colors.orange.withValues(alpha: 0.14),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
                                   color: _autoTrackEnabled
-                                      ? accentGreen
+                                      ? accentGreen.withValues(alpha: 0.4)
                                       : (isDark
-                                            ? Colors.orangeAccent
-                                            : const Color(0xFFB45309)),
-                                  fontWeight: FontWeight.w700,
+                                                ? Colors.orangeAccent
+                                                : const Color(0xFFB45309))
+                                            .withValues(alpha: 0.4),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          foregroundColor: accentGreen,
-                          backgroundColor: GlassTheme.primaryGreen.withValues(
-                            alpha: 0.1,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(
-                              color: accentGreen.withValues(alpha: 0.35),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _autoTrackEnabled
+                                        ? Icons.gps_fixed
+                                        : Icons.gps_off,
+                                    size: 14,
+                                    color: _autoTrackEnabled
+                                        ? accentGreen
+                                        : (isDark
+                                              ? Colors.orangeAccent
+                                              : const Color(0xFFB45309)),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    _autoTrackEnabled
+                                        ? (_activeOrders.isNotEmpty
+                                              ? context.tr(
+                                                  'driver.autoTrackOn',
+                                                  args: {
+                                                    'count':
+                                                        _activeOrders.length,
+                                                  },
+                                                )
+                                              : context.tr(
+                                                  'driver.autoTrackStandby',
+                                                ))
+                                        : context.tr('driver.autoTrackPaused'),
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: _autoTrackEnabled
+                                          ? accentGreen
+                                          : (isDark
+                                                ? Colors.orangeAccent
+                                                : const Color(0xFFB45309)),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              foregroundColor: accentGreen,
+                              backgroundColor: GlassTheme.primaryGreen
+                                  .withValues(alpha: 0.1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: accentGreen.withValues(alpha: 0.35),
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                            ),
+                            icon: const Icon(Icons.my_location, size: 14),
+                            label: Text(
+                              context.tr('driver.broadcastLocation'),
+                              style: textTheme.labelMedium?.copyWith(
+                                color: accentGreen,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            onPressed: _broadcastLocation,
                           ),
-                        ),
-                        icon: const Icon(Icons.my_location, size: 14),
-                        label: Text(
-                          context.tr('driver.broadcastLocation'),
-                          style: textTheme.labelMedium?.copyWith(
-                            color: accentGreen,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        onPressed: _broadcastLocation,
+                        ],
                       ),
                     ],
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ],
@@ -3358,7 +3445,27 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           icon: Icons.edit,
           onPressed: _showEditProfileDialog,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: statusGreen,
+            side: BorderSide(color: statusGreen.withValues(alpha: 0.5)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          icon: const Icon(Icons.shopping_bag_outlined, size: 18),
+          label: Text(
+            'Browse Menu & Order Food',
+            style: textTheme.labelLarge?.copyWith(
+              color: statusGreen,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onPressed: () => context.go('/home'),
+        ),
+        const SizedBox(height: 12),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
             backgroundColor: dangerColor.withValues(alpha: 0.12),

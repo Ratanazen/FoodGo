@@ -71,10 +71,12 @@ class AuthProvider with ChangeNotifier {
     if (result.isSuccess) {
       _isAuthenticated = true;
       _lastAuthError = null;
+      _lastLoginUser = result.user;
       notifyListeners();
       return true;
     } else {
       _lastAuthError = result.errorMessage;
+      _lastLoginUser = null;
       notifyListeners();
       return false;
     }

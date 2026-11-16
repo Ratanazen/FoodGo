@@ -26,7 +26,7 @@ import 'core/theme/app_typography.dart';
 
 import 'services/firebase_service.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = true;
   await SystemChrome.setPreferredOrientations([

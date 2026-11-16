@@ -207,3 +207,64 @@ class AuthenticationTests(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.role, 'restaurant_owner')
 
+    def test_customer_registration_creates_wallet_and_allows_login_and_order(self):
+        from decimal import Decimal
+        from core.models import Wallet, Restaurant, RestaurantCategory, FoodCategory, FoodItem
+        payload = {
+            'username': 'newcustomer_kh',
+            'email': 'newcustomer@foodgo.kh',
+            'password': 'Password123!',
+            'first_name': 'Sokha',
+            'last_name': 'Mean',
+            'phone': '+855 12 456 789',
+            'role': 'customer',
+        }
+        reg_res = self.client.post(self.register_url, payload, format='json')
+        self.assertEqual(reg_res.status_code, status.HTTP_201_CREATED)
+        new_user = User.objects.get(username='newcustomer_kh')
+        self.assertEqual(new_user.role, 'customer')
+        self.assertTrue(Wallet.objects.filter(user=new_user).exists())
+
+        login_res = self.client.post(
+            self.token_url,
+            {'username': 'newcustomer_kh', 'password': 'Password123!'},
+            format='json',
+        )
+        self.assertEqual(login_res.status_code, status.HTTP_200_OK)
+        self.assertIn('access', login_res.data)
+
+        owner = User.objects.create_user(username='rest_owner_reg_test', email='ro@foodgo.kh', password='Pass123!', role='restaurant_owner')
+        rcat = RestaurantCategory.objects.create(name='Khmer')
+        rest = Restaurant.objects.create(owner=owner, name='Bayon Kitchen', category=rcat, address='St 240', phone='012000111', delivery_fee=Decimal('1.50'))
+        fcat = FoodCategory.objects.create(restaurant=rest, name='Mains')
+        food = FoodItem.objects.create(category=fcat, name='Amok', price=Decimal('5.00'), is_available=True)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login_res.data['access']}")
+        order_res = self.client.post('/api/orders/', {
+            'restaurant': rest.id,
+            'items': [{'food_item': food.id, 'quantity': 2}],
+        }, format='json')
+        self.assertEqual(order_res.status_code, status.HTTP_201_CREATED)
+
+    def test_driver_registration_with_custom_vehicle_sets_available_status(self):
+        from core.models import Wallet
+        payload = {
+            'username': 'new_driver_custom',
+            'email': 'drivercustom@foodgo.kh',
+            'password': 'Password123!',
+            'first_name': 'Dara',
+            'last_name': 'Chan',
+            'phone': '+855 77 888 999',
+            'role': 'driver',
+            'vehicle_type': 'Honda Beat 110',
+            'license_plate': 'PP-9XY-2026',
+        }
+        res = self.client.post(self.register_url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        user = User.objects.get(username='new_driver_custom')
+        self.assertTrue(Wallet.objects.filter(user=user).exists())
+        self.assertEqual(user.driver_profile.vehicle_type, 'Honda Beat 110')
+        self.assertEqual(user.driver_profile.license_plate, 'PP-9XY-2026')
+        self.assertEqual(user.driver_profile.operational_status, 'available')
+        self.assertTrue(user.driver_profile.is_online)
+

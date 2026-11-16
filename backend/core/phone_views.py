@@ -226,12 +226,19 @@ class VerifyPhoneOTPView(APIView):
                     target_user = User.objects.filter(phone=raw_phone).first()
                 if not target_user and challenge.purpose == 'phone_login':
                     # Create new customer account for phone login
+                    from .models import Wallet
                     base_username = f"user_{phone_normalized.replace('+', '')}"
+                    candidate = base_username
+                    suffix = 1
+                    while User.objects.filter(username__iexact=candidate).exists():
+                        candidate = f"{base_username}_{suffix}"
+                        suffix += 1
                     target_user = User.objects.create_user(
-                        username=base_username,
+                        username=candidate,
                         phone=phone_normalized,
                         role='customer'
                     )
+                    Wallet.objects.get_or_create(user=target_user)
 
             if target_user:
                 target_user.phone = phone_normalized

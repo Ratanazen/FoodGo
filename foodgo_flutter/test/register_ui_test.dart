@@ -195,5 +195,109 @@ void main() {
         expect(find.text('Customer Home Screen'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'Driver role selection reveals optional vehicle fields and optional phone is forwarded',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final mockAuth = MockAuthProviderForRegister();
+        final userProvider = MockUserProviderForRegister();
+
+        final router = GoRouter(
+          initialLocation: '/register',
+          routes: [
+            GoRoute(
+              path: '/register',
+              builder: (context, state) => const RegisterScreen(),
+            ),
+            GoRoute(
+              path: '/home',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Customer Home Screen')),
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: [
+              ChangeNotifierProvider<AuthProvider>.value(value: mockAuth),
+              ChangeNotifierProvider<UserProvider>.value(value: userProvider),
+            ],
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+
+        // Phone optional field exists immediately
+        expect(
+          find.widgetWithText(TextFormField, 'Phone Number (Optional)'),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(TextFormField, 'Vehicle Type (Optional)'),
+          findsNothing,
+        );
+
+        // Select Driver role -> vehicle & plate inputs appear
+        await tester.tap(find.text('Driver'));
+        await tester.pump();
+        expect(
+          find.widgetWithText(TextFormField, 'Vehicle Type (Optional)'),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(TextFormField, 'License Plate (Optional)'),
+          findsOneWidget,
+        );
+
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Username'),
+          'driver_sombath',
+        );
+        // Entering Khmer full name must not erase non-empty ASCII username
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Full Name'),
+          'សម្បត្តិ',
+        );
+        await tester.pump();
+        final usernameField = tester.widget<TextFormField>(
+          find.widgetWithText(TextFormField, 'Username'),
+        );
+        expect(usernameField.controller?.text, 'driver_sombath');
+
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Email Address'),
+          'sombath@foodgo.kh',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Password'),
+          'securepass123',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Phone Number (Optional)'),
+          '+855 12 345 678',
+        );
+        await tester.pump();
+
+        final buttonFinder = find.widgetWithText(
+          ElevatedButton,
+          'Create Account',
+        );
+        await tester.ensureVisible(buttonFinder);
+        await tester.tap(buttonFinder);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(mockAuth.registeredUsername, 'driver_sombath');
+        expect(mockAuth.registeredPhone, '+855 12 345 678');
+        expect(mockAuth.registeredRole, 'driver');
+      },
+    );
   });
 }

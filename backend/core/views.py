@@ -261,30 +261,67 @@ def _get_tracking_stage(order, delivery=None, driver_obj=None):
     return 'en_route_to_restaurant'
 
 
-def _select_or_assign_driver(request_data, restaurant=None):
+def _sync_driver_operational_status(driver, *, force_busy=False):
+    """
+    Keep Driver.operational_status aligned with online state and active deliveries.
+    """
+    if not driver:
+        return None
+    if not driver.is_online:
+        new_status = 'offline'
+    elif force_busy or Delivery.objects.filter(
+        driver=driver,
+        status__in=ACTIVE_DELIVERY_STATUSES,
+    ).exclude(order__status__in=('delivered', 'cancelled')).exists():
+        new_status = 'busy'
+    else:
+        new_status = 'available'
+
+    if driver.operational_status != new_status:
+        driver.operational_status = new_status
+        driver.save(update_fields=['operational_status'])
+    return new_status
+
+
+def _select_or_assign_driver(request_data, restaurant=None, exclude_user=None):
     """
     Resolve an explicitly picked driver_id, or auto-assign the best available
-    online & approved driver (fewest active deliveries, nearest to restaurant).
+    online & approved driver (preferring available over busy, fewest active
+    deliveries, nearest to restaurant), avoiding self-assignment when possible.
     """
     driver_id = request_data.get('driver_id') or request_data.get('driver')
     driver = None
     if driver_id:
         try:
-            driver = Driver.objects.filter(pk=driver_id, is_approved=True).first()
+            picked = Driver.objects.filter(
+                pk=driver_id,
+                is_approved=True,
+                is_online=True,
+            ).first()
+            if picked and (exclude_user is None or picked.user_id != exclude_user.id):
+                driver = picked
         except (TypeError, ValueError):
             driver = None
 
     if not driver:
-        candidates = list(
-            Driver.objects.filter(is_online=True, is_approved=True)
-            .prefetch_related('deliveries')
-        )
+        qs = Driver.objects.filter(is_online=True, is_approved=True)
+        if exclude_user is not None:
+            non_self = qs.exclude(user_id=exclude_user.id)
+            if non_self.exists():
+                qs = non_self
+            else:
+                return None
+
+        candidates = list(qs.prefetch_related('deliveries'))
         if candidates:
             rest_lat = float(restaurant.lat) if (restaurant and restaurant.lat is not None) else None
             rest_lng = float(restaurant.lng) if (restaurant and restaurant.lng is not None) else None
 
             def _score(cand):
-                active_count = cand.deliveries.filter(status__in=ACTIVE_DELIVERY_STATUSES).count()
+                active_count = cand.deliveries.filter(
+                    status__in=ACTIVE_DELIVERY_STATUSES
+                ).exclude(order__status__in=('delivered', 'cancelled')).count()
+                is_busy = 1 if (cand.operational_status == 'busy' or active_count > 0) else 0
                 if (
                     rest_lat is not None and rest_lng is not None and
                     cand.current_lat is not None and cand.current_lng is not None
@@ -294,7 +331,7 @@ def _select_or_assign_driver(request_data, restaurant=None):
                     dist_sq = d_lat * d_lat + d_lng * d_lng
                 else:
                     dist_sq = 9999.0
-                return (active_count, dist_sq, cand.id)
+                return (is_busy, active_count, dist_sq, cand.id)
 
             candidates.sort(key=_score)
             driver = candidates[0]
@@ -348,20 +385,24 @@ class OrderViewSet(viewsets.ModelViewSet):
             'delivery__driver__user', 'payment', 'delivery_token'
         ).prefetch_related('items__food_item')
 
+        mine_only = str(self.request.query_params.get('mine', '')).strip().lower() in ('true', '1', 'yes')
         if self.action in (
             'confirm_delivery', 'delivery_qr', 'track',
             'customer_delivery_qr', 'customer_regenerate_delivery_qr',
             'driver_validate_qr'
         ):
             pass
+        elif mine_only:
+            qs = qs.filter(customer=user)
         elif user.is_staff or user.is_superuser:
             pass
         elif getattr(user, 'role', '') == 'customer':
             qs = qs.filter(customer=user)
         elif getattr(user, 'role', '') == 'restaurant_owner':
-            qs = qs.filter(restaurant__owner=user)
+            qs = qs.filter(models.Q(restaurant__owner=user) | models.Q(customer=user))
         elif hasattr(user, 'driver_profile') or getattr(user, 'role', '') == 'driver':
             qs = qs.filter(
+                models.Q(customer=user) |
                 models.Q(delivery__driver__user=user) |
                 models.Q(delivery__isnull=True) |
                 models.Q(delivery__driver__isnull=True)
@@ -484,7 +525,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not (is_restaurant_owner or user.is_staff or getattr(user, 'role', '') == 'admin'):
             raise PermissionDenied("Only the restaurant owner or staff can accept this order.")
 
-        if order.status not in ('pending', 'driver_assigned'):
+        if order.status not in ('pending', 'confirmed', 'driver_assigned'):
             return Response(
                 {'detail': f'Cannot accept order in "{order.status}" status.'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -671,8 +712,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def perform_create(self, serializer):
         user = self.request.user
-        if user.role != 'customer' and not user.is_staff:
-            raise PermissionDenied('Only customers can place orders.')
 
         items_data = self.request.data.get('items')
         restaurant = serializer.validated_data.get('restaurant')
@@ -798,9 +837,10 @@ class OrderViewSet(viewsets.ModelViewSet):
             ])
 
             # Assign explicitly picked driver or auto-assign best online approved driver
-            driver = _select_or_assign_driver(self.request.data, restaurant)
+            driver = _select_or_assign_driver(self.request.data, restaurant, exclude_user=user)
             if driver:
                 Delivery.objects.create(order=order, driver=driver, status='assigned')
+                _sync_driver_operational_status(driver, force_busy=True)
 
             cart = getattr(user, 'cart', None)
             if cart:
@@ -879,9 +919,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         ])
 
         # Assign explicitly picked driver or auto-assign best online approved driver
-        driver = _select_or_assign_driver(self.request.data, restaurant)
+        driver = _select_or_assign_driver(self.request.data, restaurant, exclude_user=user)
         if driver:
             Delivery.objects.create(order=order, driver=driver, status='assigned')
+            _sync_driver_operational_status(driver, force_busy=True)
 
         cart.items.all().delete()
         cart.restaurant = None
@@ -1521,6 +1562,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             driver.total_deliveries += 1
             driver.total_earnings += fee
             driver.save(update_fields=['total_deliveries', 'total_earnings'])
+            _sync_driver_operational_status(driver)
 
         return Response({
             'status': 'SUCCESS',
@@ -1617,6 +1659,15 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                 driver.license_plate = data['license_plate']
             if 'is_online' in data:
                 driver.is_online = bool(data['is_online'])
+                if not driver.is_online:
+                    driver.operational_status = 'offline'
+                elif driver.operational_status == 'offline':
+                    driver.operational_status = 'available'
+            if 'operational_status' in data:
+                req_status = str(data['operational_status']).strip().lower()
+                if req_status in ('available', 'busy', 'offline'):
+                    driver.operational_status = req_status
+                    driver.is_online = req_status != 'offline'
             if 'phone' in data:
                 new_phone = data['phone']
                 if new_phone != request.user.phone:
@@ -1687,7 +1738,29 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             driver.is_online = not driver.is_online
         driver.save(update_fields=['is_online'])
-        return Response({'status': 'Status updated', 'is_online': driver.is_online})
+        op_status = _sync_driver_operational_status(driver)
+        return Response({
+            'status': 'Status updated',
+            'is_online': driver.is_online,
+            'operational_status': op_status,
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='set-status')
+    def set_status(self, request):
+        driver, err = self._get_driver(request.user)
+        if err:
+            return err
+        raw_status = str(request.data.get('operational_status') or '').strip().lower()
+        if raw_status not in ('available', 'busy', 'offline'):
+            return Response(
+                {'error': "operational_status must be 'available', 'busy', or 'offline'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        driver.operational_status = raw_status
+        driver.is_online = raw_status != 'offline'
+        driver.save(update_fields=['operational_status', 'is_online'])
+        serializer = DriverSerializer(driver, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='available-orders')
     def available_orders(self, request):
@@ -1695,9 +1768,16 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
         if err:
             return err
         orders = Order.objects.filter(
-            models.Q(delivery__isnull=True) | models.Q(delivery__driver__isnull=True),
+            models.Q(delivery__isnull=True)
+            | models.Q(delivery__driver__isnull=True)
+            | models.Q(
+                delivery__driver=driver,
+                delivery__status__in=('assigned', 'preparing', 'ready_for_pickup'),
+            ),
             status__in=['confirmed', 'preparing', 'ready', 'ready_for_pickup']
-        ).select_related('restaurant', 'address', 'customer', 'delivery').order_by('-created_at')
+        ).exclude(customer=request.user).select_related(
+            'restaurant', 'address', 'customer', 'delivery'
+        ).order_by('-created_at')
         serializer = OrderSerializer(orders, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -1708,7 +1788,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             return err
         orders = Order.objects.filter(
             delivery__driver=driver,
-            delivery__status__in=['assigned', 'accepted', 'arrived_at_restaurant', 'picked_up', 'on_the_way', 'arrived']
+            delivery__status__in=ACTIVE_DELIVERY_STATUSES + ('ready',),
         ).exclude(status__in=['delivered', 'cancelled']).select_related(
             'restaurant', 'address', 'customer', 'delivery', 'payment', 'delivery_token'
         ).order_by('-created_at')
@@ -1782,6 +1862,8 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             order = Order.objects.select_for_update().filter(id=order_id).first()
             if not order:
                 return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+            if order.customer_id == request.user.id:
+                return Response({'error': 'Drivers cannot accept delivery for their own food order.'}, status=status.HTTP_400_BAD_REQUEST)
             if order.status in ('delivered', 'cancelled'):
                 return Response({'error': f'Order cannot be accepted in {order.status} state.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1790,11 +1872,14 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                 defaults={'driver': driver, 'status': 'accepted'}
             )
             if not created:
-                if delivery.driver and delivery.driver != driver and delivery.status != 'assigned':
+                prev_driver = delivery.driver
+                if prev_driver and prev_driver != driver and delivery.status not in ('assigned', 'preparing', 'ready_for_pickup'):
                     return Response({'error': 'This order has already been accepted by another driver.'}, status=status.HTTP_409_CONFLICT)
                 delivery.driver = driver
                 delivery.status = 'accepted'
                 delivery.save(update_fields=['driver', 'status', 'updated_at'])
+                if prev_driver and prev_driver != driver:
+                    _sync_driver_operational_status(prev_driver)
 
             target_status = 'confirmed' if order.status == 'pending' else order.status
             record_order_status_transition(
@@ -1804,6 +1889,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                 actor_role='driver',
                 notes=f"Driver {driver.user.get_full_name() or driver.user.username} accepted delivery assignment"
             )
+            _sync_driver_operational_status(driver, force_busy=True)
 
         serializer = OrderSerializer(order, context={'request': request})
         return Response({
@@ -1831,6 +1917,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                     actor_role='driver',
                     notes=f"Driver {driver.user.username} declined delivery assignment; returned to queue"
                 )
+            _sync_driver_operational_status(driver)
         return Response({'status': 'SUCCESS', 'message': 'Order declined.'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path=r'orders/(?P<order_id>[^/.]+)/arrive-restaurant')
@@ -1984,6 +2071,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             notes=f"Order successfully delivered by driver {driver.user.username}. Earned ${fee} delivery fee.",
             extra_update_fields=extra_fields
         )
+        _sync_driver_operational_status(driver)
         return Response({
             'status': 'SUCCESS',
             'message': 'Order delivered successfully.',
@@ -2013,6 +2101,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
             actor_role='driver',
             notes=f"Driver delivery failed: {reason}"
         )
+        _sync_driver_operational_status(driver)
         return Response({
             'status': 'SUCCESS',
             'message': 'Failed delivery recorded. Order returned to restaurant.',
@@ -2043,6 +2132,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                 actor_role='driver',
                 notes=f"Driver released delivery back to queue: {reason}"
             )
+            _sync_driver_operational_status(driver)
             return Response({
                 'status': 'SUCCESS',
                 'message': 'Delivery released back to available orders queue.',
@@ -2058,6 +2148,7 @@ class DriverViewSet(viewsets.ReadOnlyModelViewSet):
                 actor_role='driver',
                 notes=f"Driver delivery cancellation: {reason}"
             )
+            _sync_driver_operational_status(driver)
             return Response({
                 'status': 'SUCCESS',
                 'message': 'Delivery cancelled.',

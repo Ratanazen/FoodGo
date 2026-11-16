@@ -185,9 +185,10 @@ class ApiService {
         payload['role'] = role;
       }
 
+      final cleanUsername = username.trim();
       final response = await _apiClient.dio.post('register/', data: payload);
-      if (response.statusCode == 201) {
-        return await login(username, password);
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return await login(cleanUsername, password);
       }
       return const AuthResult.failure('Registration failed. Please try again.');
     } on DioException catch (e) {
@@ -202,6 +203,21 @@ class ApiService {
       }
       if (e.response?.data is Map) {
         final errMap = e.response!.data as Map;
+        for (final preferredKey in const [
+          'detail',
+          'error',
+          'message',
+          'non_field_errors',
+        ]) {
+          if (errMap.containsKey(preferredKey) &&
+              errMap[preferredKey] != null) {
+            final v = errMap[preferredKey];
+            final msg = v is List ? v.firstOrNull : v;
+            if (msg != null && msg.toString().trim().isNotEmpty) {
+              return AuthResult.failure(msg.toString());
+            }
+          }
+        }
         final firstKey = errMap.keys.firstOrNull;
         if (firstKey != null) {
           final val = errMap[firstKey];
@@ -209,8 +225,11 @@ class ApiService {
           return AuthResult.failure(msg?.toString() ?? '$firstKey is invalid.');
         }
       }
-      return const AuthResult.failure(
-        'Registration failed. Please check your input.',
+      return AuthResult.failure(
+        formatError(
+          e,
+          fallback: 'Registration failed. Please check your input.',
+        ),
       );
     } catch (e) {
       if (kDebugMode) debugPrint('Registration error: $e');

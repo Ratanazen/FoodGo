@@ -6,7 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/glass_theme.dart';
+import '../../../providers/address_provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/favorites_provider.dart';
+import '../../../providers/notification_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../widgets/glass/glass_widgets.dart';
 import '../../../widgets/svg_icon.dart';
@@ -93,6 +96,15 @@ class _LoginScreenState extends State<LoginScreen> {
         await userProvider.fetchUser();
       }
       if (!mounted) return;
+      try {
+        context.read<AddressProvider>().fetchAddresses();
+      } catch (_) {}
+      try {
+        context.read<FavoritesProvider>().fetchFavorites();
+      } catch (_) {}
+      try {
+        context.read<NotificationProvider>().fetchNotifications();
+      } catch (_) {}
 
       final role = userProvider.role;
       if (role == 'admin') {

@@ -29,6 +29,9 @@ class FavoritesProvider with ChangeNotifier {
     await (_loadFuture ??= _loadFromPreferences());
   }
 
+  /// Alias used after login/registration to refresh saved favorites.
+  Future<void> fetchFavorites() => loadFavorites();
+
   Future<void> _loadFromPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();

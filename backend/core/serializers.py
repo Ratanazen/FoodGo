@@ -110,6 +110,13 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'food_item', 'food_name', 'food_name_snapshot', 'quantity', 'price', 'special_instructions']
         read_only_fields = ['id', 'price', 'food_name']
 
+ACTIVE_DRIVER_DELIVERY_STATUSES = (
+    'assigned', 'accepted', 'arrived_at_restaurant',
+    'preparing', 'ready_for_pickup', 'picked_up',
+    'on_the_way', 'out_for_delivery', 'in_transit', 'arrived',
+)
+
+
 class DriverSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
@@ -120,18 +127,22 @@ class DriverSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email', read_only=True)
     rating = serializers.FloatField(default=4.9, read_only=True)
     today_earnings = serializers.SerializerMethodField()
+    active_deliveries_count = serializers.SerializerMethodField()
+    operational_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Driver
         fields = [
             'id', 'user_id', 'username', 'full_name', 'phone', 'is_phone_verified',
             'phone_verified_at', 'email', 'vehicle_type', 'license_plate',
-            'is_online', 'is_approved', 'operational_status', 'total_deliveries',
-            'total_earnings', 'today_earnings', 'current_lat', 'current_lng', 'rating',
+            'is_online', 'is_approved', 'operational_status', 'active_deliveries_count',
+            'total_deliveries', 'total_earnings', 'today_earnings',
+            'current_lat', 'current_lng', 'rating',
         ]
         read_only_fields = [
             'id', 'user_id', 'username', 'email', 'is_approved', 'is_phone_verified',
-            'phone_verified_at', 'total_deliveries', 'total_earnings', 'today_earnings'
+            'phone_verified_at', 'operational_status', 'active_deliveries_count',
+            'total_deliveries', 'total_earnings', 'today_earnings'
         ]
 
     def get_full_name(self, obj):
@@ -140,6 +151,20 @@ class DriverSerializer(serializers.ModelSerializer):
 
     def get_phone(self, obj):
         return obj.user.phone or '+855 12 888 999'
+
+    def get_active_deliveries_count(self, obj):
+        return obj.deliveries.filter(
+            status__in=ACTIVE_DRIVER_DELIVERY_STATUSES
+        ).exclude(order__status__in=('delivered', 'cancelled')).count()
+
+    def get_operational_status(self, obj):
+        if not obj.is_online:
+            return 'offline'
+        if obj.operational_status in ('available', 'busy'):
+            return obj.operational_status
+        if self.get_active_deliveries_count(obj) > 0:
+            return 'busy'
+        return 'available'
 
     def get_today_earnings(self, obj):
         from django.utils import timezone
@@ -170,11 +195,7 @@ class DriverSerializer(serializers.ModelSerializer):
                 request and request.user and request.user.is_authenticated and
                 instance.deliveries.filter(
                     order__customer=request.user,
-                    status__in=(
-                        'assigned', 'accepted', 'arrived_at_restaurant',
-                        'preparing', 'ready_for_pickup', 'picked_up',
-                        'on_the_way', 'out_for_delivery', 'in_transit', 'arrived',
-                    ),
+                    status__in=ACTIVE_DRIVER_DELIVERY_STATUSES,
                 ).exists()
             )
             if not is_active_customer:
@@ -407,12 +428,17 @@ class CartSerializer(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(required=True)
-    
+    phone = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     role = serializers.CharField(required=False, default='customer')
+    vehicle_type = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    license_plate = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'phone', 'role']
+        fields = [
+            'username', 'email', 'password', 'first_name', 'last_name',
+            'phone', 'role', 'vehicle_type', 'license_plate',
+        ]
 
     def validate_role(self, value):
         val = (value or 'customer').strip().lower()
@@ -440,33 +466,39 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         if len(value) < 6:
             raise serializers.ValidationError("Password must be at least 6 characters.")
         return value
-        
+
     def create(self, validated_data):
         selected_role = validated_data.get('role', 'customer')
         if selected_role not in ['customer', 'driver', 'restaurant_owner']:
             selected_role = 'customer'
-            
+
+        vehicle_type = (validated_data.pop('vehicle_type', '') or '').strip() or 'Motorcycle'
+        license_plate = (validated_data.pop('license_plate', '') or '').strip() or 'PP-2026'
+        raw_phone = (validated_data.get('phone') or '').strip()
+
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', '').lower(),
             password=validated_data['password'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
+            first_name=(validated_data.get('first_name') or '').strip(),
+            last_name=(validated_data.get('last_name') or '').strip(),
             role=selected_role
         )
-        if 'phone' in validated_data and validated_data['phone']:
-            user.phone = validated_data['phone']
+        if raw_phone:
+            user.phone = raw_phone
             user.save(update_fields=['phone'])
-            
+
+        Wallet.objects.get_or_create(user=user)
+
         if selected_role == 'driver':
-            from .models import Driver
             Driver.objects.get_or_create(
                 user=user,
                 defaults={
-                    'vehicle_type': 'Motorcycle',
-                    'license_plate': 'PP-2026',
+                    'vehicle_type': vehicle_type,
+                    'license_plate': license_plate,
                     'is_online': True,
                     'is_approved': True,
+                    'operational_status': 'available',
                 }
             )
         return user

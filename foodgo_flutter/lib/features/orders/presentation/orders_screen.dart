@@ -62,7 +62,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     try {
       final hasToken = await SecureStorage().hasAccessToken();
       if (!hasToken) return;
-      final data = await ApiService().get('orders/');
+      final data = await ApiService().get('orders/?mine=true');
       final List<dynamic> orders = data is List
           ? data
           : (data['results'] as List<dynamic>? ?? []);
@@ -233,7 +233,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         });
         return;
       }
-      final data = await ApiService().get('orders/');
+      final data = await ApiService().get('orders/?mine=true');
       final List<dynamic> orders = data is List
           ? data
           : (data['results'] as List<dynamic>? ?? []);

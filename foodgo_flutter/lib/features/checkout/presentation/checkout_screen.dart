@@ -190,14 +190,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             'rating': 4.9,
             'phone': '+855 12 888 999',
             'is_online': true,
+            'operational_status': 'available',
           },
           {
-            'id': 3,
+            'id': 2,
             'full_name': 'Sophea Swift',
             'vehicle_type': 'Scooter (Yamaha Fazzio 125)',
             'rating': 5.0,
             'phone': '+855 12 777 666',
             'is_online': true,
+            'operational_status': 'available',
           },
         ];
         _isLoadingDrivers = false;
@@ -1239,6 +1241,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   final vehicle = driver['vehicle_type'] ?? 'Motorcycle';
                   final plate = driver['license_plate'] ?? 'PP-2026';
                   final rating = driver['rating']?.toString() ?? '4.9';
+                  final opStatus = (driver['operational_status'] ?? 'available')
+                      .toString()
+                      .toLowerCase();
+                  final isBusy = opStatus == 'busy';
+                  final statusBadgeColor = isBusy ? ratingColor : accentGreen;
                   final isSelected = _selectedDriverId == driverId;
 
                   return Padding(
@@ -1329,6 +1336,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                                   ),
                                             ),
                                           ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusBadgeColor.withValues(
+                                            alpha: 0.14,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          isBusy
+                                              ? context.tr(
+                                                  'checkout.driverBusy',
+                                                  fallback:
+                                                      'Busy · On Delivery',
+                                                )
+                                              : context.tr(
+                                                  'checkout.driverAvailable',
+                                                  fallback: 'Available',
+                                                ),
+                                          style: textTheme.labelSmall?.copyWith(
+                                            color: statusBadgeColor,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                       ),
                                     ],

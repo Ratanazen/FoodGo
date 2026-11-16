@@ -264,5 +264,28 @@ void main() {
         );
       },
     );
+
+    testWidgets(
+      'DriverDashboardScreen reflects Busy delivering status, Order Food action, and Profile store shortcut',
+      (tester) async {
+        await tester.pumpWidget(buildDriverDashboard(active: [sampleOrder]));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byTooltip('Order Food'), findsOneWidget);
+        expect(find.text('Busy · Delivering (1)'), findsOneWidget);
+
+        await tester.tap(find.text('Profile'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.scrollUntilVisible(
+          find.text('Browse Menu & Order Food'),
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
+        expect(find.text('Browse Menu & Order Food'), findsOneWidget);
+      },
+    );
   });
 }

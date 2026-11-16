@@ -1,6 +1,9 @@
 from decimal import Decimal
 from django.core.management.base import BaseCommand
-from core.models import User, Address, Wallet, Restaurant, RestaurantCategory, FoodCategory, FoodItem
+from core.models import (
+    User, Address, Wallet, Restaurant, RestaurantCategory,
+    FoodCategory, FoodItem, Driver, Order, Delivery,
+)
 
 class Command(BaseCommand):
     help = 'Seeds the database with a full, rich food delivery menu across restaurants, categories, and demo user accounts'
@@ -75,7 +78,25 @@ class Command(BaseCommand):
         )
         driver1.set_password('driver123')
         driver1.role = 'driver'
+        if not driver1.phone:
+            driver1.phone = '+855 12 888 999'
+        driver1.is_phone_verified = True
         driver1.save()
+
+        driver1_profile, _ = Driver.objects.get_or_create(
+            user=driver1,
+            defaults={
+                'vehicle_type': 'Motorcycle (Honda Wave)',
+                'license_plate': 'PP-2026',
+                'is_online': True,
+                'is_approved': True,
+                'current_lat': Decimal('11.556400'),
+                'current_lng': Decimal('104.928200'),
+            }
+        )
+        if not driver1_profile.is_approved:
+            driver1_profile.is_approved = True
+            driver1_profile.save(update_fields=['is_approved'])
 
         # Customer wallet
         for target_user in [customer1, user_rat]:
@@ -283,6 +304,30 @@ class Command(BaseCommand):
                         'is_available': True
                     }
                 )
+
+        # Ensure customer1 has at least one active assigned order for live tracking & QR demos
+        if r1 and not Order.objects.filter(
+            customer=customer1,
+            status__in=['confirmed', 'driver_assigned', 'driver_accepted', 'preparing', 'ready_for_pickup', 'picked_up', 'on_the_way', 'out_for_delivery', 'driver_arrived']
+        ).exists():
+            default_addr = Address.objects.filter(user=customer1).first()
+            demo_order = Order.objects.create(
+                customer=customer1,
+                restaurant=r1,
+                address=default_addr,
+                delivery_address_snapshot=default_addr.street if default_addr else 'Street 308, Tonle Bassac',
+                status='on_the_way',
+                payment_status='UNPAID',
+                payment_method='COD',
+                subtotal=Decimal('10.49'),
+                delivery_fee_charged=Decimal('1.50'),
+                total_amount=Decimal('11.99'),
+            )
+            Delivery.objects.create(
+                order=demo_order,
+                driver=driver1_profile,
+                status='on_the_way',
+            )
 
         self.stdout.write(self.style.SUCCESS(f'Successfully seeded {FoodItem.objects.count()} food items with high-res photos across {FoodCategory.objects.count()} categories and {Restaurant.objects.count()} restaurants!'))
         self.stdout.write('\n' + '='*60)

@@ -43,11 +43,13 @@ class GlassBottomNavigation extends StatelessWidget {
                   height: 68,
                   decoration: BoxDecoration(
                     color: isDark ? null : Colors.white.withValues(alpha: 0.96),
-                    gradient: isDark ? GlassTheme.liquidSurfaceDark : null,
+                    gradient: isDark
+                        ? GlassTheme.dynamicLiquidSurfaceDark
+                        : null,
                     borderRadius: BorderRadius.circular(38),
                     border: Border.all(
                       color: isDark
-                          ? GlassTheme.borderDark
+                          ? GlassTheme.dynamicBorderDark
                           : const Color(0xFFE5E7EB),
                       width: 1.2,
                     ),

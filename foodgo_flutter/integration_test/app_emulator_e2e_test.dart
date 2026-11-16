@@ -392,7 +392,8 @@ void main() {
               await tester.ensureVisible(finder.first);
               await tester.pump(const Duration(milliseconds: 250));
               if (avoidBottomOverlay &&
-                  verticalScrollable.evaluate().isNotEmpty) {
+                  verticalScrollable.evaluate().isNotEmpty &&
+                  finder.evaluate().first.renderObject is RenderBox) {
                 final h =
                     tester.view.physicalSize.height /
                     tester.view.devicePixelRatio;
@@ -449,11 +450,30 @@ void main() {
         }
 
         Future<void> logoutFromHomeProfile() async {
-          await _pumpUntil(
-            tester,
-            () => find.byTooltip('Profile').evaluate().isNotEmpty,
+          final verticalScrollable = find.byWidgetPredicate(
+            (w) =>
+                w is Scrollable &&
+                w.axisDirection == AxisDirection.down &&
+                w.restorationId != 'editable',
           );
-          await tester.tap(find.byTooltip('Profile').first);
+          final deadline = DateTime.now().add(const Duration(seconds: 25));
+          while (DateTime.now().isBefore(deadline) &&
+              find.byTooltip('Profile').evaluate().isEmpty) {
+            if (find.text('Profile').evaluate().isNotEmpty) break;
+            if (verticalScrollable.evaluate().isNotEmpty) {
+              await tester.drag(verticalScrollable.first, const Offset(0, 260));
+            }
+            await tester.pump(const Duration(milliseconds: 250));
+          }
+          if (find.byTooltip('Profile').evaluate().isNotEmpty) {
+            await tester.ensureVisible(find.byTooltip('Profile').first);
+            await tester.pump(const Duration(milliseconds: 150));
+            await tester.tap(find.byTooltip('Profile').first);
+          } else if (find.text('Profile').evaluate().isNotEmpty) {
+            await tester.tap(find.text('Profile').last);
+          } else {
+            throw TestFailure('Profile button not found on HomeScreen');
+          }
           await _pumpUntil(
             tester,
             () => find.text('Edit Profile').evaluate().isNotEmpty,
@@ -969,6 +989,7 @@ void main() {
         expect(uiCustMe.statusCode, equals(200));
         expect(uiCustMe.data['username'], equals(uiCustUser));
         expect(uiCustMe.data['role'], equals('customer'));
+        await scrollUntilFound(find.byTooltip('Profile'), stepY: 320);
         await logoutFromHomeProfile();
         await uiCustDio.delete('auth/delete-account/');
 

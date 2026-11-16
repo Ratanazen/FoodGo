@@ -663,40 +663,61 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  AnimatedPressable(
-                    onTap: () => context.push('/profile'),
-                    pressedScale: 0.92,
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
+                  Tooltip(
+                    message: 'Profile',
+                    child: AnimatedPressable(
+                      onTap: () => context.push('/profile'),
+                      pressedScale: 0.92,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
                         ),
-                      ),
-                      child: ClipOval(
-                        child:
-                            avatarUrl != null && avatarUrl.toString().isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: avatarUrl.toString(),
-                                fit: BoxFit.cover,
-                                placeholder: (ctx, url) => Container(
-                                  color: Colors.grey[200],
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
+                        child: ClipOval(
+                          child:
+                              avatarUrl != null &&
+                                  avatarUrl.toString().isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: avatarUrl.toString(),
+                                  fit: BoxFit.cover,
+                                  placeholder: (ctx, url) => Container(
+                                    color: Colors.grey[200],
+                                    alignment: Alignment.center,
+                                    child: SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                errorWidget: (ctx, url, err) => Container(
+                                  errorWidget: (ctx, url, err) => Container(
+                                    color: Theme.of(context).colorScheme.primary
+                                        .withValues(alpha: 0.15),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      initials,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ),
+                                )
+                              : Container(
                                   color: Theme.of(
                                     context,
                                   ).colorScheme.primary.withValues(alpha: 0.15),
@@ -714,23 +735,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                   ),
                                 ),
-                              )
-                            : Container(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.15),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  initials,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                              ),
+                        ),
                       ),
                     ),
                   ),
@@ -2019,6 +2024,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         return SliverGrid(
+          key: const Key('home_restaurant_grid'),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             childAspectRatio: childAspectRatio,

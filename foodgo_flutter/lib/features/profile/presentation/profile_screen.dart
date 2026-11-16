@@ -83,11 +83,16 @@ class ProfileScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              onPressed: () {
+              onPressed: () async {
+                final authProvider = context.read<AuthProvider>();
+                final userProvider = context.read<UserProvider>();
+                final router = GoRouter.of(context);
+                final messenger = ScaffoldMessenger.maybeOf(context);
                 Navigator.pop(dialogCtx);
-                context.read<AuthProvider>().logout();
-                context.read<UserProvider>().clearUser();
-                context.go('/login');
+                await authProvider.logout();
+                messenger?.clearSnackBars();
+                userProvider.clearUser();
+                router.go('/login');
               },
               child: Text(
                 context.tr('auth.logout'),

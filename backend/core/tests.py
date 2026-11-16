@@ -61,6 +61,33 @@ class FoodGoCoreAPITests(TestCase):
         self.assertEqual(res.data['username'], 'new_customer')
         self.assertEqual(res.data['role'], 'customer')
 
+    def test_driver_registration_with_phone_and_long_phone_validation(self):
+        url = reverse('register')
+        driver_res = self.client.post(url, {
+            'username': 'new_driver_phone',
+            'email': 'new_driver_phone@foodgo.kh',
+            'password': 'SecurePass123!',
+            'first_name': 'Ratana',
+            'phone': '08889875230',
+            'role': 'driver',
+        }, format='json')
+        self.assertEqual(driver_res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(driver_res.data['role'], 'driver')
+        self.assertEqual(driver_res.data['phone'], '08889875230')
+        driver_user = User.objects.get(username='new_driver_phone')
+        self.assertTrue(Driver.objects.filter(user=driver_user).exists())
+        self.assertTrue(Wallet.objects.filter(user=driver_user).exists())
+
+        too_long_res = self.client.post(url, {
+            'username': 'too_long_phone_user',
+            'email': 'longphone@foodgo.kh',
+            'password': 'SecurePass123!',
+            'phone': '0' * 25,
+            'role': 'customer',
+        }, format='json')
+        self.assertEqual(too_long_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('phone', too_long_res.data)
+
     def test_jwt_token_obtain(self):
         url = reverse('token_obtain_pair')
         data = {

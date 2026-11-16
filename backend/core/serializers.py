@@ -1,6 +1,22 @@
+import re
+
 from django.utils import timezone
 from rest_framework import serializers
 from .models import *
+
+
+def _sanitize_phone_input(value):
+    """Normalize whitespace and enforce User.phone max_length=20."""
+    if value is None:
+        return ''
+    cleaned = re.sub(r'\s+', ' ', str(value)).strip()
+    if not cleaned:
+        return ''
+    compact = re.sub(r'[\s\-\.\(\)]', '', cleaned)
+    candidate = cleaned if len(cleaned) <= 20 else compact
+    if len(candidate) > 20:
+        raise serializers.ValidationError("Phone number must be 20 characters or fewer.")
+    return candidate
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
@@ -467,6 +483,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Password must be at least 6 characters.")
         return value
 
+    def validate_phone(self, value):
+        return _sanitize_phone_input(value)
+
     def create(self, validated_data):
         selected_role = validated_data.get('role', 'customer')
         if selected_role not in ['customer', 'driver', 'restaurant_owner']:
@@ -536,6 +555,9 @@ class DriverRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Password must be at least 6 characters.")
         return value
 
+    def validate_phone(self, value):
+        return _sanitize_phone_input(value)
+
     def create(self, validated_data):
         vehicle_type = validated_data.pop('vehicle_type', 'Motorcycle (Honda Wave)')
         license_plate = validated_data.pop('license_plate', 'PP-2026')
@@ -548,6 +570,7 @@ class DriverRegistrationSerializer(serializers.ModelSerializer):
             phone=validated_data.get('phone', ''),
             role='driver'
         )
+        Wallet.objects.get_or_create(user=user)
         Driver.objects.create(
             user=user,
             vehicle_type=vehicle_type,

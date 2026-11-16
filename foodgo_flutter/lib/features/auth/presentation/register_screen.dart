@@ -372,11 +372,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               color: isSelected ? Colors.white : secondaryText,
             ),
             const SizedBox(width: 6),
-            Text(
-              title,
-              style: textTheme.bodySmall?.copyWith(
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? Colors.white : primaryText,
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? Colors.white : primaryText,
+                  ),
+                ),
               ),
             ),
           ],

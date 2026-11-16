@@ -803,6 +803,74 @@ class EndToEndCustomerPaymentDriverMapFlowTests(TestCase):
         self.assertEqual(order_obj.payment_status, 'PAID')
         self.assertEqual(order_obj.status, 'confirmed')
 
+    def test_cod_order_with_picked_driver_and_driver_handover_confirmation(self):
+        # 1. Customer places COD order and explicitly picks driver in Checkout
+        self.client.force_authenticate(user=self.customer)
+        order_res = self.client.post(
+            '/api/orders/',
+            {
+                'restaurant': self.restaurant.id,
+                'address': self.address.id,
+                'driver_id': self.driver.id,
+                'items': [{'food_item': self.food.id, 'quantity': 2}],
+                'special_instructions': 'Call upon arrival COD',
+            },
+            format='json',
+        )
+        self.assertEqual(order_res.status_code, status.HTTP_201_CREATED)
+        order_id = order_res.data['id']
+        self.assertEqual(order_res.data['assigned_driver']['id'], self.driver.id)
+
+        pay_res = self.client.post(
+            '/api/payments/create/',
+            {'order_id': order_id, 'provider': 'COD', 'currency': 'USD'},
+            format='json',
+        )
+        self.assertEqual(pay_res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(pay_res.data['provider'], 'COD')
+        self.assertEqual(pay_res.data['status'], 'PENDING')
+
+        # Order stays confirmed / PENDING while delivery starts at 'assigned'
+        order_detail = self.client.get(f'/api/orders/{order_id}/')
+        self.assertEqual(order_detail.status_code, status.HTTP_200_OK)
+        self.assertEqual(order_detail.data['status'], 'confirmed')
+        self.assertEqual(order_detail.data['payment_status'], 'PENDING')
+        self.assertEqual(order_detail.data['assigned_driver']['status'], 'assigned')
+
+        # 2. Driver logs in and progresses the COD order through every dashboard step
+        self.client.force_authenticate(user=self.driver_user)
+        active_res = self.client.get('/api/drivers/active-deliveries/')
+        self.assertEqual(active_res.status_code, status.HTTP_200_OK)
+        active_ids = [o['id'] for o in active_res.data]
+        self.assertIn(order_id, active_ids)
+
+        arrive_rest = self.client.post(f'/api/drivers/orders/{order_id}/arrive-restaurant/')
+        self.assertEqual(arrive_rest.status_code, status.HTTP_200_OK)
+        active_after_arrive = self.client.get('/api/drivers/active-deliveries/')
+        cod_card = next(o for o in active_after_arrive.data if o['id'] == order_id)
+        self.assertEqual(cod_card['assigned_driver']['status'], 'arrived_at_restaurant')
+
+        pickup_res = self.client.post(f'/api/drivers/orders/{order_id}/pickup/')
+        self.assertEqual(pickup_res.status_code, status.HTTP_200_OK)
+        arrive_cust = self.client.post(f'/api/drivers/orders/{order_id}/arrive-customer/')
+        self.assertEqual(arrive_cust.status_code, status.HTTP_200_OK)
+
+        # 3. Driver confirms COD cash collection & delivery handover
+        deliver_res = self.client.post(
+            f'/api/drivers/orders/{order_id}/deliver/',
+            {'payment_collected': True},
+            format='json',
+        )
+        self.assertEqual(deliver_res.status_code, status.HTTP_200_OK)
+
+        order_obj = Order.objects.get(id=order_id)
+        self.assertEqual(order_obj.status, 'delivered')
+        self.assertEqual(order_obj.payment_status, 'PAID')
+        self.driver.refresh_from_db()
+        self.assertEqual(self.driver.total_deliveries, 1)
+        self.assertEqual(self.driver.total_earnings, Decimal('1.50'))
+
+
 
 
 

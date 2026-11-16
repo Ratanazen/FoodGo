@@ -336,6 +336,57 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     }
   }
 
+  /// Resolves the canonical delivery stage across both `order.status` and
+  /// `assigned_driver.status` / `delivery_token_info.delivery_status` so
+  /// pre-pickup COD/assigned orders and post-arrival updates advance cleanly.
+  String _effectiveDeliveryStatus(Map<String, dynamic> order) {
+    final rawOrderStatus = (order['status'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
+    final assignedDriver = order['assigned_driver'];
+    final tokenInfo = order['delivery_token_info'];
+    final rawDeliveryStatus =
+        (assignedDriver is Map ? assignedDriver['status']?.toString() : null) ??
+        (tokenInfo is Map ? tokenInfo['delivery_status']?.toString() : null) ??
+        '';
+    final deliveryStatus = rawDeliveryStatus.trim().toLowerCase();
+
+    if (rawOrderStatus == 'delivered' || deliveryStatus == 'delivered') {
+      return 'delivered';
+    }
+    if (rawOrderStatus == 'driver_arrived' ||
+        rawOrderStatus == 'arrived' ||
+        deliveryStatus == 'arrived' ||
+        deliveryStatus == 'driver_arrived') {
+      return 'driver_arrived';
+    }
+    const pickedUpSet = {
+      'picked_up',
+      'on_the_way',
+      'out_for_delivery',
+      'on_delivery',
+    };
+    if (pickedUpSet.contains(rawOrderStatus) ||
+        pickedUpSet.contains(deliveryStatus)) {
+      if (rawOrderStatus == 'picked_up' || deliveryStatus == 'picked_up') {
+        return rawOrderStatus == 'on_the_way' ? 'on_the_way' : 'picked_up';
+      }
+      return 'on_the_way';
+    }
+    if (deliveryStatus == 'arrived_at_restaurant' ||
+        rawOrderStatus == 'arrived_at_restaurant') {
+      return 'arrived_at_restaurant';
+    }
+    if (rawOrderStatus == 'ready' ||
+        rawOrderStatus == 'ready_for_pickup' ||
+        rawOrderStatus == 'preparing' ||
+        deliveryStatus == 'ready') {
+      return 'arrived_at_restaurant';
+    }
+    return 'assigned';
+  }
+
   Map<String, dynamic> _computeNextDriverTelemetry(dynamic deviceLoc) {
     if (deviceLoc != null) {
       return {
@@ -348,7 +399,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
     if (_activeOrders.isNotEmpty) {
       final order = _activeOrders.first;
-      final status = (order['status'] ?? 'assigned').toString();
+      final status = _effectiveDeliveryStatus(order);
       final rest = order['restaurant'] is Map ? order['restaurant'] : {};
       final addr = order['address'] is Map ? order['address'] : {};
       final restLat = double.tryParse(rest['lat']?.toString() ?? '') ?? 11.5564;
@@ -630,289 +681,299 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         child: GlassContainer(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: sheetIsDark ? Colors.white24 : Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Complete Delivery #$orderId',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: sheetPrimaryText,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (isUnpaid && isBankPayment) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.amber.withValues(alpha: 0.35),
+          child: Material(
+            type: MaterialType.transparency,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: sheetIsDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.qr_code_2, color: warningTextColor),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Bank QR Pending Verification',
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
-                                    color: warningTextColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Customer must complete payment in their banking app or scan the KHQR code before delivery.',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: sheetSecondaryText),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ] else if (isUnpaid && isCod) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.amber.withValues(alpha: 0.35),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Complete Delivery #$orderId',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: sheetPrimaryText,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.payments_outlined, color: warningTextColor),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Payment Due Upon Delivery',
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
-                                    color: warningTextColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                  const SizedBox(height: 8),
+                  if (isUnpaid && isBankPayment) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.qr_code_2, color: warningTextColor),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Bank QR Pending Verification',
+                                  style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(
+                                        color: warningTextColor,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Customer must complete payment in their banking app or scan the KHQR code before delivery.',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: sheetSecondaryText),
+                                ),
+                              ],
                             ),
-                            Text(
-                              'Collect \$${order['total_amount']} (≈ ${KhmerCurrency.formatKhr(double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0)}) cash from customer',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: sheetSecondaryText),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              Text(
-                'Select delivery verification method:',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
-              ),
-              const SizedBox(height: 14),
-              ListTile(
-                tileColor: GlassTheme.primaryGreen.withValues(alpha: 0.12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(
-                    color: GlassTheme.primaryGreen.withValues(alpha: 0.4),
-                  ),
-                ),
-                leading: const Icon(
-                  AppIcons.qrScan,
-                  color: GlassTheme.primaryGreen,
-                  size: 26,
-                ),
-                title: Text(
-                  'Scan Customer Delivery QR Code',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: sheetPrimaryText,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                subtitle: Text(
-                  'Scan QR from customer\'s FoodGo app or enter PIN',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
-                ),
-                trailing: const Icon(
-                  AppIcons.chevronRight,
-                  color: GlassTheme.primaryGreen,
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  DeliveryScannerModal.show(
-                    context,
-                    orderId: orderId,
-                    isDriver: true,
-                    onConfirmed: () => _fetchDashboardData(),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-              ListTile(
-                tileColor: sheetIsDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.04),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(
-                    color: sheetIsDark
-                        ? Colors.white10
-                        : Colors.black.withValues(alpha: 0.08),
-                  ),
-                ),
-                leading: Icon(AppIcons.qrCode, color: sheetSecondaryText),
-                title: Text(
-                  'Show Driver Handover QR',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: sheetPrimaryText,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: Text(
-                  'Customer scans code displayed on your screen',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
-                ),
-                trailing: Icon(
-                  AppIcons.chevronRight,
-                  color: sheetSecondaryText,
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  DeliveryQrModal.show(
-                    context,
-                    orderId: orderId,
-                    isDriver: true,
-                    onDelivered: () => _fetchDashboardData(),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-              ListTile(
-                tileColor: sheetIsDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.04),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(
-                    color: sheetIsDark
-                        ? Colors.white10
-                        : Colors.black.withValues(alpha: 0.08),
-                  ),
-                ),
-                leading: const Icon(
-                  AppIcons.checkCircle,
-                  color: GlassTheme.primaryGreen,
-                ),
-                title: Text(
-                  'Direct Handover Confirmation',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: sheetPrimaryText,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: Text(
-                  'Confirm package handed to customer directly',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
-                ),
-                trailing: Icon(
-                  AppIcons.chevronRight,
-                  color: sheetSecondaryText,
-                ),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  if (isBankPayment && isUnpaid) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Bank QR payment is still pending. Customer must complete payment before handover.',
-                        ),
-                        backgroundColor: Colors.amber,
-                      ),
-                    );
-                    return;
-                  }
-                  final isCashDue = isUnpaid && isCod;
-                  final confirmed = await _confirmDirectHandover(
-                    orderId: orderId,
-                    paymentDue: isCashDue,
-                    amount: order['total_amount']?.toString(),
-                  );
-                  if (!confirmed || !mounted) return;
-
-                  try {
-                    final response = await _api.post(
-                      'drivers/orders/$orderId/deliver/',
-                      {'payment_collected': isCashDue},
-                    );
-                    if (!mounted) return;
-                    final fee = response is Map ? response['fee_earned'] : null;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          fee != null
-                              ? 'Delivery confirmed by FoodGo. '
-                                    'Fee earned: \$$fee'
-                              : 'Delivery confirmed by FoodGo.',
-                        ),
-                        backgroundColor: GlassTheme.primaryGreen,
-                      ),
-                    );
-                    _fetchDashboardData();
-                  } catch (e) {
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ApiService.formatError(
-                            e,
-                            fallback:
-                                'FoodGo did not confirm this delivery. '
-                                'Nothing was marked complete — please retry.',
                           ),
-                        ),
-                        backgroundColor: Colors.redAccent,
+                        ],
                       ),
-                    );
-                  }
-                },
+                    ),
+                    const SizedBox(height: 16),
+                  ] else if (isUnpaid && isCod) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.payments_outlined,
+                            color: warningTextColor,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Payment Due Upon Delivery',
+                                  style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(
+                                        color: warningTextColor,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                                Text(
+                                  'Collect \$${order['total_amount']} (≈ ${KhmerCurrency.formatKhr(double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0.0)}) cash from customer',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: sheetSecondaryText),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Text(
+                    'Select delivery verification method:',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: sheetSecondaryText),
+                  ),
+                  const SizedBox(height: 14),
+                  ListTile(
+                    tileColor: GlassTheme.primaryGreen.withValues(alpha: 0.12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: GlassTheme.primaryGreen.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    leading: const Icon(
+                      AppIcons.qrScan,
+                      color: GlassTheme.primaryGreen,
+                      size: 26,
+                    ),
+                    title: Text(
+                      'Scan Customer Delivery QR Code',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: sheetPrimaryText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Scan QR from customer\'s FoodGo app or enter PIN',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: sheetSecondaryText,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      AppIcons.chevronRight,
+                      color: GlassTheme.primaryGreen,
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      DeliveryScannerModal.show(
+                        context,
+                        orderId: orderId,
+                        isDriver: true,
+                        onConfirmed: () => _fetchDashboardData(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  ListTile(
+                    tileColor: sheetIsDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.04),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: sheetIsDark
+                            ? Colors.white10
+                            : Colors.black.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    leading: Icon(AppIcons.qrCode, color: sheetSecondaryText),
+                    title: Text(
+                      'Show Driver Handover QR',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: sheetPrimaryText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Customer scans code displayed on your screen',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: sheetSecondaryText,
+                      ),
+                    ),
+                    trailing: Icon(
+                      AppIcons.chevronRight,
+                      color: sheetSecondaryText,
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      DeliveryQrModal.show(
+                        context,
+                        orderId: orderId,
+                        isDriver: true,
+                        onDelivered: () => _fetchDashboardData(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  ListTile(
+                    tileColor: sheetIsDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.04),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: sheetIsDark
+                            ? Colors.white10
+                            : Colors.black.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    leading: const Icon(
+                      AppIcons.checkCircle,
+                      color: GlassTheme.primaryGreen,
+                    ),
+                    title: Text(
+                      'Direct Handover Confirmation',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: sheetPrimaryText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Confirm package handed to customer directly',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: sheetSecondaryText,
+                      ),
+                    ),
+                    trailing: Icon(
+                      AppIcons.chevronRight,
+                      color: sheetSecondaryText,
+                    ),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      if (isBankPayment && isUnpaid) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Bank QR payment is still pending. Customer must complete payment before handover.',
+                            ),
+                            backgroundColor: Colors.amber,
+                          ),
+                        );
+                        return;
+                      }
+                      final isCashDue = isUnpaid && isCod;
+                      final confirmed = await _confirmDirectHandover(
+                        orderId: orderId,
+                        paymentDue: isCashDue,
+                        amount: order['total_amount']?.toString(),
+                      );
+                      if (!confirmed || !mounted) return;
+
+                      try {
+                        final response = await _api.post(
+                          'drivers/orders/$orderId/deliver/',
+                          {'payment_collected': isCashDue},
+                        );
+                        if (!mounted) return;
+                        final fee = response is Map
+                            ? response['fee_earned']
+                            : null;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              fee != null
+                                  ? 'Delivery confirmed by FoodGo. '
+                                        'Fee earned: \$$fee'
+                                  : 'Delivery confirmed by FoodGo.',
+                            ),
+                            backgroundColor: GlassTheme.primaryGreen,
+                          ),
+                        );
+                        _fetchDashboardData();
+                      } catch (e) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              ApiService.formatError(
+                                e,
+                                fallback:
+                                    'FoodGo did not confirm this delivery. '
+                                    'Nothing was marked complete — please retry.',
+                              ),
+                            ),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
         ),
       ),
@@ -958,39 +1019,43 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'This marks the order as delivered on FoodGo and cannot be '
-                  'undone from the app. Only continue once the customer has '
-                  'the package in hand.',
-                  style: textTheme.bodyMedium?.copyWith(color: secondaryText),
-                ),
-                if (paymentDue) ...[
-                  const SizedBox(height: 12),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    'Cash payment due: \$${amount ?? '—'}',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: primaryText,
-                    ),
+                    'This marks the order as delivered on FoodGo and cannot be '
+                    'undone from the app. Only continue once the customer has '
+                    'the package in hand.',
+                    style: textTheme.bodyMedium?.copyWith(color: secondaryText),
                   ),
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: cashCollected,
-                    onChanged: (value) {
-                      setDialogState(() => cashCollected = value ?? false);
-                    },
-                    title: Text(
-                      'I collected the cash payment from the customer',
-                      style: textTheme.bodyMedium?.copyWith(color: primaryText),
+                  if (paymentDue) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Cash payment due: \$${amount ?? '—'}',
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: primaryText,
+                      ),
                     ),
-                  ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: cashCollected,
+                      onChanged: (value) {
+                        setDialogState(() => cashCollected = value ?? false);
+                      },
+                      title: Text(
+                        'I collected the cash payment from the customer',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: primaryText,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
             actions: [
               TextButton(
@@ -1127,9 +1192,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
               ),
               onPressed: () async {
+                final messenger = ScaffoldMessenger.maybeOf(context);
                 Navigator.pop(dialogCtx);
                 await context.read<AuthProvider>().logout();
                 if (!context.mounted) return;
+                messenger?.clearSnackBars();
                 context.read<UserProvider>().clearUser();
                 context.go('/login');
               },
@@ -1151,7 +1218,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       appBar: GlassAppBar(
         title: context.tr('driver.dashboard'),
         leading: IconButton(
@@ -1189,6 +1256,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ),
         ),
         child: SafeArea(
+          top: false,
           child: ResponsiveWebContainer(
             maxWidth: 900,
             child: NestedScrollView(
@@ -1738,7 +1806,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   Widget _buildActiveOrderCard(Map<String, dynamic> order) {
-    final status = order['status']?.toString() ?? 'assigned';
+    final rawStatus = (order['status'] ?? 'assigned')
+        .toString()
+        .trim()
+        .toLowerCase();
+    final status = _effectiveDeliveryStatus(order);
+    final badgeStatus =
+        status == 'arrived_at_restaurant' &&
+            rawStatus != 'ready' &&
+            rawStatus != 'ready_for_pickup' &&
+            rawStatus != 'preparing'
+        ? status
+        : rawStatus;
     final rest = order['restaurant'] is Map
         ? order['restaurant']
         : {'name': order['restaurant_name'] ?? 'Restaurant'};
@@ -1786,6 +1865,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final amberTextColor = isDark ? Colors.amber : const Color(0xFFB45309);
 
     return GlassCard(
+      key: ValueKey('driver_order_card_${order['id']}'),
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1811,16 +1891,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(status).withValues(alpha: 0.2),
+                    color: _getStatusColor(badgeStatus).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: _getStatusColor(status).withValues(alpha: 0.5),
+                      color: _getStatusColor(
+                        badgeStatus,
+                      ).withValues(alpha: 0.5),
                     ),
                   ),
                   child: Text(
-                    _getStatusLabel(status),
+                    _getStatusLabel(badgeStatus),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: _getStatusColor(status),
+                      color: _getStatusColor(badgeStatus),
                       fontWeight: FontWeight.w700,
                     ),
                     maxLines: 2,
@@ -2487,14 +2569,23 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Color _getStatusColor(String status) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    switch (status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+      case 'confirmed':
       case 'accepted':
       case 'assigned':
+      case 'driver_assigned':
+      case 'driver_accepted':
         return Colors.blueAccent;
       case 'arrived_at_restaurant':
+      case 'preparing':
+      case 'ready':
+      case 'ready_for_pickup':
         return Colors.purpleAccent;
       case 'picked_up':
       case 'on_the_way':
+      case 'out_for_delivery':
+      case 'on_delivery':
         return isDark ? Colors.orangeAccent : const Color(0xFFC2410C);
       case 'arrived':
       case 'driver_arrived':
@@ -2507,17 +2598,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   String _getStatusLabel(String status) {
-    switch (status) {
+    switch (status.toLowerCase()) {
+      case 'driver_assigned':
+        return 'ASSIGNED';
+      case 'driver_accepted':
+        return 'ACCEPTED';
+      case 'ready_for_pickup':
+        return 'READY FOR PICKUP';
       case 'arrived_at_restaurant':
         return 'AT RESTAURANT';
       case 'picked_up':
       case 'on_the_way':
+      case 'out_for_delivery':
+      case 'on_delivery':
         return 'ON THE WAY';
       case 'arrived':
       case 'driver_arrived':
         return 'AT DESTINATION';
       default:
-        return status.toUpperCase();
+        return status.replaceAll('_', ' ').toUpperCase();
     }
   }
 

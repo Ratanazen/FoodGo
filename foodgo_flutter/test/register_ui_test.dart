@@ -299,5 +299,88 @@ void main() {
         expect(mockAuth.registeredRole, 'driver');
       },
     );
+
+    testWidgets(
+      'S22 384x823.5 portrait layout submits Customer registration without overflow or missed tap',
+      (tester) async {
+        final prevFatal = WidgetController.hitTestWarningShouldBeFatal;
+        WidgetController.hitTestWarningShouldBeFatal = true;
+        tester.view.physicalSize = const Size(384, 823.5);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          WidgetController.hitTestWarningShouldBeFatal = prevFatal;
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final mockAuth = MockAuthProviderForRegister();
+        final userProvider = MockUserProviderForRegister();
+
+        final router = GoRouter(
+          initialLocation: '/register',
+          routes: [
+            GoRoute(
+              path: '/register',
+              builder: (context, state) => const RegisterScreen(),
+            ),
+            GoRoute(
+              path: '/home',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Customer Home Screen')),
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: [
+              ChangeNotifierProvider<AuthProvider>.value(value: mockAuth),
+              ChangeNotifierProvider<UserProvider>.value(value: userProvider),
+            ],
+            child: MaterialApp.router(
+              routerConfig: router,
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(padding: const EdgeInsets.only(top: 36, bottom: 20)),
+                child: child!,
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+
+        final fields = find.byType(TextFormField);
+        await tester.enterText(fields.at(0), 'Sokha Customer');
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.enterText(fields.at(1), 'e2e_ui_cust_12345');
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.enterText(fields.at(2), 'e2e_ui_cust_12345@foodgo.kh');
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.enterText(fields.at(3), 'Password123!');
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.enterText(fields.at(4), '+855 12 311 222');
+        await tester.pump(const Duration(milliseconds: 100));
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.ensureVisible(find.text('Customer').first);
+        await tester.pump(const Duration(milliseconds: 250));
+        await tester.tap(find.text('Customer').first);
+        await tester.pump(const Duration(milliseconds: 300));
+
+        final createBtn = find.widgetWithText(ElevatedButton, 'Create Account');
+        await tester.ensureVisible(createBtn.first);
+        await tester.pump(const Duration(milliseconds: 250));
+        await tester.tap(createBtn.first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(mockAuth.registeredUsername, 'e2e_ui_cust_12345');
+        expect(mockAuth.registeredRole, 'customer');
+        expect(find.text('Customer Home Screen'), findsOneWidget);
+      },
+    );
   });
 }

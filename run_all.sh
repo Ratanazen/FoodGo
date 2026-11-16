@@ -16,18 +16,26 @@ if command -v fuser >/dev/null 2>&1; then
     fuser -k 8080/tcp 2>/dev/null || true
 fi
 if command -v lsof >/dev/null 2>&1; then
-    lsof -ti:8000 | xargs -r kill -9 2>/dev/null || true
-    lsof -ti:8080 | xargs -r kill -9 2>/dev/null || true
+    for port in 8000 8080; do
+        pids=$(lsof -ti:"$port" 2>/dev/null || true)
+        if [ -n "$pids" ]; then
+            kill -9 $pids 2>/dev/null || true
+        fi
+    done
 fi
 
-# Detect Python in virtualenv or system
+# Detect Python in virtualenv or system (Linux, macOS, Windows Git Bash)
 PYTHON_CMD="python"
 if [ -f "$PROJECT_ROOT/backend/venv/bin/python" ]; then
     PYTHON_CMD="$PROJECT_ROOT/backend/venv/bin/python"
+elif [ -f "$PROJECT_ROOT/backend/venv/Scripts/python.exe" ]; then
+    PYTHON_CMD="$PROJECT_ROOT/backend/venv/Scripts/python.exe"
 elif [ -f "$PROJECT_ROOT/backend/.venv/bin/python" ]; then
     PYTHON_CMD="$PROJECT_ROOT/backend/.venv/bin/python"
 elif [ -f "$PROJECT_ROOT/.venv/bin/python" ]; then
     PYTHON_CMD="$PROJECT_ROOT/.venv/bin/python"
+elif [ -f "$PROJECT_ROOT/.venv/Scripts/python.exe" ]; then
+    PYTHON_CMD="$PROJECT_ROOT/.venv/Scripts/python.exe"
 elif command -v python3 >/dev/null 2>&1; then
     PYTHON_CMD="python3"
 fi
@@ -85,6 +93,7 @@ echo "============================================================"
 echo "   Backend API:      http://127.0.0.1:8000"
 echo "   API Landing:      http://127.0.0.1:8000/api/"
 echo "   Admin Portal:     http://127.0.0.1:8000/admin/"
+echo "   Items Portal:     http://127.0.0.1:8000/items-portal/"
 echo "   Flutter Web App:  http://127.0.0.1:8080"
 echo "============================================================"
 echo "DEMO LOGIN CREDENTIALS:"

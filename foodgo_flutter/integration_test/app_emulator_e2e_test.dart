@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:foodgo_flutter/app/router/app_router.dart';
 import 'package:foodgo_flutter/core/config/app_config.dart';
 import 'package:foodgo_flutter/core/storage/secure_storage.dart';
+import 'package:foodgo_flutter/features/restaurants/presentation/restaurant_details_screen.dart';
 import 'package:foodgo_flutter/main.dart' as app;
 import 'package:foodgo_flutter/services/api_service.dart';
 
@@ -371,6 +372,651 @@ void main() {
           'orders/$driverBuyId/cancel/',
           data: {'reason': 'E2E test cleanup'},
         );
+
+        // Helper for vertical scrolling + safe tapping inside real scrollable screens
+        Future<void> scrollUntilFound(
+          Finder finder, {
+          Duration timeout = const Duration(seconds: 20),
+          double stepY = -180,
+          bool avoidBottomOverlay = false,
+        }) async {
+          final verticalScrollable = find.byWidgetPredicate(
+            (w) =>
+                w is Scrollable &&
+                w.axisDirection == AxisDirection.down &&
+                w.restorationId != 'editable',
+          );
+          final deadline = DateTime.now().add(timeout);
+          while (DateTime.now().isBefore(deadline)) {
+            if (finder.evaluate().isNotEmpty) {
+              await tester.ensureVisible(finder.first);
+              await tester.pump(const Duration(milliseconds: 250));
+              if (avoidBottomOverlay &&
+                  verticalScrollable.evaluate().isNotEmpty) {
+                final h =
+                    tester.view.physicalSize.height /
+                    tester.view.devicePixelRatio;
+                final dy = tester.getCenter(finder.first).dy;
+                if (dy > h * 0.52) {
+                  await tester.drag(
+                    verticalScrollable.last,
+                    const Offset(0, -180),
+                  );
+                  await tester.pump(const Duration(milliseconds: 250));
+                } else if (dy < h * 0.22) {
+                  await tester.drag(
+                    verticalScrollable.last,
+                    const Offset(0, 140),
+                  );
+                  await tester.pump(const Duration(milliseconds: 250));
+                }
+              }
+              return;
+            }
+            if (verticalScrollable.evaluate().isNotEmpty) {
+              await tester.drag(verticalScrollable.last, Offset(0, stepY));
+            }
+            await tester.pump(const Duration(milliseconds: 250));
+          }
+          throw TestFailure('Could not scroll to $finder within $timeout');
+        }
+
+        Future<void> loginViaUi(String username, String password) async {
+          await _pumpUntil(
+            tester,
+            () =>
+                find.byType(TextFormField).evaluate().length >= 2 &&
+                find
+                    .widgetWithText(ElevatedButton, 'Sign In')
+                    .evaluate()
+                    .isNotEmpty,
+          );
+          final fields = find.byType(TextFormField);
+          await tester.enterText(fields.at(0), username);
+          await tester.pump(const Duration(milliseconds: 100));
+          await tester.enterText(fields.at(1), password);
+          await tester.pump(const Duration(milliseconds: 100));
+          FocusManager.instance.primaryFocus?.unfocus();
+          for (var i = 0; i < 6; i++) {
+            await tester.pump(const Duration(milliseconds: 150));
+          }
+          final signInBtn = find
+              .widgetWithText(ElevatedButton, 'Sign In')
+              .first;
+          await tester.ensureVisible(signInBtn);
+          await tester.pump(const Duration(milliseconds: 200));
+          await tester.tap(signInBtn);
+        }
+
+        Future<void> logoutFromHomeProfile() async {
+          await _pumpUntil(
+            tester,
+            () => find.byTooltip('Profile').evaluate().isNotEmpty,
+          );
+          await tester.tap(find.byTooltip('Profile').first);
+          await _pumpUntil(
+            tester,
+            () => find.text('Edit Profile').evaluate().isNotEmpty,
+          );
+          await scrollUntilFound(find.text('Logout'), avoidBottomOverlay: true);
+          await tester.tap(find.text('Logout').last);
+          await _pumpUntil(
+            tester,
+            () => find.text('Log Out').evaluate().isNotEmpty,
+          );
+          await tester.tap(find.text('Log Out').last);
+          await _pumpUntil(
+            tester,
+            () => find
+                .widgetWithText(ElevatedButton, 'Sign In')
+                .evaluate()
+                .isNotEmpty,
+          );
+        }
+
+        Future<Dio> apiSessionFor(String username, String password) async {
+          final dio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl));
+          final login = await dio.post(
+            'auth/login/',
+            data: {'username': username, 'password': password},
+          );
+          dio.options.headers['Authorization'] =
+              'Bearer ${login.data['access']}';
+          return dio;
+        }
+
+        // 14. Full Customer UI -> COD Checkout + Pick Driver -> Logout -> Driver Login & Confirm UI
+        appRouter.go('/home');
+        await tester.pump(const Duration(milliseconds: 400));
+        await logoutFromHomeProfile();
+
+        // A. Customer logs in via LoginScreen UI
+        await loginViaUi('customer1', 'customer123');
+        await _pumpUntil(
+          tester,
+          () => find.byTooltip('Profile').evaluate().isNotEmpty,
+        );
+        await tester.pump(const Duration(milliseconds: 1000));
+
+        // B. Open Glass Burger from HomeScreen -> Add menu item -> View Cart -> Checkout
+        final homeGlassBurgerFinder = find.descendant(
+          of: find.byKey(const Key('home_restaurant_grid')),
+          matching: find.text('Glass Burger'),
+        );
+        await scrollUntilFound(homeGlassBurgerFinder, avoidBottomOverlay: true);
+        debugPrint(
+          'E2E tapping Glass Burger at ${tester.getCenter(homeGlassBurgerFinder.first)}',
+        );
+        await tester.tap(homeGlassBurgerFinder.first);
+        await tester.pump(const Duration(milliseconds: 600));
+        debugPrint(
+          'E2E after Glass Burger tap uri=${appRouter.routerDelegate.currentConfiguration.uri}',
+        );
+
+        await _pumpUntil(
+          tester,
+          () => find.byType(RestaurantDetailsScreen).evaluate().isNotEmpty,
+        );
+        await _pumpUntil(
+          tester,
+          () =>
+              find.text('All').evaluate().isNotEmpty ||
+              find.text('Restaurant not found').evaluate().isNotEmpty,
+        );
+        expect(find.text('Restaurant not found'), findsNothing);
+
+        await scrollUntilFound(
+          find.text('Classic Double Smash Cheeseburger'),
+          avoidBottomOverlay: true,
+        );
+        await tester.tap(find.text('Classic Double Smash Cheeseburger').first);
+        await tester.pump(const Duration(milliseconds: 500));
+
+        await _pumpUntil(
+          tester,
+          () => find.textContaining('Add to Cart').evaluate().isNotEmpty,
+        );
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.ensureVisible(find.textContaining('Add to Cart').first);
+        await tester.pump(const Duration(milliseconds: 250));
+        await tester.tap(find.textContaining('Add to Cart').first);
+        await tester.pump(const Duration(milliseconds: 350));
+
+        await _pumpUntil(
+          tester,
+          () => find.text('View your cart').evaluate().isNotEmpty,
+        );
+        // Wait for default 4s SnackBar to clear cleanly before tapping FloatingMiniCartBar
+        for (var i = 0; i < 18; i++) {
+          await tester.pump(const Duration(milliseconds: 250));
+        }
+        await tester.tap(find.text('View your cart').first);
+        await tester.pump(const Duration(milliseconds: 500));
+
+        await _pumpUntil(
+          tester,
+          () => find.text('Proceed to Checkout').evaluate().isNotEmpty,
+        );
+        await scrollUntilFound(
+          find.text('Proceed to Checkout'),
+          avoidBottomOverlay: true,
+        );
+        await tester.tap(find.text('Proceed to Checkout').first);
+        await tester.pump(const Duration(milliseconds: 600));
+
+        // C. CheckoutScreen: pick driver Bob Rider + choose COD -> Place Order (COD)
+        await _pumpUntil(
+          tester,
+          () => find.text('Choose Delivery Driver').evaluate().isNotEmpty,
+        );
+        await _pumpUntil(
+          tester,
+          () => find.text('Bob Rider').evaluate().isNotEmpty,
+        );
+        await scrollUntilFound(
+          find.text('Bob Rider'),
+          avoidBottomOverlay: true,
+        );
+        await tester.tap(find.text('Bob Rider').first);
+        await tester.pump(const Duration(milliseconds: 250));
+
+        await scrollUntilFound(
+          find.text('Cash on Delivery / COD (ទូទាត់ពេលដឹកដល់)'),
+          avoidBottomOverlay: true,
+        );
+        await tester.tap(
+          find.text('Cash on Delivery / COD (ទូទាត់ពេលដឹកដល់)').first,
+        );
+        await tester.pump(const Duration(milliseconds: 250));
+        await _pumpUntil(
+          tester,
+          () => find.textContaining('Place Order (COD)').evaluate().isNotEmpty,
+        );
+        final placeCodBtn = find.textContaining('Place Order (COD)').first;
+        await tester.ensureVisible(placeCodBtn);
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.tap(placeCodBtn);
+
+        await _pumpUntil(
+          tester,
+          () => find.text('Order Placed!').evaluate().isNotEmpty,
+        );
+
+        final codCustomerDio = await apiSessionFor('customer1', 'customer123');
+        final custOrdersRes = await codCustomerDio.get('orders/?mine=true');
+        expect(custOrdersRes.statusCode, equals(200));
+        final rawOrders = custOrdersRes.data is List
+            ? custOrdersRes.data as List
+            : (custOrdersRes.data['results'] as List? ?? []);
+        expect(rawOrders, isNotEmpty);
+        final custOrders =
+            rawOrders
+                .whereType<Map>()
+                .map((e) => Map<String, dynamic>.from(e))
+                .toList()
+              ..sort(
+                (a, b) =>
+                    ((b['id'] as num?) ?? 0).compareTo((a['id'] as num?) ?? 0),
+              );
+        final codOrder = custOrders.first;
+        final codOrderId = codOrder['id'];
+        expect(codOrder['payment_info']?['provider'], equals('COD'));
+        expect(codOrder['payment_status'], equals('PENDING'));
+        expect(codOrder['assigned_driver']?['name'], equals('Bob Rider'));
+
+        // D. Customer returns Home -> Profile -> Logs Out via UI
+        await _pumpUntil(
+          tester,
+          () => find.text('Back to Home').evaluate().isNotEmpty,
+        );
+        await tester.ensureVisible(find.text('Back to Home').first);
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.tap(find.text('Back to Home').first);
+        await logoutFromHomeProfile();
+
+        // E. Driver logs in via LoginScreen UI -> DriverDashboardScreen
+        await loginViaUi('driver1', 'driver123');
+        final codCardFinder = find.byKey(
+          ValueKey('driver_order_card_$codOrderId'),
+        );
+        await _pumpUntil(
+          tester,
+          () =>
+              find.text('Driver Portal').evaluate().isNotEmpty &&
+              codCardFinder.evaluate().isNotEmpty,
+        );
+        expect(
+          find.descendant(
+            of: codCardFinder,
+            matching: find.text('CASH DUE ON DELIVERY'),
+          ),
+          findsOneWidget,
+        );
+
+        Future<void> bringDriverActionIntoView(Finder target) async {
+          await _pumpUntil(tester, () => target.evaluate().isNotEmpty);
+          final h =
+              tester.view.physicalSize.height / tester.view.devicePixelRatio;
+          final verticalScrollable = find.byWidgetPredicate(
+            (w) =>
+                w is Scrollable &&
+                w.axisDirection == AxisDirection.down &&
+                w.restorationId != 'editable',
+          );
+          for (var i = 0; i < 20; i++) {
+            if (target.evaluate().isEmpty) break;
+            final dy = tester.getCenter(target.first).dy;
+            if (dy >= 180 && dy <= h - 160) {
+              return;
+            }
+            final enclosing = find.ancestor(
+              of: target.first,
+              matching: verticalScrollable,
+            );
+            final scroller = enclosing.evaluate().isNotEmpty
+                ? enclosing.first
+                : (verticalScrollable.evaluate().isNotEmpty
+                      ? verticalScrollable.last
+                      : null);
+            if (scroller == null) break;
+            final totalDelta = dy > h - 160 ? -100.0 : 100.0;
+            final gesture = await tester.startGesture(
+              tester.getCenter(scroller),
+            );
+            for (var s = 0; s < 4; s++) {
+              await gesture.moveBy(Offset(0, totalDelta / 4));
+              await tester.pump(const Duration(milliseconds: 30));
+            }
+            await tester.pump(const Duration(milliseconds: 180));
+            await gesture.up();
+            await tester.pump(const Duration(milliseconds: 200));
+          }
+          final finalDy = tester.getCenter(target.first).dy;
+          expect(
+            finalDy,
+            inInclusiveRange(140.0, h - 100.0),
+            reason:
+                'Driver action button remained out of safe viewport (dy=$finalDy)',
+          );
+        }
+
+        Future<void> tapOrderStepButton(
+          String buttonLabel,
+          String nextLabel,
+        ) async {
+          final btnFinder = find.descendant(
+            of: codCardFinder,
+            matching: find.text(buttonLabel),
+          );
+          await bringDriverActionIntoView(btnFinder);
+          await tester.pump(const Duration(milliseconds: 200));
+          await tester.tap(btnFinder.first);
+          final nextFinder = find.descendant(
+            of: codCardFinder,
+            matching: find.text(nextLabel),
+          );
+          await _pumpUntil(tester, () => nextFinder.evaluate().isNotEmpty);
+        }
+
+        await tapOrderStepButton(
+          'Arrived at Restaurant',
+          'Confirm Food Picked Up',
+        );
+        await tapOrderStepButton(
+          'Confirm Food Picked Up',
+          'Arrived at Customer',
+        );
+        await tapOrderStepButton(
+          'Arrived at Customer',
+          'Complete Delivery Handover',
+        );
+
+        final completeBtn = find.descendant(
+          of: codCardFinder,
+          matching: find.text('Complete Delivery Handover'),
+        );
+        await bringDriverActionIntoView(completeBtn);
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.tap(completeBtn.first);
+
+        await _pumpUntil(
+          tester,
+          () =>
+              find
+                  .text('Complete Delivery #$codOrderId')
+                  .evaluate()
+                  .isNotEmpty &&
+              find.text('Payment Due Upon Delivery').evaluate().isNotEmpty,
+        );
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.ensureVisible(find.text('Direct Handover Confirmation'));
+        await tester.pump(const Duration(milliseconds: 250));
+        await tester.tap(find.text('Direct Handover Confirmation'));
+
+        await _pumpUntil(
+          tester,
+          () =>
+              find.text('Confirm delivery #$codOrderId').evaluate().isNotEmpty,
+        );
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.ensureVisible(
+          find.text('I collected the cash payment from the customer'),
+        );
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.tap(
+          find.text('I collected the cash payment from the customer'),
+        );
+        await tester.pump(const Duration(milliseconds: 250));
+        await tester.ensureVisible(find.text('Confirm delivered'));
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.tap(find.text('Confirm delivered'));
+
+        await _pumpUntil(tester, () => codCardFinder.evaluate().isEmpty);
+
+        // Verify final persisted state in backend DB after driver COD confirmation
+        final verifiedOrderRes = await codCustomerDio.get(
+          'orders/$codOrderId/',
+        );
+        expect(verifiedOrderRes.statusCode, equals(200));
+        expect(verifiedOrderRes.data['status'], equals('delivered'));
+        expect(verifiedOrderRes.data['payment_status'], equals('PAID'));
+
+        // 15. Driver Logs Out -> Real UI Create Account (Customer + Driver) & Restaurant Owner API Registration
+        Future<void> logoutFromDriverPortal() async {
+          await _pumpUntil(
+            tester,
+            () => find.byTooltip('Log Out').evaluate().isNotEmpty,
+          );
+          await tester.tap(find.byTooltip('Log Out').first);
+          await _pumpUntil(
+            tester,
+            () =>
+                find.text('Driver Log Out').evaluate().isNotEmpty &&
+                find
+                    .widgetWithText(ElevatedButton, 'Log Out')
+                    .evaluate()
+                    .isNotEmpty,
+          );
+          await tester.tap(
+            find.widgetWithText(ElevatedButton, 'Log Out').first,
+          );
+          await _pumpUntil(
+            tester,
+            () => find
+                .widgetWithText(ElevatedButton, 'Sign In')
+                .evaluate()
+                .isNotEmpty,
+          );
+        }
+
+        Future<void> registerViaUi({
+          required String fullName,
+          required String username,
+          required String email,
+          required String password,
+          required String phone,
+          required String roleLabel,
+          String? vehicleType,
+          String? licensePlate,
+        }) async {
+          await _pumpUntil(
+            tester,
+            () =>
+                find
+                    .widgetWithText(ElevatedButton, 'Sign In')
+                    .evaluate()
+                    .isNotEmpty &&
+                find.text('Sign Up').evaluate().isNotEmpty,
+          );
+          if (find.byType(Scaffold).evaluate().isNotEmpty) {
+            ScaffoldMessenger.maybeOf(
+              tester.element(find.byType(Scaffold).first),
+            )?.clearSnackBars();
+            await tester.pump(const Duration(milliseconds: 300));
+          }
+          await scrollUntilFound(
+            find.text('Sign Up'),
+            avoidBottomOverlay: true,
+          );
+          await tester.tap(find.text('Sign Up').first);
+
+          await _pumpUntil(
+            tester,
+            () =>
+                find
+                    .widgetWithText(ElevatedButton, 'Sign In')
+                    .evaluate()
+                    .isEmpty &&
+                find
+                    .widgetWithText(ElevatedButton, 'Create Account')
+                    .evaluate()
+                    .isNotEmpty &&
+                find
+                    .widgetWithText(TextFormField, 'Full Name')
+                    .evaluate()
+                    .isNotEmpty &&
+                find
+                    .widgetWithText(TextFormField, 'Password')
+                    .evaluate()
+                    .isNotEmpty,
+          );
+          await tester.enterText(
+            find.widgetWithText(TextFormField, 'Full Name'),
+            fullName,
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+          await tester.enterText(
+            find.widgetWithText(TextFormField, 'Username'),
+            username,
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+          await tester.enterText(
+            find.widgetWithText(TextFormField, 'Email Address'),
+            email,
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+          await tester.enterText(
+            find.widgetWithText(TextFormField, 'Password'),
+            password,
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+          await tester.enterText(
+            find.widgetWithText(TextFormField, 'Phone Number (Optional)'),
+            phone,
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+          FocusManager.instance.primaryFocus?.unfocus();
+          for (var i = 0; i < 6; i++) {
+            await tester.pump(const Duration(milliseconds: 150));
+          }
+
+          await scrollUntilFound(find.text(roleLabel));
+          await tester.tap(find.text(roleLabel).first);
+          await tester.pump(const Duration(milliseconds: 300));
+
+          if (roleLabel == 'Driver') {
+            await _pumpUntil(
+              tester,
+              () =>
+                  find
+                      .widgetWithText(TextFormField, 'Vehicle Type (Optional)')
+                      .evaluate()
+                      .isNotEmpty &&
+                  find
+                      .widgetWithText(TextFormField, 'License Plate (Optional)')
+                      .evaluate()
+                      .isNotEmpty,
+            );
+            if (vehicleType != null) {
+              final vehicleField = find.widgetWithText(
+                TextFormField,
+                'Vehicle Type (Optional)',
+              );
+              await tester.ensureVisible(vehicleField);
+              await tester.pump(const Duration(milliseconds: 150));
+              await tester.enterText(vehicleField, vehicleType);
+              await tester.pump(const Duration(milliseconds: 100));
+            }
+            if (licensePlate != null) {
+              final plateField = find.widgetWithText(
+                TextFormField,
+                'License Plate (Optional)',
+              );
+              await tester.ensureVisible(plateField);
+              await tester.pump(const Duration(milliseconds: 150));
+              await tester.enterText(plateField, licensePlate);
+              await tester.pump(const Duration(milliseconds: 100));
+            }
+            FocusManager.instance.primaryFocus?.unfocus();
+            for (var i = 0; i < 6; i++) {
+              await tester.pump(const Duration(milliseconds: 150));
+            }
+          }
+
+          final createBtn = find.widgetWithText(
+            ElevatedButton,
+            'Create Account',
+          );
+          await scrollUntilFound(createBtn);
+          await tester.tap(createBtn.first);
+        }
+
+        await logoutFromDriverPortal();
+
+        final regTs = DateTime.now().millisecondsSinceEpoch;
+        final uiCustUser = 'e2e_ui_cust_$regTs';
+        await registerViaUi(
+          fullName: 'Sokha Customer',
+          username: uiCustUser,
+          email: '$uiCustUser@foodgo.kh',
+          password: 'Password123!',
+          phone: '+855 12 311 222',
+          roleLabel: 'Customer',
+        );
+        await _pumpUntil(
+          tester,
+          () => find.byTooltip('Profile').evaluate().isNotEmpty,
+        );
+        await scrollUntilFound(
+          find.descendant(
+            of: find.byKey(const Key('home_restaurant_grid')),
+            matching: find.text('Glass Burger'),
+          ),
+          avoidBottomOverlay: true,
+        );
+        final uiCustDio = await apiSessionFor(uiCustUser, 'Password123!');
+        final uiCustMe = await uiCustDio.get('me/');
+        expect(uiCustMe.statusCode, equals(200));
+        expect(uiCustMe.data['username'], equals(uiCustUser));
+        expect(uiCustMe.data['role'], equals('customer'));
+        await logoutFromHomeProfile();
+        await uiCustDio.delete('auth/delete-account/');
+
+        final uiDriverUser = 'e2e_ui_drv_$regTs';
+        await registerViaUi(
+          fullName: 'Rithy Driver',
+          username: uiDriverUser,
+          email: '$uiDriverUser@foodgo.kh',
+          password: 'Password123!',
+          phone: '+855 12 411 333',
+          roleLabel: 'Driver',
+          vehicleType: 'Honda Click 125i',
+          licensePlate: 'PP-9E-2026',
+        );
+        await _pumpUntil(
+          tester,
+          () =>
+              find.text('Driver Portal').evaluate().isNotEmpty &&
+              find.byTooltip('Log Out').evaluate().isNotEmpty,
+        );
+        final uiDrvDio = await apiSessionFor(uiDriverUser, 'Password123!');
+        final uiDrvMe = await uiDrvDio.get('me/');
+        expect(uiDrvMe.statusCode, equals(200));
+        expect(uiDrvMe.data['username'], equals(uiDriverUser));
+        expect(uiDrvMe.data['role'], equals('driver'));
+        await logoutFromDriverPortal();
+        await uiDrvDio.delete('auth/delete-account/');
+
+        final regAnonDio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl));
+        final regOwnerUser = 'e2e_owner_$regTs';
+        final regOwnerRes = await regAnonDio.post(
+          'register/',
+          data: {
+            'username': regOwnerUser,
+            'email': '$regOwnerUser@foodgo.kh',
+            'password': 'Password123!',
+            'first_name': 'Bopha',
+            'last_name': 'Owner',
+            'phone': '+855 12 511 444',
+            'role': 'restaurant_owner',
+          },
+        );
+        expect(regOwnerRes.statusCode, equals(201));
+        final regOwnerDio = await apiSessionFor(regOwnerUser, 'Password123!');
+        final regOwnerMe = await regOwnerDio.get('me/');
+        expect(regOwnerMe.statusCode, equals(200));
+        expect(regOwnerMe.data['role'], equals('restaurant_owner'));
+        await regOwnerDio.delete('auth/delete-account/');
 
         // Assert zero uncaught Flutter framework/overflow exceptions
         expect(tester.takeException(), isNull);

@@ -169,9 +169,12 @@ class WebHeaderNavBar extends StatelessWidget {
     final role = user?['role']?.toString().toLowerCase();
     final primaryColor = Theme.of(context).colorScheme.primary;
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final compactWide = screenWidth < ResponsiveBreakpoints.tabletMax;
+
     return Container(
       height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 28.0),
+      padding: EdgeInsets.symmetric(horizontal: compactWide ? 14.0 : 28.0),
       decoration: BoxDecoration(
         color: isDark ? GlassTheme.dynamicSurfaceCardDark : Colors.white,
         border: Border(
@@ -248,55 +251,60 @@ class WebHeaderNavBar extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(width: 36),
+              SizedBox(width: compactWide ? 12 : 36),
 
               // ── Navigation Links ────────────────────────────────────
               Expanded(
-                child: Row(
-                  children: [
-                    _WebNavLink(
-                      label: context.tr('nav.home'),
-                      icon: Icons.home_rounded,
-                      isSelected: selectedIndex == 0,
-                      onTap: () => onDestinationSelected(0),
-                    ),
-                    _WebNavLink(
-                      label: context.tr('nav.explore'),
-                      icon: Icons.explore_rounded,
-                      isSelected: selectedIndex == 3,
-                      onTap: () => onDestinationSelected(3),
-                    ),
-                    _WebNavLink(
-                      label: context.tr('nav.saved'),
-                      icon: Icons.favorite_rounded,
-                      isSelected: selectedIndex == 1,
-                      onTap: () => onDestinationSelected(1),
-                    ),
-                    _WebNavLink(
-                      label: context.tr('nav.orders'),
-                      icon: Icons.receipt_long_rounded,
-                      isSelected: false,
-                      onTap: () => context.push('/orders'),
-                    ),
-                    if (role == 'driver')
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
                       _WebNavLink(
-                        label: context.tr('driver.dashboard'),
-                        icon: Icons.two_wheeler_rounded,
-                        isSelected: false,
-                        onTap: () => context.push('/driver-dashboard'),
-                        highlightColor: Colors.orangeAccent,
+                        label: context.tr('nav.home'),
+                        icon: Icons.home_rounded,
+                        isSelected: selectedIndex == 0,
+                        onTap: () => onDestinationSelected(0),
                       ),
-                    if (role == 'restaurant_owner' || role == 'admin')
                       _WebNavLink(
-                        label: context.tr('admin.dashboard'),
-                        icon: Icons.storefront_rounded,
-                        isSelected: false,
-                        onTap: () => context.push('/restaurant-dashboard'),
-                        highlightColor: Colors.cyanAccent,
+                        label: context.tr('nav.explore'),
+                        icon: Icons.explore_rounded,
+                        isSelected: selectedIndex == 3,
+                        onTap: () => onDestinationSelected(3),
                       ),
-                  ],
+                      _WebNavLink(
+                        label: context.tr('nav.saved'),
+                        icon: Icons.favorite_rounded,
+                        isSelected: selectedIndex == 1,
+                        onTap: () => onDestinationSelected(1),
+                      ),
+                      _WebNavLink(
+                        label: context.tr('nav.orders'),
+                        icon: Icons.receipt_long_rounded,
+                        isSelected: false,
+                        onTap: () => context.push('/orders'),
+                      ),
+                      if (role == 'driver')
+                        _WebNavLink(
+                          label: context.tr('driver.dashboard'),
+                          icon: Icons.two_wheeler_rounded,
+                          isSelected: false,
+                          onTap: () => context.push('/driver-dashboard'),
+                          highlightColor: Colors.orangeAccent,
+                        ),
+                      if (role == 'restaurant_owner' || role == 'admin')
+                        _WebNavLink(
+                          label: context.tr('admin.dashboard'),
+                          icon: Icons.storefront_rounded,
+                          isSelected: false,
+                          onTap: () => context.push('/restaurant-dashboard'),
+                          highlightColor: Colors.cyanAccent,
+                        ),
+                    ],
+                  ),
                 ),
               ),
+
+              SizedBox(width: compactWide ? 8 : 12),
 
               // ── Right Actions: Search, Cart, Language, Theme, Profile ─────────
               Row(
@@ -488,19 +496,24 @@ class WebHeaderNavBar extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            user?['username'] ?? context.tr('nav.profile'),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: selectedIndex == 4
-                                      ? primaryColor
-                                      : AppTypography.primaryTextColor(
-                                          isDark
-                                              ? Brightness.dark
-                                              : Brightness.light,
-                                        ),
-                                ),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 100),
+                            child: Text(
+                              user?['username'] ?? context.tr('nav.profile'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: selectedIndex == 4
+                                        ? primaryColor
+                                        : AppTypography.primaryTextColor(
+                                            isDark
+                                                ? Brightness.dark
+                                                : Brightness.light,
+                                          ),
+                                  ),
+                            ),
                           ),
                         ],
                       ),

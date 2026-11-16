@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../providers/theme_provider.dart';
@@ -45,6 +46,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _promoAlerts = prefs.getBool('settings_promo_alerts') ?? true;
       });
     } catch (_) {}
+  }
+
+  String _describeActiveApiHost() {
+    final url = AppConfig.apiBaseUrl;
+    if (url.contains('127.0.0.1') || url.contains('localhost')) {
+      return '$url (Local ADB / Host)';
+    }
+    if (url.contains('10.0.2.2')) {
+      return '$url (Emulator Host)';
+    }
+    if (url.contains('workers.dev')) {
+      return '$url (Cloudflare Edge Failover)';
+    }
+    return '$url (Vercel Production)';
   }
 
   Future<void> _saveSetting(String key, dynamic val) async {
@@ -1199,8 +1214,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         icon: Icons.cloud_done_outlined,
                         iconColor: Colors.blueAccent,
                         title: 'Backend API Host',
-                        subtitle:
-                            'https://food-go-app.vercel.app (Vercel Production)',
+                        subtitle: _describeActiveApiHost(),
                         trailing: const Icon(
                           Icons.check_circle,
                           color: GlassTheme.primaryGreen,

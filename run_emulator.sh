@@ -30,7 +30,15 @@ done
 
 PYTHON_BIN="$PROJECT_ROOT/backend/venv/bin/python"
 if [ ! -x "$PYTHON_BIN" ]; then
-    PYTHON_BIN="python3"
+    if [ -x "$PROJECT_ROOT/backend/venv/Scripts/python.exe" ]; then
+        PYTHON_BIN="$PROJECT_ROOT/backend/venv/Scripts/python.exe"
+    elif [ -x "$PROJECT_ROOT/.venv/bin/python" ]; then
+        PYTHON_BIN="$PROJECT_ROOT/.venv/bin/python"
+    elif command -v python3 >/dev/null 2>&1; then
+        PYTHON_BIN="python3"
+    else
+        PYTHON_BIN="python"
+    fi
 fi
 
 BACKEND_PID=""
@@ -73,8 +81,8 @@ else
     PAYMENT_WS_URL="wss://foodgo-53pl.onrender.com/ws/payments/"
 fi
 
-# Ensure an Android emulator is attached
-DEVICE_ID="$(adb devices | awk 'NR>1 && $2=="device" && $1 ~ /^emulator-/ {print $1; exit}')"
+# Prefer a connected physical ADB device or booted Android emulator
+DEVICE_ID="$(adb devices | awk 'NR>1 && $2=="device" {print $1; exit}')"
 if [ -z "$DEVICE_ID" ]; then
     echo "[EMULATOR] Launching AVD $AVD_NAME..."
     EMULATOR_BIN="${ANDROID_HOME:-$HOME/Android/Sdk}/emulator/emulator"
@@ -85,7 +93,10 @@ if [ -z "$DEVICE_ID" ]; then
     if [ "$HEADLESS" -eq 1 ]; then
         EMU_EXTRA_ARGS+=(-no-window -no-audio)
     fi
-    QT_QPA_PLATFORM=xcb nohup "$EMULATOR_BIN" -avd "$AVD_NAME" \
+    if [ "$(uname -s)" = "Linux" ] && [ -z "${QT_QPA_PLATFORM:-}" ]; then
+        export QT_QPA_PLATFORM=xcb
+    fi
+    nohup "$EMULATOR_BIN" -avd "$AVD_NAME" \
         -no-boot-anim -no-snapshot -memory 2560 \
         -gpu "${EMU_GPU:-swiftshader_indirect}" \
         "${EMU_EXTRA_ARGS[@]}" \
@@ -100,12 +111,18 @@ if [ -z "$DEVICE_ID" ]; then
         fi
         sleep 2
     done
-    DEVICE_ID="$(adb devices | awk 'NR>1 && $2=="device" && $1 ~ /^emulator-/ {print $1; exit}')"
+    DEVICE_ID="$(adb devices | awk 'NR>1 && $2=="device" {print $1; exit}')"
 fi
 
 if [ -z "$DEVICE_ID" ]; then
-    echo "[ERROR] No booted Android emulator found."
+    echo "[ERROR] No booted Android device or emulator found."
     exit 1
+fi
+
+if [ "$API_MODE" = "local" ] && [[ "$DEVICE_ID" != emulator-* ]]; then
+    API_URL="http://127.0.0.1:8000/api/"
+    WS_URL="ws://127.0.0.1:8000/ws/tracking/"
+    PAYMENT_WS_URL="ws://127.0.0.1:8000/ws/payments/"
 fi
 
 echo "[ADB] Targeting $DEVICE_ID (reverse tcp:8000 -> host:8000)"

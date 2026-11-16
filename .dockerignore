@@ -21,6 +21,7 @@ scripts
 *.dump
 *.dump.gz
 *.log
+*.apk
 *.mp4
 *.wav
 foodgo_flutter/.dart_tool

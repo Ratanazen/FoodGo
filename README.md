@@ -13,6 +13,15 @@ FoodGo is a modern, production-ready, full-stack food delivery application built
 
 ---
 
+## Showcase Video & Release Deliverables
+
+| Package | Contents |
+| :--- | :--- |
+| **[`Slide/video/FoodGo_v2_Showcase.mp4`](./Slide/video/FoodGo_v2_Showcase.mp4)** | Full HD (`1920×1080`, 30 FPS, `8m 41s`) ACLEDA University Capstone Presentation Video with Khmer neural voiceover (`km-KH-PisethNeural`), bilingual Khmer/English subtitles ([`.srt`](./Slide/video/foodgo-presentation.srt) / [`.vtt`](./Slide/video/foodgo-presentation.vtt)), live 4-portal Flutter demo recordings, and custom D-major soundtrack |
+| **[`APK/`](./APK/)** | Universal Android Release APK ([`FoodGo-v2.0-release.apk`](./APK/FoodGo-v2.0-release.apk), 89.0 MB `arm64-v8a` / `armeabi-v7a` / `x86_64`), SHA-1 & SHA-256 checksums, installation guide, and demo accounts |
+
+---
+
 ## Core Features & Modern UI/UX
 
 ### 1. Modern Food Delivery Experience

@@ -45,3 +45,4 @@ zope.interface==8.7
 dnspython>=2.7.0
 pymongo>=4.19.0
 pillow-heif>=1.8.0
+qrcode>=8.0.0

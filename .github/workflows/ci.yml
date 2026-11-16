@@ -10,6 +10,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  packages: read
+  actions: read
+
 jobs:
   security-and-secret-audit:
     name: Secret & API Leak Prevention Check
@@ -49,8 +54,11 @@ jobs:
       DEBUG: "False"
       SECURE_SSL_REDIRECT: "False"
       PAYMENT_ENV: "sandbox"
+      PAYMENT_WEBHOOK_SECRET: "ci-test-payment-webhook-secret-token"
       BAKONG_API_TOKEN: "ci-mock-bakong-token"
       DATABASE_URL: "postgresql://postgres:password@localhost:5432/foodgo_test"
+      ABA_ENABLED: "True"
+      ACLEDA_ENABLED: "True"
 
     steps:
     - uses: actions/checkout@v4
@@ -65,6 +73,9 @@ jobs:
         cd backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+    - name: Verify Python Syntax & Bytecode Compilation
+      run: |
+        python -m compileall -q backend/
     - name: Run Django System Checks
       env:
         SECRET_KEY: "ci-dummy-key-strictly-for-testing-purpose-minimum-50-characters"
@@ -88,6 +99,7 @@ jobs:
         DEBUG: "False"
         SECURE_SSL_REDIRECT: "False"
         PAYMENT_ENV: "sandbox"
+        PAYMENT_WEBHOOK_SECRET: "ci-test-payment-webhook-secret-token"
         ABA_ENABLED: "True"
         ACLEDA_ENABLED: "True"
         DATABASE_URL: "postgresql://postgres:password@localhost:5432/foodgo_test"
@@ -167,10 +179,20 @@ jobs:
       run: |
         cd foodgo_flutter
         flutter pub get
-    - name: Generate CI debug keystore
+    - name: Configure CI Keystore & Properties
       run: |
-        mkdir -p ~/.android
-        keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        mkdir -p "$HOME/.android"
+        KEYSTORE_PATH="$HOME/.android/debug.keystore"
+        if [ ! -f "$KEYSTORE_PATH" ]; then
+          keytool -genkey -v -keystore "$KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        fi
+        cat << 'EOF' > foodgo_flutter/android/key.properties
+        storePassword=android
+        keyPassword=android
+        keyAlias=androiddebugkey
+        storeFile=debug.keystore
+        EOF
+        cp "$KEYSTORE_PATH" foodgo_flutter/android/app/debug.keystore
     - name: Build Android Release APK
       run: |
         cd foodgo_flutter
@@ -194,11 +216,23 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     - name: Build Backend Docker Image
-      run: |
-        docker build -f Dockerfile -t foodgo-backend:ci .
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: foodgo-backend:ci
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
     - name: Build Frontend Docker Image
-      run: |
-        docker build -f Dockerfile.frontend -t foodgo-frontend:ci .
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./Dockerfile.frontend
+        push: false
+        tags: foodgo-frontend:ci
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
   vercel-deployment:
     name: Vercel Continuous Deployment
@@ -232,6 +266,10 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     steps:
     - uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
     - name: Download Built Web Bundle
       uses: actions/download-artifact@v4
       with:
@@ -255,3 +293,30 @@ jobs:
           echo "Notice: CLOUDFLARE_API_TOKEN secret is not set in GitHub repository settings. Skipping automated Cloudflare deployment."
         fi
 
+  render-deployment:
+    name: Render Continuous Deployment
+    runs-on: ubuntu-latest
+    needs: [backend-test, flutter-test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+    - name: Trigger Render Deployment
+      env:
+        RENDER_DEPLOY_HOOK_BACKEND: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
+        RENDER_DEPLOY_HOOK_FRONTEND: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
+      run: |
+        TRIGGERED=false
+        if [ -n "$RENDER_DEPLOY_HOOK_BACKEND" ]; then
+          echo "Triggering Render backend deployment hook..."
+          curl -s -X POST "$RENDER_DEPLOY_HOOK_BACKEND" > /dev/null
+          TRIGGERED=true
+        fi
+        if [ -n "$RENDER_DEPLOY_HOOK_FRONTEND" ]; then
+          echo "Triggering Render frontend deployment hook..."
+          curl -s -X POST "$RENDER_DEPLOY_HOOK_FRONTEND" > /dev/null
+          TRIGGERED=true
+        fi
+        if [ "$TRIGGERED" = "true" ]; then
+          echo "Render deployment hook(s) triggered successfully."
+        else
+          echo "Notice: RENDER_DEPLOY_HOOK secrets not configured. Skipping automated Render webhook deployment."
+        fi

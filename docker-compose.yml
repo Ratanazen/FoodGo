@@ -38,7 +38,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
 
   frontend:
-    image: cirrusci/flutter:stable
+    image: ghcr.io/cirruslabs/flutter:stable
     working_dir: /app
     volumes:
       - ./foodgo_flutter:/app

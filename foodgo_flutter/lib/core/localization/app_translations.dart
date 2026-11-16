@@ -207,6 +207,26 @@ class AppTranslations {
     'driver.activeDeliveries': 'Active',
     'driver.availableOrders': 'Available',
     'driver.earnings': 'Earnings',
+    'driver.autoTrackOn': 'Auto-Track: ON ({count})',
+    'driver.autoTrackStandby': 'Auto-Track: Standby',
+    'driver.autoTrackPaused': 'Auto-Track: Paused',
+    'driver.broadcastLocation': 'Broadcast Location',
+    'driver.noActiveDeliveries': 'No Active Deliveries',
+    'driver.noActiveDeliveriesDesc':
+        'Check available orders tab to accept an order assignment.',
+    'driver.viewAvailableOrders': 'View Available Orders',
+    'driver.offlineTitle': 'You are Currently Offline',
+    'driver.offlineDesc':
+        'Turn on your online status to receive live delivery requests.',
+    'driver.goOnlineNow': 'Go Online Now',
+    'driver.noAvailableOrders': 'No Available Orders',
+    'driver.noAvailableOrdersDesc':
+        'Waiting for incoming food orders from nearby restaurants.',
+    'driver.todaysEarnings': "Today's Earnings",
+    'driver.totalTrips': 'Total Trips',
+    'driver.lifetimeEarned': 'Lifetime Earned',
+    'driver.completedDeliveries': 'Completed Deliveries',
+    'driver.noCompletedDeliveries': 'No completed deliveries yet.',
 
     // Admin
     'admin.dashboard': 'Admin Dashboard',
@@ -475,6 +495,27 @@ class AppTranslations {
     'driver.activeDeliveries': 'កំពុងដំណើរការ',
     'driver.availableOrders': 'អាចទទួលយក',
     'driver.earnings': 'ប្រាក់ចំណូល',
+    'driver.autoTrackOn': 'តាមដានស្វ័យប្រវត្តិ៖ បើក ({count})',
+    'driver.autoTrackStandby': 'តាមដានស្វ័យប្រវត្តិ៖ រង់ចាំ',
+    'driver.autoTrackPaused': 'តាមដានស្វ័យប្រវត្តិ៖ ផ្អាក',
+    'driver.broadcastLocation': 'ផ្សាយទីតាំងផ្ទាល់',
+    'driver.noActiveDeliveries': 'មិនមានការដឹកជញ្ជូនកំពុងដំណើរការទេ',
+    'driver.noActiveDeliveriesDesc':
+        'សូមពិនិត្យមើលផ្ទាំងការកម្ម៉ង់ដែលអាចទទួលយកបាន ដើម្បីទទួលការងារដឹកជញ្ជូន។',
+    'driver.viewAvailableOrders': 'មើលការកម្ម៉ង់ដែលអាចទទួលយក',
+    'driver.offlineTitle': 'អ្នកកំពុងស្ថិតក្នុងស្ថានភាពសម្រាក',
+    'driver.offlineDesc':
+        'បើកស្ថានភាពបំពេញការងារ ដើម្បីទទួលការស្នើដឹកជញ្ជូនថ្មីៗ។',
+    'driver.goOnlineNow': 'ចាប់ផ្តើមបំពេញការងារឥឡូវ',
+    'driver.noAvailableOrders': 'មិនមានការកម្ម៉ង់អាចទទួលបានទេ',
+    'driver.noAvailableOrdersDesc':
+        'កំពុងរង់ចាំការកម្ម៉ង់ថ្មីៗពីភោជនីយដ្ឋានក្បែរខាង។',
+    'driver.todaysEarnings': 'ប្រាក់ចំណូលថ្ងៃនេះ',
+    'driver.totalTrips': 'ចំនួនជើងសរុប',
+    'driver.lifetimeEarned': 'ចំណូលសរុបទាំងអស់',
+    'driver.completedDeliveries': 'ការដឹកជញ្ជូនដែលបានបញ្ចប់',
+    'driver.noCompletedDeliveries':
+        'មិនទាន់មានការដឹកជញ្ជូនដែលបានបញ្ចប់នៅឡើយទេ។',
 
     // Admin
     'admin.dashboard': 'ផ្ទាំងអ្នកគ្រប់គ្រង',

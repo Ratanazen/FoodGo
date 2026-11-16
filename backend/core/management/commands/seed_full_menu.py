@@ -47,7 +47,7 @@ class Command(BaseCommand):
             username='customer1',
             defaults={'role': 'customer', 'email': 'customer@foodgo.com', 'first_name': 'Alice', 'last_name': 'Smith'}
         )
-        customer1.set_password('password123')
+        customer1.set_password('customer123')
         customer1.role = 'customer'
         customer1.save()
 
@@ -73,7 +73,7 @@ class Command(BaseCommand):
             username='driver1',
             defaults={'role': 'driver', 'email': 'driver@foodgo.com', 'first_name': 'Bob', 'last_name': 'Rider'}
         )
-        driver1.set_password('password123')
+        driver1.set_password('driver123')
         driver1.role = 'driver'
         driver1.save()
 

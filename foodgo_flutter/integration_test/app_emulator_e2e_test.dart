@@ -36,7 +36,9 @@ void main() {
       await prefs.remove('cached_user_profile');
       AppConfig.resetEdgeFallback();
 
+      final previousOnError = FlutterError.onError;
       app.main();
+      FlutterError.onError = previousOnError;
       await tester.pump(const Duration(milliseconds: 300));
 
       // Verify effective emulator API/WS config resolves cleanly

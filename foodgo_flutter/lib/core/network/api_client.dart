@@ -42,9 +42,20 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
-          // Automatic edge failover when direct live domain times out or fails TCP/TLS
+          final statusCode = e.response?.statusCode;
+          final isEdgeFailoverResponse =
+              statusCode == 502 ||
+              statusCode == 503 ||
+              statusCode == 504 ||
+              (statusCode == 404 &&
+                  e.response?.headers.value('x-vercel-error') ==
+                      'DEPLOYMENT_NOT_FOUND');
+
+          // Automatic edge failover when direct live domain times out, fails TCP/TLS,
+          // or returns a gateway / Vercel DEPLOYMENT_NOT_FOUND error.
           if ((e.type == DioExceptionType.connectionTimeout ||
-                  e.type == DioExceptionType.connectionError) &&
+                  e.type == DioExceptionType.connectionError ||
+                  isEdgeFailoverResponse) &&
               e.requestOptions.extra['_edgeFallbackAttempted'] != true &&
               AppConfig.canFallbackToEdge(e.requestOptions.baseUrl)) {
             final fallbackOptions = e.requestOptions.copyWith(

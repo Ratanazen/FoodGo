@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:foodgo_flutter/app/theme/app_theme.dart';
+import 'package:foodgo_flutter/core/localization/app_locale.dart';
+import 'package:foodgo_flutter/core/theme/app_palette.dart';
 import 'package:foodgo_flutter/features/dashboard/presentation/driver_dashboard_screen.dart';
+import 'package:foodgo_flutter/providers/locale_provider.dart';
 
 void main() {
   setUp(() {
@@ -211,6 +216,51 @@ void main() {
         expect(
           find.text('Not Picked Up Yet • Head to Restaurant'),
           findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'DriverDashboardScreen in Khmer Dark Pchum Ben theme renders high-contrast tabs and localized empty state',
+      (tester) async {
+        final localeProvider = LocaleProvider();
+        await localeProvider.setLanguage(AppLanguage.khmer);
+
+        await tester.pumpWidget(
+          ChangeNotifierProvider<LocaleProvider>.value(
+            value: localeProvider,
+            child: MaterialApp(
+              locale: const Locale('km', 'KH'),
+              theme: AppTheme.getDarkTheme(
+                AppColorPalette.pchumBen,
+                const Locale('km', 'KH'),
+              ),
+              home: DriverDashboardScreen(
+                initialLoading: false,
+                initialProfile: sampleProfile,
+                initialActive: const [],
+                initialAvailable: const [],
+                initialHistory: const [],
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('កំពុងដំណើរការ (0)'), findsOneWidget);
+        expect(find.text('អាចទទួលយក (0)'), findsOneWidget);
+        expect(find.text('ប្រាក់ចំណូល'), findsOneWidget);
+        expect(find.text('គណនី'), findsOneWidget);
+        expect(find.text('មិនមានការដឹកជញ្ជូនកំពុងដំណើរការទេ'), findsOneWidget);
+        expect(find.text('មើលការកម្ម៉ង់ដែលអាចទទួលយក'), findsOneWidget);
+
+        final unselectedTabText = tester.widget<Text>(
+          find.text('អាចទទួលយក (0)'),
+        );
+        expect(
+          unselectedTabText.style?.color?.computeLuminance() ?? 0.0,
+          greaterThan(0.65),
         );
       },
     );

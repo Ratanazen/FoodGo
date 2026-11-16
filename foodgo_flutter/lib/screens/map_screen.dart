@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -71,6 +72,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   String _trackingStage = 'en_route_to_restaurant';
   bool _autoFollowDriver = true;
   bool _autoTrackingActive = false;
+  bool _orderNotFoundOnServer = false;
   int? _backendEtaMinutes;
   String? _confirmedAtIso;
   String? _pickedUpAtIso;
@@ -338,6 +340,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             );
 
       setState(() {
+        _orderNotFoundOnServer = false;
         _orderStatus = fetchedStatus;
         _deliveryStatus = fetchedDeliveryStatus;
         _driverAssigned = hasDriver;
@@ -423,8 +426,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       }
     } catch (e) {
       if (mounted && !silent) {
+        final isNotFound = e is DioException && e.response?.statusCode == 404;
         setState(() {
           _isLoading = false;
+          _orderNotFoundOnServer = isNotFound;
           // Graceful fallback coordinates
           _restaurantLocation = const LatLng(11.5564, 104.9282);
           _customerLocation = const LatLng(11.5621, 104.9160);
@@ -1728,6 +1733,31 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                             color: secondaryText,
                           ),
                         ),
+                        if (_orderNotFoundOnServer) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.amber.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Text(
+                              'Order #${widget.orderId} is not found on the active server (preview map only).',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: isDark
+                                    ? Colors.amberAccent
+                                    : const Color(0xFF92400E),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

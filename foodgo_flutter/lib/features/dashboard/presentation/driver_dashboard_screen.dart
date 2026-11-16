@@ -1397,9 +1397,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               Text(
                                 _autoTrackEnabled
                                     ? (_activeOrders.isNotEmpty
-                                          ? 'Auto-Track: ON (${_activeOrders.length})'
-                                          : 'Auto-Track: Standby')
-                                    : 'Auto-Track: Paused',
+                                          ? context.tr(
+                                              'driver.autoTrackOn',
+                                              args: {
+                                                'count': _activeOrders.length,
+                                              },
+                                            )
+                                          : context.tr(
+                                              'driver.autoTrackStandby',
+                                            ))
+                                    : context.tr('driver.autoTrackPaused'),
                                 style: textTheme.labelSmall?.copyWith(
                                   color: _autoTrackEnabled
                                       ? accentGreen
@@ -1432,7 +1439,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         ),
                         icon: const Icon(Icons.my_location, size: 14),
                         label: Text(
-                          'Broadcast Location',
+                          context.tr('driver.broadcastLocation'),
                           style: textTheme.labelMedium?.copyWith(
                             color: accentGreen,
                             fontWeight: FontWeight.w600,
@@ -1455,8 +1462,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
-    final primaryText = AppTypography.primaryTextColor(brightness);
-    final secondaryText = AppTypography.secondaryTextColor(brightness);
+    final scheme = Theme.of(context).colorScheme;
+    final unselectedColor = isDark
+        ? Colors.white.withValues(alpha: 0.88)
+        : const Color(0xFF1F2937);
+    final selectedForeground = isDark ? Colors.white : scheme.onPrimary;
     final tabs = [
       {
         'title':
@@ -1476,11 +1486,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.black.withValues(alpha: 0.3)
-            : Colors.white.withValues(alpha: 0.85),
+            ? Colors.black.withValues(alpha: 0.42)
+            : Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.white10 : GlassTheme.borderLight,
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.16)
+              : GlassTheme.borderLight,
         ),
       ),
       child: IntrinsicHeight(
@@ -1499,16 +1511,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Theme.of(context).colorScheme.primary.withValues(
-                            alpha: isDark ? 0.25 : 0.12,
-                          )
+                        ? (isDark
+                              ? scheme.primary.withValues(alpha: 0.38)
+                              : scheme.primary)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                     border: isSelected
                         ? Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.5),
+                            color: isDark
+                                ? scheme.primary.withValues(alpha: 0.85)
+                                : scheme.primary,
                           )
                         : null,
                   ),
@@ -1520,8 +1532,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         tabs[index]['icon'] as IconData,
                         size: 16,
                         color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : secondaryText,
+                            ? selectedForeground
+                            : unselectedColor,
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -1529,8 +1541,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         style: textTheme.labelSmall?.copyWith(
                           fontWeight: isSelected
                               ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: isSelected ? primaryText : secondaryText,
+                              : FontWeight.w600,
+                          color: isSelected
+                              ? selectedForeground
+                              : unselectedColor,
                           height: 1.2,
                         ),
                         textAlign: TextAlign.center,
@@ -1568,6 +1582,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   // ─────────────────────────────────────────────
   Widget _buildActiveDeliveriesTab() {
     if (_activeOrders.isEmpty) {
+      final brightness = Theme.of(context).brightness;
+      final isDark = brightness == Brightness.dark;
+      final subtitleColor = isDark
+          ? const Color(0xFFD6DAE3)
+          : AppTypography.secondaryTextColor(brightness);
+
       return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Center(
@@ -1579,46 +1599,38 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Icon(
                   Icons.directions_bike,
                   size: 48,
-                  color: GlassTheme.textMuted.withValues(alpha: 0.5),
+                  color: subtitleColor.withValues(alpha: 0.7),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No Active Deliveries',
+                  context.tr('driver.noActiveDeliveries'),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppTypography.primaryTextColor(
-                      Theme.of(context).brightness,
-                    ),
+                    color: AppTypography.primaryTextColor(brightness),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Check available orders tab to accept an order assignment.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTypography.secondaryTextColor(
-                      Theme.of(context).brightness,
-                    ),
-                  ),
+                  context.tr('driver.noActiveDeliveriesDesc'),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: subtitleColor),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).brightness == Brightness.dark
+                    backgroundColor: isDark
                         ? GlassTheme.primaryGreen
                         : const Color(0xFF15803D),
-                    foregroundColor:
-                        Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black
-                        : Colors.white,
+                    foregroundColor: isDark ? Colors.black : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   icon: const Icon(Icons.search, size: 18),
-                  label: const Text('View Available Orders'),
+                  label: Text(context.tr('driver.viewAvailableOrders')),
                   onPressed: () => setState(() => _selectedTab = 1),
                 ),
               ],
@@ -2450,7 +2462,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'You are Currently Offline',
+                context.tr('driver.offlineTitle'),
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: primaryText,
                   fontWeight: FontWeight.bold,
@@ -2458,7 +2471,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Turn on your online status to receive live delivery requests.',
+                context.tr('driver.offlineDesc'),
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: secondaryText),
@@ -2473,7 +2486,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   foregroundColor: isDark ? Colors.black : Colors.white,
                 ),
                 icon: const Icon(Icons.toggle_on),
-                label: const Text('Go Online Now'),
+                label: Text(context.tr('driver.goOnlineNow')),
                 onPressed: () => _toggleOnline(true),
               ),
             ],
@@ -2492,11 +2505,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Icon(
                 Icons.inbox,
                 size: 56,
-                color: secondaryText.withValues(alpha: 0.6),
+                color: secondaryText.withValues(alpha: 0.7),
               ),
               const SizedBox(height: 16),
               Text(
-                'No Available Orders',
+                context.tr('driver.noAvailableOrders'),
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: primaryText,
                   fontWeight: FontWeight.bold,
@@ -2504,7 +2518,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Waiting for incoming food orders from nearby restaurants.',
+                context.tr('driver.noAvailableOrdersDesc'),
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: secondaryText),
@@ -2938,7 +2952,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Today's Earnings",
+                          context.tr('driver.todaysEarnings'),
                           style: textTheme.bodySmall?.copyWith(
                             color: secondaryText,
                           ),
@@ -2995,7 +3009,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           ),
                         ),
                         Text(
-                          'Total Trips',
+                          context.tr('driver.totalTrips'),
                           textAlign: TextAlign.center,
                           style: textTheme.labelSmall?.copyWith(
                             color: secondaryText,
@@ -3031,7 +3045,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Lifetime Earned',
+                          context.tr('driver.lifetimeEarned'),
                           textAlign: TextAlign.center,
                           style: textTheme.labelSmall?.copyWith(
                             color: secondaryText,
@@ -3048,7 +3062,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         const SizedBox(height: 20),
 
         Text(
-          'Completed Deliveries',
+          context.tr('driver.completedDeliveries'),
           style: textTheme.titleLarge?.copyWith(
             color: primaryText,
             fontWeight: FontWeight.bold,
@@ -3061,7 +3075,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             child: Padding(
               padding: const EdgeInsets.all(32.0),
               child: Text(
-                'No completed deliveries yet.',
+                context.tr('driver.noCompletedDeliveries'),
                 style: textTheme.bodyMedium?.copyWith(color: secondaryText),
               ),
             ),

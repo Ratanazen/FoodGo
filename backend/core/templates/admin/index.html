@@ -459,6 +459,18 @@
   .row-link:hover td { background: rgba(30,136,229,0.08); }
   .mini-btn { padding:4px 10px; border-radius:8px; background: var(--blue); color:#fff !important; font-size:12px; font-weight:600; text-decoration:none !important; }
 
+  /* ── Embedded Quick Item Studio (light + dark mode) ── */
+  .studio-card { margin-bottom:24px; border:2px solid #10B981; background:linear-gradient(180deg, rgba(16,185,129,0.08) 0%, var(--bs-card-bg, #ffffff) 100%); }
+  .studio-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--bs-border-color, rgba(0,0,0,0.08)); }
+  .studio-form { background:var(--bs-tertiary-bg, rgba(128,128,128,0.06)); padding:16px; border-radius:12px; border:1px solid var(--bs-border-color, rgba(0,0,0,0.1)); }
+  .studio-input { width:100%; padding:8px 11px; border-radius:8px; border:1px solid var(--bs-border-color, rgba(0,0,0,0.2)); background:var(--bs-body-bg, #fff); color:var(--bs-body-color, #1a202c); font-size:13px; }
+  .studio-input:focus { outline:none; border-color:#10B981; box-shadow:0 0 0 2px rgba(16,185,129,0.18); }
+  .studio-chip { padding:3px 9px; font-size:11.5px; border-radius:99px; border:1px solid var(--bs-border-color, rgba(0,0,0,0.15)); background:var(--bs-body-bg, #fff); color:var(--bs-body-color, #1a202c); font-weight:600; cursor:pointer; }
+  .studio-chip:hover { border-color:#10B981; color:#10B981; }
+  .studio-chip-primary { background:#10B981; color:#fff; border-color:#10B981; font-weight:700; }
+  .studio-chip-primary:hover { color:#fff; background:#059669; }
+  .studio-thumb-preview { width:44px; height:44px; border-radius:8px; object-fit:cover; border:1px solid var(--bs-border-color, rgba(0,0,0,0.15)); flex-shrink:0; background:#111; }
+
   @media (max-width: 1199px) { .shortcut-grid { grid-template-columns:repeat(4, 1fr); } }
   @media (max-width: 767px) {
     .shortcut-grid { grid-template-columns:repeat(2, 1fr); }
@@ -474,7 +486,7 @@
   <!-- Header bar: greeting + last update + auto refresh -->
   <div class="dash-topbar">
     <div>
-      <div class="dash-hello">Hello, {{ request.user.get_short_name|default:request.user.username }} 👋</div>
+      <div class="dash-hello">Hello, {{ request.user.get_short_name|default:request.user.username }}</div>
       <div class="dash-hello-sub">Here's what's happening with FoodGo today.</div>
     </div>
     <div class="dash-refresh">
@@ -491,17 +503,220 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
     </svg>
-    Quick Create
+    Quick Create &amp; Fast Portals
   </div>
   <div class="quick-actions">
-    <a href="{% url 'admin:core_fooditem_add' %}" class="qa-btn qa-green">＋ Food Item</a>
-    <a href="{% url 'admin:core_foodcategory_add' %}" class="qa-btn qa-blue">＋ Food Category</a>
-    <a href="{% url 'admin:core_restaurant_add' %}" class="qa-btn qa-orange">＋ Restaurant</a>
-    <a href="{% url 'admin:core_user_add' %}" class="qa-btn qa-teal" style="background:var(--teal);color:#fff !important;">＋ User / Driver</a>
-    <a href="{% url 'admin:core_delivery_changelist' %}" class="qa-btn qa-teal" style="background:#00897B;color:#fff !important;">🚚 Fleet Dispatch</a>
-    <a href="{% url 'admin:core_coupon_add' %}" class="qa-btn qa-purple">＋ Coupon</a>
-    <a href="{% url 'admin:core_notification_add' %}" class="qa-btn qa-red" style="background:var(--red);color:#fff !important;">＋ Notification</a>
+    <a href="#quick-item-studio" class="qa-btn qa-green" style="background:#10B981;color:#fff !important;">+ Quick Add $0.01 Items</a>
+    <a href="{% url 'admin-items-portal' %}" class="qa-btn qa-blue" style="background:#059669;color:#fff !important;">Full-Screen Items Studio</a>
+    <a href="{% url 'admin:core_fooditem_add' %}" class="qa-btn qa-green">+ Food Item (Django Form)</a>
+    <a href="{% url 'admin:core_foodcategory_add' %}" class="qa-btn qa-blue">+ Food Category</a>
+    <a href="{% url 'admin:core_restaurant_add' %}" class="qa-btn qa-orange">+ Restaurant</a>
+    <a href="{% url 'admin:core_user_add' %}" class="qa-btn qa-teal" style="background:var(--teal);color:#fff !important;">+ User / Driver</a>
+    <a href="{% url 'admin:core_delivery_changelist' %}" class="qa-btn qa-teal" style="background:#00897B;color:#fff !important;">Fleet Dispatch</a>
+    <a href="{% url 'admin:core_coupon_add' %}" class="qa-btn qa-purple">+ Coupon</a>
+    <a href="{% url 'admin:core_notification_add' %}" class="qa-btn qa-red" style="background:var(--red);color:#fff !important;">+ Notification</a>
   </div>
+
+  <!-- ========================================================================= -->
+  <!-- ALL-IN-ONE QUICK FOOD ITEM & $0.01 BATCH STUDIO (EMBEDDED IN DASHBOARD) -->
+  <!-- ========================================================================= -->
+  <div id="quick-item-studio" class="chart-card studio-card">
+    <div class="studio-head">
+      <div>
+        <div class="section-heading" style="margin:0;color:#10B981;font-size:18px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="4" rx="2"></rect>
+            <path d="M5 11a7 7 0 0 1 14 0"></path>
+            <path d="M4 18h16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"></path>
+          </svg>
+          All-in-One Easy Food Item Manager ({{ total_food_items }} Total · {{ micro_food_items_count }} at $0.01)
+        </div>
+        <div style="font-size:12.5px;opacity:0.75;margin-top:2px;">
+          Add single items or batch-insert 10–20 micro-test items ($0.01) in one click directly on the Admin Dashboard.
+        </div>
+      </div>
+      <!-- 1-Click Batch Action Forms -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <form method="post" action="{% url 'admin:index' %}" style="margin:0;display:flex;align-items:center;gap:6px;">
+          {% csrf_token %}
+          <input type="hidden" name="quick_action" value="batch_add_micro">
+          <select name="count" class="studio-input" style="width:auto;padding:7px 10px;font-weight:700;">
+            <option value="10">10 Items ($0.01)</option>
+            <option value="15" selected>15 Items ($0.01)</option>
+            <option value="20">20 Items ($0.01)</option>
+          </select>
+          <button type="submit" style="background:#10B981;color:#fff;border:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 3px 10px rgba(16,185,129,0.3);">
+            + Batch Add ($0.01 All)
+          </button>
+        </form>
+        <form method="post" action="{% url 'admin:index' %}" style="margin:0;" onsubmit="return confirm('Set ALL existing food items to $0.01?');">
+          {% csrf_token %}
+          <input type="hidden" name="quick_action" value="set_all_001">
+          <button type="submit" style="background:#2A52BE;color:#fff;border:none;padding:9px 14px;border-radius:10px;font-weight:600;font-size:12.5px;cursor:pointer;">
+            Set All to $0.01
+          </button>
+        </form>
+        <form method="post" action="{% url 'admin:index' %}" style="margin:0;" onsubmit="return confirm('Delete all $0.01 test items?');">
+          {% csrf_token %}
+          <input type="hidden" name="quick_action" value="purge_micro_items">
+          <button type="submit" style="background:#e53935;color:#fff;border:none;padding:9px 12px;border-radius:10px;font-weight:600;font-size:12.5px;cursor:pointer;">
+            Purge $0.01 Items
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Split Layout: Left = Add Item Form, Right = Live Catalog Table -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:20px;align-items:start;">
+      <!-- Left: Add Single Food Item Form -->
+      <form method="post" action="{% url 'admin:index' %}" class="studio-form">
+        {% csrf_token %}
+        <input type="hidden" name="quick_action" value="add_single_item">
+        <div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#10B981;">+ Create New Food Item</div>
+
+        <div style="margin-bottom:10px;">
+          <label style="display:block;font-size:11.5px;font-weight:700;margin-bottom:4px;">Item Name *</label>
+          <input type="text" name="name" id="qaName" required placeholder="e.g. Mini Cheeseburger" class="studio-input">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="display:block;font-size:11.5px;font-weight:700;margin-bottom:4px;">Category &amp; Restaurant *</label>
+            <select name="category" required class="studio-input">
+              {% for cat in all_food_categories %}
+              <option value="{{ cat.id }}">{{ cat.name }} ({{ cat.restaurant.name }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11.5px;font-weight:700;margin-bottom:4px;">Price ($ USD) *</label>
+            <input type="number" step="0.01" min="0.01" name="price" id="qaPrice" value="0.01" required class="studio-input" style="border-color:#10B981;font-weight:700;">
+          </div>
+        </div>
+
+        <!-- Quick Price Chips -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          <button type="button" onclick="document.getElementById('qaPrice').value='0.01'" class="studio-chip studio-chip-primary">$0.01 Test</button>
+          <button type="button" onclick="document.getElementById('qaPrice').value='0.05'" class="studio-chip">$0.05</button>
+          <button type="button" onclick="document.getElementById('qaPrice').value='1.00'" class="studio-chip">$1.00</button>
+          <button type="button" onclick="document.getElementById('qaPrice').value='2.50'" class="studio-chip">$2.50</button>
+          <button type="button" onclick="document.getElementById('qaPrice').value='5.00'" class="studio-chip">$5.00</button>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <label style="display:block;font-size:11.5px;font-weight:700;margin-bottom:4px;">Image URL (live preview &amp; quick presets)</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <img id="qaImgPreview" src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600" alt="Preview" class="studio-thumb-preview">
+            <input type="url" name="image_url" id="qaImgUrl" value="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600" oninput="document.getElementById('qaImgPreview').src=this.value" class="studio-input">
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
+            <button type="button" onclick="setStudioImg('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600')" class="studio-chip">Burger</button>
+            <button type="button" onclick="setStudioImg('https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600')" class="studio-chip">Fries</button>
+            <button type="button" onclick="setStudioImg('https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=600')" class="studio-chip">Pizza</button>
+            <button type="button" onclick="setStudioImg('https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=600')" class="studio-chip">Shake</button>
+            <button type="button" onclick="setStudioImg('https://images.unsplash.com/photo-1544025162-d76694265947?w=600')" class="studio-chip">Lok Lak</button>
+            <button type="button" onclick="setStudioImg('https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600')" class="studio-chip">Coffee</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <label style="display:block;font-size:11.5px;font-weight:700;margin-bottom:4px;">Description</label>
+          <input type="text" name="description" placeholder="Delicious item for $0.01 micro-payment checkout test" class="studio-input">
+        </div>
+
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;font-size:12.5px;">
+          <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" name="is_halal" checked> Halal</label>
+          <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" name="is_vegetarian"> Vegetarian</label>
+          <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" name="is_spicy"> Spicy</label>
+        </div>
+
+        <button type="submit" style="width:100%;background:#10B981;color:#fff;border:none;padding:10px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;">
+          + Add Food Item to Menu Now
+        </button>
+      </form>
+
+      <!-- Right: Live Menu Items List with 1-Click $0.01 & Delete Controls -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+          <input type="text" id="qaTableFilter" placeholder="Filter items by name, category, or price..." oninput="filterQuickItemsTable(this.value)" class="studio-input" style="flex:1;">
+          <a href="{% url 'admin:core_fooditem_changelist' %}" class="mini-btn" style="padding:8px 12px;white-space:nowrap;">Full Changelist ({{ total_food_items }})</a>
+        </div>
+        <div class="dash-table-wrapper" style="max-height:390px;overflow-y:auto;border:1px solid var(--bs-border-color, rgba(0,0,0,0.08));border-radius:10px;">
+          <table class="dash-table" id="qaItemsTable">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th style="text-align:right;">Quick Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in all_food_items %}
+              <tr class="qa-item-row">
+                <td style="display:flex;align-items:center;gap:8px;">
+                  {% if item.image_url %}
+                  <img src="{{ item.image_url }}" alt="" style="width:34px;height:34px;border-radius:6px;object-fit:cover;flex-shrink:0;">
+                  {% endif %}
+                  <div>
+                    <div style="font-weight:700;font-size:13px;">{{ item.name }}</div>
+                    <div style="font-size:11px;opacity:0.65;">#{{ item.id }} · {{ item.category.restaurant.name }}</div>
+                  </div>
+                </td>
+                <td style="font-size:12px;">{{ item.category.name }}</td>
+                <td>
+                  <span class="badge {% if item.price <= 0.05 %}badge-green{% else %}badge-blue{% endif %}" style="font-size:12.5px;font-weight:800;">
+                    ${{ item.price }}
+                  </span>
+                </td>
+                <td style="text-align:right;white-space:nowrap;">
+                  {% if item.price > 0.01 %}
+                  <form method="post" action="{% url 'admin:index' %}" style="display:inline;margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="quick_action" value="set_price_001">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <input type="hidden" name="price" value="0.01">
+                    <button type="submit" style="background:#10B981;color:#fff;border:none;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;" title="Set price to $0.01">$0.01</button>
+                  </form>
+                  {% endif %}
+                  <form method="post" action="{% url 'admin:index' %}" style="display:inline;margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="quick_action" value="toggle_available">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" style="background:{% if item.is_available %}#2E7D32{% else %}#64748B{% endif %};color:#fff;border:none;padding:3px 7px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;" title="Toggle Availability">{% if item.is_available %}On{% else %}Off{% endif %}</button>
+                  </form>
+                  <a href="{% url 'admin:core_fooditem_change' item.id %}" class="mini-btn" style="padding:3px 8px;font-size:11px;">Edit</a>
+                  <form method="post" action="{% url 'admin:index' %}" style="display:inline;margin:0;" onsubmit="return confirm('Delete {{ item.name|escapejs }}?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="quick_action" value="delete_item">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" style="background:#e53935;color:#fff;border:none;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Del</button>
+                  </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" style="text-align:center;padding:16px;">No food items yet. Click "Batch Add ($0.01 All)" above!</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function setStudioImg(url) {
+      document.getElementById('qaImgUrl').value = url;
+      document.getElementById('qaImgPreview').src = url;
+    }
+    function filterQuickItemsTable(q) {
+      var term = (q || '').toLowerCase();
+      var rows = document.querySelectorAll('#qaItemsTable .qa-item-row');
+      for (var i = 0; i < rows.length; i++) {
+        var txt = rows[i].textContent.toLowerCase();
+        rows[i].style.display = txt.indexOf(term) !== -1 ? '' : 'none';
+      }
+    }
+  </script>
 
   <!-- Shortcuts with live counters -->
   <div class="section-heading">
@@ -528,7 +743,7 @@
       <span class="shortcut-label">Drivers online</span>
     </a>
     <a class="shortcut" href="{% url 'admin:core_delivery_changelist' %}">
-      <span class="shortcut-count">🚚</span>
+      <span class="shortcut-count">GO</span>
       <span class="shortcut-label">Live Deliveries</span>
     </a>
     <a class="shortcut" href="{% url 'admin:core_fooditem_changelist' %}?is_available__exact=0">

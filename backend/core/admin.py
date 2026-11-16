@@ -73,8 +73,149 @@ import json
 _original_index = admin.site.index
 
 def custom_admin_index(request, extra_context=None):
-    from .models import Order, User, Restaurant, FoodItem, Driver
+    from .models import Order, User, Restaurant, FoodItem, FoodCategory, Driver
     from django.db.models.functions import TruncDate
+    from decimal import Decimal, InvalidOperation
+    from django.contrib import messages
+    from django.shortcuts import redirect
+
+    # Handle inline Quick Food Item Studio POST actions directly inside /admin/
+    if request.method == 'POST' and request.user.is_authenticated and request.user.is_staff:
+        action = request.POST.get('quick_action')
+        studio_redirect = reverse('admin:index') + '#quick-item-studio'
+        if action == 'add_single_item':
+            name = (request.POST.get('name') or '').strip()
+            cat_id = request.POST.get('category')
+            price_str = (request.POST.get('price') or '0.01').strip()
+            desc = (request.POST.get('description') or '').strip()
+            img_url = (request.POST.get('image_url') or '').strip()
+            ingredients = (request.POST.get('ingredients') or '').strip()
+            try:
+                prep_mins = max(1, int(request.POST.get('preparation_time_mins') or 5))
+            except ValueError:
+                prep_mins = 5
+            is_halal = request.POST.get('is_halal') in ('true', '1', 'on')
+            is_veg = request.POST.get('is_vegetarian') in ('true', '1', 'on')
+            is_spicy = request.POST.get('is_spicy') in ('true', '1', 'on')
+            try:
+                price_val = Decimal(price_str)
+            except InvalidOperation:
+                price_val = Decimal('0.01')
+            if price_val <= Decimal('0.00'):
+                price_val = Decimal('0.01')
+            cat = FoodCategory.objects.filter(id=cat_id).first() if (cat_id and str(cat_id).isdigit()) else None
+            cat = cat or FoodCategory.objects.first()
+            if name and cat:
+                item = FoodItem.objects.create(
+                    category=cat,
+                    name=name,
+                    price=price_val,
+                    original_price=Decimal('2.50'),
+                    description=desc or f'{name} - fresh menu item.',
+                    image_url=img_url or 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600',
+                    ingredients=ingredients or 'Chef Selection',
+                    preparation_time_mins=prep_mins,
+                    is_halal=is_halal,
+                    is_vegetarian=is_veg,
+                    is_spicy=is_spicy,
+                    is_available=True,
+                )
+                messages.success(request, f'Added "{item.name}" at ${item.price}!')
+            return redirect(studio_redirect)
+
+        elif action == 'batch_add_micro':
+            try:
+                count = min(max(int(request.POST.get('count') or 15), 1), 30)
+            except ValueError:
+                count = 15
+            target_cat_id = request.POST.get('category') or 'all'
+            cats = list(FoodCategory.objects.all())
+            if target_cat_id != 'all':
+                filtered_cats = [c for c in cats if str(c.id) == str(target_cat_id)]
+                if filtered_cats:
+                    cats = filtered_cats
+            templates = [
+                ('Mini Cheeseburger', 'Mini artisan burger with melted cheddar for $0.01 test', 'Beef, Cheddar, Brioche', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600'),
+                ('Micro Bacon Slider', 'Crispy smoked bacon mini slider with garlic aioli', 'Beef, Bacon, Aioli', 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600'),
+                ('Golden Crispy Fries Mini', 'Double-fried russet potatoes with sea salt', 'Potatoes, Sea Salt', 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600'),
+                ('Onion Rings Crunch', 'Golden battered onion rings with house dip', 'Sweet Onions, Batter', 'https://images.unsplash.com/photo-1639024471285-05c285ac144c?w=600'),
+                ('Cheddar Cheese Bites', 'Melted cheddar bites in crispy panko crust', 'Aged Cheddar, Panko', 'https://images.unsplash.com/photo-1531749668029-2db88e4276c7?w=600'),
+                ('Strawberry Shake Mini', 'Real strawberry shake blended with vanilla cream', 'Strawberries, Milk, Vanilla', 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=600'),
+                ('Iced Lemon Tea Mini', 'Refreshing black tea brewed with organic lemon', 'Black Tea, Lemon, Mint', 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600'),
+                ('Classic Margherita Mini', 'Personal pizza with San Marzano sauce and basil', 'Mozzarella, Tomato, Basil', 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=600'),
+                ('Pepperoni Slice Mini', 'Crispy crust topped with spiced beef pepperoni', 'Pepperoni, Mozzarella', 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600'),
+                ('Creamy Carbonara Taster', 'Al dente fettuccine in rich Parmesan cream sauce', 'Fettuccine, Cream, Parmesan', 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600'),
+                ('Garlic Herb Bread', 'Toasted artisan baguette with garlic herb butter', 'Baguette, Garlic Butter', 'https://images.unsplash.com/photo-1549611016-3a70d82b5040?w=600'),
+                ('Choco Lava Cake Mini', 'Warm molten dark chocolate center', 'Dark Chocolate, Butter', 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600'),
+                ('Khmer Beef Lok Lak Mini', 'Wok-seared beef cubes with Kampot pepper lime dip', 'Beef, Kampot Pepper, Lime', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600'),
+                ('Fish Amok Taster', 'Steamed fish curry in banana leaf with kroeung', 'Fish, Coconut Cream, Kroeung', 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'),
+                ('Nom Banh Chok Snack', 'Traditional Khmer rice noodles with green curry', 'Rice Noodles, Curry, Herbs', 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600'),
+                ('Crispy Spring Roll Pair', 'Handmade crispy spring rolls with sweet chili dip', 'Glass Noodles, Taro, Carrots', 'https://images.unsplash.com/photo-1548946526-f69e2424cf45?w=600'),
+                ('Cambodian Iced Coffee Mini', 'Slow-drip dark roast coffee with condensed milk', 'Coffee, Condensed Milk, Ice', 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600'),
+                ('Fresh Sugar Cane Juice Mini', 'Cold-pressed sugar cane juice with calamansi lime', 'Sugar Cane, Calamansi, Ice', 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600'),
+                ('Mango Passion Cooler Mini', 'Tropical Cambodian mango and passion fruit cooler', 'Mango, Passion Fruit, Mint', 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600'),
+                ('Truffle Parmesan Fries Mini', 'Crispy fries tossed in white truffle oil', 'Potatoes, Truffle Oil, Parmesan', 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600'),
+            ]
+            created_count = 0
+            if cats:
+                for idx in range(count):
+                    t_name, t_desc, t_ing, t_img = templates[idx % len(templates)]
+                    cat_obj = cats[idx % len(cats)]
+                    FoodItem.objects.update_or_create(
+                        category=cat_obj,
+                        name=t_name if idx < len(templates) else f"{t_name} #{idx + 1}",
+                        defaults={
+                            'description': t_desc,
+                            'price': Decimal('0.01'),
+                            'original_price': Decimal('2.50'),
+                            'ingredients': t_ing,
+                            'image_url': t_img,
+                            'is_available': True,
+                            'preparation_time_mins': 5,
+                        }
+                    )
+                    created_count += 1
+            messages.success(request, f'Batch added/updated {created_count} items priced at $0.01!')
+            return redirect(studio_redirect)
+
+        elif action == 'set_price_001':
+            item_id = request.POST.get('item_id')
+            new_price = request.POST.get('price') or '0.01'
+            try:
+                p_dec = Decimal(new_price)
+            except InvalidOperation:
+                p_dec = Decimal('0.01')
+            if p_dec <= Decimal('0.00'):
+                p_dec = Decimal('0.01')
+            if item_id and str(item_id).isdigit():
+                FoodItem.objects.filter(id=int(item_id)).update(price=p_dec)
+                messages.success(request, f'Updated item #{item_id} price to ${p_dec}!')
+            return redirect(studio_redirect)
+
+        elif action == 'set_all_001':
+            updated = FoodItem.objects.all().update(price=Decimal('0.01'))
+            messages.success(request, f'Updated all {updated} food items to $0.01!')
+            return redirect(studio_redirect)
+
+        elif action == 'toggle_available':
+            item_id = request.POST.get('item_id')
+            item_obj = FoodItem.objects.filter(id=int(item_id)).first() if (item_id and str(item_id).isdigit()) else None
+            if item_obj:
+                item_obj.is_available = not item_obj.is_available
+                item_obj.save(update_fields=['is_available'])
+            return redirect(studio_redirect)
+
+        elif action == 'delete_item':
+            item_id = request.POST.get('item_id')
+            if item_id and str(item_id).isdigit():
+                FoodItem.objects.filter(id=int(item_id)).delete()
+                messages.info(request, f'Deleted food item #{item_id}.')
+            return redirect(studio_redirect)
+
+        elif action == 'purge_micro_items':
+            deleted, _ = FoodItem.objects.filter(price__lte=Decimal('0.05')).delete()
+            messages.info(request, f'Removed {deleted} micro-priced ($0.01) test items.')
+            return redirect(studio_redirect)
 
     today = timezone.now()
     week_ago = today - timezone.timedelta(days=6)
@@ -158,6 +299,10 @@ def custom_admin_index(request, extra_context=None):
         unassigned_qs.select_related('customer', 'restaurant').order_by('created_at')[:6]
     )
 
+    all_food_categories = FoodCategory.objects.select_related('restaurant').order_by('restaurant__name', 'name')
+    all_food_items = FoodItem.objects.select_related('category', 'category__restaurant').order_by('-id')[:60]
+    micro_food_items_count = FoodItem.objects.filter(price__lte=Decimal('0.05')).count()
+
     if extra_context is None:
         extra_context = {}
     extra_context.update({
@@ -172,6 +317,9 @@ def custom_admin_index(request, extra_context=None):
         'total_restaurants': total_restaurants,
         'active_restaurants': active_restaurants,
         'total_food_items': total_food_items,
+        'micro_food_items_count': micro_food_items_count,
+        'all_food_categories': all_food_categories,
+        'all_food_items': all_food_items,
         'total_drivers': total_drivers,
         'online_drivers': online_drivers,
         'recent_orders': recent_orders,
@@ -467,7 +615,13 @@ class FoodItemAdmin(admin.ModelAdmin):
     list_per_page = 25
     save_on_top = True
     save_as = True
-    actions = ['duplicate_items', 'make_available', 'make_unavailable']
+    actions = ['set_price_to_001', 'duplicate_items', 'make_available', 'make_unavailable']
+
+    @admin.action(description='Set Selected Items Price to $0.01')
+    def set_price_to_001(self, request, queryset):
+        from decimal import Decimal
+        count = queryset.update(price=Decimal('0.01'))
+        self.message_user(request, f'Updated {count} item(s) to $0.01.')
 
     @admin.action(description='Duplicate Selected Food Items')
     def duplicate_items(self, request, queryset):

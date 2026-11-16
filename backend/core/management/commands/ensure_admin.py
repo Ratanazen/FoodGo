@@ -23,13 +23,25 @@ def _set_password(user, raw_password):
     if _is_ephemeral_serverless_db():
         salt = hashlib.sha256(f"{settings.SECRET_KEY}:{user.username}".encode()).hexdigest()[:22]
         user.password = make_password(raw_password, salt=salt)
-    else:
+    elif not user.password or not user.check_password(raw_password):
         user.set_password(raw_password)
+
 
 class Command(BaseCommand):
     help = 'Ensures admin, customer, driver, and owner accounts exist with working passwords'
 
     def handle(self, *args, **options):
+        prev_mongo_sync = os.environ.get('MONGO_SYNC_ENABLED')
+        os.environ['MONGO_SYNC_ENABLED'] = 'false'
+        try:
+            self._handle_inner(*args, **options)
+        finally:
+            if prev_mongo_sync is None:
+                os.environ.pop('MONGO_SYNC_ENABLED', None)
+            else:
+                os.environ['MONGO_SYNC_ENABLED'] = prev_mongo_sync
+
+    def _handle_inner(self, *args, **options):
         # 1. Admin Superuser
         admin_username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
         admin_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123')

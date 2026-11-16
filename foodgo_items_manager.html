@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodGo Food Items Manager & Quick Portal</title>
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #10B981;
+            --primary-hover: #059669;
+            --primary-glow: rgba(16, 185, 129, 0.35);
+            --primary-light: rgba(16, 185, 129, 0.12);
+            --primary-border: rgba(16, 185, 129, 0.25);
+            
+            --lime: #CCFF00;
+            --lime-glow: rgba(204, 255, 0, 0.25);
+            
+            --bg-dark: #080D1A;
+            --bg-elevated: #0E1626;
+            --surface-glass: rgba(17, 26, 44, 0.78);
+            --surface-card: rgba(21, 32, 54, 0.68);
+            --surface-card-hover: rgba(28, 42, 70, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(16, 185, 129, 0.35);
+            
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --text-dim: #6B7280;
+            
+            --danger: #EF4444;
+            --danger-bg: rgba(239, 68, 68, 0.15);
+            --warning: #F59E0B;
+            --warning-bg: rgba(245, 158, 11, 0.15);
+            --info: #3B82F6;
+            --info-bg: rgba(59, 130, 246, 0.15);
+            
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 26px;
+            --shadow-subtle: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 25px rgba(16, 185, 129, 0.25);
+            
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.10) 0%, transparent 45%),
+                radial-gradient(circle at 50% 90%, rgba(204, 255, 0, 0.05) 0%, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Top Bar */
+        .top-navbar {
+            background: rgba(14, 22, 38, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary), #059669);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 20px;
+            box-shadow: 0 4px 18px var(--primary-glow);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .brand-title-wrap h1 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #FFFFFF 30%, var(--lime) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand-title-wrap p {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .env-badge {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+
+        /* Nav controls */
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .select-input, .text-input {
+            background: rgba(10, 16, 28, 0.7);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .select-input:focus, .text-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            font-family: inherit;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: #FFFFFF;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .btn-lime {
+            background: var(--lime);
+            color: #080D1A;
+            box-shadow: 0 4px 14px var(--lime-glow);
+            font-weight: 700;
+        }
+        .btn-lime:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--lime-glow);
+        }
+
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+        }
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: var(--danger-bg);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #F87171;
+        }
+        .btn-danger:hover {
+            background: var(--danger);
+            color: #FFFFFF;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        /* Layout Container */
+        .main-layout {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glass Cards */
+        .glass-panel {
+            background: var(--surface-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        /* Sticky Form Sidebar */
+        .form-sidebar {
+            position: sticky;
+            top: 86px;
+            height: calc(100vh - 110px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .form-sidebar {
+                position: static;
+                height: auto;
+            }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #FFFFFF;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(9, 14, 25, 0.85);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            padding: 10px 14px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+            background: rgba(9, 14, 25, 1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Preset Price Chips */
+        .preset-prices {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .price-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-mono);
+        }
+
+        .price-chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .price-chip.highlight-micro {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: var(--primary);
+            color: var(--lime);
+            font-weight: 700;
+        }
+
+        /* Image URL & Quick Gallery Presets */
+        .image-presets-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-top: 8px;
+        }
+
+        .img-preset-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+
+        .img-preset-btn:hover {
+            border-color: var(--primary);
+            color: #FFFFFF;
+        }
+
+        .image-preview-box {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            border-radius: var(--radius-sm);
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed var(--border-glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .image-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-placeholder {
+            color: var(--text-dim);
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Dietary Toggles */
+        .toggles-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .toggle-btn {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .toggle-btn.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--primary);
+            color: #FFFFFF;
+        }
+
+        .toggle-btn.active i {
+            color: var(--primary);
+        }
+
+        /* Metrics Bar */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 800px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .metric-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--primary-border);
+            transform: translateY(-2px);
+        }
+
+        .metric-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .metric-icon-wrap.lime {
+            background: rgba(204, 255, 0, 0.12);
+            color: var(--lime);
+        }
+        .metric-icon-wrap.blue {
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--info);
+        }
+        .metric-icon-wrap.amber {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--warning);
+        }
+
+        .metric-info h3 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #FFFFFF;
+            line-height: 1.1;
+        }
+
+        .metric-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Action Toolbar */
+        .action-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding-left: 38px;
+        }
+
+        .filter-pills {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 18px;
+        }
+
+        .filter-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .filter-pill:hover {
+            color: #FFFFFF;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .filter-pill.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #080D1A;
+            font-weight: 700;
+        }
+
+        .filter-pill.special-pill {
+            background: rgba(204, 255, 0, 0.1);
+            border-color: rgba(204, 255, 0, 0.3);
+            color: var(--lime);
+            font-weight: 600;
+        }
+        .filter-pill.special-pill.active {
+            background: var(--lime);
+            color: #080D1A;
+        }
+
+        /* Grid View */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .food-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .food-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-highlight);
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6), var(--shadow-glow);
+        }
+
+        .card-img-wrap {
+            position: relative;
+            height: 160px;
+            background: #0D1424;
+            overflow: hidden;
+        }
+
+        .card-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .food-card:hover .card-img-wrap img {
+            transform: scale(1.05);
+        }
+
+        .card-badges {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 6px;
+            z-index: 2;
+        }
+
+        .badge-chip {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            backdrop-filter: blur(8px);
+        }
+
+        .badge-micro {
+            background: rgba(16, 185, 129, 0.9);
+            color: #FFFFFF;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
+            50% { box-shadow: 0 0 18px rgba(204, 255, 0, 0.9); }
+        }
+
+        .badge-diet {
+            background: rgba(0, 0, 0, 0.65);
+            color: #E5E7EB;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .card-price-tag {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(8, 13, 26, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--primary-border);
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--lime);
+        }
+
+        .card-content {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .card-category {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-glass);
+            font-size: 12px;
+        }
+
+        .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Table View */
+        .items-table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-glass);
+            background: var(--surface-card);
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .items-table th {
+            background: rgba(14, 22, 38, 0.95);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .items-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-glass);
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        .items-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .table-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #000;
+        }
+
+        /* Modal Dialogs */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 540px;
+            padding: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+        }
+
+        .modal-overlay.open .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .modal-close:hover {
+            color: #FFFFFF;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: rgba(17, 26, 44, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            padding: 12px 18px;
+            border-radius: var(--radius-sm);
+            color: #FFFFFF;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease forwards;
+            min-width: 280px;
+            max-width: 420px;
+        }
+
+        .toast.success { border-left: 4px solid var(--primary); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+        .toast.info { border-left: 4px solid var(--info); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #FFFFFF;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="top-navbar">
+        <div class="brand-section">
+            <div class="brand-logo">
+                <i class="fas fa-burger"></i>
+            </div>
+            <div class="brand-title-wrap">
+                <h1>FoodGo Food Items Manager</h1>
+                <p>
+                    <span>Instant Micro-Pricing & Menu Operations</span>
+                    <span class="env-badge" id="envBadge">Connecting...</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="nav-controls">
+            <!-- Server Switcher -->
+            <select id="serverSelect" class="select-input" onchange="switchServer(this.value)">
+                <option value="https://food-go-app.vercel.app" selected>Production: food-go-app.vercel.app</option>
+                <option value="http://127.0.0.1:8000">Localhost: 127.0.0.1:8000</option>
+                <option value="custom">Custom Endpoint...</option>
+            </select>
+
+            <!-- Quick Auth Selector -->
+            <button class="btn btn-glass btn-sm" id="authBtn" onclick="openAuthModal()">
+                <i class="fas fa-user-shield"></i> <span id="authStatusText">Sign In</span>
+            </button>
+
+            <!-- Batch Add 10-20 Micro Items Button -->
+            <button class="btn btn-lime btn-sm" onclick="openBatchAddModal()">
+                <i class="fas fa-bolt"></i> Batch Add $0.01 Items
+            </button>
+
+            <!-- Refresh Button -->
+            <button class="btn btn-glass btn-sm" onclick="loadAllData()" title="Reload Data">
+                <i class="fas fa-rotate" id="refreshIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-layout">
+        
+        <!-- Left Column: Add Item Form (Sticky Glass Panel) -->
+        <aside class="glass-panel form-sidebar">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-circle-plus"></i> Add New Food Item
+                </div>
+                <button class="btn btn-glass btn-sm" onclick="resetForm()" title="Clear form">
+                    <i class="fas fa-eraser"></i> Clear
+                </button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                Enter item details below. Use the <strong>$0.01</strong> button for instant micro-payment testing!
+            </p>
+
+            <form id="addItemForm" onsubmit="handleCreateItem(event)">
+                <!-- Item Name -->
+                <div class="form-group">
+                    <label class="form-label" for="itemName">Food Item Name *</label>
+                    <input type="text" id="itemName" class="form-control" placeholder="e.g. Mini Cheeseburger" required oninput="updateLivePreview()">
+                </div>
+
+                <!-- Category & Restaurant -->
+                <div class="form-group">
+                    <label class="form-label" for="itemCategory">Category & Restaurant *</label>
+                    <select id="itemCategory" class="form-control" required onchange="updateLivePreview()">
+                        <option value="">Loading categories...</option>
+                    </select>
+                </div>
+
+                <!-- Price & Original Price -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="itemPrice">Price ($ USD) *</label>
+                        <input type="number" step="0.01" min="0.01" id="itemPrice" class="form-control" value="0.01" required oninput="updateLivePreview()">
+                        <!-- Quick Price Chips -->
+                        <div class="preset-prices">
+                            <span class="price-chip highlight-micro" onclick="setPrice('0.01')">$0.01 Test</span>
+                            <span class="price-chip" onclick="setPrice('0.05')">$0.05</span>
+                            <span class="price-chip" onclick="setPrice('1.00')">$1.00</span>
+                            <span class="price-chip" onclick="setPrice('3.50')">$3.50</span>
+                            <span class="price-chip" onclick="setPrice('5.00')">$5.00</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="itemOriginalPrice">Compare Price ($)</label>
+                        <input type="number" step="0.01" min="0.01" id="itemOriginalPrice" class="form-control" placeholder="e.g. 2.50">
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label class="form-label" for="itemDescription">Description</label>
+                    <textarea id="itemDescription" class="form-control" placeholder="Delicious mini burger for testing $0.01 payments" oninput="updateLivePreview()"></textarea>
+                </div>
+
+                <!-- Image URL & Quick Gallery Presets -->
+                <div class="form-group">
+                    <label class="form-label" for="itemImageUrl">Image URL</label>
+                    <input type="url" id="itemImageUrl" class="form-control" placeholder="Paste image link or choose preset below" oninput="handleImageChange(this.value)">
+                    
+                    <!-- Presets -->
+                    <div class="image-presets-row">
+                        <span class="img-preset-btn" onclick="applyImagePreset('burger')">Burger</span>
+                        <span class="img-preset-btn" onclick="applyImagePreset('fries')">Fries</span>
+                        <span class="img-preset-btn" onclick="applyImagePreset('pizza')">Pizza</span>
+                        <span class="img-preset-btn" onclick="applyImagePreset('shake')">Shake</span>
+                        <span class="img-preset-btn" onclick="applyImagePreset('pasta')">Pasta</span>
+                        <span class="img-preset-btn" onclick="applyImagePreset('loklak')">Lok Lak</span>
+                        <span class="img-preset-btn" onclick="applyImagePreset('coffee')">Coffee</span>
+                    </div>
+
+                    <!-- Live Image Box -->
+                    <div class="image-preview-box" id="imagePreviewBox">
+                        <div class="image-preview-placeholder" id="imagePreviewPlaceholder">
+                            <i class="fas fa-image" style="font-size: 24px;"></i>
+                            <span>Image preview will appear here</span>
+                        </div>
+                        <img id="imagePreviewImg" style="display:none;" alt="Preview" onerror="onImgError()">
+                    </div>
+                </div>
+
+                <!-- Ingredients -->
+                <div class="form-group">
+                    <label class="form-label" for="itemIngredients">Ingredients (comma-separated)</label>
+                    <input type="text" id="itemIngredients" class="form-control" placeholder="Beef Patty, Cheddar, Brioche Bun">
+                </div>
+
+                <!-- Prep Time & Availability -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="itemPrepTime">Prep Time (mins)</label>
+                        <input type="number" id="itemPrepTime" class="form-control" value="5" min="1" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="itemAvailable">Availability</label>
+                        <select id="itemAvailable" class="form-control">
+                            <option value="true" selected>Available Now</option>
+                            <option value="false">Hidden / Sold Out</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dietary Badges -->
+                <div class="form-group">
+                    <label class="form-label">Dietary Tags</label>
+                    <div class="toggles-group">
+                        <div class="toggle-btn" id="toggleHalal" onclick="toggleDiet('halal')">
+                            <i class="fas fa-check-circle"></i> Halal
+                        </div>
+                        <div class="toggle-btn" id="toggleVeg" onclick="toggleDiet('veg')">
+                            <i class="fas fa-leaf"></i> Vegetarian
+                        </div>
+                        <div class="toggle-btn" id="toggleSpicy" onclick="toggleDiet('spicy')">
+                            <i class="fas fa-pepper-hot"></i> Spicy
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary" id="submitItemBtn" style="width: 100%; padding: 12px; margin-top: 8px;">
+                    <i class="fas fa-plus"></i> Create Food Item
+                </button>
+            </form>
+        </aside>
+
+        <!-- Right Column: Catalog, Metrics & Tools -->
+        <section class="catalog-section">
+            
+            <!-- Metrics Summary Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon-wrap">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3 id="statTotalItems">-</h3>
+                        <p>Total Food Items</p>
+                    </div>
+                </div>
+
+                <div class="metric-card" onclick="filterByMicroPrice()" style="cursor: pointer;" title="Click to filter $0.01 micro items">
+                    <div class="metric-icon-wrap lime">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3 id="statMicroItems" style="color: var(--lime);">-</h3>
+                        <p>$0.01 Test Items</p>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon-wrap blue">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3 id="statCategories">-</h3>
+                        <p>Active Categories</p>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon-wrap amber">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3 id="statAvgPrice">-</h3>
+                        <p>Avg Item Price</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Toolbar -->
+            <div class="action-toolbar">
+                <!-- Search Input -->
+                <div class="search-wrap">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" class="form-control search-input" placeholder="Search by food name, description, ingredients..." oninput="handleSearch(this.value)">
+                </div>
+
+                <!-- Batch Actions Dropdown / Buttons -->
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <!-- View Mode Toggle -->
+                    <button class="btn btn-glass btn-sm" id="viewModeBtn" onclick="toggleViewMode()" title="Toggle Grid / Table View">
+                        <i class="fas fa-table-cells-large" id="viewModeIcon"></i>
+                    </button>
+
+                    <!-- Batch Set $0.01 -->
+                    <button class="btn btn-glass btn-sm" onclick="batchSetSelectedPrice('0.01')" title="Set selected items price to $0.01">
+                        <i class="fas fa-dollar-sign"></i> Set $0.01
+                    </button>
+
+                    <!-- Delete Test Items -->
+                    <button class="btn btn-danger btn-sm" onclick="purgeMicroTestItems()" title="Delete all micro $0.01 test items">
+                        <i class="fas fa-trash-can"></i> Purge Test Items
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="filter-pills" id="filterPillsContainer">
+                <span class="filter-pill active" onclick="setCategoryFilter('all', this)">All Items</span>
+                <span class="filter-pill special-pill" onclick="setCategoryFilter('micro', this)">Micro $0.01 Only</span>
+                <!-- Categories dynamically injected here -->
+            </div>
+
+            <!-- Catalog Items View (Grid or Table) -->
+            <div id="itemsContainer">
+                <!-- Injected by JavaScript -->
+                <div style="text-align: center; padding: 60px; color: var(--text-muted);">
+                    <div class="spinner" style="width: 24px; height: 24px; margin-bottom: 12px;"></div>
+                    <p>Loading FoodGo items catalog...</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Batch Add Modal -->
+    <div class="modal-overlay" id="batchAddModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-bolt" style="color: var(--lime);"></i> Batch Add Micro Items ($0.01)
+                </div>
+                <button class="modal-close" onclick="closeBatchAddModal()">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                Generate a ready-to-use menu package of 10 to 20 realistic culinary items priced at <strong>$0.01</strong> each across Glass Burger, Crystal Pizza, and Phnom Penh Flavors.
+            </p>
+
+            <div class="form-group">
+                <label class="form-label" for="batchCount">How many items to add?</label>
+                <select id="batchCount" class="form-control">
+                    <option value="10">10 Items ($0.01 each)</option>
+                    <option value="15" selected>15 Items ($0.01 each)</option>
+                    <option value="20">20 Items ($0.01 each)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="batchTargetCat">Distribution</label>
+                <select id="batchTargetCat" class="form-control">
+                    <option value="all">Distribute across all 9 Categories</option>
+                    <option value="1">Burgers only (Glass Burger)</option>
+                    <option value="4">Pizzas only (Crystal Pizza)</option>
+                    <option value="7">Khmer Kitchen only</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-glass" onclick="closeBatchAddModal()">Cancel</button>
+                <button class="btn btn-lime" id="runBatchAddBtn" onclick="executeBatchAdd()">
+                    <i class="fas fa-play"></i> Start Batch Add
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-pen-to-square" style="color: var(--primary);"></i> Edit Food Item
+                </div>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="editForm" onsubmit="handleSaveEdit(event)">
+                <input type="hidden" id="editItemId">
+                
+                <div class="form-group">
+                    <label class="form-label" for="editName">Name</label>
+                    <input type="text" id="editName" class="form-control" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="editPrice">Price ($ USD)</label>
+                        <input type="number" step="0.01" min="0.01" id="editPrice" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editCategory">Category</label>
+                        <select id="editCategory" class="form-control" required></select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="editDescription">Description</label>
+                    <textarea id="editDescription" class="form-control"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="editImageUrl">Image URL</label>
+                    <input type="url" id="editImageUrl" class="form-control">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="editPrepTime">Prep Time (mins)</label>
+                        <input type="number" id="editPrepTime" class="form-control" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editAvailable">Status</label>
+                        <select id="editAvailable" class="form-control">
+                            <option value="true">Available</option>
+                            <option value="false">Unavailable</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-glass" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveEditBtn">
+                        <i class="fas fa-check"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Auth / Credentials Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-lock" style="color: var(--info);"></i> Authentication & API Settings
+                </div>
+                <button class="modal-close" onclick="closeAuthModal()">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                Sign in with your Admin or Restaurant Owner credentials to authenticate with the FoodGo REST API.
+            </p>
+
+            <form onsubmit="handleCredentialLogin(event)" style="margin-bottom: 20px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="authUsernameInput">Username</label>
+                        <input type="text" id="authUsernameInput" class="form-control" placeholder="admin" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="authPasswordInput">Password</label>
+                        <input type="password" id="authPasswordInput" class="form-control" placeholder="Password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-right-to-bracket"></i> Sign In &amp; Get Token
+                </button>
+            </form>
+
+            <div class="form-group">
+                <label class="form-label" for="customTokenInput">Or Paste JWT Access Token:</label>
+                <input type="password" id="customTokenInput" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIs...">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <button class="btn btn-glass" onclick="clearToken()">Log Out / Clear</button>
+                <button class="btn btn-primary" onclick="saveCustomToken()">Save Token</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Application Logic -->
+    <script>
+        // State Management
+        const state = {
+            apiBase: 'https://food-go-app.vercel.app',
+            token: localStorage.getItem('foodgo_jwt_token') || '',
+            currentUser: localStorage.getItem('foodgo_user_role') || '',
+            categories: [],
+            restaurants: [],
+            items: [],
+            filteredItems: [],
+            activeCategory: 'all',
+            searchQuery: '',
+            viewMode: localStorage.getItem('foodgo_view_mode') || 'grid',
+            dietary: { halal: false, veg: false, spicy: false }
+        };
+
+        // Standard Unsplash Food Images
+        const PRESET_IMAGES = {
+            burger: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=60',
+            fries: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500&auto=format&fit=crop&q=60',
+            pizza: 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=500&auto=format&fit=crop&q=60',
+            shake: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=500&auto=format&fit=crop&q=60',
+            pasta: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=500&auto=format&fit=crop&q=60',
+            loklak: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+            coffee: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=500&auto=format&fit=crop&q=60'
+        };
+
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', async () => {
+            detectDefaultServer();
+            applyViewModeUI();
+            updateAuthBadge();
+            await loadAllData();
+        });
+
+        async function handleCredentialLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('authUsernameInput').value.trim();
+            const password = document.getElementById('authPasswordInput').value;
+            await quickLogin(username, password, false);
+        }
+
+        function detectDefaultServer() {
+            if (window.location.protocol.startsWith('http')) {
+                // If served from web server (Django)
+                const origin = window.location.origin;
+                if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+                    state.apiBase = origin;
+                    document.getElementById('serverSelect').value = 'http://127.0.0.1:8000';
+                } else if (origin.includes('vercel.app')) {
+                    state.apiBase = origin;
+                    document.getElementById('serverSelect').value = 'https://food-go-app.vercel.app';
+                }
+            }
+            updateEnvBadge();
+        }
+
+        function updateEnvBadge() {
+            const badge = document.getElementById('envBadge');
+            badge.textContent = state.apiBase.replace('https://', '').replace('http://', '');
+        }
+
+        function switchServer(val) {
+            if (val === 'custom') {
+                const custom = prompt('Enter custom API Base URL:', state.apiBase);
+                if (custom) state.apiBase = custom.trim().replace(/\/$/, '');
+            } else {
+                state.apiBase = val;
+            }
+            updateEnvBadge();
+            showToast('Switched API endpoint to ' + state.apiBase, 'info');
+            loadAllData();
+        }
+
+        // Authentication Handlers
+        async function quickLogin(username, password, silent = false) {
+            try {
+                const res = await fetch(`${state.apiBase}/api/token/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Login failed with status ${res.status}`);
+                }
+
+                const data = await res.json();
+                state.token = data.access;
+                state.currentUser = username;
+                localStorage.setItem('foodgo_jwt_token', state.token);
+                localStorage.setItem('foodgo_user_role', username);
+                updateAuthBadge();
+                if (!silent) {
+                    showToast(`Successfully logged in as ${username}!`, 'success');
+                    closeAuthModal();
+                }
+            } catch (err) {
+                if (!silent) showToast(err.message, 'error');
+            }
+        }
+
+        function saveCustomToken() {
+            const input = document.getElementById('customTokenInput').value.trim();
+            if (input) {
+                state.token = input;
+                state.currentUser = 'custom_token';
+                localStorage.setItem('foodgo_jwt_token', input);
+                localStorage.setItem('foodgo_user_role', 'custom');
+                updateAuthBadge();
+                showToast('Custom token saved!', 'success');
+                closeAuthModal();
+            }
+        }
+
+        function clearToken() {
+            state.token = '';
+            state.currentUser = 'guest';
+            localStorage.removeItem('foodgo_jwt_token');
+            localStorage.removeItem('foodgo_user_role');
+            updateAuthBadge();
+            showToast('Logged out.', 'info');
+            closeAuthModal();
+        }
+
+        function updateAuthBadge() {
+            const label = document.getElementById('authStatusText');
+            if (state.token) {
+                label.textContent = state.currentUser ? `${state.currentUser.toUpperCase()} (Active)` : 'Logged In';
+            } else {
+                label.textContent = 'Guest (Read Only)';
+            }
+        }
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('open');
+            document.getElementById('customTokenInput').value = state.token || '';
+        }
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('open');
+        }
+
+        // Data Loading
+        async function loadAllData() {
+            const refreshIcon = document.getElementById('refreshIcon');
+            refreshIcon.classList.add('fa-spin');
+            
+            try {
+                await Promise.all([fetchCategories(), fetchRestaurants(), fetchItems()]);
+                renderMetrics();
+                renderFilters();
+                renderItems();
+                showToast('Loaded latest menu items & categories', 'success');
+            } catch (err) {
+                showToast('Failed to load catalog data: ' + err.message, 'error');
+            } finally {
+                refreshIcon.classList.remove('fa-spin');
+            }
+        }
+
+        async function fetchCategories() {
+            const res = await fetch(`${state.apiBase}/api/food-categories/`);
+            if (!res.ok) throw new Error('Could not fetch categories');
+            const data = await res.json();
+            state.categories = Array.isArray(data) ? data : (data.results || []);
+            populateCategoryDropdown();
+        }
+
+        async function fetchRestaurants() {
+            const res = await fetch(`${state.apiBase}/api/restaurants/`);
+            if (!res.ok) return;
+            const data = await res.json();
+            state.restaurants = Array.isArray(data) ? data : (data.results || []);
+        }
+
+        async function fetchItems() {
+            const res = await fetch(`${state.apiBase}/api/food-items/`);
+            if (!res.ok) throw new Error('Could not fetch food items');
+            const data = await res.json();
+            state.items = Array.isArray(data) ? data : (data.results || []);
+            applyFilters();
+        }
+
+        function populateCategoryDropdown() {
+            const select = document.getElementById('itemCategory');
+            const editSelect = document.getElementById('editCategory');
+            select.innerHTML = '<option value="">-- Choose Category --</option>';
+            editSelect.innerHTML = '';
+
+            state.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = `${cat.name} (${cat.restaurant_name || ('Restaurant ' + cat.restaurant)})`;
+                select.appendChild(opt);
+
+                const opt2 = opt.cloneNode(true);
+                editSelect.appendChild(opt2);
+            });
+        }
+
+        // Metrics Calculation
+        function renderMetrics() {
+            const total = state.items.length;
+            const micro = state.items.filter(i => parseFloat(i.price) <= 0.05).length;
+            const categoriesCount = state.categories.length;
+            
+            let avg = 0;
+            if (total > 0) {
+                const sum = state.items.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
+                avg = (sum / total).toFixed(2);
+            }
+
+            document.getElementById('statTotalItems').textContent = total;
+            document.getElementById('statMicroItems').textContent = micro;
+            document.getElementById('statCategories').textContent = categoriesCount;
+            document.getElementById('statAvgPrice').textContent = `$${avg}`;
+        }
+
+        // Filters & Search
+        function renderFilters() {
+            const container = document.getElementById('filterPillsContainer');
+            // Keep first two pills
+            container.innerHTML = `
+                <span class="filter-pill ${state.activeCategory === 'all' ? 'active' : ''}" onclick="setCategoryFilter('all', this)">All Items</span>
+                <span class="filter-pill special-pill ${state.activeCategory === 'micro' ? 'active' : ''}" onclick="setCategoryFilter('micro', this)">Micro $0.01 Only</span>
+            `;
+
+            state.categories.forEach(cat => {
+                const pill = document.createElement('span');
+                pill.className = `filter-pill ${state.activeCategory === cat.id ? 'active' : ''}`;
+                pill.textContent = cat.name;
+                pill.onclick = () => setCategoryFilter(cat.id, pill);
+                container.appendChild(pill);
+            });
+        }
+
+        function setCategoryFilter(catId, element) {
+            state.activeCategory = catId;
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            if (element) element.classList.add('active');
+            applyFilters();
+        }
+
+        function filterByMicroPrice() {
+            setCategoryFilter('micro', document.querySelector('.filter-pill.special-pill'));
+        }
+
+        function handleSearch(val) {
+            state.searchQuery = val.toLowerCase().trim();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            state.filteredItems = state.items.filter(item => {
+                // Category or Micro filter
+                if (state.activeCategory === 'micro') {
+                    if (parseFloat(item.price) > 0.05) return false;
+                } else if (state.activeCategory !== 'all') {
+                    if (item.category !== state.activeCategory) return false;
+                }
+
+                // Search query
+                if (state.searchQuery) {
+                    const matchName = (item.name || '').toLowerCase().includes(state.searchQuery);
+                    const matchDesc = (item.description || '').toLowerCase().includes(state.searchQuery);
+                    const matchIng = (item.ingredients || '').toLowerCase().includes(state.searchQuery);
+                    if (!matchName && !matchDesc && !matchIng) return false;
+                }
+
+                return true;
+            });
+
+            renderItems();
+        }
+
+        // Render Items (Grid or Table)
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            
+            if (state.filteredItems.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: var(--text-muted); background: var(--surface-card); border-radius: var(--radius-md);">
+                        <i class="fas fa-box-open" style="font-size: 36px; margin-bottom: 12px; opacity: 0.5;"></i>
+                        <p style="font-size: 15px; font-weight: 600;">No food items found matching criteria.</p>
+                        <p style="font-size: 12px; margin-top: 4px;">Try clearing search or click 'Batch Add $0.01 Items' above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (state.viewMode === 'grid') {
+                container.className = 'items-grid';
+                container.innerHTML = state.filteredItems.map(item => {
+                    const isMicro = parseFloat(item.price) <= 0.05;
+                    const cat = state.categories.find(c => c.id === item.category);
+                    const catName = cat ? cat.name : 'Category ' + item.category;
+                    const imgUrl = item.image_url || item.image || PRESET_IMAGES.burger;
+
+                    return `
+                        <div class="food-card" id="card-${item.id}">
+                            <div class="card-img-wrap">
+                                <img src="${imgUrl}" alt="${escapeHtml(item.name)}" onerror="this.src='${PRESET_IMAGES.burger}'">
+                                <div class="card-badges">
+                                    ${isMicro ? '<span class="badge-chip badge-micro">TEST $0.01</span>' : ''}
+                                    ${item.is_vegetarian ? '<span class="badge-chip badge-diet">VEG</span>' : ''}
+                                    ${item.is_halal ? '<span class="badge-chip badge-diet">HALAL</span>' : ''}
+                                    ${item.is_spicy ? '<span class="badge-chip badge-diet">SPICY</span>' : ''}
+                                </div>
+                                <div class="card-price-tag">$${parseFloat(item.price).toFixed(2)}</div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-category">${escapeHtml(catName)}</div>
+                                <div class="card-title">${escapeHtml(item.name)}</div>
+                                <div class="card-desc">${escapeHtml(item.description || 'No description provided.')}</div>
+                                <div class="card-footer">
+                                    <div style="color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-clock"></i> ${item.preparation_time_mins || 15}m
+                                    </div>
+                                    <div class="card-actions">
+                                        <button class="btn btn-glass btn-sm" onclick="quickSetPrice(${item.id}, '0.01')" title="Quick set price to $0.01">
+                                            $0.01
+                                        </button>
+                                        <button class="btn btn-glass btn-sm" onclick="openEditModal(${item.id})" title="Edit Item">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="confirmDeleteItem(${item.id})" title="Delete Item">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.className = 'items-table-wrap';
+                container.innerHTML = `
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Prep</th>
+                                <th>Tags</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${state.filteredItems.map(item => {
+                                const isMicro = parseFloat(item.price) <= 0.05;
+                                const cat = state.categories.find(c => c.id === item.category);
+                                const catName = cat ? cat.name : 'Category ' + item.category;
+                                const imgUrl = item.image_url || item.image || PRESET_IMAGES.burger;
+
+                                return `
+                                    <tr>
+                                        <td><img src="${imgUrl}" class="table-thumb" alt="${escapeHtml(item.name)}" onerror="this.src='${PRESET_IMAGES.burger}'"></td>
+                                        <td style="font-family: var(--font-mono); color: var(--text-muted);">#${item.id}</td>
+                                        <td style="font-weight: 600;">${escapeHtml(item.name)}</td>
+                                        <td style="color: var(--text-muted);">${escapeHtml(catName)}</td>
+                                        <td style="font-family: var(--font-mono); font-weight: 700; color: ${isMicro ? 'var(--lime)' : 'var(--text-main)'};">
+                                            $${parseFloat(item.price).toFixed(2)}
+                                        </td>
+                                        <td>${item.preparation_time_mins || 15}m</td>
+                                        <td>
+                                            ${item.is_vegetarian ? '<span class="badge-chip badge-diet">VEG</span> ' : ''}
+                                            ${item.is_halal ? '<span class="badge-chip badge-diet">HALAL</span> ' : ''}
+                                            ${item.is_spicy ? '<span class="badge-chip badge-diet">SPICY</span>' : ''}
+                                        </td>
+                                        <td>
+                                            <span style="color: ${item.is_available ? 'var(--primary)' : 'var(--danger)'}; font-size: 12px; font-weight: 600;">
+                                                <i class="fas fa-circle" style="font-size: 8px;"></i> ${item.is_available ? 'Available' : 'Hidden'}
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <button class="btn btn-glass btn-sm" onclick="quickSetPrice(${item.id}, '0.01')" title="Quick set to $0.01">$0.01</button>
+                                            <button class="btn btn-glass btn-sm" onclick="openEditModal(${item.id})"><i class="fas fa-pen"></i></button>
+                                            <button class="btn btn-danger btn-sm" onclick="confirmDeleteItem(${item.id})"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+        }
+
+        // View Mode Switcher
+        function toggleViewMode() {
+            state.viewMode = state.viewMode === 'grid' ? 'table' : 'grid';
+            localStorage.setItem('foodgo_view_mode', state.viewMode);
+            applyViewModeUI();
+            renderItems();
+        }
+
+        function applyViewModeUI() {
+            const icon = document.getElementById('viewModeIcon');
+            if (state.viewMode === 'grid') {
+                icon.className = 'fas fa-table-cells-large';
+            } else {
+                icon.className = 'fas fa-list';
+            }
+        }
+
+        // Add Item Form Actions
+        function setPrice(val) {
+            document.getElementById('itemPrice').value = val;
+            updateLivePreview();
+        }
+
+        function applyImagePreset(key) {
+            const url = PRESET_IMAGES[key];
+            if (url) {
+                document.getElementById('itemImageUrl').value = url;
+                handleImageChange(url);
+            }
+        }
+
+        function handleImageChange(url) {
+            const box = document.getElementById('imagePreviewBox');
+            const placeholder = document.getElementById('imagePreviewPlaceholder');
+            const img = document.getElementById('imagePreviewImg');
+
+            if (url && url.trim().startsWith('http')) {
+                img.src = url.trim();
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        }
+
+        function onImgError() {
+            const placeholder = document.getElementById('imagePreviewPlaceholder');
+            const img = document.getElementById('imagePreviewImg');
+            img.style.display = 'none';
+            placeholder.style.display = 'flex';
+        }
+
+        function toggleDiet(tag) {
+            state.dietary[tag] = !state.dietary[tag];
+            const btn = document.getElementById(tag === 'halal' ? 'toggleHalal' : tag === 'veg' ? 'toggleVeg' : 'toggleSpicy');
+            if (state.dietary[tag]) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('addItemForm').reset();
+            document.getElementById('itemPrice').value = '0.01';
+            state.dietary = { halal: false, veg: false, spicy: false };
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            handleImageChange('');
+        }
+
+        function updateLivePreview() {
+            // Live reaction on card previews if desired
+        }
+
+        async function handleCreateItem(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitItemBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Creating...';
+
+            try {
+                const name = document.getElementById('itemName').value.trim();
+                const category = parseInt(document.getElementById('itemCategory').value);
+                const price = document.getElementById('itemPrice').value.trim();
+                const originalPrice = document.getElementById('itemOriginalPrice').value.trim() || null;
+                const description = document.getElementById('itemDescription').value.trim();
+                const imageUrl = document.getElementById('itemImageUrl').value.trim();
+                const ingredients = document.getElementById('itemIngredients').value.trim();
+                const prepTime = parseInt(document.getElementById('itemPrepTime').value) || 15;
+                const isAvailable = document.getElementById('itemAvailable').value === 'true';
+
+                if (!category) throw new Error('Please select a category');
+
+                const payload = {
+                    category,
+                    name,
+                    price,
+                    description,
+                    image_url: imageUrl,
+                    ingredients,
+                    original_price: originalPrice,
+                    is_vegetarian: state.dietary.veg,
+                    is_halal: state.dietary.halal,
+                    is_spicy: state.dietary.spicy,
+                    preparation_time_mins: prepTime,
+                    is_available: isAvailable
+                };
+
+                const headers = { 'Content-Type': 'application/json' };
+                if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+                const res = await fetch(`${state.apiBase}/api/food-items/`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(JSON.stringify(errData) || `Error ${res.status}`);
+                }
+
+                const created = await res.json();
+                showToast(`Created "${created.name}" ($${created.price})!`, 'success');
+                resetForm();
+                await fetchItems();
+                renderMetrics();
+            } catch (err) {
+                showToast('Failed to create item: ' + err.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-plus"></i> Create Food Item';
+            }
+        }
+
+        // Quick Price Set
+        async function quickSetPrice(itemId, price) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+            try {
+                const res = await fetch(`${state.apiBase}/api/food-items/${itemId}/`, {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ price: price })
+                });
+
+                if (!res.ok) throw new Error(`Status ${res.status}`);
+                showToast(`Updated item #${itemId} price to $${price}!`, 'success');
+                await fetchItems();
+                renderMetrics();
+            } catch (err) {
+                showToast('Failed to update price: ' + err.message, 'error');
+            }
+        }
+
+        // Edit Item Modal Handlers
+        function openEditModal(itemId) {
+            const item = state.items.find(i => i.id === itemId);
+            if (!item) return;
+
+            document.getElementById('editItemId').value = item.id;
+            document.getElementById('editName').value = item.name;
+            document.getElementById('editPrice').value = item.price;
+            document.getElementById('editCategory').value = item.category;
+            document.getElementById('editDescription').value = item.description || '';
+            document.getElementById('editImageUrl').value = item.image_url || item.image || '';
+            document.getElementById('editPrepTime').value = item.preparation_time_mins || 15;
+            document.getElementById('editAvailable').value = item.is_available ? 'true' : 'false';
+
+            document.getElementById('editModal').classList.add('open');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('open');
+        }
+
+        async function handleSaveEdit(e) {
+            e.preventDefault();
+            const itemId = document.getElementById('editItemId').value;
+            const saveBtn = document.getElementById('saveEditBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
+
+            const payload = {
+                name: document.getElementById('editName').value.trim(),
+                price: document.getElementById('editPrice').value.trim(),
+                category: parseInt(document.getElementById('editCategory').value),
+                description: document.getElementById('editDescription').value.trim(),
+                image_url: document.getElementById('editImageUrl').value.trim(),
+                preparation_time_mins: parseInt(document.getElementById('editPrepTime').value) || 15,
+                is_available: document.getElementById('editAvailable').value === 'true'
+            };
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+            try {
+                const res = await fetch(`${state.apiBase}/api/food-items/${itemId}/`, {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error(`Status ${res.status}`);
+                showToast(`Saved changes to #${itemId}!`, 'success');
+                closeEditModal();
+                await fetchItems();
+                renderMetrics();
+            } catch (err) {
+                showToast('Failed to save changes: ' + err.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-check"></i> Save Changes';
+            }
+        }
+
+        // Delete Item Handlers
+        async function confirmDeleteItem(itemId) {
+            if (!confirm(`Are you sure you want to permanently delete item #${itemId}?`)) return;
+
+            const headers = {};
+            if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+            try {
+                const res = await fetch(`${state.apiBase}/api/food-items/${itemId}/`, {
+                    method: 'DELETE',
+                    headers
+                });
+
+                if (!res.ok && res.status !== 204) throw new Error(`Status ${res.status}`);
+                showToast(`Deleted item #${itemId}!`, 'info');
+                await fetchItems();
+                renderMetrics();
+            } catch (err) {
+                showToast('Failed to delete item: ' + err.message, 'error');
+            }
+        }
+
+        // Batch Add Modal & Actions
+        function openBatchAddModal() {
+            document.getElementById('batchAddModal').classList.add('open');
+        }
+        function closeBatchAddModal() {
+            document.getElementById('batchAddModal').classList.remove('open');
+        }
+
+        async function executeBatchAdd() {
+            const count = parseInt(document.getElementById('batchCount').value);
+            const target = document.getElementById('batchTargetCat').value;
+            const btn = document.getElementById('runBatchAddBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Adding Items...';
+
+            const microBatchTemplates = [
+                { name: 'Mini Cheeseburger', cat: 1, img: PRESET_IMAGES.burger, desc: 'Mini artisan burger with melted cheddar.' },
+                { name: 'Micro Bacon Slider', cat: 1, img: PRESET_IMAGES.burger, desc: 'Crispy smoked bacon mini slider.' },
+                { name: 'Golden Crispy Fries Mini', cat: 2, img: PRESET_IMAGES.fries, desc: 'Double-fried Idaho russet potatoes.' },
+                { name: 'Onion Rings Crunch', cat: 2, img: PRESET_IMAGES.fries, desc: 'Golden battered onion rings.' },
+                { name: 'Strawberry Shake Mini', cat: 3, img: PRESET_IMAGES.shake, desc: 'Real strawberry shake blended with vanilla ice cream.' },
+                { name: 'Classic Margherita Mini', cat: 4, img: PRESET_IMAGES.pizza, desc: 'Personal mini pizza with San Marzano sauce and basil.' },
+                { name: 'Pepperoni Slice Mini', cat: 4, img: PRESET_IMAGES.pizza, desc: 'Crispy crust topped with spiced beef pepperoni.' },
+                { name: 'Creamy Carbonara Taster', cat: 5, img: PRESET_IMAGES.pasta, desc: 'Al dente fettuccine in rich Parmesan cream sauce.' },
+                { name: 'Garlic Herb Bread', cat: 6, img: PRESET_IMAGES.fries, desc: 'Toasted artisan baguette with garlic butter.' },
+                { name: 'Khmer Beef Lok Lak Mini', cat: 7, img: PRESET_IMAGES.loklak, desc: 'Tender stir-fried beef cubes with Kampot pepper.' },
+                { name: 'Fish Amok Taster', cat: 7, img: PRESET_IMAGES.loklak, desc: 'Steamed fish curry in banana leaf with kroeung spices.' },
+                { name: 'Nom Banh Chok Snack', cat: 8, img: PRESET_IMAGES.pasta, desc: 'Traditional Khmer rice noodles with aromatic green curry.' },
+                { name: 'Crispy Spring Roll Pair', cat: 8, img: PRESET_IMAGES.fries, desc: 'Crispy spring rolls with sweet chili sauce.' },
+                { name: 'Cambodian Iced Coffee Mini', cat: 9, img: PRESET_IMAGES.coffee, desc: 'Rich dark roast coffee with sweet condensed milk.' },
+                { name: 'Mango Passion Cooler Mini', cat: 3, img: PRESET_IMAGES.shake, desc: 'Tropical puree of Cambodian mango over crushed ice.' },
+                { name: 'Truffle Aioli Dip Cup', cat: 2, img: PRESET_IMAGES.fries, desc: 'Creamy black truffle dipping sauce.' },
+                { name: 'Mozzarella Sticks Pair', cat: 2, img: PRESET_IMAGES.fries, desc: 'Warm gooey mozzarella in golden panko crust.' },
+                { name: 'Pesto Penne Taster', cat: 5, img: PRESET_IMAGES.pasta, desc: 'Genovese basil pesto tossed with pine nuts.' },
+                { name: 'Sweet Taro Spring Roll', cat: 6, img: PRESET_IMAGES.fries, desc: 'Crispy dessert rolls with velvety sweet taro cream.' },
+                { name: 'Lemongrass Cooler Mini', cat: 9, img: PRESET_IMAGES.coffee, desc: 'Chilled herbal infusion with wild honey.' }
+            ];
+
+            let addedCount = 0;
+            const headers = { 'Content-Type': 'application/json' };
+            if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+            try {
+                for (let i = 0; i < count; i++) {
+                    const tpl = microBatchTemplates[i % microBatchTemplates.length];
+                    const catId = target === 'all' ? (state.categories.length > 0 ? (state.categories[i % state.categories.length].id) : tpl.cat) : parseInt(target);
+
+                    const payload = {
+                        category: catId,
+                        name: `${tpl.name} #${i + 1}`,
+                        price: '0.01',
+                        original_price: '2.50',
+                        description: `${tpl.desc} Test micro-transaction.`,
+                        image_url: tpl.img,
+                        is_available: true,
+                        preparation_time_mins: 5
+                    };
+
+                    const res = await fetch(`${state.apiBase}/api/food-items/`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (res.ok) addedCount++;
+                }
+
+                showToast(`Successfully added ${addedCount} items at $0.01!`, 'success');
+                closeBatchAddModal();
+                await fetchItems();
+                renderMetrics();
+            } catch (err) {
+                showToast('Batch add error: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i> Start Batch Add';
+            }
+        }
+
+        // Purge Micro Test Items
+        async function purgeMicroTestItems() {
+            const testItems = state.items.filter(i => {
+                const isMicro = parseFloat(i.price) <= 0.05;
+                const hasTestName = /mini|micro|test|taster/i.test(i.name);
+                return isMicro || hasTestName;
+            });
+
+            if (testItems.length === 0) {
+                showToast('No test items found to purge.', 'info');
+                return;
+            }
+
+            if (!confirm(`Found ${testItems.length} micro test items (price <= $0.05 or name with Mini/Micro/Test). Delete them all?`)) return;
+
+            let deletedCount = 0;
+            const headers = {};
+            if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+            for (const it of testItems) {
+                try {
+                    const res = await fetch(`${state.apiBase}/api/food-items/${it.id}/`, {
+                        method: 'DELETE',
+                        headers
+                    });
+                    if (res.ok || res.status === 204) deletedCount++;
+                } catch (e) {}
+            }
+
+            showToast(`Purged ${deletedCount} test items!`, 'success');
+            await fetchItems();
+            renderMetrics();
+        }
+
+        // Batch set selected to $0.01
+        async function batchSetSelectedPrice(price) {
+            const targetItems = state.filteredItems.slice(0, 10);
+            if (targetItems.length === 0) {
+                showToast('No items currently displayed to update.', 'warning');
+                return;
+            }
+
+            if (!confirm(`Set price to $${price} for the ${targetItems.length} items currently displayed?`)) return;
+
+            let updatedCount = 0;
+            const headers = { 'Content-Type': 'application/json' };
+            if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+            for (const it of targetItems) {
+                try {
+                    const res = await fetch(`${state.apiBase}/api/food-items/${it.id}/`, {
+                        method: 'PATCH',
+                        headers,
+                        body: JSON.stringify({ price: price })
+                    });
+                    if (res.ok) updatedCount++;
+                } catch (e) {}
+            }
+
+            showToast(`Updated ${updatedCount} items to $${price}!`, 'success');
+            await fetchItems();
+            renderMetrics();
+        }
+
+        // Toast Helper
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fa-circle-check' :
+                         type === 'error' ? 'fa-circle-exclamation' :
+                         type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info';
+
+            toast.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <div style="flex: 1; word-break: break-word;">${escapeHtml(message)}</div>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>

@@ -1,14 +1,27 @@
 from decimal import Decimal
+import os
 from django.core.management.base import BaseCommand
 from core.models import (
     User, Address, Wallet, Restaurant, RestaurantCategory,
-    FoodCategory, FoodItem, Driver, Order, Delivery,
+    FoodCategory, FoodItem, Driver, Order, Delivery, Payment,
 )
+from core.management.commands.ensure_admin import _set_password
 
 class Command(BaseCommand):
     help = 'Seeds the database with a full, rich food delivery menu across restaurants, categories, and demo user accounts'
 
     def handle(self, *args, **options):
+        prev_mongo_sync = os.environ.get('MONGO_SYNC_ENABLED')
+        os.environ['MONGO_SYNC_ENABLED'] = 'false'
+        try:
+            self._handle_inner(*args, **options)
+        finally:
+            if prev_mongo_sync is None:
+                os.environ.pop('MONGO_SYNC_ENABLED', None)
+            else:
+                os.environ['MONGO_SYNC_ENABLED'] = prev_mongo_sync
+
+    def _handle_inner(self, *args, **options):
         self.stdout.write('Starting full database seeding...')
 
         # Ensure demo users
@@ -16,7 +29,7 @@ class Command(BaseCommand):
             username='admin',
             defaults={'role': 'admin', 'email': 'admin@foodgo.com', 'is_staff': True, 'is_superuser': True}
         )
-        admin_user.set_password('admin123')
+        _set_password(admin_user, 'admin123')
         admin_user.is_staff = True
         admin_user.is_superuser = True
         admin_user.role = 'admin'
@@ -26,7 +39,7 @@ class Command(BaseCommand):
             username='owner',
             defaults={'role': 'restaurant_owner', 'email': 'owner@foodgo.com'}
         )
-        owner1.set_password('owner123')
+        _set_password(owner1, 'owner123')
         owner1.role = 'restaurant_owner'
         owner1.save()
 
@@ -34,7 +47,7 @@ class Command(BaseCommand):
             username='owner2',
             defaults={'role': 'restaurant_owner', 'email': 'owner2@foodgo.com'}
         )
-        owner2.set_password('owner123')
+        _set_password(owner2, 'owner123')
         owner2.role = 'restaurant_owner'
         owner2.save()
 
@@ -42,7 +55,7 @@ class Command(BaseCommand):
             username='owner3',
             defaults={'role': 'restaurant_owner', 'email': 'owner3@foodgo.com'}
         )
-        owner3.set_password('owner123')
+        _set_password(owner3, 'owner123')
         owner3.role = 'restaurant_owner'
         owner3.save()
 
@@ -50,7 +63,7 @@ class Command(BaseCommand):
             username='customer1',
             defaults={'role': 'customer', 'email': 'customer@foodgo.com', 'first_name': 'Alice', 'last_name': 'Smith'}
         )
-        customer1.set_password('customer123')
+        _set_password(customer1, 'customer123')
         customer1.role = 'customer'
         customer1.save()
 
@@ -63,7 +76,7 @@ class Command(BaseCommand):
                 'last_name': 'Zen',
             }
         )
-        user_rat.set_password('12345678')
+        _set_password(user_rat, '12345678')
         user_rat.email = 'thansombathboraratt23@gmail.com'
         if not user_rat.first_name:
             user_rat.first_name = 'Ratana'
@@ -76,7 +89,7 @@ class Command(BaseCommand):
             username='driver1',
             defaults={'role': 'driver', 'email': 'driver@foodgo.com', 'first_name': 'Bob', 'last_name': 'Rider'}
         )
-        driver1.set_password('driver123')
+        _set_password(driver1, 'driver123')
         driver1.role = 'driver'
         if not driver1.phone:
             driver1.phone = '+855 12 888 999'
@@ -305,6 +318,39 @@ class Command(BaseCommand):
                     }
                 )
 
+        # =======================================================
+        # MICRO-TEST ITEMS ($0.01) FOR LIVE MICRO-PAYMENT TESTING
+        # =======================================================
+        micro_test_items = [
+            (fc_sig_burger, 'Mini Cheeseburger', 'Mini artisan burger with melted cheddar for $0.01 micro payment testing', '0.01', 'Beef, Cheddar, Brioche, Pickle', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600'),
+            (fc_sig_burger, 'Micro Bacon Slider', 'Crispy smoked bacon mini slider for $0.01 testing', '0.01', 'Beef, Bacon, Aioli', 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600'),
+            (fc_sides_burger, 'Golden Crispy Fries Mini', 'Double-fried Idaho russet potatoes seasoned with sea salt', '0.01', 'Potatoes, Sea Salt', 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600'),
+            (fc_sides_burger, 'Onion Rings Crunch', 'Golden battered onion rings with spicy dipping sauce', '0.01', 'Sweet Onions, Batter, Paprika', 'https://images.unsplash.com/photo-1639024471287-035186f55b1c?w=600'),
+            (fc_drinks_burger, 'Strawberry Shake Mini', 'Real strawberry shake blended with vanilla ice cream', '0.01', 'Strawberries, Milk, Vanilla', 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=600'),
+            (fc_drinks_burger, 'Iced Lemon Tea Mini', 'Refreshing black tea brewed fresh with lemon slices', '0.01', 'Black Tea, Lemon, Mint', 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600'),
+            (fc_pizza, 'Classic Margherita Mini', 'Personal mini pizza with San Marzano sauce and mozzarella', '0.01', 'Mozzarella, Tomato Sauce, Basil', 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=600'),
+            (fc_pizza, 'Pepperoni Slice Mini', 'Crispy crust topped with spiced beef pepperoni and cheese', '0.01', 'Beef Pepperoni, Mozzarella', 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=600'),
+            (fc_pasta, 'Creamy Carbonara Taster', 'Al dente fettuccine in rich Parmesan cream sauce', '0.01', 'Fettuccine, Cream, Parmesan', 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600'),
+            (fc_pizza_sides, 'Garlic Herb Bread', 'Toasted artisan baguette with garlic butter and parsley', '0.01', 'Baguette, Garlic Butter, Parsley', 'https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=600'),
+            (fc_pizza_sides, 'Choco Lava Cake Mini', 'Warm molten dark chocolate center dusted with sugar', '0.01', 'Chocolate, Cocoa Butter, Eggs', 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600'),
+            (fc_khmer_main, 'Khmer Beef Lok Lak Mini', 'Tender stir-fried beef cubes with Kampot pepper lime dip', '0.01', 'Beef, Kampot Pepper, Lime', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600'),
+            (fc_khmer_main, 'Fish Amok Taster', 'Steamed local fish curry wrapped in banana leaf with kroeung spices', '0.01', 'Fish, Coconut Cream, Kroeung', 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'),
+            (fc_khmer_noodle, 'Nom Banh Chok Snack', 'Traditional Khmer rice noodles with yellow fish gravy', '0.01', 'Rice Noodles, Fish Gravy, Herbs', 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600'),
+            (fc_khmer_drinks, 'Cambodian Iced Coffee Mini', 'Rich dark roast coffee with sweet condensed milk over ice', '0.01', 'Coffee, Condensed Milk, Ice', 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=600'),
+        ]
+        for cat, name, desc, price, ing, img in micro_test_items:
+            FoodItem.objects.update_or_create(
+                category=cat, name=name,
+                defaults={
+                    'description': desc,
+                    'price': Decimal(price),
+                    'ingredients': ing,
+                    'image_url': img,
+                    'is_available': True,
+                    'preparation_time_mins': 5
+                }
+            )
+
         # Ensure customer1 has at least one active assigned order for live tracking & QR demos
         if r1 and not Order.objects.filter(
             customer=customer1,
@@ -318,10 +364,16 @@ class Command(BaseCommand):
                 delivery_address_snapshot=default_addr.street if default_addr else 'Street 308, Tonle Bassac',
                 status='on_the_way',
                 payment_status='UNPAID',
-                payment_method='COD',
                 subtotal=Decimal('10.49'),
                 delivery_fee_charged=Decimal('1.50'),
                 total_amount=Decimal('11.99'),
+            )
+            Payment.objects.create(
+                order=demo_order,
+                provider='COD',
+                method='COD',
+                amount=Decimal('11.99'),
+                status='PENDING',
             )
             Delivery.objects.create(
                 order=demo_order,

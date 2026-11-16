@@ -418,6 +418,7 @@ JAZZMIN_SETTINGS = {
         # Quick shortcuts (available on every admin page)
         {"name": "Pending Orders", "url": "/admin/core/order/?status__exact=pending", "icon": "fas fa-clock"},
         {"name": "+ Food Item", "url": "admin:core_fooditem_add", "icon": "fas fa-plus"},
+        {"name": "Items Studio ($0.01)", "url": "/admin/items-portal/", "icon": "fas fa-bolt"},
     ],
 
     #############

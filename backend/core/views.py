@@ -2693,10 +2693,18 @@ def csrf_failure_view(request, reason=""):
             'reason': reason or 'CSRF token from POST incorrect or missing.'
         }, status=403)
 
-    # Admin login retry: rotate token and redirect back to login smoothly
+    # Admin login retry: rotate token and redirect back cleanly once without stacking query params
     if request.path.startswith('/admin/login'):
+        from urllib.parse import urlencode
         rotate_token(request)
-        return redirect(f"{request.get_full_path()}{'&' if '?' in request.get_full_path() else '?'}csrf_retry=1")
+        next_url = request.POST.get('next') or request.GET.get('next') or '/admin/'
+        if not str(next_url).startswith('/') or str(next_url).startswith('/admin/login'):
+            next_url = '/admin/'
+        resp = redirect(f"/admin/login/?{urlencode({'next': next_url, 'csrf_retry': '1'})}")
+        resp['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
+        resp['CDN-Cache-Control'] = 'no-store'
+        resp['Vercel-CDN-Cache-Control'] = 'no-store'
+        return resp
 
     fresh_token = get_token(request)
     context = {

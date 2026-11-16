@@ -506,6 +506,113 @@ class AdminFeatureTestCase(APITestCase):
         self.assertIn('$3.00', price_html)
         self.assertIn('$4.50', price_html)
 
+    def test_admin_login_no_cache_and_csrf_headers(self):
+        """Admin login sets fresh CSRF token and strict CDN/browser anti-cache headers."""
+        from django.test import Client
+        client = Client()
+        resp = client.get('/admin/login/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('no-store', resp['Cache-Control'])
+        self.assertEqual(resp['CDN-Cache-Control'], 'no-store')
+        self.assertEqual(resp['Vercel-CDN-Cache-Control'], 'no-store')
+        self.assertIn('csrftoken', resp.cookies)
+        html = resp.content.decode('utf-8')
+        self.assertNotIn('admin123', html)
+
+    def test_admin_csrf_failure_rotates_without_auth_bypass(self):
+        """CSRF failure on /admin/login/ must not bypass CSRF auth; redirects cleanly with csrf_retry=1."""
+        from django.test import Client
+        csrf_client = Client(enforce_csrf_checks=True)
+        resp = csrf_client.post('/admin/login/', {
+            'username': 'admin_test',
+            'password': 'password123',
+            'next': '/admin/core/fooditem/',
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/admin/login/', resp['Location'])
+        self.assertIn('csrf_retry=1', resp['Location'])
+
+    def test_ephemeral_vercel_deterministic_password_prevents_login_loop(self):
+        """Running ensure_admin + seed_full_menu under VERCEL env keeps identical session auth hashes."""
+        import os
+        from unittest.mock import patch
+        from django.core.management import call_command
+
+        with patch.dict(os.environ, {'VERCEL': '1', 'MONGO_SYNC_ENABLED': 'false'}, clear=False):
+            os.environ.pop('DATABASE_URL', None)
+            call_command('ensure_admin')
+            admin1 = User.objects.get(username='admin')
+            hash_after_ensure = admin1.get_session_auth_hash()
+            pwd_after_ensure = admin1.password
+
+            call_command('seed_full_menu')
+            admin1.refresh_from_db()
+            self.assertEqual(admin1.password, pwd_after_ensure)
+            self.assertEqual(admin1.get_session_auth_hash(), hash_after_ensure)
+            self.assertTrue(admin1.check_password('admin123'))
+            # Seeded menu also provides >= 15 micro-priced $0.01 test items
+            self.assertGreaterEqual(FoodItem.objects.filter(price__lte=Decimal('0.05')).count(), 15)
+
+    def test_items_portal_requires_staff_auth(self):
+        """/items-portal/ and /admin/items-portal/ redirect anonymous users and render for staff."""
+        from django.test import Client
+        client = Client()
+        anon_resp = client.get('/items-portal/')
+        self.assertEqual(anon_resp.status_code, 302)
+        self.assertIn('/admin/login/', anon_resp['Location'])
+
+        client.force_login(self.admin)
+        staff_resp = client.get('/admin/items-portal/')
+        self.assertEqual(staff_resp.status_code, 200)
+        html = staff_resp.content.decode('utf-8')
+        self.assertIn('FoodGo Food Items Manager', html)
+        self.assertNotIn('admin123', html)
+        self.assertNotIn('owner123', html)
+
+    def test_admin_dashboard_quick_item_studio_actions(self):
+        """Embedded Admin Quick Studio handles single add, 15x $0.01 batch add, price update, toggle, and delete."""
+        from django.test import Client
+        FoodCategory.objects.create(restaurant=self.restaurant, name='Studio Burgers')
+        client = Client()
+        client.force_login(self.admin)
+
+        # Render dashboard with embedded studio
+        dash = client.get('/admin/')
+        self.assertEqual(dash.status_code, 200)
+        self.assertIn('quick-item-studio', dash.content.decode('utf-8'))
+
+        # Add single $0.01 item
+        res_add = client.post('/admin/', {
+            'quick_action': 'add_single_item',
+            'name': 'Studio Micro Burger',
+            'price': '0.01',
+            'is_halal': 'on',
+        })
+        self.assertEqual(res_add.status_code, 302)
+        created = FoodItem.objects.get(name='Studio Micro Burger')
+        self.assertEqual(created.price, Decimal('0.01'))
+
+        # Batch add 15 $0.01 items
+        res_batch = client.post('/admin/', {
+            'quick_action': 'batch_add_micro',
+            'count': '15',
+        })
+        self.assertEqual(res_batch.status_code, 302)
+        self.assertGreaterEqual(FoodItem.objects.filter(price=Decimal('0.01')).count(), 15)
+
+        # Toggle availability and delete single item
+        client.post('/admin/', {'quick_action': 'toggle_available', 'item_id': created.id})
+        created.refresh_from_db()
+        self.assertFalse(created.is_available)
+
+        client.post('/admin/', {'quick_action': 'delete_item', 'item_id': created.id})
+        self.assertFalse(FoodItem.objects.filter(id=created.id).exists())
+
+        # Purge $0.01 micro items
+        client.post('/admin/', {'quick_action': 'purge_micro_items'})
+        self.assertEqual(FoodItem.objects.filter(price__lte=Decimal('0.05')).count(), 0)
+
+
 
 
 

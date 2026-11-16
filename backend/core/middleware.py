@@ -49,8 +49,10 @@ class AdminNoCacheMiddleware:
 
         response = self.get_response(request)
 
-        if request.path.startswith('/admin/'):
+        if request.path.startswith('/admin'):
             response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
+            response['CDN-Cache-Control'] = 'no-store'
+            response['Vercel-CDN-Cache-Control'] = 'no-store'
             response['Pragma'] = 'no-cache'
             response['Expires'] = '0'
 

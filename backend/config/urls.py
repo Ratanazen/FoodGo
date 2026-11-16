@@ -8,6 +8,22 @@ from django.shortcuts import render, redirect
 def api_root(request):
     return render(request, 'core/api_root.html')
 
+def items_portal(request):
+    from rest_framework_simplejwt.tokens import AccessToken
+    portal_token = ''
+    portal_username = ''
+    if request.user.is_authenticated and request.user.is_staff:
+        portal_token = str(AccessToken.for_user(request.user))
+        portal_username = request.user.username
+    resp = render(request, 'core/items_portal.html', {
+        'portal_token': portal_token,
+        'portal_username': portal_username,
+    })
+    resp['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
+    resp['CDN-Cache-Control'] = 'no-store'
+    resp['Vercel-CDN-Cache-Control'] = 'no-store'
+    return resp
+
 def profile_redirect(request):
     if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
         return redirect('/admin/')
@@ -18,6 +34,11 @@ from core.auth_views import FoodGoTokenObtainPairView
 
 urlpatterns = [
     path('', api_root, name='api-root'),
+    path('items-portal/', admin.site.admin_view(items_portal), name='items-portal'),
+    path('items-portal', admin.site.admin_view(items_portal), name='items-portal-no-slash'),
+    path('portal/items/', admin.site.admin_view(items_portal), name='portal-items'),
+    path('portal/items', admin.site.admin_view(items_portal), name='portal-items-no-slash'),
+    path('admin/items-portal/', admin.site.admin_view(items_portal), name='admin-items-portal'),
     path('health/live', HealthLiveView.as_view(), name='health-live-no-slash'),
     path('health/live/', HealthLiveView.as_view(), name='health-live'),
     path('health/ready', HealthReadyView.as_view(), name='health-ready-no-slash'),
